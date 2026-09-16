@@ -1,2 +1,2 @@
 The Small Machine at the Edge of Night Webapp v1.2.3
-Renderer/source baseline: WebGL2 Material v2 with SurfaceFX coherence fixes
+SurfaceFX/FoliageFX lighting coherence and high-resolution hard-light occlusion fix
