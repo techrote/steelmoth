@@ -117,12 +117,12 @@ SM-502–504 may be included before SM-505 when they are needed to meet fidelity
 
 ## M6–M8 serialization/parallelism
 
-- SM-600 GTAO depends on stable depth/normal hierarchy and SM-307 visibility composition plus colour/material correctness; SM-601 follows it.
-- SM-602 SSGI depends on stable GTAO/depth-temporal infrastructure; SM-603 follows it.
-- SM-700 volumetrics may prototype after stable depth/DSO, but production/default-quality work should account for M6 budgets; SM-701 follows it.
-- SM-702 advanced transparent lighting depends on SM-400/401/402 plus stable GTAO/indirect interfaces and may overlap late volumetric polish.
-- SM-800 precision study, SM-801 render-bundle/static-submission study and SM-803 soak testing can run concurrently once the renderer is mature enough to profile. SM-800 G-buffer changes require coordination with every consumer.
-- SM-802 adaptive quality is last: trustworthy per-pass timing and stable static quality tiers/effect costs are prerequisites.
+- **SM-600** GTAO depends on stable depth/normal hierarchy, SM-307 visibility composition, **SM-502 colour correctness and SM-503 material semantics**; SM-601 follows it.
+- **SM-602** SSGI depends on stable SM-601 GTAO/depth-temporal infrastructure; SM-603 follows it.
+- **SM-700** volumetric flashlight work is deliberately serialized **after SM-603** so it reuses mature depth/temporal infrastructure and is designed against the measured remaining frame budget; SM-701 follows it.
+- **SM-702** advanced transparent lighting depends on SM-400/401/402 plus stable GTAO/indirect interfaces and may overlap late SM-701 polish once those interfaces are stable.
+- **SM-800** precision study, **SM-801** render-bundle/static-submission study and **SM-803** soak testing can run concurrently once the renderer is mature enough to profile. SM-800 G-buffer changes require coordination with every consumer.
+- **SM-802** adaptive quality is intentionally last and depends on trustworthy SM-500 timings, stable SM-501 static presets, SM-603 SSGI tiers and SM-701 volumetric tiers. It must not be used to hide an over-budget static renderer.
 
 ## Unsafe concurrency combinations
 
