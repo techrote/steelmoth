@@ -1,6 +1,6 @@
 # Steel Moth v1.2.3 baseline provenance
 
-Status: **authoritative v1.2.3 source distribution recovered and locally validated; repository source-tree import remains open pending binary-asset transfer**.
+Status: **authoritative v1.2.3 source distribution recovered and locally validated; repository source-tree import remains open only because this chat session cannot transport the multi-megabyte binary assets into GitHub**.
 
 ## Recovered artifact
 
@@ -120,6 +120,7 @@ The source-recovery uncertainty is resolved. The import branch now contains:
 
 - this provenance document;
 - the exact 94-file path/size/SHA manifest;
+- the exact baseline `WEBAPP_VERSION.txt`;
 - `tools/import_v123_archive.py`, which verifies the authoritative ZIP and internal checksums and imports it byte-for-byte into a repository checkout while preserving the programme-planning scaffold;
 - `tools/import_v123_and_push.ps1`, which performs the verified import, inherited validation, planning validation, commit and branch push in one repository-native workflow when run from a Git checkout with normal GitHub transport.
 
