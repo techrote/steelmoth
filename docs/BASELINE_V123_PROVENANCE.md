@@ -120,12 +120,15 @@ The source-recovery uncertainty is resolved. The import branch now contains:
 
 - this provenance document;
 - the exact 94-file path/size/SHA manifest;
-- `tools/import_v123_archive.py`, which verifies the authoritative ZIP and internal checksums and imports it byte-for-byte into a repository checkout while preserving the programme-planning scaffold.
+- `tools/import_v123_archive.py`, which verifies the authoritative ZIP and internal checksums and imports it byte-for-byte into a repository checkout while preserving the programme-planning scaffold;
+- `tools/import_v123_and_push.ps1`, which performs the verified import, inherited validation, planning validation, commit and branch push in one repository-native workflow when run from a Git checkout with normal GitHub transport.
 
 SM-000 is not yet complete until the full runnable source/assets are present in Git, a clean repository checkout is revalidated, the PR passes required checks, and the branch is merged.
 
 ### Current-session transport limitation
 
-The connected GitHub API surface can create UTF-8 repository files and Git blobs from inline payloads but does not expose a local-file upload parameter. The current execution container also has no outbound GitHub network path. Consequently this chat execution path cannot transfer the multi-megabyte local PNG blobs byte-for-byte to GitHub without impractical inline encoding. This is a **session/tool transport limitation**, not missing source and not a Steel Moth architecture blocker.
+The connected GitHub API surface can create UTF-8 repository files and Git blobs from inline payloads but does not expose a local-file upload parameter. The current execution container also has no outbound GitHub network path. A direct Git tree experiment confirmed that a locally computed Git blob SHA cannot be referenced until the blob bytes actually exist in GitHub (`422 ... is not a valid blob`).
 
-No partial source-tree PR should be merged merely to conceal this limitation. The import helper and exact manifest make a later binary-capable Git transport deterministic and auditable.
+Consequently this chat execution path cannot transfer the multi-megabyte local PNG blobs byte-for-byte to GitHub without impractical inline encoding. This is a **session/tool transport limitation**, not missing source and not a Steel Moth architecture blocker.
+
+No partial source-tree PR should be merged merely to conceal this limitation. The import helper, one-command PowerShell workflow, exact release manifest, and deterministic material-regeneration proof make the remaining binary-capable Git transfer deterministic and auditable.
