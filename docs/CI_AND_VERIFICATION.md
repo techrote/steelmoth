@@ -50,7 +50,7 @@ Validate a clean source ZIP/extraction without relying on the current checkout l
 python tools/validate_clean_package.py --report artifacts/clean-package.json
 ```
 
-The package check creates a temporary ZIP, rejects unsafe archive paths, and extracts into a fresh directory. It re-verifies the runtime/deployment subset of the inherited v1.2.3 `SHA256SUMS.txt`—the generated assets, engine/game data/icons, launcher and static-webapp entry/deployment files that still define the accepted compatibility baseline. Historical reports, documentation and validation tooling listed in the old release checksum file are intentionally allowed to evolve after import and are checked by their current tests rather than treated as immutable release bytes. The extracted copy then runs the v1.2.3 webapp, render-harness, and render-fixture validators.
+The package check creates a temporary ZIP, rejects unsafe archive paths, and extracts into a fresh directory. The inherited v1.2.3 `SHA256SUMS.txt` remains provenance for the original release, but migration work now intentionally changes runtime code. Clean-package validation therefore re-verifies only the imported **immutable content subset**—generated assets, game data, icons, the launcher and minimal static-host files—against those historical hashes. Evolving engine/webapp/backend modules, manifests, documentation and tooling are validated by the current source/regression/GLSL/package gates instead of being incorrectly required to remain byte-identical to v1.2.3 forever. The extracted copy then runs the current webapp, Render Scene contract, render-harness and render-fixture validators.
 
 SM-002's `render-tests/fixtures/harness-smoke.json` is an intentional auxiliary harness fixture and is validated separately by `validate_render_harness.py`; the SM-001 corpus manifest remains the authority for its 16 regression fixtures.
 
@@ -58,7 +58,7 @@ SM-002's `render-tests/fixtures/harness-smoke.json` is an intentional auxiliary 
 
 `.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has three independent jobs:
 
-1. **source + deterministic regression** — Python compile check, Node syntax checks, planning, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material, and inherited coherence regressions;
+1. **source + deterministic regression** — Python compile check, Node syntax checks, planning, Render Scene contract/bridge, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material, and inherited coherence regressions;
 2. **GLSL + MRT software validation** — production GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
 3. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation.
 
@@ -96,7 +96,7 @@ Hosted CI must not be used as evidence for:
 
 Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505.
 
-The current v1.2.3 baseline has no production WebGPU backend or WGSL modules, so SM-005 does not create a fake WebGPU test. SM-102/SM-104 must register real production WGSL/API tests once those resources exist. Hosted execution is acceptable for API/resource correctness only when the environment actually supports the tested path; otherwise the limitation must be reported explicitly.
+The current migration still has no production WebGPU/WGSL backend, so SM-100 does not create a fake WebGPU test. SM-102/SM-104 must register real production WGSL/API tests once those resources exist. Hosted execution is acceptable for API/resource correctness only when the environment actually supports the tested path; otherwise the limitation must be reported explicitly.
 
 ## Extending the gate
 
