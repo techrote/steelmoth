@@ -43,6 +43,33 @@ jobs:
           path: artifacts/*.json
           if-no-files-found: warn
 
+  webgl2-transform-parity:
+    name: WebGL2 root-transform browser pixel parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-101 pixel parity' >&2; exit 1; fi
+      - name: Compare pre-SM-101 and shared-transform WebGL2 captures
+        run: python tools/validate_render_transform_browser.py --report artifacts/render-transform-browser.json --out artifacts/render-transform-browser
+      - name: Upload before-after browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: render-transform-browser-${{ github.run_id }}
+          path: |
+            artifacts/render-transform-browser.json
+            artifacts/render-transform-browser/**
+          if-no-files-found: warn
+
   glsl-software:
     name: GLSL + MRT software validation
     runs-on: ubuntu-latest
