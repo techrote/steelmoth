@@ -42,10 +42,12 @@ def main():
             cssw=max(160,round(a.width/a.dpr)); cssh=max(90,round(a.height/a.dpr))
             with tempfile.TemporaryDirectory(prefix='steelmoth-chrome-') as profile:
                 # Chrome 152 no longer automatically falls back to software WebGL
-                # in headless environments. These are trusted, local deterministic
-                # fixtures, so explicitly allow SwiftShader rather than accepting a
-                # timeout or silently treating a non-render as parity evidence.
-                cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--enable-webgl','--enable-unsafe-swiftshader',f'--user-data-dir={profile}',f'--force-device-scale-factor={a.dpr}',f'--window-size={cssw},{cssh}','--virtual-time-budget=6000',f'--screenshot={shot}','--dump-dom',url]
+                # on GPU-less bots. These are trusted localhost fixtures, so force
+                # SwANGLE/SwiftShader explicitly. Chrome's own --timeout bounds the
+                # screenshot/DOM operation; the subprocess timeout remains a final
+                # guard against a wedged browser process.
+                capture_timeout_ms=max(1000,int(max(1,a.browser_timeout-8)*1000))
+                cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader',f'--timeout={capture_timeout_ms}',f'--user-data-dir={profile}',f'--force-device-scale-factor={a.dpr}',f'--window-size={cssw},{cssh}','--virtual-time-budget=6000',f'--screenshot={shot}','--dump-dom',url]
                 proc=subprocess.Popen(cmd,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
                 try:
                     stdout,stderr=proc.communicate(timeout=a.browser_timeout)
@@ -62,6 +64,7 @@ def main():
                 return 2
             result=parse_result(cp.stdout)
             if not result.get('ok'): raise RuntimeError(result.get('error','render harness failed'))
+            if not shot.is_file() or shot.stat().st_size<64: raise RuntimeError('Chromium did not produce a usable viewport screenshot')
             (run_dir/'diagnostics.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n',encoding='utf-8')
             (run_dir/'performance.json').write_text(json.dumps(result.get('performance',{}),indent=2,sort_keys=True)+'\n',encoding='utf-8')
             h=hashlib.sha256(shot.read_bytes()).hexdigest(); hashes.append(h); results.append(result)
