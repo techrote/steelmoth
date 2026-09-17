@@ -35,7 +35,7 @@ def main():
         for i in range(a.repeat):
             run_dir=a.out/(f'run-{i+1:02d}' if a.repeat>1 else '.'); run_dir.mkdir(parents=True,exist_ok=True)
             query=urllib.parse.urlencode({'renderTest':1,'fixture':a.fixture,'backend':a.backend,'quality':a.quality,'width':a.width,'height':a.height,'dpr':a.dpr,'lightAngle':a.angle,'seed':a.seed,'fixedTimeMs':a.fixed_time_ms})
-            url=f'http://127.0.0.1:{port}/?{query}'; shot=(run_dir/'capture.png').resolve()
+            url=f'http://127.0.0.1:{port}/render-test.html?{query}'; shot=(run_dir/'capture.png').resolve()
             cssw=max(160,round(a.width/a.dpr)); cssh=max(90,round(a.height/a.dpr))
             with tempfile.TemporaryDirectory(prefix='steelmoth-chrome-') as profile:
                 cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--enable-webgl',f'--user-data-dir={profile}',f'--force-device-scale-factor={a.dpr}',f'--window-size={cssw},{cssh}','--virtual-time-budget=6000',f'--screenshot={shot}','--dump-dom',url]
