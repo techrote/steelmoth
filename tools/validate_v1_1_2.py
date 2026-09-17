@@ -26,7 +26,7 @@ assert max_z<32, max_z
 # v1.1.1 bug put atlas-height values around 140-170 into a logical-pixel projection.
 assert max_z<40
 
-# Aligned material atlas contract.
+# Aligned legacy material atlas contract retained by the v1.2.3 compatibility baseline.
 imgs=[Image.open(ROOT/'assets/generated'/fn).convert('RGBA') for fn in ('sprite_runtime_atlas.png','sprite_bumpmap.png','sprite_specularmap.png')]
 assert len({im.size for im in imgs})==1 and imgs[0].size==(4096,4096)
 for n in profiles:
@@ -35,8 +35,11 @@ for n in profiles:
     assert alphas[0]==alphas[1]==alphas[2],n
 
 js=(ROOT/'engine/game.js').read_text()
-assert "version:'1.2.2'" in js
-assert "macro grounded-sectioned-silhouette-v1.1.2 + Material-v2 pseudo-depth self/contact shadows" in js
+# This is a retained v1.1.2 shadow-contract regression, not a release-version pin.
+# The current baseline is v1.2.3 and its diagnostic wording evolved while retaining
+# the grounded sectioned-silhouette data/projection path validated below.
+assert "version:'1.2.3'" in js
+assert "shadowModel:'Material-v2 flashlight pseudo-depth self/contact shadows + supersampled macro secondary-light shadows'" in js
 assert 'height_ratio??.72' in js
 assert 'profile.height_px' not in js
 assert 'raycastHardLightDistance' in js
@@ -59,4 +62,4 @@ for n in wall_names:
     if p:
         assert not p.get('hard_light_occluder',False),(n,'unexpected hard beam cut')
 
-print(f'V1.1.2 TERRAIN SHADOW PASS: {len(profiles)} sectioned profiles; max sampled world height={max_z:.2f}px; material alpha alignment exact')
+print(f'V1.1.2 TERRAIN SHADOW PASS: {len(profiles)} sectioned profiles retained in v1.2.3; max sampled world height={max_z:.2f}px; material alpha alignment exact')
