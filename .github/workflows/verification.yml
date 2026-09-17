@@ -43,6 +43,31 @@ jobs:
           path: artifacts/*.json
           if-no-files-found: warn
 
+  webgpu-api-smoke:
+    name: WebGPU lifecycle browser smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-102 browser API smoke' >&2; exit 1; fi
+      - name: Exercise staged Auto policy, browser capability detection and deliberate fallback
+        run: python tools/validate_webgpu_browser.py --report artifacts/webgpu-browser-smoke.json
+      - name: Upload WebGPU lifecycle browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgpu-browser-smoke-${{ github.run_id }}
+          path: artifacts/webgpu-browser-smoke.json
+          if-no-files-found: warn
+
   webgl2-transform-parity:
     name: WebGL2 root-transform browser pixel parity
     runs-on: ubuntu-latest
@@ -121,7 +146,7 @@ jobs:
           path: artifacts/clean-package.json
           if-no-files-found: warn
 
-# WebGPU/WGSL browser API validation is intentionally not fabricated here.
-# The current v1.2.3 baseline has no production WebGPU backend. SM-102/SM-104
-# will add production WGSL/API checks and may extend this workflow only where
-# the hosted environment can produce semantically meaningful correctness data.
+# SM-102 adds real browser/API lifecycle smoke plus deterministic fake-device tests.
+# Hosted success remains API/fallback correctness evidence only, not target-GPU
+# performance or Chrome/Firefox target-machine compatibility. SM-104 will extend
+# this surface with real production WGSL/resource/pipeline validation.
