@@ -21,6 +21,7 @@ Do not silently promote a historical suggestion into a requirement.
 - [`BASELINE_V123_AUDIT.md`](BASELINE_V123_AUDIT.md) — SM-004 source-level classification of the imported v1.2.3 renderer contracts and migration implications.
 - [`MASTER_WEBGPU_PROGRAMME.md`](MASTER_WEBGPU_PROGRAMME.md) — programme goals, M0–M8 decomposition, task codes and release gates.
 - [`WEBGPU_ARCHITECTURE.md`](WEBGPU_ARCHITECTURE.md) — backend boundaries, scene representation, G-buffer, pseudo-depth ownership, clustering/DSO/Dark Bloom architecture.
+- [`RENDER_SCENE_DESCRIPTION.md`](RENDER_SCENE_DESCRIPTION.md) — implemented SM-100 RenderScene/Sprite/Material/Light/Occluder/Procedural record schemas, identity rules and WebGL2 compatibility adapter boundary.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
@@ -61,4 +62,6 @@ SM-004 audited the imported v1.2.3 renderer rather than relying on conversation 
 
 SM-005 establishes the repository-native automated verification surface. Hosted checks deliberately separate deterministic source/API correctness from browser/hardware/performance claims; those remain owned by their explicit hardware/visual gates.
 
-Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, the SM-004 audit, and current verification reports.
+SM-100 introduces the first backend-neutral renderer boundary. `engine/render_scene.js` defines typed per-frame renderer records and `engine/webgl2_scene_adapter.js` makes the existing WebGL2 renderer consume that description through compatibility replay. This does not resolve the audited root/foot debt or invent fragment ownership depth; SM-101 and SM-201/202 retain those responsibilities.
+
+Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, the SM-004 audit, implemented subsystem contracts, and current verification reports.
