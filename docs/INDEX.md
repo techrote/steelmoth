@@ -18,6 +18,7 @@ Do not silently promote a historical suggestion into a requirement.
 ## Canonical documents
 
 - [`RAG_REFERENCE_STEELMOTH.md`](RAG_REFERENCE_STEELMOTH.md) — reconciled prior-development context, known baseline history, provenance and unresolved facts.
+- [`BASELINE_V123_AUDIT.md`](BASELINE_V123_AUDIT.md) — SM-004 source-level classification of the imported v1.2.3 renderer contracts and migration implications.
 - [`MASTER_WEBGPU_PROGRAMME.md`](MASTER_WEBGPU_PROGRAMME.md) — programme goals, M0–M8 decomposition, task codes and release gates.
 - [`WEBGPU_ARCHITECTURE.md`](WEBGPU_ARCHITECTURE.md) — backend boundaries, scene representation, G-buffer, pseudo-depth ownership, clustering/DSO/Dark Bloom architecture.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
@@ -26,14 +27,14 @@ Do not silently promote a historical suggestion into a requirement.
 - [`RESEARCH_AND_DECISIONS.md`](RESEARCH_AND_DECISIONS.md) — external research findings, assumptions, ADR-style decisions and unresolved questions.
 - [`ISSUE_MAP.md`](ISSUE_MAP.md) — canonical task-code → GitHub issue-number map. Task codes/dependency docs define order; issue-number order does not.
 - [`ISSUE_SET_REVIEW_2026-09-16.md`](ISSUE_SET_REVIEW_2026-09-16.md) — two independent issue-set reviews, defects found, and corrections applied.
-- [`EXECUTION_LEDGER.md`](EXECUTION_LEDGER.md) — durable record of planning/reconciliation stages, blockers and future implementation checkpoints.
+- [`EXECUTION_LEDGER.md`](EXECUTION_LEDGER.md) — durable record of planning/reconciliation stages, blockers and implementation checkpoints.
 
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
-- `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented PR template.
-- `.github/ISSUE_TEMPLATE/autonomous-implementation.md` — issue template matching the programme's required structure.
-- GitHub issue **#51** — top-level execution checklist for all 50 task issues.
+- `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented implementation PR contract.
+- `.github/ISSUE_TEMPLATE/autonomous-implementation.md` — future task template matching programme structure.
+- GitHub issue **#51** — top-level execution tracker/checklist.
 
 ## Status vocabulary
 
@@ -50,4 +51,8 @@ Use these words consistently:
 
 ## Current repository state
 
-As first inspected on 2026-09-16, `techrote/steelmoth` was empty. Therefore all implementation claims from earlier development conversations are historical context until the v1.2.3 baseline is imported and validated in this repository. Planning/workflow artifacts created since that inspection do not change the implementation-source blocker.
+The repository is no longer source-blocked. SM-000 imported and provenance-verified the authoritative v1.2.3 WebGL2/Material-v2 baseline. SM-002 added the deterministic capture/diagnostics harness, and SM-001 added the durable visual-reference/fixture corpus and adapter integration.
+
+SM-004 audited the imported v1.2.3 renderer rather than relying on conversation memory. The authoritative baseline implementation reconciliation is `BASELINE_V123_AUDIT.md`. In particular, current WebGL2 G2.R is local Material-v2 height rather than final fragment ownership depth, and root/foot authority is only partially centralized; downstream WebGPU issues must follow the audited dependency chain rather than treating historical shorthand as current implementation fact.
+
+Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, and the SM-004 audit.
