@@ -55,22 +55,39 @@
     return{x:q.root.x,y:q.root.y,rootX:q.root.normalized[0],rootY:q.root.normalized[1],fullW:q.frame.fullW,fullH:q.frame.fullH};
   }
 
-  function shadowFootRect(meta,rootX,rootY,w,h,fw=null,fh=null){
-    rootX=finite(rootX);rootY=finite(rootY);w=finite(w);h=finite(h);
+  function shadowFootRect(meta,contactX,contactY,w,h,fw=null,fh=null){
+    contactX=finite(contactX);contactY=finite(contactY);w=finite(w);h=finite(h);
     const foot=meta?.shadow_profile?.footprint;
-    if(foot)return[rootX+w*finite(foot.left,-.25),rootY+h*finite(foot.top,-.16),rootX+w*finite(foot.right,.25),rootY+h*finite(foot.bottom,0)];
+    if(foot)return[contactX+w*finite(foot.left,-.25),contactY+h*finite(foot.top,-.16),contactX+w*finite(foot.right,.25),contactY+h*finite(foot.bottom,0)];
     const footW=Math.max(3,finite(fw,0)||w*finite(meta?.shadow_foot_width_factor??meta?.collision_width_factor,.52)),footH=Math.max(2.5,finite(fh,0)||h*finite(meta?.shadow_foot_height_factor??meta?.collision_height_factor,.14));
-    return[rootX-footW*.5,rootY-footH,rootX+footW*.5,rootY];
+    return[contactX-footW*.5,contactY-footH,contactX+footW*.5,contactY];
   }
 
-  function shadowSections(meta,rootX,rootY,w,h){
-    const out=[],profile=meta?.shadow_profile||{},foot=profile.footprint||{},groundY=finite(rootY)+finite(h)*((finite(foot.top,-.16)+finite(foot.bottom,0))*.5),heightWorld=Math.max(2,finite(h)*clamp(finite(profile.height_ratio,.72),.04,1.2));
-    const pushSpan=(span,alt)=>{const left=finite(rootX)+finite(w)*finite(span.left,-.2),right=finite(rootX)+finite(w)*finite(span.right,.2);if(right-left<1.25)return;out.push({a:[left,groundY],b:[right,groundY],alpha:clamp(finite(span.alpha,1),.15,1.25),extend:clamp(finite(span.extend,1),.5,2),altitude:alt,z:heightWorld*alt})};
+  function shadowSections(meta,contactX,contactY,w,h){
+    const out=[],profile=meta?.shadow_profile||{},foot=profile.footprint||{},groundY=finite(contactY)+finite(h)*((finite(foot.top,-.16)+finite(foot.bottom,0))*.5),heightWorld=Math.max(2,finite(h)*clamp(finite(profile.height_ratio,.72),.04,1.2));
+    const pushSpan=(span,alt)=>{const left=finite(contactX)+finite(w)*finite(span.left,-.2),right=finite(contactX)+finite(w)*finite(span.right,.2);if(right-left<1.25)return;out.push({a:[left,groundY],b:[right,groundY],alpha:clamp(finite(span.alpha,1),.15,1.25),extend:clamp(finite(span.extend,1),.5,2),altitude:alt,z:heightWorld*alt})};
     if(Array.isArray(profile.slices)&&profile.slices.length){for(const slice of profile.slices){const alt=clamp(finite(slice.altitude,0),0,1);for(const span of slice.spans||[])pushSpan(span,alt)}}
     else if(Array.isArray(profile.segments)&&profile.segments.length){for(const seg of profile.segments)pushSpan(seg,clamp(finite(seg.altitude,0),0,1))}
     if(out.length)return out;
-    const r=shadowFootRect(meta,rootX,rootY,w,h),cy=(r[1]+r[3])*.5;
+    const r=shadowFootRect(meta,contactX,contactY,w,h),cy=(r[1]+r[3])*.5;
     return[{a:[r[0],cy],b:[r[2],cy],alpha:1,extend:1,altitude:0,z:0}];
+  }
+
+  // Shadow silhouettes historically used a visual-bottom/contact point that was
+  // sometimes offset from Material-v2 root metadata (notably robot footprints).
+  // Preserve that visual contact as an explicit offset while making the sprite
+  // root itself canonical. Later shadow/depth work can therefore consume one root
+  // authority without silently shifting accepted v1.2.3 shadows.
+  function shadowPlacement(art,name,opts={}){
+    const q=resolve(art,name,opts),meta=art?.regionMeta?.(name)||{},w=finite(opts.w),h=finite(opts.h),cx=Number.isFinite(Number(opts.contactX))?Number(opts.contactX):q.root.x,cy=Number.isFinite(Number(opts.contactY))?Number(opts.contactY):q.root.y;
+    return {
+      transform:q,
+      root:{...q.root},
+      contact:{x:cx,y:cy},
+      contactOffset:{x:cx-q.root.x,y:cy-q.root.y},
+      rect:shadowFootRect(meta,cx,cy,w,h,opts.footW,opts.footH),
+      sections:shadowSections(meta,cx,cy,w,h)
+    };
   }
 
   function editorBounds(art,name,x,y,bottomAnchor=false,scale=1){
@@ -81,5 +98,5 @@
     return{x0:b.left,y0:b.top,x1:b.right,y1:b.bottom,w,h,root:resolve(art,name,{x,y,w,h,anchor:bottomAnchor?'bottom':'center'}).root};
   }
 
-  return{SCHEMA,rootMetadata,sourceRegion,frameBounds,resolve,legacyFootAnchor,shadowFootRect,shadowSections,editorBounds};
+  return{SCHEMA,rootMetadata,sourceRegion,frameBounds,resolve,legacyFootAnchor,shadowFootRect,shadowSections,shadowPlacement,editorBounds};
 });
