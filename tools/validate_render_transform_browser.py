@@ -10,7 +10,10 @@ DEFAULT_CASES=(('box-pair',45),('dense-mixed',225))
 def read(path:Path): return json.loads(path.read_text(encoding='utf-8'))
 
 def run_capture(fixture:str,angle:int,out:Path,baseline:bool)->dict:
-    cmd=[sys.executable,str(CAPTURE),'--fixture',fixture,'--angle',str(angle),'--repeat','2','--quality','high','--out',str(out),'--browser-timeout','30']
+    # Hosted Chrome may initialize SwiftShader substantially more slowly than a
+    # workstation GL adapter. Keep the per-capture timeout bounded but large enough
+    # to distinguish slow initialization from a genuine missing render result.
+    cmd=[sys.executable,str(CAPTURE),'--fixture',fixture,'--angle',str(angle),'--repeat','2','--quality','high','--out',str(out),'--browser-timeout','60']
     if baseline: cmd.append('--render-transform-baseline')
     p=subprocess.run(cmd,cwd=ROOT,text=True,capture_output=True)
     if p.returncode:
