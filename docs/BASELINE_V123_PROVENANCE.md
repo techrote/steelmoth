@@ -1,6 +1,6 @@
 # Steel Moth v1.2.3 baseline provenance
 
-Status: **authoritative v1.2.3 source distribution recovered, imported to Git, and locally validated; pending PR/check/merge completion of SM-000**.
+Status: **authoritative v1.2.3 source distribution recovered, imported to Git, locally validated, and merged to `main` by PR #52**.
 
 ## Recovered artifact
 
@@ -55,8 +55,6 @@ Release files copied: 94
 Repository copy verification: PASS
 ```
 
-The import was then committed and pushed to `sm-000-import-v123`.
-
 Critical Git-blob verification was repeated from GitHub after the push. The remote blob SHAs match locally computed Git blob SHAs from the authoritative ZIP for the main runtime/material assets, including:
 
 ```text
@@ -79,7 +77,7 @@ engine/game.js
 d25a448a753d9477974bfa2eb9118e7e086b485c
 ```
 
-The Windows launcher was initially normalized from CRLF to LF by the local Git checkout. That was corrected on the import branch using the exact archive text/CRLF bytes; its remote Git blob SHA is now the authoritative raw-file SHA `c8178edb9875262a6aa536fcd76d24b91406adaa`.
+The Windows launcher was initially normalized from CRLF to LF by the local Git checkout. That was corrected on the import branch using the exact archive text/CRLF bytes; its Git blob SHA is the authoritative raw-file SHA `c8178edb9875262a6aa536fcd76d24b91406adaa`.
 
 ## Generated-material reproducibility check
 
@@ -123,7 +121,7 @@ It explicitly preserves Material-v2 MRT/deferred lighting, height self-shadow/co
 
 ## Validation rerun
 
-The following checks were rerun successfully against the authoritative ZIP/import workflow before the pushed commit:
+The following checks were rerun successfully against the authoritative ZIP/import workflow before merge:
 
 ### JavaScript syntax
 
@@ -144,7 +142,7 @@ The following checks were rerun successfully against the authoritative ZIP/impor
 - `python3 tools/validate_ghost_material_v120.py` — PASS
 - `python3 tools/validate_webapp_v120.py` — PASS
 - `python3 tools/validate_glsl_v120.py` — PASS
-- `python3 tools/validate_planning.py` — PASS before commit/push in the repository workflow.
+- `python3 tools/validate_planning.py` — PASS in the local import workflow.
 
 The GLSL validator reported OpenGL ES 3.2 Mesa/llvmpipe and successfully compiled/linked **26 production GLSL programs**, including float MRT and RGBA8 fallback framebuffer checks.
 
@@ -154,6 +152,6 @@ The inherited `VALIDATION_v1.2.3.txt` correctly states that the managed validati
 
 Those remain separate work in SM-001/002/003 and later WebGPU gates.
 
-## SM-000 remaining gate
+## SM-000 completion
 
-Source recovery, binary transfer, and repository import are complete. SM-000 remains open only until the import PR is reviewed, required checks are inspected, the branch is merged to `main`, the merge is verified, and issue #1 is closed. No partial or reconstructed baseline is being substituted.
+PR #52 was squash-merged to `main` at commit `089d7a34ceae1b12c72b6426b38be410e087d50e`; issue #1 closed automatically as completed. The former source-recovery/binary-transfer blocker is resolved. SM-000 does not claim any WebGPU migration work or target-hardware performance result.
