@@ -1,0 +1,11 @@
+{
+  "schema": "steelmoth-render-fixture/v1",
+  "id": "harness-smoke",
+  "description": "SM-002 harness smoke fixture using room zero with isolated save state and dynamic actors suppressed.",
+  "room": {"index": 0},
+  "state": {"completed": [], "collectibles": [], "companions": [], "released": []},
+  "player": {"x": 320, "y": 160, "visible": false},
+  "render": {"hideDynamicActors": true},
+  "diagnostic": {"ambient": 0.18, "coneIntensity": 1.35, "coneRange": 260, "omniIntensity": 0.0},
+  "graphics": {"bloom": false, "vignette": 0.0, "gradeMix": 0.0}
+}
