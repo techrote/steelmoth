@@ -4,7 +4,7 @@ The v1.2.3 baseline now exposes a browser-native capture harness for repeatable 
 
 ## URL contract
 
-Enable with `?renderTest=1`. Supported parameters:
+Open `render-test.html?renderTest=1`. The production `index.html` is unchanged; the bootstrap fetches it and injects the harness immediately before `game.js`. Supported parameters:
 
 | Parameter | Meaning | Default |
 | --- | --- | --- |
