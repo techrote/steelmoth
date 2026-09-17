@@ -1,6 +1,6 @@
 # CI and verification
 
-Steel Moth uses one stable cross-platform verification runner plus focused package and GLSL jobs. The goal is to automate repository/source correctness without pretending hosted software rendering is target-hardware evidence.
+Steel Moth uses one stable cross-platform verification runner plus focused package, GLSL and bounded browser-parity jobs. The goal is to automate repository/source correctness without pretending hosted software rendering is target-hardware evidence.
 
 ## Local entrypoints
 
@@ -10,7 +10,7 @@ Install Python validation dependencies:
 python -m pip install -r tools/requirements-ci.txt
 ```
 
-Node.js is required only for JavaScript syntax checks. Node 24 is the CI reference version.
+Node.js is required for JavaScript syntax/contract checks. Node 24 is the CI reference version.
 
 Run the normal source + deterministic regression gate:
 
@@ -30,74 +30,79 @@ Write the same machine-readable report used by CI:
 python tools/run_checks.py --group source --group regression --report artifacts/core-checks.json
 ```
 
-List registered checks:
-
-```text
-python tools/run_checks.py --list
-```
-
 Run the Mesa/EGL GLSL + framebuffer gate when local EGL/OpenGL ES libraries are available:
 
 ```text
 python tools/run_checks.py --group glsl --report artifacts/glsl-checks.json
 ```
 
-On Linux CI this runs with `EGL_PLATFORM=surfaceless` and `LIBGL_ALWAYS_SOFTWARE=1`. Passing this proves shader compile/link and framebuffer-format correctness in the tested Mesa software environment only. It is not GTX 1650 Super performance or browser evidence.
+On Linux CI this runs with `EGL_PLATFORM=surfaceless` and `LIBGL_ALWAYS_SOFTWARE=1`. Passing proves shader compile/link and framebuffer-format correctness in the tested Mesa software environment only. It is not GTX 1650 Super performance or browser-hardware evidence.
 
-Validate a clean source ZIP/extraction without relying on the current checkout layout:
+Validate a clean source ZIP/extraction:
 
 ```text
 python tools/validate_clean_package.py --report artifacts/clean-package.json
 ```
 
-The package check creates a temporary ZIP, rejects unsafe archive paths, and extracts into a fresh directory. The inherited v1.2.3 `SHA256SUMS.txt` remains provenance for the original release, but migration work now intentionally changes runtime code. Clean-package validation therefore re-verifies only the imported **immutable content subset**—generated assets, game data, icons, the launcher and minimal static-host files—against those historical hashes. Evolving engine/webapp/backend modules, manifests, documentation and tooling are validated by the current source/regression/GLSL/package gates instead of being incorrectly required to remain byte-identical to v1.2.3 forever. The extracted copy then runs the current webapp, Render Scene contract, render-harness and render-fixture validators.
+The inherited v1.2.3 `SHA256SUMS.txt` remains provenance for the original release, but migration work intentionally changes runtime code. Clean-package validation therefore re-verifies only the imported immutable content subset—generated assets, game data, icons, the launcher and minimal static-host files—against historical hashes. Evolving engine/webapp/backend modules, manifests, documentation and tooling are validated by current source/regression/GLSL/package gates instead of being required to remain byte-identical to v1.2.3.
 
-SM-002's `render-tests/fixtures/harness-smoke.json` is an intentional auxiliary harness fixture and is validated separately by `validate_render_harness.py`; the SM-001 corpus manifest remains the authority for its 16 regression fixtures.
+### SM-101 browser pixel-parity gate
+
+When Chrome/Chromium is available, run:
+
+```text
+python tools/validate_render_transform_browser.py \
+  --report artifacts/render-transform-browser.json \
+  --out artifacts/render-transform-browser
+```
+
+This gate captures two representative deterministic fixtures (`box-pair` at 45° and `dense-mixed` at 225°) twice in each of two modes from the same checkout:
+
+- **baseline-sm100** — test-only recreation of the immediately-pre-SM-101 SM-100 renderer boundary;
+- **shared-sm101** — normal shared-transform integration.
+
+For each case it requires both the canvas PNG SHA-256 and the headless-browser viewport screenshot SHA-256 to be deterministic and byte-identical before versus after SM-101. The test-only baseline mode is accepted only when `renderTest=1`; normal gameplay cannot select it. CI uploads the report and both sets of capture evidence.
+
+This is strong before/after visual-regression evidence for the root/foot refactor in one controlled browser environment. It is **not** evidence of target-GPU timing, broad browser compatibility, or final human visual approval.
+
+SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxiliary harness fixture. The SM-001 corpus manifest remains authority for its 16 regression fixtures.
 
 ## CI workflow
 
-`.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has three independent jobs:
+`.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has four independent jobs:
 
-1. **source + deterministic regression** — Python compile check, Node syntax checks, planning, Render Scene contract/bridge, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material, and inherited coherence regressions;
-2. **GLSL + MRT software validation** — production GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
-3. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation.
+1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene and SM-101 RenderTransform contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
+2. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for the representative SM-101 fixtures, with screenshot artifacts retained;
+3. **GLSL + MRT software validation** — production GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
+4. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation including current RenderScene/RenderTransform contracts.
 
-Each job writes structured JSON under `artifacts/` and uploads it with `actions/upload-artifact` even when an earlier validation step fails where possible.
+Each job writes structured evidence under `artifacts/` and uploads it even when an earlier validation step fails where possible.
 
 ## Failure diagnostics contract
 
-`tools/run_checks.py` records, for every check:
-
-- stable check name and group;
-- exact argument-vector command;
-- exit code;
-- duration;
-- captured stdout;
-- captured stderr.
-
-The runner includes a non-mutating deliberate failure probe:
+`tools/run_checks.py` records stable check name/group, exact command, exit code, duration, captured stdout and captured stderr. Its non-mutating deliberate failure probe is:
 
 ```text
 python tools/run_checks.py --self-test-failure --report artifacts/failure-probe.json
 ```
 
-The probe launches a child command that exits with code 17 and confirms that both stdout and stderr plus the return code are retained. The probe itself returns success only when the failure evidence is actionable. CI runs this after the core gate, including on failed runs, so the reporting mechanism is continuously checked without intentionally breaking repository files.
+The probe launches a child command that exits 17 and verifies both output streams plus the return code are retained. CI runs it after the core gate, including on failed runs.
 
 ## What CI does not prove
 
 Hosted CI must not be used as evidence for:
 
 - GTX 1650 Super GPU time, utilization, or memory behaviour;
-- 1080p/60 performance acceptance;
-- human visual parity or final screenshot approval;
+- 1080p/60 target-hardware performance acceptance;
+- human final screenshot/art-direction approval;
 - Chrome/Firefox hardware WebGPU support;
 - device-loss behaviour on a real target adapter;
 - authoritative moving-light visual quality.
 
-Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505.
+Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505. The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only.
 
-The current migration still has no production WebGPU/WGSL backend, so SM-100 does not create a fake WebGPU test. SM-102/SM-104 must register real production WGSL/API tests once those resources exist. Hosted execution is acceptable for API/resource correctness only when the environment actually supports the tested path; otherwise the limitation must be reported explicitly.
+The current migration still has no production WebGPU/WGSL backend. SM-102/SM-104 must register real production WGSL/API tests once those resources exist; no fake WebGPU pass is accepted.
 
 ## Extending the gate
 
-Future issues should add deterministic checks to `tools/run_checks.py` when they are fast and repository-native. Retained historical regression scripts must validate the retained contract rather than pinning an obsolete intermediate release-version string. Hardware/browser tests should remain separate unless a runner can execute them meaningfully. Do not hide a hardware requirement inside a software-CI pass.
+Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness, as SM-101 does for screenshot parity.
