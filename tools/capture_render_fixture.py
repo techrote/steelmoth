@@ -57,7 +57,7 @@ def main():
     try:
         for i in range(a.repeat):
             run_dir=a.out/(f'run-{i+1:02d}' if a.repeat>1 else '.'); run_dir.mkdir(parents=True,exist_ok=True)
-            query_data={'renderTest':1,'fixture':a.fixture,'backend':a.backend,'quality':a.quality,'width':a.width,'height':a.height,'dpr':a.dpr,'lightAngle':a.angle,'seed':a.seed,'fixedTimeMs':a.fixed_time_ms}
+            query_data={'renderTest':1,'includeCanvasData':1,'fixture':a.fixture,'backend':a.backend,'quality':a.quality,'width':a.width,'height':a.height,'dpr':a.dpr,'lightAngle':a.angle,'seed':a.seed,'fixedTimeMs':a.fixed_time_ms}
             if a.render_transform_baseline: query_data['renderTransformBaseline']=1
             query=urllib.parse.urlencode(query_data);url=f'http://127.0.0.1:{server_port}/render-test.html?{query}'
             shot=(run_dir/'capture.png').resolve();canvas_shot=(run_dir/'canvas.png').resolve();cssw=max(160,round(a.width/a.dpr));cssh=max(90,round(a.height/a.dpr))
@@ -87,10 +87,11 @@ def main():
                         if not text: raise RuntimeError('renderTestResult not found after readiness signal')
                         result=json.loads(text)
                         if not result.get('ok'): raise RuntimeError(result.get('error','render harness failed'))
-                        canvas_url=cdp.eval("document.getElementById('game').toDataURL('image/png')")
-                        if not isinstance(canvas_url,str) or ',' not in canvas_url: raise RuntimeError('canvas PNG data unavailable')
-                        canvas_bytes=base64.b64decode(canvas_url.split(',',1)[1]);canvas_shot.write_bytes(canvas_bytes)
-                        if hashlib.sha256(canvas_bytes).hexdigest()!=result.get('canvasPng',{}).get('sha256'): raise RuntimeError('CDP canvas bytes disagree with harness canvas hash')
+                        exact_url=result.get('canvasPng',{}).pop('dataUrl',None)
+                        if not isinstance(exact_url,str) or ',' not in exact_url: raise RuntimeError('harness did not expose exact accepted canvas PNG')
+                        canvas_bytes=base64.b64decode(exact_url.split(',',1)[1]);canvas_shot.write_bytes(canvas_bytes)
+                        exact_hash=hashlib.sha256(canvas_bytes).hexdigest()
+                        if exact_hash!=result.get('canvasPng',{}).get('sha256'): raise RuntimeError('embedded accepted canvas PNG disagrees with harness hash')
                         screen=cdp.call('Page.captureScreenshot',{'format':'png','fromSurface':True,'captureBeyondViewport':False});screen_bytes=base64.b64decode(screen['data']);shot.write_bytes(screen_bytes)
                     finally:
                         if cdp: cdp.close()
@@ -105,7 +106,7 @@ def main():
             (run_dir/'performance.json').write_text(json.dumps(result.get('performance',{}),indent=2,sort_keys=True)+'\n',encoding='utf-8')
             h=hashlib.sha256(shot.read_bytes()).hexdigest();hashes.append(h);results.append(result);(run_dir/'capture.sha256').write_text(f'{h}  capture.png\n',encoding='ascii')
         fingerprints={r['sceneFingerprint'] for r in results};canvas_hashes={r['canvasPng']['sha256'] for r in results};screenshot_hashes=set(hashes)
-        summary={'runs':len(results),'renderTransformMode':'baseline-sm100' if a.render_transform_baseline else 'shared-sm101','sceneFingerprints':sorted(fingerprints),'canvasPngSha256':sorted(canvas_hashes),'viewportScreenshotSha256':sorted(screenshot_hashes),'deterministicMetadata':len(fingerprints)==1,'deterministicCanvas':len(canvas_hashes)==1,'deterministicViewportScreenshot':len(screenshot_hashes)==1,'browser':exe,'captureTransport':'cdp'}
+        summary={'runs':len(results),'renderTransformMode':'baseline-sm100' if a.render_transform_baseline else 'shared-sm101','sceneFingerprints':sorted(fingerprints),'canvasPngSha256':sorted(canvas_hashes),'viewportScreenshotSha256':sorted(screenshot_hashes),'deterministicMetadata':len(fingerprints)==1,'deterministicCanvas':len(canvas_hashes)==1,'deterministicViewportScreenshot':len(screenshot_hashes)==1,'browser':exe,'captureTransport':'cdp','canvasSource':'exact-harness-blob'}
         (a.out/'summary.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n',encoding='utf-8');print(json.dumps(summary,indent=2))
         return 0 if summary['deterministicMetadata'] and summary['deterministicCanvas'] and summary['deterministicViewportScreenshot'] else 1
     except Exception as exc:
