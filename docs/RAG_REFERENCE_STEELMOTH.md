@@ -12,7 +12,7 @@ Purpose: give future implementation agents durable context from the development 
 
 ## Current repository baseline
 
-The authoritative **v1.2.3** source distribution has been recovered from `the_small_machine_at_the_edge_of_night_webapp_v1_2_3.zip`, SHA-256:
+The authoritative **v1.2.3** source distribution is merged to `main` by PR #52. Source archive SHA-256:
 
 `2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`
 
@@ -25,7 +25,8 @@ SM-000 import evidence records:
 - Material-v2 validation: 314 regions;
 - 26 production GLSL programs compiled/linked in the inherited native validation path;
 - exact remote Git-blob checks for the principal runtime/material assets and `engine/game.js`;
-- preservation of the exact v1.2.3 Windows launcher bytes after correcting local Git CRLF normalization.
+- preservation of the exact v1.2.3 Windows launcher bytes after correcting local Git CRLF normalization;
+- merged `main` baseline commit: `089d7a34ceae1b12c72b6426b38be410e087d50e`.
 
 See `docs/BASELINE_V123_PROVENANCE.md` and `docs/BASELINE_V123_IMPORT_REPORT.txt` for evidence and limitations.
 
@@ -65,7 +66,7 @@ The user confirmed two material improvements after v1.2.3:
 
 The yellow artifact was traced to Fine GrassField/procedural rendering rather than the main deferred lighting path. The correction required procedural grass to consume coherent scene illumination and a suitable dark vegetation palette rather than behaving like a self-lit amber layer.
 
-**v1.2.3 is the imported WebGL2/Material-v2 compatibility baseline for the WebGPU migration.**
+**v1.2.3 is the current imported WebGL2/Material-v2 compatibility baseline for the WebGPU migration.**
 
 ## Overlap/bin screenshot findings
 
