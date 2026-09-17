@@ -4,16 +4,18 @@
   const secureEnough = location.protocol === 'https:' || localPreview;
 
   // SM-100/SM-101 renderer boundary. game.js remains the v1.2.3 compatibility
-  // producer; the shared transform module is loaded synchronously by index.html.
-  // RenderScene capture is then canonicalized through that authority before the
-  // scene is replayed through the existing WebGL2 backend.
-  const renderSceneReady = import('./engine/render_scene.js?v=sm100-1')
+  // producer. Shared transform interposition is installed first; if Game already
+  // constructed, it refreshes the static descriptor cache without changing
+  // coordinates. RenderScene capture is then canonicalized before WebGL2 replay.
+  const renderSceneReady = import('./engine/render_transform.js?v=sm101-1')
+    .then(() => import('./engine/render_transform_integration.js?v=sm101-1'))
+    .then(() => import('./engine/render_scene.js?v=sm100-1'))
     .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1'))
     .then(() => import('./engine/webgl2_scene_adapter.js?v=sm100-1'))
     .then(() => globalThis.SteelMothWebGL2SceneAdapter?.installWhenGameAvailable?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothRenderSceneBridgeError = String(err?.stack || err);
-      console.warn('Render Scene compatibility bridge unavailable; continuing with direct WebGL2.', err);
+      console.warn('Render Scene/transform compatibility bridge unavailable; continuing with direct WebGL2.', err);
       return null;
     });
   globalThis.steelMothRenderSceneReady = renderSceneReady;
