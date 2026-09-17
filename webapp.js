@@ -2,21 +2,31 @@
 (() => {
   const localPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const secureEnough = location.protocol === 'https:' || localPreview;
+  const params = new URLSearchParams(location.search);
+  // Deterministic render-test only: reproduce the immediately-pre-SM-101 SM-100
+  // boundary so CI can capture before/after WebGL2 pixels from one checkout.
+  // Normal gameplay can never enter this path without renderTest=1.
+  const renderTransformBaseline = /^(1|true|yes|on)$/i.test(params.get('renderTransformBaseline')||'') && /^(1|true|yes|on)$/i.test(params.get('renderTest')||params.get('render_test')||'');
 
-  // SM-100 renderer boundary. game.js remains the v1.2.3 compatibility producer;
-  // these modules capture its renderer-facing submissions into a backend-neutral
-  // RenderScene and replay that scene through the existing WebGL2 backend.
-  // Failure is deliberately non-fatal: gameplay and direct WebGL2 rendering remain
-  // authoritative and the adapter records/prints its own initialization error.
-  const renderSceneReady = import('./engine/render_scene.js?v=sm100-1')
+  // SM-100/SM-101 renderer boundary. game.js remains the v1.2.3 compatibility
+  // producer. Shared transform interposition is installed first; if Game already
+  // constructed, it refreshes the static descriptor cache without changing
+  // coordinates. RenderScene capture is then canonicalized before WebGL2 replay.
+  const renderSceneReady = (renderTransformBaseline
+    ? import('./engine/render_scene.js?v=sm100-1')
+    : import('./engine/render_transform.js?v=sm101-1')
+      .then(() => import('./engine/render_transform_integration.js?v=sm101-1'))
+      .then(() => import('./engine/render_scene.js?v=sm100-1'))
+      .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1')))
     .then(() => import('./engine/webgl2_scene_adapter.js?v=sm100-1'))
     .then(() => globalThis.SteelMothWebGL2SceneAdapter?.installWhenGameAvailable?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothRenderSceneBridgeError = String(err?.stack || err);
-      console.warn('Render Scene compatibility bridge unavailable; continuing with direct WebGL2.', err);
+      console.warn('Render Scene/transform compatibility bridge unavailable; continuing with direct WebGL2.', err);
       return null;
     });
   globalThis.steelMothRenderSceneReady = renderSceneReady;
+  globalThis.steelMothRenderTransformBaseline = renderTransformBaseline;
 
   async function clearLocalPreviewCaches(){
     if(!('serviceWorker' in navigator)) return;

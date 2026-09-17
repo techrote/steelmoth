@@ -21,7 +21,8 @@ Do not silently promote a historical suggestion into a requirement.
 - [`BASELINE_V123_AUDIT.md`](BASELINE_V123_AUDIT.md) — SM-004 source-level classification of the imported v1.2.3 renderer contracts and migration implications.
 - [`MASTER_WEBGPU_PROGRAMME.md`](MASTER_WEBGPU_PROGRAMME.md) — programme goals, M0–M8 decomposition, task codes and release gates.
 - [`WEBGPU_ARCHITECTURE.md`](WEBGPU_ARCHITECTURE.md) — backend boundaries, scene representation, G-buffer, pseudo-depth ownership, clustering/DSO/Dark Bloom architecture.
-- [`RENDER_SCENE_DESCRIPTION.md`](RENDER_SCENE_DESCRIPTION.md) — implemented SM-100 RenderScene/Sprite/Material/Light/Occluder/Procedural record schemas, identity rules and WebGL2 compatibility adapter boundary.
+- [`RENDER_SCENE_DESCRIPTION.md`](RENDER_SCENE_DESCRIPTION.md) — implemented SM-100 RenderScene schemas and WebGL2 compatibility boundary, reconciled to SM-101 root authority.
+- [`ROOT_FOOT_CONVENTION.md`](ROOT_FOOT_CONVENTION.md) — SM-101 canonical sprite root/foot/placement API, compatibility rules, editor/shadow/backend integration and downstream contract.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
@@ -56,12 +57,12 @@ Use these words consistently:
 
 ## Current repository state
 
-The repository is no longer source-blocked. SM-000 imported and provenance-verified the authoritative v1.2.3 WebGL2/Material-v2 baseline. SM-002 added the deterministic capture/diagnostics harness, and SM-001 added the durable visual-reference/fixture corpus and adapter integration.
+The repository is no longer source-blocked. SM-000 imported and provenance-verified the authoritative v1.2.3 WebGL2/Material-v2 baseline. SM-001/002 established the visual fixture corpus and deterministic capture/diagnostics harness; SM-004 audited the imported implementation, and SM-005 established repository-native automated verification.
 
-SM-004 audited the imported v1.2.3 renderer rather than relying on conversation memory. The authoritative baseline implementation reconciliation is `BASELINE_V123_AUDIT.md`. In particular, current WebGL2 G2.R is local Material-v2 height rather than final fragment ownership depth, and root/foot authority is only partially centralized; downstream WebGPU issues must follow the audited dependency chain rather than treating historical shorthand as current implementation fact.
+The SM-004 reconciliation remains important: WebGL2 G2.R is local Material-v2 height rather than final fragment ownership depth. Historical root/foot calculations were distributed among static, dynamic, foreground, editor and shadow paths.
 
-SM-005 establishes the repository-native automated verification surface. Hosted checks deliberately separate deterministic source/API correctness from browser/hardware/performance claims; those remain owned by their explicit hardware/visual gates.
+SM-100 introduced the first backend-neutral renderer boundary through typed RenderScene records and WebGL2 compatibility replay. SM-101 now supplies the shared `steelmoth-render-transform/v1` authority consumed by active Material-v2 roots, editor placement/hit geometry, shadow profile helpers and RenderScene roots. It preserves the accepted v1.2.3 numeric placement—including the historical subrect convention—rather than using the migration as a visual retune.
 
-SM-100 introduces the first backend-neutral renderer boundary. `engine/render_scene.js` defines typed per-frame renderer records and `engine/webgl2_scene_adapter.js` makes the existing WebGL2 renderer consume that description through compatibility replay. This does not resolve the audited root/foot debt or invent fragment ownership depth; SM-101 and SM-201/202 retain those responsibilities.
+The root/foot problem is therefore separated from the still-open ownership-depth problem. SM-201 remains responsible for deriving light-independent fragment depth from the shared root plus local material height/layer semantics, and SM-202 remains responsible for per-pixel depth/object ownership.
 
 Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, the SM-004 audit, implemented subsystem contracts, and current verification reports.

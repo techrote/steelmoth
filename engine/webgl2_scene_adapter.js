@@ -76,7 +76,9 @@
   }
 
   function attachGame(game){
-    if(!game?.renderer)return null;if(game.renderSceneBridge instanceof RenderSceneBridge)return game.renderSceneBridge;if(game.__smRenderSceneBridge)return game.__smRenderSceneBridge;
+    if(!game?.renderer)return null;
+    root?.SteelMothRenderTransformIntegration?.patchExistingGame?.(game);
+    if(game.renderSceneBridge instanceof RenderSceneBridge)return game.renderSceneBridge;if(game.__smRenderSceneBridge)return game.__smRenderSceneBridge;
     try{const bridge=new RenderSceneBridge(game);game.__smRenderSceneBridge=bridge;return bridge}catch(error){console.warn('Render Scene bridge unavailable; continuing with direct WebGL2 submission.',error);game.__smRenderSceneBridgeError=String(error?.stack||error);return null}
   }
 
