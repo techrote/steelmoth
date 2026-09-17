@@ -5,7 +5,10 @@ ROOT=Path(__file__).resolve().parents[1]
 js=(ROOT/'engine/game.js').read_text(); sf=(ROOT/'engine/surfacefx.js').read_text(); idx=(ROOT/'index.html').read_text(); sw=(ROOT/'sw.js').read_text(); web=(ROOT/'webapp.js').read_text()
 # Deployment/cache must make this visibly different from 1.2.0/1.2.1 even under a registered PWA service worker.
 assert "const BUILD_VERSION='1.2.3'" in js
-assert 'small-machine-web-v1.2.3-r1' in sw
+# The release remains v1.2.3 while migration runtime modules may legitimately
+# advance the service-worker revision. Pin the current revision so a runtime
+# module change cannot ship without a corresponding offline-cache identity bump.
+assert 'small-machine-web-v1.2.3-r2' in sw
 assert "sw.js?v=1.2.3" in web and "updateViaCache:'none'" in web
 for token in ['engine/game.js?v=1.2.3','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3','webapp.js?v=1.2.3']:
     assert token in idx,token
