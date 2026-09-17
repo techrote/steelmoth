@@ -3,6 +3,21 @@
   const localPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const secureEnough = location.protocol === 'https:' || localPreview;
 
+  // SM-100 renderer boundary. game.js remains the v1.2.3 compatibility producer;
+  // these modules capture its renderer-facing submissions into a backend-neutral
+  // RenderScene and replay that scene through the existing WebGL2 backend.
+  // Failure is deliberately non-fatal: gameplay and direct WebGL2 rendering remain
+  // authoritative and the adapter records/prints its own initialization error.
+  const renderSceneReady = import('./engine/render_scene.js?v=sm100-1')
+    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm100-1'))
+    .then(() => globalThis.SteelMothWebGL2SceneAdapter?.installWhenGameAvailable?.(globalThis) || null)
+    .catch(err => {
+      globalThis.steelMothRenderSceneBridgeError = String(err?.stack || err);
+      console.warn('Render Scene compatibility bridge unavailable; continuing with direct WebGL2.', err);
+      return null;
+    });
+  globalThis.steelMothRenderSceneReady = renderSceneReady;
+
   async function clearLocalPreviewCaches(){
     if(!('serviceWorker' in navigator)) return;
     const hadController = !!navigator.serviceWorker.controller;
