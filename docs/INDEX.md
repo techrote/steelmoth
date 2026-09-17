@@ -22,6 +22,7 @@ Do not silently promote a historical suggestion into a requirement.
 - [`MASTER_WEBGPU_PROGRAMME.md`](MASTER_WEBGPU_PROGRAMME.md) — programme goals, M0–M8 decomposition, task codes and release gates.
 - [`WEBGPU_ARCHITECTURE.md`](WEBGPU_ARCHITECTURE.md) — backend boundaries, scene representation, G-buffer, pseudo-depth ownership, clustering/DSO/Dark Bloom architecture.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
+- [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
 - [`DEPENDENCY_AND_CONCURRENCY.md`](DEPENDENCY_AND_CONCURRENCY.md) — dependency graph, serialization points and safe parallel lanes.
 - [`RESEARCH_AND_DECISIONS.md`](RESEARCH_AND_DECISIONS.md) — external research findings, assumptions, ADR-style decisions and unresolved questions.
@@ -32,6 +33,9 @@ Do not silently promote a historical suggestion into a requirement.
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
+- `.github/workflows/verification.yml` — hosted source/regression, GLSL/MRT software, and clean-package verification.
+- `tools/run_checks.py` — stable cross-platform verification runner and failure-report contract.
+- `tools/validate_clean_package.py` — fresh ZIP/extraction/integrity validation.
 - `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented implementation PR contract.
 - `.github/ISSUE_TEMPLATE/autonomous-implementation.md` — future task template matching programme structure.
 - GitHub issue **#51** — top-level execution tracker/checklist.
@@ -55,4 +59,6 @@ The repository is no longer source-blocked. SM-000 imported and provenance-verif
 
 SM-004 audited the imported v1.2.3 renderer rather than relying on conversation memory. The authoritative baseline implementation reconciliation is `BASELINE_V123_AUDIT.md`. In particular, current WebGL2 G2.R is local Material-v2 height rather than final fragment ownership depth, and root/foot authority is only partially centralized; downstream WebGPU issues must follow the audited dependency chain rather than treating historical shorthand as current implementation fact.
 
-Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, and the SM-004 audit.
+SM-005 establishes the repository-native automated verification surface. Hosted checks deliberately separate deterministic source/API correctness from browser/hardware/performance claims; those remain owned by their explicit hardware/visual gates.
+
+Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, the SM-004 audit, and current verification reports.

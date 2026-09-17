@@ -1,0 +1,96 @@
+name: Verification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verification-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: source + deterministic regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install validation dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Run source and regression checks
+        run: python tools/run_checks.py --group source --group regression --report artifacts/core-checks.json
+      - name: Verify actionable failure reporting contract
+        if: always()
+        run: python tools/run_checks.py --self-test-failure --report artifacts/failure-probe.json
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-verification-${{ github.run_id }}
+          path: artifacts/*.json
+          if-no-files-found: warn
+
+  glsl-software:
+    name: GLSL + MRT software validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EGL_PLATFORM: surfaceless
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Mesa runtime
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libgl1-mesa-dri
+      - name: Compile/link production GLSL and validate MRT variants
+        run: python tools/run_checks.py --group glsl --report artifacts/glsl-checks.json
+      - name: Upload GLSL report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: glsl-verification-${{ github.run_id }}
+          path: artifacts/glsl-checks.json
+          if-no-files-found: warn
+
+  clean-package:
+    name: clean source package + extraction
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - name: Install validation dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Build, extract, and validate clean source package
+        run: python tools/validate_clean_package.py --report artifacts/clean-package.json
+      - name: Upload package validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-verification-${{ github.run_id }}
+          path: artifacts/clean-package.json
+          if-no-files-found: warn
+
+# WebGPU/WGSL browser API validation is intentionally not fabricated here.
+# The current v1.2.3 baseline has no production WebGPU backend. SM-102/SM-104
+# will add production WGSL/API checks and may extend this workflow only where
+# the hosted environment can produce semantically meaningful correctness data.

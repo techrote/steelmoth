@@ -68,6 +68,30 @@ Use evidence appropriate to the claim:
 
 CPU timings must never be reported as GPU timings. Task Manager GPU utilization may be recorded as context only.
 
+### Repository verification entrypoints
+
+The normal repository gate is:
+
+```text
+python tools/run_checks.py
+```
+
+Install its Python dependencies with `python -m pip install -r tools/requirements-ci.txt`; Node.js is required for the JavaScript syntax checks. Use `--report artifacts/core-checks.json` when machine-readable evidence is useful.
+
+For clean archive/extraction validation run:
+
+```text
+python tools/validate_clean_package.py --report artifacts/clean-package.json
+```
+
+For the Mesa/EGL production GLSL + MRT gate, where the required system libraries are available, run:
+
+```text
+python tools/run_checks.py --group glsl --report artifacts/glsl-checks.json
+```
+
+See `docs/CI_AND_VERIFICATION.md` for exact CI scope and limitations. Hosted software-renderer success is correctness evidence only; it is never target-GPU performance or human visual evidence.
+
 ## Documentation discipline
 
 Large shared context belongs in canonical repository documents, not duplicated into every issue. Issues should link exact sections and contain only task-specific context.

@@ -6,9 +6,33 @@ Steel Moth is the current engine/game codebase for **The Small Machine at the Ed
 
 The verified **v1.2.3 WebGL2/Material-v2 source baseline is now on `main`**, merged by PR #52 at commit `089d7a34ceae1b12c72b6426b38be410e087d50e`. It was imported from the exact delivered webapp/source ZIP. The recovered archive SHA-256 is `2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`; its internal release checks verified 93/93 listed files, and the repository import report records 94 release files copied and verified. See [`docs/BASELINE_V123_PROVENANCE.md`](docs/BASELINE_V123_PROVENANCE.md).
 
+SM-004 has reconciled the historical renderer claims against the imported source. The current WebGL2 baseline is documented in [`docs/BASELINE_V123_AUDIT.md`](docs/BASELINE_V123_AUDIT.md).
+
 No WebGPU implementation or GTX 1650 Super performance result should be inferred from the baseline import. Those remain later programme tasks with explicit validation gates.
 
 The complete autonomous execution workflow is represented by **50 task issues** plus programme tracker **#51**. Task-code order, not GitHub issue-number order, is authoritative; see [`docs/ISSUE_MAP.md`](docs/ISSUE_MAP.md).
+
+## Verification
+
+Install Python validation dependencies:
+
+```text
+python -m pip install -r tools/requirements-ci.txt
+```
+
+Run the standard source + deterministic regression gate:
+
+```text
+python tools/run_checks.py
+```
+
+Validate clean source packaging/extraction:
+
+```text
+python tools/validate_clean_package.py --report artifacts/clean-package.json
+```
+
+The GitHub Actions workflow mirrors these repository-native entrypoints and also runs production GLSL/MRT validation under Mesa software rendering. See [`docs/CI_AND_VERIFICATION.md`](docs/CI_AND_VERIFICATION.md) for scope and limitations. Hosted CI is correctness evidence only; it is not GTX 1650 Super performance or human visual evidence.
 
 ## Architectural direction
 
@@ -33,8 +57,9 @@ Read in this order:
 7. [`docs/LIGHTING_FIDELITY_ROADMAP.md`](docs/LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting-quality roadmap.
 8. [`docs/DEPENDENCY_AND_CONCURRENCY.md`](docs/DEPENDENCY_AND_CONCURRENCY.md) — task graph and safe parallelism.
 9. [`docs/ISSUE_MAP.md`](docs/ISSUE_MAP.md) — task-code ↔ GitHub issue mapping.
-10. [`docs/ISSUE_SET_REVIEW_2026-09-16.md`](docs/ISSUE_SET_REVIEW_2026-09-16.md) — independent review/correction record.
-11. [`docs/EXECUTION_LEDGER.md`](docs/EXECUTION_LEDGER.md) — durable planning/execution ledger.
+10. [`docs/CI_AND_VERIFICATION.md`](docs/CI_AND_VERIFICATION.md) — repository-native verification/CI commands and evidence boundaries.
+11. [`docs/ISSUE_SET_REVIEW_2026-09-16.md`](docs/ISSUE_SET_REVIEW_2026-09-16.md) — independent review/correction record.
+12. [`docs/EXECUTION_LEDGER.md`](docs/EXECUTION_LEDGER.md) — durable planning/execution ledger.
 
 ## Milestone hierarchy
 
@@ -50,7 +75,7 @@ Read in this order:
 
 ## Current execution state
 
-**SM-000 / #1 is complete.** The authoritative v1.2.3 source/assets are merged to `main`, the import evidence is recorded, and the former root source blocker is removed. Independent M0 evidence/CI work can now proceed, and migration work may advance only according to `docs/DEPENDENCY_AND_CONCURRENCY.md`.
+**SM-000 / #1, SM-001 / #2, SM-002 / #3, and SM-004 / #5 are complete.** SM-003 / #4 remains a GTX 1650 Super hardware measurement lane. Migration work may advance only according to `docs/DEPENDENCY_AND_CONCURRENCY.md`.
 
 ## Autonomous continuation
 
