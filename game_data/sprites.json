@@ -1,0 +1,30 @@
+{
+  "schema": "signal-orchard-procedural-sprites/v1",
+  "tokens": {
+    "M": [
+      "machine_blue",
+      170
+    ],
+    "S": [
+      "tree_shadow",
+      55
+    ],
+    "F": [
+      "machine_white",
+      200
+    ],
+    "L": [
+      "tree_lights",
+      225
+    ]
+  },
+  "sprites": {
+    "fallback": [
+      "..L..",
+      ".MMM.",
+      "MFFFM",
+      ".MMM.",
+      "S...S"
+    ]
+  }
+}

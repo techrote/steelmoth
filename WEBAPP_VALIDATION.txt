@@ -1,0 +1,41 @@
+The Small Machine at the Edge of Night — Static Webapp v1.2.3 Validation
+
+ROOT CAUSE
+PASS — user screenshot yellow field median RGB ~= 200/169/102 matches post-exposure Dusk-Rust Fine GrassField palette
+PASS — Fine GrassField no longer uses far_forest/tree_lights Dusk-Rust amber palette
+PASS — Fine GrassField now uses Wet-Relay fx_creature/fx_water vegetation palette
+PASS — old >1.0 Fine GrassField alpha formula removed; alpha capped at 0.42
+PASS — Fine GrassField geometry narrowed/shortened to avoid opaque overlapping masses
+
+LIGHTING COHERENCE
+PASS — Fine GrassField samples already-lit Material-v2 scene
+PASS — Fine GrassField uses actual main-light position/direction
+PASS — FoliageFX samples already-lit Material-v2 scene
+PASS — FoliageFX consumes Material-v2 normal/roughness texture in Material-v2 path
+PASS — flipped FoliageFX normals invert X correctly
+PASS — legacy FoliageFX bump path remains available when Material v2 is not supplied
+PASS — deferred, SurfaceFX and FoliageFX use the same +X/-screenY/+Z light-vector convention
+
+HARD-LIGHT EDGE QUALITY
+PASS — quality 3 visibility profile increased to 193 cone rays / 257 omni rays
+PASS — quality 2 = 97/129; quality 1 = 49/65
+PASS — production shaders compile/link with expanded uniform arrays
+PASS — existing 2x macro shadow mask retained
+
+MATERIAL V2 / G-BUFFER
+PASS — 26 production GLSL programs compile + link under OpenGL ES 3.2 Mesa llvmpipe
+PASS — float MRT and RGBA8 fallback G-buffer framebuffers complete
+PASS — 314 Material-v2 regions aligned and valid
+PASS — crate/barrel/pole/cabinet/pipe/robot/floor representative material regressions
+PASS — ghost-material/static-buffer clearing regression
+PASS — pseudo-height self-shadow regression
+
+WEBAPP / CACHE
+PASS — v1.2.3 script/style/service-worker query closure
+PASS — service worker cache key small-machine-web-v1.2.3-r1
+PASS — graphics namespace signalOrchardGraphicsV123
+PASS — localhost/127.0.0.1 preview unregisters service workers and deletes small-machine-web-* caches
+PASS — HTTPS/static deployment retains offline service worker
+PASS — static-host runtime has no server-side dependency
+PASS — Windows launcher 0Play-Webapp-v1.2.3.bat included
+PASS — 9 rooms / 27 objectives unchanged

@@ -1,0 +1,2 @@
+The Small Machine at the Edge of Night Webapp v1.2.3
+SurfaceFX/FoliageFX lighting coherence and high-resolution hard-light occlusion fix

@@ -4,9 +4,11 @@ Steel Moth is the current engine/game codebase for **The Small Machine at the Ed
 
 ## Repository status
 
-**Planning/workflow scaffold only.** At the time this repository was inspected on 2026-09-16 it was empty: no source tree, issues, pull requests, or repository documentation were present. The latest known working baseline from the development conversations is **v1.2.3**, but that source has not yet been imported here. No WebGPU implementation or performance result should be inferred from this repository until the baseline-import and verification issues are completed.
+The verified **v1.2.3 WebGL2/Material-v2 source baseline is now imported on the SM-000 branch** from the exact delivered webapp/source ZIP. The recovered archive SHA-256 is `2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`; its internal release checks verified 93/93 listed files, and the repository import report records 94 release files copied and verified. See [`docs/BASELINE_V123_PROVENANCE.md`](docs/BASELINE_V123_PROVENANCE.md).
 
-The complete autonomous execution workflow is now represented by **50 task issues** plus programme tracker **#51**. Task-code order, not GitHub issue-number order, is authoritative; see [`docs/ISSUE_MAP.md`](docs/ISSUE_MAP.md).
+No WebGPU implementation or GTX 1650 Super performance result should be inferred from the baseline import. Those remain later programme tasks with explicit validation gates.
+
+The complete autonomous execution workflow is represented by **50 task issues** plus programme tracker **#51**. Task-code order, not GitHub issue-number order, is authoritative; see [`docs/ISSUE_MAP.md`](docs/ISSUE_MAP.md).
 
 ## Architectural direction
 
@@ -46,9 +48,9 @@ Read in this order:
 - **M7 — Volumetric/advanced transparent lighting integration**
 - **M8 — Bandwidth, quality scaling, soak testing, and long-term optimization**
 
-## Immediate blocker
+## Current execution state
 
-The implementation baseline is not in the repository. The first implementation task is **#1 / SM-000**: import and provenance the latest verified v1.2.3 source, run its inherited validation, and establish a clean baseline commit before renderer migration work is merged.
+**SM-000 / #1** is the baseline-import gate. Its source-recovery and binary-transfer blockers are resolved; the remaining gate is PR/check/merge verification. Once SM-000 is merged, independent M0 evidence/CI work may proceed and the earliest migration work remains constrained by `docs/DEPENDENCY_AND_CONCURRENCY.md`.
 
 ## Autonomous continuation
 

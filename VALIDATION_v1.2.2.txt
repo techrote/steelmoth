@@ -1,0 +1,47 @@
+Steel Moth / The Small Machine at the Edge of Night — v1.2.2 Validation
+
+DEPLOYMENT / CACHE
+PASS — active product version = 1.2.2
+PASS — service-worker cache = small-machine-web-v1.2.2-r1
+PASS — engine/game.js, SurfaceFX, FoliageFX and webapp.js use v1.2.2 URL cache-busters
+PASS — service worker registered with updateViaCache:none
+PASS — runtime atlas/material images receive explicit v1.2.2 query cache-busters
+PASS — graphics namespace = signalOrchardGraphicsV122
+
+DIRECTION CONSISTENCY
+PASS — no extra G-buffer normal-Y inversion
+PASS — deferred point-light Y conversion remains L=(dx,-dy,dz)
+PASS — SurfaceFX water normal uses matching screen-down-gradient/world-up convention
+PASS — SurfaceFX water uses actual main-light XY rather than fixed vector
+
+GOLD-POOL MITIGATION
+PASS — companion light changed from warm robot_faces LUT to cool fx_creature LUT
+PASS — companion light default 56 px / 0.07
+PASS — floor_cracked roughness > 0.68 and metalness < 0.32
+PASS — floor_plate roughness > 0.68 and metalness < 0.32
+PASS — floor_hazard roughness > 0.68 and metalness < 0.32
+PASS — Material-v2 direct response compressed before RGBA8 scene storage
+PASS — SurfaceFX water capped to underlying scene + 0.16/channel
+
+SHADOWS
+PASS — Material-v2 player flashlight excluded from legacy macro projected-shadow wedges
+PASS — legacy pipeline retains flashlight macro shadow for A/B comparison
+PASS — default pseudo-depth self-shadow maximum trace increased to 176 logical px
+PASS — secondary macro shadow mask rendered at 2.0× scene resolution
+PASS — half-resolution contact-shadow path retained
+
+MATERIAL / RENDERER
+PASS — Material v2 deterministic regeneration for 314 regions
+PASS — coordinate-identical albedo / Normal+Roughness / Height+AO+Metalness+Emissive atlases
+PASS — visual material regression: crate, barrel/pole, cabinet, pipes, robot, flat floor, crate self-shadow
+PASS — ghost-material deletion/rebuild regression
+PASS — shared foot/root anchor regression
+PASS — MRT G-buffer/fallback framebuffer contracts
+PASS — Graphics material/debug controls contract
+
+GLSL
+PASS — 21 game.js production programs compile+link
+PASS — 2 SurfaceFX production programs compile+link
+PASS — 3 FoliageFX production programs compile+link
+PASS — total 26 production GLSL programs
+PASS — float MRT and RGBA8 fallback framebuffer layouts complete under EGL/OpenGL ES 3.2 Mesa

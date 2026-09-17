@@ -1,0 +1,340 @@
+{
+  "barrier_concrete": {
+    "material": "stone",
+    "kind": "box",
+    "footprint": {
+      "left": -0.0856,
+      "right": 0.5,
+      "top": -0.1891,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.5036,
+    "collision_height_factor": 0.1791
+  },
+  "barrier_hazard": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.2072,
+      "right": 0.2127,
+      "top": -0.1948,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.3611,
+    "collision_height_factor": 0.1818
+  },
+  "bench": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.0912,
+      "right": 0.5,
+      "top": -0.1941,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.5084,
+    "collision_height_factor": 0.1824
+  },
+  "bollard": {
+    "material": "metal",
+    "kind": "pole",
+    "footprint": {
+      "left": -0.4854,
+      "right": 0.1204,
+      "top": -0.1797,
+      "bottom": 0.0
+    },
+    "segment_count": 4,
+    "collision_width_factor": 0.3514,
+    "collision_height_factor": 0.1797
+  },
+  "cargo_crate": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.4665,
+      "right": 0.5,
+      "top": -0.1897,
+      "bottom": 0.0
+    },
+    "segment_count": 4,
+    "collision_width_factor": 0.82,
+    "collision_height_factor": 0.1795
+  },
+  "checkpoint_post": {
+    "material": "metal",
+    "kind": "pole",
+    "footprint": {
+      "left": -0.4878,
+      "right": 0.1037,
+      "top": -0.1787,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.343,
+    "collision_height_factor": 0.1787
+  },
+  "dumpster": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.5,
+      "right": 0.5,
+      "top": -0.1881,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.82,
+    "collision_height_factor": 0.1789
+  },
+  "fan_unit": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.5,
+      "right": 0.3785,
+      "top": -0.1896,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.7555,
+    "collision_height_factor": 0.1801
+  },
+  "hvac_unit": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.5,
+      "right": 0.4227,
+      "top": -0.1905,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.7935,
+    "collision_height_factor": 0.1786
+  },
+  "industrial_frame": {
+    "material": "metal",
+    "kind": "frame",
+    "footprint": {
+      "left": -0.5,
+      "right": -0.1707,
+      "top": -0.19,
+      "bottom": 0.0
+    },
+    "segment_count": 6,
+    "collision_width_factor": 0.2437,
+    "collision_height_factor": 0.18
+  },
+  "objective_beacon": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.1404,
+      "right": 0.3427,
+      "top": -0.1878,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.4155,
+    "collision_height_factor": 0.1784
+  },
+  "objective_core": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.3315,
+      "right": 0.2528,
+      "top": -0.2902,
+      "bottom": 0.0
+    },
+    "segment_count": 4,
+    "collision_width_factor": 0.5025,
+    "collision_height_factor": 0.22
+  },
+  "objective_fuel": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.2712,
+      "right": 0.3824,
+      "top": -0.1927,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.5621,
+    "collision_height_factor": 0.1823
+  },
+  "objective_module": {
+    "material": "metal",
+    "kind": "frame",
+    "footprint": {
+      "left": -0.118,
+      "right": 0.3708,
+      "top": -0.1896,
+      "bottom": 0.0
+    },
+    "segment_count": 6,
+    "collision_width_factor": 0.3617,
+    "collision_height_factor": 0.1801
+  },
+  "objective_relay": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.1049,
+      "right": 0.179,
+      "top": -0.1884,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.32,
+    "collision_height_factor": 0.1787
+  },
+  "pipe_cluster": {
+    "material": "metal",
+    "kind": "pipe",
+    "footprint": {
+      "left": -0.4882,
+      "right": -0.0353,
+      "top": -0.1796,
+      "bottom": 0.0
+    },
+    "segment_count": 7,
+    "collision_width_factor": 0.3895,
+    "collision_height_factor": 0.1796
+  },
+  "power_box_wall": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.3121,
+      "right": 0.4758,
+      "top": -0.1927,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.6776,
+    "collision_height_factor": 0.1823
+  },
+  "power_cabinet": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.403,
+      "right": 0.4273,
+      "top": -0.1787,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.7141,
+    "collision_height_factor": 0.1787
+  },
+  "rust_barrel": {
+    "material": "metal",
+    "kind": "barrel",
+    "footprint": {
+      "left": -0.1954,
+      "right": 0.4868,
+      "top": -0.1835,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.5866,
+    "collision_height_factor": 0.1789
+  },
+  "scaffold": {
+    "material": "metal",
+    "kind": "frame",
+    "footprint": {
+      "left": -0.1409,
+      "right": 0.1022,
+      "top": -0.1902,
+      "bottom": 0.0
+    },
+    "segment_count": 10,
+    "collision_width_factor": 0.2,
+    "collision_height_factor": 0.1793
+  },
+  "server_cabinet": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.4102,
+      "right": 0.4701,
+      "top": -0.1789,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.757,
+    "collision_height_factor": 0.1789
+  },
+  "signal_pole": {
+    "material": "metal",
+    "kind": "pole",
+    "footprint": {
+      "left": 0.0967,
+      "right": 0.4724,
+      "top": -0.1921,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.2179,
+    "collision_height_factor": 0.1823
+  },
+  "street_lamp": {
+    "material": "metal",
+    "kind": "pole",
+    "footprint": {
+      "left": -0.486,
+      "right": 0.0455,
+      "top": -0.1789,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.3083,
+    "collision_height_factor": 0.1789
+  },
+  "street_terminal": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.3235,
+      "right": 0.4853,
+      "top": -0.1809,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.6956,
+    "collision_height_factor": 0.1809
+  },
+  "vending_unit": {
+    "material": "metal",
+    "kind": "box",
+    "footprint": {
+      "left": -0.4758,
+      "right": 0.4333,
+      "top": -0.1789,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.7818,
+    "collision_height_factor": 0.1789
+  },
+  "warning_light": {
+    "material": "metal",
+    "kind": "pole",
+    "footprint": {
+      "left": -0.45,
+      "right": 0.3833,
+      "top": -0.1777,
+      "bottom": 0.0
+    },
+    "segment_count": 5,
+    "collision_width_factor": 0.46,
+    "collision_height_factor": 0.1777
+  }
+}

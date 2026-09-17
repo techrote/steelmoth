@@ -1,0 +1,45 @@
+The Small Machine at the Edge of Night — Webapp v1.1.1 Validation
+
+LIGHTING / SHADOW MODEL
+PASS — player cone default intensity 2.0
+PASS — player omni default intensity 0.16
+PASS — bump lighting enabled by default at 1.45, specular response 0.42
+PASS — shadow mask promoted from half-resolution to full scene resolution
+PASS — flashlight cone contributes a dedicated face-origin shadow-casting light
+PASS — flashlight-generated terrain shadows are clipped to the visible cone
+PASS — sprite material lighting uses the actual player emitter origin instead of a point halfway down the beam
+PASS — standing terrain sprites use grounded 2.5D silhouette cross-sections with inferred height
+PASS — section height is projected onto the ground using virtual light elevation and real light direction
+PASS — contact/AO remains grounded at the footprint independently of high-section projection
+
+TERRAIN SPRITE AUDIT
+PASS — 45 static terrain/environment/objective sprites reprocessed for material response
+PASS — 26 standing/solid/objective sprites carry projected shadow profiles
+PASS — seven 2.5D material/silhouette classes: flat, vertical_plane, box, barrel, pole, frame, pipe
+PASS — flat floor/manhole sprites are receivers/local-relief surfaces rather than vertical shadow casters
+PASS — doors/windows/wall panels use shallow planar relief instead of inflated volumetric bump
+PASS — crates/cabinets/barriers/machinery use volumetric relief
+PASS — barrel uses cylindrical radial relief
+PASS — poles use narrow/tall height interpretation
+PASS — open frame/pipe structures preserve multiple silhouette spans per height slice
+PASS — 4096x4096 bump atlas regenerated
+PASS — 4096x4096 specular atlas regenerated
+PASS — regeneration script is deterministic/idempotent
+PASS — runtime atlas remains 4096x4096 and unchanged as the colour source
+PASS — machine-readable terrain_shadow_profiles_v1.1.1.json generated
+PASS — visual audit sheets retained under docs/
+
+ROBOT TUNING
+PASS — passive robot visibly lit but outside fear/close-flee volume enters freeze_lit
+PASS — freeze_lit clears path, sets target to current position, target speed 0, and rapidly damps residual velocity
+PASS — active stalker/fear behavior is unchanged by the passive freeze rule
+
+STATIC WEBAPP
+PASS — engine/game.js node syntax check
+PASS — game_manifest.json parses and reports v1.1.1
+PASS — DEPLOYMENT_MANIFEST.json parses and reports v1.1.1
+PASS — service worker cache namespace small-machine-web-v1.1.1-r1
+PASS — local static HTTP server served index.html, engine/game.js and 314-region atlas JSON
+
+CLEAN PACKAGE
+The final ZIP is generated from this exact validated tree and receives an external SHA-256 file.

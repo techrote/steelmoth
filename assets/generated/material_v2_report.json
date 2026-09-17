@@ -1,0 +1,6027 @@
+{
+  "schema": "steel-moth-material-v2-report/v1",
+  "version": "1.2.2",
+  "max_world_z": 64.0,
+  "atlases": {
+    "normal_roughness": "sprite_material_normal_roughness.png",
+    "height_material": "sprite_material_height_material.png"
+  },
+  "generation_parameters": {
+    "coverage_alpha_threshold": 0.02,
+    "geometry_alpha_threshold": 0.125,
+    "normal_smoothing_px": 1.0,
+    "macro_luminance_sigma": 2.2,
+    "local_luminance_sigma": 0.75,
+    "max_world_z": 64.0,
+    "classes": [
+      "flat",
+      "vertical_plane",
+      "box",
+      "barrel",
+      "pole",
+      "frame",
+      "pipe",
+      "robot",
+      "character",
+      "foliage",
+      "glass"
+    ],
+    "transparent_normal": [
+      128,
+      128,
+      255
+    ],
+    "transparent_height_material": [
+      0,
+      255,
+      0,
+      0
+    ],
+    "sampling": "region-isolated; no cross-region filters"
+  },
+  "regions": {
+    "barrier_concrete": {
+      "material_class": "box",
+      "source_material": "stone",
+      "height_scale": 21.708,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.8553,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9118,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "barrier_hazard": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 16.632,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5731,
+      "metalness_mean": 0.5855,
+      "ao_mean": 0.9096,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "bench": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 18.36,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5618,
+      "metalness_mean": 0.6164,
+      "ao_mean": 0.8824,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "bollard": {
+      "material_class": "pole",
+      "source_material": "metal",
+      "height_scale": 24.738,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4805,
+      "metalness_mean": 0.5451,
+      "ao_mean": 0.905,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "cargo_crate": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 21.06,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5756,
+      "metalness_mean": 0.5902,
+      "ao_mean": 0.8962,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "catwalk": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.22,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5869,
+      "metalness_mean": 0.5792,
+      "ao_mean": 0.879,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "checkpoint_post": {
+      "material_class": "pole",
+      "source_material": "metal",
+      "height_scale": 23.598,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4496,
+      "metalness_mean": 0.5975,
+      "ao_mean": 0.8926,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "door_access": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 22.248,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4712,
+      "metalness_mean": 0.5964,
+      "ao_mean": 0.8992,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "door_heavy": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 21.924,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.47,
+      "metalness_mean": 0.5991,
+      "ao_mean": 0.8952,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "dumpster": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.544,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5654,
+      "metalness_mean": 0.6034,
+      "ao_mean": 0.9024,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fan_unit": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 22.788,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5722,
+      "metalness_mean": 0.5936,
+      "ao_mean": 0.9015,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fence_panel": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 23.544,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4787,
+      "metalness_mean": 0.5925,
+      "ao_mean": 0.8805,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "floor_concrete": {
+      "material_class": "flat",
+      "source_material": "stone",
+      "height_scale": 1.6512,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.8515,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9185,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "floor_cracked": {
+      "material_class": "flat",
+      "source_material": "metal",
+      "height_scale": 1.7664,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7297,
+      "metalness_mean": 0.2552,
+      "ao_mean": 0.9123,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "floor_grate": {
+      "material_class": "flat",
+      "source_material": "metal",
+      "height_scale": 1.9392,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7785,
+      "metalness_mean": 0.1874,
+      "ao_mean": 0.8864,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "floor_hazard": {
+      "material_class": "flat",
+      "source_material": "metal",
+      "height_scale": 1.5264,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.8112,
+      "metalness_mean": 0.1475,
+      "ao_mean": 0.9082,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "floor_plate": {
+      "material_class": "flat",
+      "source_material": "metal",
+      "height_scale": 1.728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7445,
+      "metalness_mean": 0.2359,
+      "ao_mean": 0.9023,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "foliage_cable_weed": {
+      "material_class": "foliage",
+      "source_material": "foliage",
+      "height_scale": 13.824,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.803,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9411,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "foliage_metal_succulent": {
+      "material_class": "foliage",
+      "source_material": "foliage",
+      "height_scale": 13.824,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.8104,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9138,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "foliage_service_reed": {
+      "material_class": "foliage",
+      "source_material": "foliage",
+      "height_scale": 13.824,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.8076,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9271,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fragment_case": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2826,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8746,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fragment_credit": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 9.612,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2606,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8883,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fragment_cube": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.556,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2839,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8766,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fragment_data": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2809,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8769,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fragment_energy": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.262,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8922,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_dust": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2483,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9041,
+      "emissive_mean": 0.1141,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_electric": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.34,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2528,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8942,
+      "emissive_mean": 0.0869,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_emp": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.772,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2337,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9192,
+      "emissive_mean": 0.1167,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_explosion": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2715,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8795,
+      "emissive_mean": 0.0746,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_hack": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.772,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2435,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.905,
+      "emissive_mean": 0.1021,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_heal": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2207,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9288,
+      "emissive_mean": 0.2271,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_orb": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.772,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.264,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8752,
+      "emissive_mean": 0.0777,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_pickup": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.772,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.235,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9123,
+      "emissive_mean": 0.1266,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_scan": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 10.098,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2622,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8987,
+      "emissive_mean": 0.0601,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_smoke": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2724,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.9014,
+      "emissive_mean": 0.0006,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_spark": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 10.044,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2419,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.895,
+      "emissive_mean": 0.1426,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "fx_steam": {
+      "material_class": "glass",
+      "source_material": "glass",
+      "height_scale": 11.718,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.2238,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.928,
+      "emissive_mean": 0.2422,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5011,
+      "metalness_mean": 0.5546,
+      "ao_mean": 0.8812,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5036,
+      "metalness_mean": 0.5545,
+      "ao_mean": 0.8725,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5012,
+      "metalness_mean": 0.5549,
+      "ao_mean": 0.8795,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4959,
+      "metalness_mean": 0.5617,
+      "ao_mean": 0.8833,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4993,
+      "metalness_mean": 0.554,
+      "ao_mean": 0.8889,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4965,
+      "metalness_mean": 0.5614,
+      "ao_mean": 0.8819,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4977,
+      "metalness_mean": 0.5601,
+      "ao_mean": 0.881,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_haul_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5058,
+      "metalness_mean": 0.5506,
+      "ao_mean": 0.8724,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5047,
+      "metalness_mean": 0.5492,
+      "ao_mean": 0.8798,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5062,
+      "metalness_mean": 0.5478,
+      "ao_mean": 0.878,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5056,
+      "metalness_mean": 0.5492,
+      "ao_mean": 0.8763,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5072,
+      "metalness_mean": 0.5473,
+      "ao_mean": 0.8758,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5068,
+      "metalness_mean": 0.547,
+      "ao_mean": 0.8776,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5071,
+      "metalness_mean": 0.5469,
+      "ao_mean": 0.8764,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5066,
+      "metalness_mean": 0.5468,
+      "ao_mean": 0.8786,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_idle_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5066,
+      "metalness_mean": 0.5461,
+      "ao_mean": 0.8804,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4927,
+      "metalness_mean": 0.5653,
+      "ao_mean": 0.8879,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4938,
+      "metalness_mean": 0.5659,
+      "ao_mean": 0.8821,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4921,
+      "metalness_mean": 0.5658,
+      "ao_mean": 0.8904,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4948,
+      "metalness_mean": 0.561,
+      "ao_mean": 0.8901,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.49,
+      "metalness_mean": 0.5683,
+      "ao_mean": 0.8908,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4901,
+      "metalness_mean": 0.5683,
+      "ao_mean": 0.8906,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4929,
+      "metalness_mean": 0.5665,
+      "ao_mean": 0.8851,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_repair_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4918,
+      "metalness_mean": 0.5665,
+      "ao_mean": 0.8893,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5039,
+      "metalness_mean": 0.5476,
+      "ao_mean": 0.8871,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5028,
+      "metalness_mean": 0.5472,
+      "ao_mean": 0.8921,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5051,
+      "metalness_mean": 0.5435,
+      "ao_mean": 0.892,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5033,
+      "metalness_mean": 0.5467,
+      "ao_mean": 0.8906,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5024,
+      "metalness_mean": 0.5483,
+      "ao_mean": 0.8908,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5044,
+      "metalness_mean": 0.5487,
+      "ao_mean": 0.882,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5037,
+      "metalness_mean": 0.5498,
+      "ao_mean": 0.8818,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_rest_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5064,
+      "metalness_mean": 0.5458,
+      "ao_mean": 0.8815,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5036,
+      "metalness_mean": 0.5518,
+      "ao_mean": 0.8788,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5044,
+      "metalness_mean": 0.551,
+      "ao_mean": 0.8778,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5024,
+      "metalness_mean": 0.5543,
+      "ao_mean": 0.8789,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5012,
+      "metalness_mean": 0.5564,
+      "ao_mean": 0.8799,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5029,
+      "metalness_mean": 0.5532,
+      "ao_mean": 0.8836,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4971,
+      "metalness_mean": 0.5619,
+      "ao_mean": 0.8838,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5009,
+      "metalness_mean": 0.5581,
+      "ao_mean": 0.8744,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_scan_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5033,
+      "metalness_mean": 0.5521,
+      "ao_mean": 0.8794,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5058,
+      "metalness_mean": 0.5473,
+      "ao_mean": 0.8795,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5058,
+      "metalness_mean": 0.5466,
+      "ao_mean": 0.8822,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5048,
+      "metalness_mean": 0.5489,
+      "ao_mean": 0.8802,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5047,
+      "metalness_mean": 0.5491,
+      "ao_mean": 0.8805,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5028,
+      "metalness_mean": 0.5517,
+      "ao_mean": 0.882,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.503,
+      "metalness_mean": 0.551,
+      "ao_mean": 0.8821,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5055,
+      "metalness_mean": 0.5479,
+      "ao_mean": 0.8804,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_maintenance_walk_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5045,
+      "metalness_mean": 0.5499,
+      "ao_mean": 0.8796,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4955,
+      "metalness_mean": 0.5597,
+      "ao_mean": 0.8869,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4988,
+      "metalness_mean": 0.5583,
+      "ao_mean": 0.8783,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4962,
+      "metalness_mean": 0.5592,
+      "ao_mean": 0.8852,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4919,
+      "metalness_mean": 0.5643,
+      "ao_mean": 0.8889,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4937,
+      "metalness_mean": 0.5592,
+      "ao_mean": 0.8944,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4927,
+      "metalness_mean": 0.5636,
+      "ao_mean": 0.8875,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4936,
+      "metalness_mean": 0.5629,
+      "ao_mean": 0.8867,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_haul_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5004,
+      "metalness_mean": 0.5555,
+      "ao_mean": 0.8781,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4983,
+      "metalness_mean": 0.5556,
+      "ao_mean": 0.8854,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4998,
+      "metalness_mean": 0.5542,
+      "ao_mean": 0.8838,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4994,
+      "metalness_mean": 0.5552,
+      "ao_mean": 0.882,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5008,
+      "metalness_mean": 0.5536,
+      "ao_mean": 0.8815,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4999,
+      "metalness_mean": 0.5542,
+      "ao_mean": 0.8834,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5005,
+      "metalness_mean": 0.5537,
+      "ao_mean": 0.8822,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5001,
+      "metalness_mean": 0.5534,
+      "ao_mean": 0.8843,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_idle_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5,
+      "metalness_mean": 0.553,
+      "ao_mean": 0.8861,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4892,
+      "metalness_mean": 0.5669,
+      "ao_mean": 0.8938,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4901,
+      "metalness_mean": 0.5678,
+      "ao_mean": 0.888,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4886,
+      "metalness_mean": 0.5673,
+      "ao_mean": 0.8964,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4902,
+      "metalness_mean": 0.5645,
+      "ao_mean": 0.896,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4867,
+      "metalness_mean": 0.5696,
+      "ao_mean": 0.8965,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4864,
+      "metalness_mean": 0.5702,
+      "ao_mean": 0.8964,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4893,
+      "metalness_mean": 0.5682,
+      "ao_mean": 0.891,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_repair_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4886,
+      "metalness_mean": 0.5677,
+      "ao_mean": 0.8952,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4977,
+      "metalness_mean": 0.5537,
+      "ao_mean": 0.8927,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4967,
+      "metalness_mean": 0.5532,
+      "ao_mean": 0.8976,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.498,
+      "metalness_mean": 0.5512,
+      "ao_mean": 0.8975,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4972,
+      "metalness_mean": 0.5527,
+      "ao_mean": 0.8961,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4965,
+      "metalness_mean": 0.554,
+      "ao_mean": 0.8963,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.498,
+      "metalness_mean": 0.5551,
+      "ao_mean": 0.8877,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4976,
+      "metalness_mean": 0.5556,
+      "ao_mean": 0.8874,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_rest_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4996,
+      "metalness_mean": 0.553,
+      "ao_mean": 0.8871,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4942,
+      "metalness_mean": 0.563,
+      "ao_mean": 0.8846,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4926,
+      "metalness_mean": 0.5658,
+      "ao_mean": 0.8836,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4866,
+      "metalness_mean": 0.575,
+      "ao_mean": 0.8847,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4831,
+      "metalness_mean": 0.5806,
+      "ao_mean": 0.8858,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4778,
+      "metalness_mean": 0.588,
+      "ao_mean": 0.8895,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4739,
+      "metalness_mean": 0.5938,
+      "ao_mean": 0.8899,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4883,
+      "metalness_mean": 0.574,
+      "ao_mean": 0.8803,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_scan_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4931,
+      "metalness_mean": 0.5643,
+      "ao_mean": 0.8852,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4993,
+      "metalness_mean": 0.5539,
+      "ao_mean": 0.8851,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4991,
+      "metalness_mean": 0.5535,
+      "ao_mean": 0.8878,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4985,
+      "metalness_mean": 0.5551,
+      "ao_mean": 0.8859,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4987,
+      "metalness_mean": 0.555,
+      "ao_mean": 0.8862,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4975,
+      "metalness_mean": 0.5563,
+      "ao_mean": 0.8875,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4971,
+      "metalness_mean": 0.5566,
+      "ao_mean": 0.8877,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4993,
+      "metalness_mean": 0.5541,
+      "ao_mean": 0.8861,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_medic_walk_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4987,
+      "metalness_mean": 0.5555,
+      "ao_mean": 0.8852,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5198,
+      "metalness_mean": 0.5233,
+      "ao_mean": 0.8838,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5213,
+      "metalness_mean": 0.5246,
+      "ao_mean": 0.8752,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5204,
+      "metalness_mean": 0.5229,
+      "ao_mean": 0.8823,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5165,
+      "metalness_mean": 0.5275,
+      "ao_mean": 0.886,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5184,
+      "metalness_mean": 0.5221,
+      "ao_mean": 0.8917,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5169,
+      "metalness_mean": 0.5275,
+      "ao_mean": 0.8847,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5175,
+      "metalness_mean": 0.5271,
+      "ao_mean": 0.8836,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_haul_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5228,
+      "metalness_mean": 0.5218,
+      "ao_mean": 0.8753,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5221,
+      "metalness_mean": 0.5199,
+      "ao_mean": 0.8827,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5229,
+      "metalness_mean": 0.5194,
+      "ao_mean": 0.8809,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5222,
+      "metalness_mean": 0.5211,
+      "ao_mean": 0.8793,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5238,
+      "metalness_mean": 0.5191,
+      "ao_mean": 0.8786,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5236,
+      "metalness_mean": 0.5186,
+      "ao_mean": 0.8804,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5239,
+      "metalness_mean": 0.5184,
+      "ao_mean": 0.8793,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5233,
+      "metalness_mean": 0.5185,
+      "ao_mean": 0.8815,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_idle_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5234,
+      "metalness_mean": 0.5176,
+      "ao_mean": 0.8832,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.512,
+      "metalness_mean": 0.5329,
+      "ao_mean": 0.8905,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5128,
+      "metalness_mean": 0.534,
+      "ao_mean": 0.8849,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5113,
+      "metalness_mean": 0.5336,
+      "ao_mean": 0.8929,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5137,
+      "metalness_mean": 0.5294,
+      "ao_mean": 0.8926,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5096,
+      "metalness_mean": 0.5356,
+      "ao_mean": 0.8935,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5095,
+      "metalness_mean": 0.5358,
+      "ao_mean": 0.8932,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.512,
+      "metalness_mean": 0.5346,
+      "ao_mean": 0.8876,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_repair_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5112,
+      "metalness_mean": 0.534,
+      "ao_mean": 0.8919,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5212,
+      "metalness_mean": 0.5184,
+      "ao_mean": 0.89,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5206,
+      "metalness_mean": 0.5172,
+      "ao_mean": 0.895,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5224,
+      "metalness_mean": 0.5143,
+      "ao_mean": 0.895,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5212,
+      "metalness_mean": 0.5165,
+      "ao_mean": 0.8936,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5205,
+      "metalness_mean": 0.5178,
+      "ao_mean": 0.8938,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5218,
+      "metalness_mean": 0.5194,
+      "ao_mean": 0.885,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5211,
+      "metalness_mean": 0.5204,
+      "ao_mean": 0.8848,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_rest_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5234,
+      "metalness_mean": 0.5172,
+      "ao_mean": 0.8843,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5194,
+      "metalness_mean": 0.5251,
+      "ao_mean": 0.8814,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.519,
+      "metalness_mean": 0.5263,
+      "ao_mean": 0.8805,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.516,
+      "metalness_mean": 0.5311,
+      "ao_mean": 0.8812,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5135,
+      "metalness_mean": 0.5352,
+      "ao_mean": 0.8821,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5121,
+      "metalness_mean": 0.5369,
+      "ao_mean": 0.8854,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.508,
+      "metalness_mean": 0.543,
+      "ao_mean": 0.8857,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5155,
+      "metalness_mean": 0.5333,
+      "ao_mean": 0.8769,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_scan_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5189,
+      "metalness_mean": 0.5256,
+      "ao_mean": 0.8821,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5232,
+      "metalness_mean": 0.5181,
+      "ao_mean": 0.8824,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5231,
+      "metalness_mean": 0.5174,
+      "ao_mean": 0.885,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5224,
+      "metalness_mean": 0.5191,
+      "ao_mean": 0.883,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5221,
+      "metalness_mean": 0.5197,
+      "ao_mean": 0.8833,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5201,
+      "metalness_mean": 0.5224,
+      "ao_mean": 0.8849,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5209,
+      "metalness_mean": 0.5208,
+      "ao_mean": 0.885,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5226,
+      "metalness_mean": 0.519,
+      "ao_mean": 0.8832,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_porter_walk_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5218,
+      "metalness_mean": 0.5208,
+      "ao_mean": 0.8824,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5356,
+      "metalness_mean": 0.4973,
+      "ao_mean": 0.8844,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5375,
+      "metalness_mean": 0.4978,
+      "ao_mean": 0.8758,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5362,
+      "metalness_mean": 0.4968,
+      "ao_mean": 0.883,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5324,
+      "metalness_mean": 0.5014,
+      "ao_mean": 0.8867,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5341,
+      "metalness_mean": 0.4963,
+      "ao_mean": 0.8925,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5329,
+      "metalness_mean": 0.5012,
+      "ao_mean": 0.8855,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5337,
+      "metalness_mean": 0.5006,
+      "ao_mean": 0.8843,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_haul_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5389,
+      "metalness_mean": 0.4953,
+      "ao_mean": 0.8762,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5377,
+      "metalness_mean": 0.4941,
+      "ao_mean": 0.8835,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5387,
+      "metalness_mean": 0.4934,
+      "ao_mean": 0.8818,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5381,
+      "metalness_mean": 0.4948,
+      "ao_mean": 0.8804,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5397,
+      "metalness_mean": 0.4927,
+      "ao_mean": 0.8793,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5392,
+      "metalness_mean": 0.4928,
+      "ao_mean": 0.8811,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5397,
+      "metalness_mean": 0.4924,
+      "ao_mean": 0.8801,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5391,
+      "metalness_mean": 0.4923,
+      "ao_mean": 0.8824,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_idle_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5392,
+      "metalness_mean": 0.4916,
+      "ao_mean": 0.884,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5287,
+      "metalness_mean": 0.5057,
+      "ao_mean": 0.8912,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5292,
+      "metalness_mean": 0.5071,
+      "ao_mean": 0.8857,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5279,
+      "metalness_mean": 0.5064,
+      "ao_mean": 0.8933,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.53,
+      "metalness_mean": 0.5027,
+      "ao_mean": 0.8932,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5261,
+      "metalness_mean": 0.5086,
+      "ao_mean": 0.8943,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5258,
+      "metalness_mean": 0.5091,
+      "ao_mean": 0.894,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5285,
+      "metalness_mean": 0.5075,
+      "ao_mean": 0.8881,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_repair_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5279,
+      "metalness_mean": 0.5068,
+      "ao_mean": 0.8924,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5369,
+      "metalness_mean": 0.4923,
+      "ao_mean": 0.891,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5364,
+      "metalness_mean": 0.4912,
+      "ao_mean": 0.8959,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5379,
+      "metalness_mean": 0.4887,
+      "ao_mean": 0.896,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5368,
+      "metalness_mean": 0.4907,
+      "ao_mean": 0.8947,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5363,
+      "metalness_mean": 0.4918,
+      "ao_mean": 0.8947,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5372,
+      "metalness_mean": 0.4939,
+      "ao_mean": 0.886,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5367,
+      "metalness_mean": 0.4945,
+      "ao_mean": 0.8859,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_rest_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5389,
+      "metalness_mean": 0.4915,
+      "ao_mean": 0.8851,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5339,
+      "metalness_mean": 0.5012,
+      "ao_mean": 0.8819,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5323,
+      "metalness_mean": 0.5042,
+      "ao_mean": 0.881,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5279,
+      "metalness_mean": 0.5113,
+      "ao_mean": 0.8813,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5244,
+      "metalness_mean": 0.517,
+      "ao_mean": 0.882,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5204,
+      "metalness_mean": 0.5227,
+      "ao_mean": 0.8849,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5165,
+      "metalness_mean": 0.5287,
+      "ao_mean": 0.885,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5284,
+      "metalness_mean": 0.5121,
+      "ao_mean": 0.8772,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_scan_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5329,
+      "metalness_mean": 0.5024,
+      "ao_mean": 0.8827,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_0": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5387,
+      "metalness_mean": 0.4923,
+      "ao_mean": 0.8834,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_1": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5386,
+      "metalness_mean": 0.4918,
+      "ao_mean": 0.8859,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_2": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.538,
+      "metalness_mean": 0.4933,
+      "ao_mean": 0.8839,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_3": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5379,
+      "metalness_mean": 0.4937,
+      "ao_mean": 0.8841,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_4": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5361,
+      "metalness_mean": 0.496,
+      "ao_mean": 0.8858,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_5": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5365,
+      "metalness_mean": 0.4951,
+      "ao_mean": 0.886,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_6": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5384,
+      "metalness_mean": 0.493,
+      "ao_mean": 0.8841,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hex_scrap_walk_7": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 15.12,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5376,
+      "metalness_mean": 0.4946,
+      "ao_mean": 0.8833,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "hvac_unit": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 18.144,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5537,
+      "metalness_mean": 0.6215,
+      "ao_mean": 0.893,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "industrial_frame": {
+      "material_class": "frame",
+      "source_material": "metal",
+      "height_scale": 21.6,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5917,
+      "metalness_mean": 0.5779,
+      "ao_mean": 0.8653,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_battery": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.436,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6349,
+      "metalness_mean": 0.4977,
+      "ao_mean": 0.8814,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_hackdeck": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.436,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6129,
+      "metalness_mean": 0.5346,
+      "ao_mean": 0.8724,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_keycard": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.436,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.601,
+      "metalness_mean": 0.5524,
+      "ao_mean": 0.8739,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_medkit": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.436,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5989,
+      "metalness_mean": 0.5473,
+      "ao_mean": 0.8834,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_radio": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.436,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6066,
+      "metalness_mean": 0.5456,
+      "ao_mean": 0.8814,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_remote": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.436,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6608,
+      "metalness_mean": 0.4592,
+      "ao_mean": 0.8761,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_sidearm": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 21.492,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6047,
+      "metalness_mean": 0.5474,
+      "ao_mean": 0.8835,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "item_visor": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 21.6,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6151,
+      "metalness_mean": 0.5268,
+      "ao_mean": 0.8899,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "manhole": {
+      "material_class": "flat",
+      "source_material": "metal",
+      "height_scale": 1.776,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7639,
+      "metalness_mean": 0.2079,
+      "ao_mean": 0.8957,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "objective_beacon": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.004,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6638,
+      "metalness_mean": 0.4511,
+      "ao_mean": 0.8841,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "objective_core": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 20.844,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6095,
+      "metalness_mean": 0.5393,
+      "ao_mean": 0.8811,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "objective_fuel": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 20.736,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6964,
+      "metalness_mean": 0.3961,
+      "ao_mean": 0.8888,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "objective_module": {
+      "material_class": "frame",
+      "source_material": "metal",
+      "height_scale": 22.788,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6291,
+      "metalness_mean": 0.5084,
+      "ao_mean": 0.8873,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "objective_relay": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 22.356,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.6256,
+      "metalness_mean": 0.5129,
+      "ao_mean": 0.8941,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "pipe_cluster": {
+      "material_class": "pipe",
+      "source_material": "metal",
+      "height_scale": 22.248,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5772,
+      "metalness_mean": 0.5918,
+      "ao_mean": 0.8851,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "pipe_wall": {
+      "material_class": "pipe",
+      "source_material": "metal",
+      "height_scale": 22.032,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5591,
+      "metalness_mean": 0.6134,
+      "ao_mean": 0.9018,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "platform_low": {
+      "material_class": "flat",
+      "source_material": "metal",
+      "height_scale": 1.4112,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7575,
+      "metalness_mean": 0.2144,
+      "ao_mean": 0.9065,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_0": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7437,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8777,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_1": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.743,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8799,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_2": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7414,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8848,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_3": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7413,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8833,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_4": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7416,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8822,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_5": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7418,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.881,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_6": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7434,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8779,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_action_7": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7434,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8776,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_0": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.745,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8736,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_1": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7451,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8754,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_2": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.744,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8773,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_3": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7418,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8879,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_4": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7447,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8782,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_5": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7434,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8833,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_6": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.741,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8857,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_hurt_7": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7418,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8834,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_0": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7434,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8775,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_1": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7439,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8763,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_2": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7428,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8799,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_3": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7433,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8781,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_4": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7433,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8782,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_5": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7435,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8783,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_6": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7435,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8771,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_idle_7": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7436,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8767,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_0": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7433,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8826,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_1": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7423,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.884,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_2": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7425,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8854,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_3": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7417,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8889,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_4": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7426,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8824,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_5": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7427,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8832,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_6": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7413,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.886,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_interact_7": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7416,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8866,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_0": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7427,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8811,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_1": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7432,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8801,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_2": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7429,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.881,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_3": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7432,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.881,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_4": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7428,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8826,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_5": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7421,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8822,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_6": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7412,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8881,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_run_7": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7428,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8798,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_0": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7438,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8763,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_1": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7439,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8756,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_2": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.744,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8763,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_3": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7429,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8787,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_4": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7435,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8771,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_5": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7438,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8755,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_6": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7433,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.8779,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "player_walk_7": {
+      "material_class": "character",
+      "source_material": "organic",
+      "height_scale": 16.9728,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7431,
+      "metalness_mean": 0.0,
+      "ao_mean": 0.878,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "power_box_wall": {
+      "material_class": "flat",
+      "source_material": "metal",
+      "height_scale": 1.8432,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.7485,
+      "metalness_mean": 0.2282,
+      "ao_mean": 0.9048,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "power_cabinet": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 22.356,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5504,
+      "metalness_mean": 0.6257,
+      "ao_mean": 0.9046,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "rust_barrel": {
+      "material_class": "barrel",
+      "source_material": "metal",
+      "height_scale": 23.0208,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5851,
+      "metalness_mean": 0.5392,
+      "ao_mean": 0.9002,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "scaffold": {
+      "material_class": "frame",
+      "source_material": "metal",
+      "height_scale": 19.872,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5641,
+      "metalness_mean": 0.6135,
+      "ao_mean": 0.8817,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "server_cabinet": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.544,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5708,
+      "metalness_mean": 0.5985,
+      "ao_mean": 0.8957,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "shutter": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 21.492,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4463,
+      "metalness_mean": 0.6341,
+      "ao_mean": 0.8925,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "signal_pole": {
+      "material_class": "pole",
+      "source_material": "metal",
+      "height_scale": 23.142,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4379,
+      "metalness_mean": 0.618,
+      "ao_mean": 0.8931,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "stairs": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 22.896,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5774,
+      "metalness_mean": 0.5913,
+      "ao_mean": 0.8799,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "street_lamp": {
+      "material_class": "pole",
+      "source_material": "metal",
+      "height_scale": 24.852,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.452,
+      "metalness_mean": 0.5947,
+      "ao_mean": 0.8928,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "street_terminal": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 21.492,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5699,
+      "metalness_mean": 0.5969,
+      "ao_mean": 0.8981,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "utility_drone": {
+      "material_class": "robot",
+      "source_material": "metal",
+      "height_scale": 19.26,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5397,
+      "metalness_mean": 0.4928,
+      "ao_mean": 0.8726,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "utility_hut": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 21.492,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5534,
+      "metalness_mean": 0.6233,
+      "ao_mean": 0.8984,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "vending_unit": {
+      "material_class": "box",
+      "source_material": "metal",
+      "height_scale": 23.544,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5918,
+      "metalness_mean": 0.5594,
+      "ao_mean": 0.8954,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "wall_panel": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 17.928,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4362,
+      "metalness_mean": 0.6466,
+      "ao_mean": 0.9069,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "wall_vent": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 18.036,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.459,
+      "metalness_mean": 0.6162,
+      "ao_mean": 0.89,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "warning_light": {
+      "material_class": "pole",
+      "source_material": "metal",
+      "height_scale": 22.458,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.5103,
+      "metalness_mean": 0.5017,
+      "ao_mean": 0.8906,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "window_broken": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 21.276,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4634,
+      "metalness_mean": 0.6109,
+      "ao_mean": 0.8918,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    },
+    "window_intact": {
+      "material_class": "vertical_plane",
+      "source_material": "metal",
+      "height_scale": 18.9,
+      "height_bias": 0.0,
+      "root_anchor": [
+        0.5,
+        1.0
+      ],
+      "roughness_mean": 0.4566,
+      "metalness_mean": 0.6198,
+      "ao_mean": 0.8993,
+      "emissive_mean": 0.0,
+      "normal_smoothing_px": 1.0,
+      "channels": {
+        "normal_roughness": "RGB=encoded XYZ normal; A=roughness",
+        "height_material": "R=worldZ/64; G=AO; B=metalness; A=emissive"
+      }
+    }
+  },
+  "sha256": {
+    "sprite_material_normal_roughness.png": "3ee5027ed11d63d324fa7deb11450a883aa0649625120044e347ce8c855610cb",
+    "sprite_material_height_material.png": "24edcee5a937bb756ebe03ef07aa886d84d2ca3250c4af518539b4f83cf3c274"
+  },
+  "class_counts": {
+    "barrel": 1,
+    "box": 26,
+    "character": 48,
+    "flat": 8,
+    "foliage": 3,
+    "frame": 3,
+    "glass": 17,
+    "pipe": 2,
+    "pole": 5,
+    "robot": 193,
+    "vertical_plane": 8
+  }
+}

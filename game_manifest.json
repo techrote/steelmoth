@@ -1,0 +1,36 @@
+{
+  "schema": "signal-orchard-project/v1",
+  "title": "The Small Machine at the Edge of Night",
+  "slug": "signal_orchard",
+  "version": "1.2.3",
+  "engine_base": "relay_moth_engine_v1.44dev",
+  "save_namespace": "signalOrchardStateV103",
+  "graphics_namespace": "signalOrchardGraphicsV123",
+  "logical_resolution": [
+    640,
+    360
+  ],
+  "playable_room_height": 304,
+  "rooms": 9,
+  "primary_objectives": 27,
+  "data": {
+    "maps": "game_data/maps.json",
+    "story": "game_data/story.json",
+    "effects": "game_data/effects.json",
+    "luts": "game_data/luts.json",
+    "sprites": "game_data/sprites.json",
+    "atlas": "assets/generated/atlas.json"
+  },
+  "launch": "index.html",
+  "editor": "F2 in-game; static hosts download edited signal_orchard_maps.json, writable dev endpoint used when available",
+  "distribution": "static-webapp",
+  "projected_shadow_model": "grounded-sectioned-silhouette-v1.1.2",
+  "terrain_material_profile": "v1.1.2 / normalized-world-height sectioned terrain silhouettes",
+  "material_pipeline": "v2-normal-roughness-height-metalness-ao",
+  "gbuffer": "MRT: G0 albedo RGBA8; G1 normal+roughness RGBA16F/RGBA8 fallback; G2 pseudo-Z+metalness+AO+emissive RGBA16F/RGBA8 fallback",
+  "self_shadow": "pseudo-height bounded screen/world raymarch",
+  "contact_shadows": "half-resolution pseudo-depth screen-space contact shadows",
+  "rendering_architecture": "material-v2-pseudo-gbuffer-deferred-v1.2.3",
+  "material_v2_version": "1.2.3",
+  "macro_shadow_compatibility": "v1.1.2 grounded sectioned silhouette retained"
+}

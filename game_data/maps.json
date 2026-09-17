@@ -1,0 +1,3956 @@
+{
+  "schema": "signal-orchard-maps/v1",
+  "grid": {
+    "width": 40,
+    "height": 19,
+    "tile": 16,
+    "play_height": 304
+  },
+  "rooms": {
+    "signal_orchard": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ]
+      ],
+      "water": [],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "signal_orchard_1": [
+          9,
+          8
+        ],
+        "signal_orchard_2": [
+          20,
+          9
+        ],
+        "signal_orchard_3": [
+          31,
+          8
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_signal_orchard",
+          "tile": [
+            18,
+            4
+          ],
+          "variant": 0,
+          "colour_index": 180
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "signal_orchard_decor_0",
+          "sprite": "street_terminal",
+          "x": 95,
+          "y": 70,
+          "scale": 0.72,
+          "flip": false
+        },
+        {
+          "editor_id": "signal_orchard_decor_1",
+          "sprite": "warning_light",
+          "x": 180,
+          "y": 230,
+          "scale": 0.82,
+          "flip": true
+        },
+        {
+          "editor_id": "signal_orchard_decor_2",
+          "sprite": "vending_unit",
+          "x": 330,
+          "y": 80,
+          "scale": 0.9199999999999999,
+          "flip": false
+        },
+        {
+          "editor_id": "signal_orchard_decor_3",
+          "sprite": "fan_unit",
+          "x": 455,
+          "y": 225,
+          "scale": 0.72,
+          "flip": true
+        },
+        {
+          "editor_id": "signal_orchard_decor_4",
+          "sprite": "hvac_unit",
+          "x": 540,
+          "y": 120,
+          "scale": 0.82,
+          "flip": false
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "signal_orchard:fx",
+          "sprite": "fx_smoke",
+          "x": 365,
+          "y": 74,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "signal_orchard_maint",
+          "kind": "maintenance",
+          "spawn": [
+            7,
+            14
+          ],
+          "count": 1,
+          "seed": 9000
+        },
+        {
+          "id": "signal_orchard_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            14
+          ],
+          "count": 1,
+          "seed": 9100
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 125,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8100
+        },
+        {
+          "x": 500,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8200
+        },
+        {
+          "x": 335,
+          "y": 115,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8300
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.65,
+      "floor_microtile": 4
+    },
+    "wet_relay": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ],
+        [
+          22,
+          15
+        ],
+        [
+          23,
+          15
+        ]
+      ],
+      "water": [
+        [
+          17,
+          11
+        ],
+        [
+          18,
+          11
+        ],
+        [
+          19,
+          11
+        ],
+        [
+          21,
+          11
+        ],
+        [
+          17,
+          12
+        ],
+        [
+          18,
+          12
+        ],
+        [
+          20,
+          12
+        ],
+        [
+          21,
+          12
+        ],
+        [
+          17,
+          13
+        ],
+        [
+          18,
+          13
+        ],
+        [
+          19,
+          13
+        ],
+        [
+          20,
+          13
+        ],
+        [
+          21,
+          13
+        ]
+      ],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "wet_relay_1": [
+          10,
+          7
+        ],
+        "wet_relay_2": [
+          20,
+          11
+        ],
+        "wet_relay_3": [
+          30,
+          7
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "22,15": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "23,15": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_wet_relay",
+          "tile": [
+            19,
+            5
+          ],
+          "variant": 1,
+          "colour_index": 191
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "wet_relay_decor_0",
+          "sprite": "warning_light",
+          "x": 95,
+          "y": 70,
+          "scale": 0.82,
+          "flip": true
+        },
+        {
+          "editor_id": "wet_relay_decor_1",
+          "sprite": "vending_unit",
+          "x": 180,
+          "y": 230,
+          "scale": 0.9199999999999999,
+          "flip": false
+        },
+        {
+          "editor_id": "wet_relay_decor_2",
+          "sprite": "fan_unit",
+          "x": 330,
+          "y": 80,
+          "scale": 0.72,
+          "flip": true
+        },
+        {
+          "editor_id": "wet_relay_decor_3",
+          "sprite": "hvac_unit",
+          "x": 455,
+          "y": 225,
+          "scale": 0.82,
+          "flip": false
+        },
+        {
+          "editor_id": "wet_relay_decor_4",
+          "sprite": "signal_pole",
+          "x": 540,
+          "y": 120,
+          "scale": 0.9199999999999999,
+          "flip": true
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "wet_relay:fx",
+          "sprite": "fx_scan",
+          "x": 435,
+          "y": 92,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "wet_relay_maint",
+          "kind": "maintenance",
+          "spawn": [
+            8,
+            14
+          ],
+          "count": 2,
+          "seed": 9001
+        },
+        {
+          "id": "wet_relay_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            13
+          ],
+          "count": 1,
+          "seed": 9101
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 142,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8111
+        },
+        {
+          "x": 487,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8213
+        },
+        {
+          "x": 335,
+          "y": 140,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8317
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.77,
+      "floor_microtile": 4
+    },
+    "greenhouse_below": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ]
+      ],
+      "water": [
+        [
+          22,
+          8
+        ],
+        [
+          23,
+          8
+        ],
+        [
+          24,
+          8
+        ],
+        [
+          25,
+          8
+        ],
+        [
+          26,
+          8
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          22,
+          10
+        ],
+        [
+          23,
+          10
+        ],
+        [
+          24,
+          10
+        ],
+        [
+          25,
+          10
+        ],
+        [
+          26,
+          10
+        ]
+      ],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "greenhouse_below_1": [
+          10,
+          11
+        ],
+        "greenhouse_below_2": [
+          20,
+          7
+        ],
+        "greenhouse_below_3": [
+          30,
+          11
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_greenhouse_below",
+          "tile": [
+            20,
+            6
+          ],
+          "variant": 2,
+          "colour_index": 202
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "greenhouse_below_decor_0",
+          "sprite": "vending_unit",
+          "x": 95,
+          "y": 70,
+          "scale": 0.9199999999999999,
+          "flip": false
+        },
+        {
+          "editor_id": "greenhouse_below_decor_1",
+          "sprite": "fan_unit",
+          "x": 180,
+          "y": 230,
+          "scale": 0.72,
+          "flip": true
+        },
+        {
+          "editor_id": "greenhouse_below_decor_2",
+          "sprite": "hvac_unit",
+          "x": 330,
+          "y": 80,
+          "scale": 0.82,
+          "flip": false
+        },
+        {
+          "editor_id": "greenhouse_below_decor_3",
+          "sprite": "signal_pole",
+          "x": 455,
+          "y": 225,
+          "scale": 0.9199999999999999,
+          "flip": true
+        },
+        {
+          "editor_id": "greenhouse_below_decor_4",
+          "sprite": "bench",
+          "x": 540,
+          "y": 120,
+          "scale": 0.72,
+          "flip": false
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "greenhouse_below:fx",
+          "sprite": "fx_hack",
+          "x": 365,
+          "y": 110,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "greenhouse_below_maint",
+          "kind": "maintenance",
+          "spawn": [
+            9,
+            14
+          ],
+          "count": 1,
+          "seed": 9002
+        },
+        {
+          "id": "greenhouse_below_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            12
+          ],
+          "count": 1,
+          "seed": 9102
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 159,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8122
+        },
+        {
+          "x": 474,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8226
+        },
+        {
+          "x": 335,
+          "y": 165,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8334
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.89,
+      "floor_microtile": 4
+    },
+    "pump_choir": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ],
+        [
+          22,
+          15
+        ],
+        [
+          23,
+          15
+        ]
+      ],
+      "water": [
+        [
+          12,
+          11
+        ],
+        [
+          13,
+          11
+        ],
+        [
+          14,
+          11
+        ],
+        [
+          15,
+          11
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          13,
+          12
+        ],
+        [
+          15,
+          12
+        ],
+        [
+          16,
+          12
+        ],
+        [
+          12,
+          13
+        ],
+        [
+          13,
+          13
+        ],
+        [
+          14,
+          13
+        ],
+        [
+          15,
+          13
+        ],
+        [
+          16,
+          13
+        ]
+      ],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "pump_choir_1": [
+          9,
+          9
+        ],
+        "pump_choir_2": [
+          22,
+          7
+        ],
+        "pump_choir_3": [
+          31,
+          11
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "22,15": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "23,15": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_pump_choir",
+          "tile": [
+            21,
+            4
+          ],
+          "variant": 0,
+          "colour_index": 213
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "pump_choir_decor_0",
+          "sprite": "fan_unit",
+          "x": 95,
+          "y": 70,
+          "scale": 0.72,
+          "flip": true
+        },
+        {
+          "editor_id": "pump_choir_decor_1",
+          "sprite": "hvac_unit",
+          "x": 180,
+          "y": 230,
+          "scale": 0.82,
+          "flip": false
+        },
+        {
+          "editor_id": "pump_choir_decor_2",
+          "sprite": "signal_pole",
+          "x": 330,
+          "y": 80,
+          "scale": 0.9199999999999999,
+          "flip": true
+        },
+        {
+          "editor_id": "pump_choir_decor_3",
+          "sprite": "bench",
+          "x": 455,
+          "y": 225,
+          "scale": 0.72,
+          "flip": false
+        },
+        {
+          "editor_id": "pump_choir_decor_4",
+          "sprite": "scaffold",
+          "x": 540,
+          "y": 120,
+          "scale": 0.82,
+          "flip": true
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "pump_choir:fx",
+          "sprite": "fx_smoke",
+          "x": 435,
+          "y": 74,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "pump_choir_maint",
+          "kind": "maintenance",
+          "spawn": [
+            7,
+            14
+          ],
+          "count": 2,
+          "seed": 9003
+        },
+        {
+          "id": "pump_choir_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            14
+          ],
+          "count": 1,
+          "seed": 9103
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 176,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8133
+        },
+        {
+          "x": 461,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8239
+        },
+        {
+          "x": 335,
+          "y": 115,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8351
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.65,
+      "floor_microtile": 4
+    },
+    "sleeper_gantry": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ]
+      ],
+      "water": [],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "sleeper_gantry_1": [
+          12,
+          6
+        ],
+        "sleeper_gantry_2": [
+          21,
+          11
+        ],
+        "sleeper_gantry_3": [
+          30,
+          8
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "barrier_hazard"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_sleeper_gantry",
+          "tile": [
+            18,
+            5
+          ],
+          "variant": 1,
+          "colour_index": 224
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "sleeper_gantry_decor_0",
+          "sprite": "hvac_unit",
+          "x": 95,
+          "y": 70,
+          "scale": 0.82,
+          "flip": false
+        },
+        {
+          "editor_id": "sleeper_gantry_decor_1",
+          "sprite": "signal_pole",
+          "x": 180,
+          "y": 230,
+          "scale": 0.9199999999999999,
+          "flip": true
+        },
+        {
+          "editor_id": "sleeper_gantry_decor_2",
+          "sprite": "bench",
+          "x": 330,
+          "y": 80,
+          "scale": 0.72,
+          "flip": false
+        },
+        {
+          "editor_id": "sleeper_gantry_decor_3",
+          "sprite": "scaffold",
+          "x": 455,
+          "y": 225,
+          "scale": 0.82,
+          "flip": true
+        },
+        {
+          "editor_id": "sleeper_gantry_decor_4",
+          "sprite": "industrial_frame",
+          "x": 540,
+          "y": 120,
+          "scale": 0.9199999999999999,
+          "flip": false
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "sleeper_gantry:fx",
+          "sprite": "fx_scan",
+          "x": 365,
+          "y": 92,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "sleeper_gantry_maint",
+          "kind": "maintenance",
+          "spawn": [
+            8,
+            14
+          ],
+          "count": 1,
+          "seed": 9004
+        },
+        {
+          "id": "sleeper_gantry_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            13
+          ],
+          "count": 1,
+          "seed": 9104
+        },
+        {
+          "id": "sleeper_gantry_medic",
+          "kind": "medic",
+          "spawn": [
+            24,
+            6
+          ],
+          "count": 1,
+          "seed": 9204
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 193,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8144
+        },
+        {
+          "x": 448,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8252
+        },
+        {
+          "x": 335,
+          "y": 140,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8368
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.77,
+      "floor_microtile": 4
+    },
+    "field_of_small_machines": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ],
+        [
+          22,
+          15
+        ],
+        [
+          23,
+          15
+        ]
+      ],
+      "water": [],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "field_of_small_machines_1": [
+          10,
+          7
+        ],
+        "field_of_small_machines_2": [
+          20,
+          11
+        ],
+        "field_of_small_machines_3": [
+          30,
+          7
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "barrier_concrete"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "22,15": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "23,15": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_field_of_small_machines",
+          "tile": [
+            19,
+            6
+          ],
+          "variant": 2,
+          "colour_index": 235
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "field_of_small_machines_decor_0",
+          "sprite": "signal_pole",
+          "x": 95,
+          "y": 70,
+          "scale": 0.9199999999999999,
+          "flip": true
+        },
+        {
+          "editor_id": "field_of_small_machines_decor_1",
+          "sprite": "bench",
+          "x": 180,
+          "y": 230,
+          "scale": 0.72,
+          "flip": false
+        },
+        {
+          "editor_id": "field_of_small_machines_decor_2",
+          "sprite": "scaffold",
+          "x": 330,
+          "y": 80,
+          "scale": 0.82,
+          "flip": true
+        },
+        {
+          "editor_id": "field_of_small_machines_decor_3",
+          "sprite": "industrial_frame",
+          "x": 455,
+          "y": 225,
+          "scale": 0.9199999999999999,
+          "flip": false
+        },
+        {
+          "editor_id": "field_of_small_machines_decor_4",
+          "sprite": "checkpoint_post",
+          "x": 540,
+          "y": 120,
+          "scale": 0.72,
+          "flip": true
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "field_of_small_machines:fx",
+          "sprite": "fx_hack",
+          "x": 435,
+          "y": 110,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "field_of_small_machines_maint",
+          "kind": "maintenance",
+          "spawn": [
+            9,
+            14
+          ],
+          "count": 2,
+          "seed": 9005
+        },
+        {
+          "id": "field_of_small_machines_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            12
+          ],
+          "count": 1,
+          "seed": 9105
+        },
+        {
+          "id": "field_of_small_machines_medic",
+          "kind": "medic",
+          "spawn": [
+            24,
+            6
+          ],
+          "count": 1,
+          "seed": 9205
+        },
+        {
+          "id": "field_of_small_machines_scrap",
+          "kind": "scrap",
+          "spawn": [
+            16,
+            5
+          ],
+          "count": 1,
+          "seed": 9305
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 140,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8155
+        },
+        {
+          "x": 435,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8265
+        },
+        {
+          "x": 335,
+          "y": 165,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8385
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.89,
+      "floor_microtile": 4
+    },
+    "dusk_switchyard": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ]
+      ],
+      "water": [],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "dusk_switchyard_1": [
+          10,
+          11
+        ],
+        "dusk_switchyard_2": [
+          20,
+          7
+        ],
+        "dusk_switchyard_3": [
+          30,
+          11
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "server_cabinet"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_dusk_switchyard",
+          "tile": [
+            20,
+            4
+          ],
+          "variant": 0,
+          "colour_index": 186
+        }
+      ],
+      "companions": [
+        {
+          "id": "mote",
+          "tile": [
+            14,
+            9
+          ],
+          "variant": "maintenance",
+          "name": "Mote"
+        }
+      ],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "dusk_switchyard_decor_0",
+          "sprite": "bench",
+          "x": 95,
+          "y": 70,
+          "scale": 0.72,
+          "flip": false
+        },
+        {
+          "editor_id": "dusk_switchyard_decor_1",
+          "sprite": "scaffold",
+          "x": 180,
+          "y": 230,
+          "scale": 0.82,
+          "flip": true
+        },
+        {
+          "editor_id": "dusk_switchyard_decor_2",
+          "sprite": "industrial_frame",
+          "x": 330,
+          "y": 80,
+          "scale": 0.9199999999999999,
+          "flip": false
+        },
+        {
+          "editor_id": "dusk_switchyard_decor_3",
+          "sprite": "checkpoint_post",
+          "x": 455,
+          "y": 225,
+          "scale": 0.72,
+          "flip": true
+        },
+        {
+          "editor_id": "dusk_switchyard_decor_4",
+          "sprite": "street_terminal",
+          "x": 540,
+          "y": 120,
+          "scale": 0.82,
+          "flip": false
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "dusk_switchyard:fx",
+          "sprite": "fx_smoke",
+          "x": 365,
+          "y": 74,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "dusk_switchyard_maint",
+          "kind": "maintenance",
+          "spawn": [
+            7,
+            14
+          ],
+          "count": 1,
+          "seed": 9006
+        },
+        {
+          "id": "dusk_switchyard_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            14
+          ],
+          "count": 1,
+          "seed": 9106
+        },
+        {
+          "id": "dusk_switchyard_scrap",
+          "kind": "scrap",
+          "spawn": [
+            16,
+            5
+          ],
+          "count": 1,
+          "seed": 9306
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 157,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8166
+        },
+        {
+          "x": 422,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8278
+        },
+        {
+          "x": 335,
+          "y": 115,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8402
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.65,
+      "floor_microtile": 4
+    },
+    "edge_station": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ],
+        [
+          22,
+          15
+        ],
+        [
+          23,
+          15
+        ]
+      ],
+      "water": [],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "edge_station_1": [
+          9,
+          9
+        ],
+        "edge_station_2": [
+          22,
+          7
+        ],
+        "edge_station_3": [
+          31,
+          11
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "power_cabinet"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "22,15": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "23,15": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_edge_station",
+          "tile": [
+            21,
+            5
+          ],
+          "variant": 1,
+          "colour_index": 197
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "edge_station_decor_0",
+          "sprite": "scaffold",
+          "x": 95,
+          "y": 70,
+          "scale": 0.82,
+          "flip": true
+        },
+        {
+          "editor_id": "edge_station_decor_1",
+          "sprite": "industrial_frame",
+          "x": 180,
+          "y": 230,
+          "scale": 0.9199999999999999,
+          "flip": false
+        },
+        {
+          "editor_id": "edge_station_decor_2",
+          "sprite": "checkpoint_post",
+          "x": 330,
+          "y": 80,
+          "scale": 0.72,
+          "flip": true
+        },
+        {
+          "editor_id": "edge_station_decor_3",
+          "sprite": "street_terminal",
+          "x": 455,
+          "y": 225,
+          "scale": 0.82,
+          "flip": false
+        },
+        {
+          "editor_id": "edge_station_decor_4",
+          "sprite": "warning_light",
+          "x": 540,
+          "y": 120,
+          "scale": 0.9199999999999999,
+          "flip": true
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "edge_station:fx",
+          "sprite": "fx_scan",
+          "x": 435,
+          "y": 92,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "edge_station_maint",
+          "kind": "maintenance",
+          "spawn": [
+            8,
+            14
+          ],
+          "count": 2,
+          "seed": 9007
+        },
+        {
+          "id": "edge_station_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            13
+          ],
+          "count": 1,
+          "seed": 9107
+        },
+        {
+          "id": "edge_station_medic",
+          "kind": "medic",
+          "spawn": [
+            24,
+            6
+          ],
+          "count": 1,
+          "seed": 9207
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 174,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8177
+        },
+        {
+          "x": 499,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8291
+        },
+        {
+          "x": 335,
+          "y": 140,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8419
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.77,
+      "floor_microtile": 4
+    },
+    "edge_of_night": {
+      "walls": [
+        [
+          6,
+          4
+        ],
+        [
+          7,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          15,
+          10
+        ],
+        [
+          16,
+          10
+        ],
+        [
+          16,
+          11
+        ],
+        [
+          26,
+          4
+        ],
+        [
+          27,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          34,
+          12
+        ],
+        [
+          34,
+          13
+        ],
+        [
+          33,
+          13
+        ]
+      ],
+      "water": [
+        [
+          22,
+          8
+        ],
+        [
+          23,
+          8
+        ],
+        [
+          24,
+          8
+        ],
+        [
+          25,
+          8
+        ],
+        [
+          26,
+          8
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          22,
+          10
+        ],
+        [
+          23,
+          10
+        ],
+        [
+          24,
+          10
+        ],
+        [
+          25,
+          10
+        ],
+        [
+          26,
+          10
+        ]
+      ],
+      "path_cells": [
+        [
+          2,
+          9
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          10,
+          9
+        ],
+        [
+          11,
+          9
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          13,
+          9
+        ],
+        [
+          14,
+          9
+        ],
+        [
+          15,
+          9
+        ],
+        [
+          16,
+          9
+        ],
+        [
+          17,
+          9
+        ],
+        [
+          18,
+          9
+        ],
+        [
+          19,
+          9
+        ],
+        [
+          20,
+          9
+        ],
+        [
+          21,
+          9
+        ],
+        [
+          22,
+          9
+        ],
+        [
+          23,
+          9
+        ],
+        [
+          24,
+          9
+        ],
+        [
+          25,
+          9
+        ],
+        [
+          26,
+          9
+        ],
+        [
+          27,
+          9
+        ],
+        [
+          28,
+          9
+        ],
+        [
+          29,
+          9
+        ],
+        [
+          30,
+          9
+        ],
+        [
+          31,
+          9
+        ],
+        [
+          32,
+          9
+        ],
+        [
+          33,
+          9
+        ],
+        [
+          34,
+          9
+        ],
+        [
+          35,
+          9
+        ],
+        [
+          36,
+          9
+        ],
+        [
+          37,
+          9
+        ]
+      ],
+      "objects": {
+        "edge_of_night_1": [
+          12,
+          6
+        ],
+        "edge_of_night_2": [
+          21,
+          11
+        ],
+        "edge_of_night_3": [
+          30,
+          8
+        ]
+      },
+      "blocker_styles": {
+        "6,4": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "7,4": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "6,5": {
+          "kind": "blocker",
+          "sprite": "cargo_crate"
+        },
+        "15,10": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "16,10": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "16,11": {
+          "kind": "blocker",
+          "sprite": "dumpster"
+        },
+        "26,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "27,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "28,4": {
+          "kind": "blocker",
+          "sprite": "rust_barrel"
+        },
+        "34,12": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "34,13": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        },
+        "33,13": {
+          "kind": "blocker",
+          "sprite": "pipe_cluster"
+        }
+      },
+      "tall_scenery": [],
+      "collectibles": [
+        {
+          "id": "fragment_edge_of_night",
+          "tile": [
+            18,
+            6
+          ],
+          "variant": 2,
+          "colour_index": 208
+        }
+      ],
+      "companions": [],
+      "decor_lamps": [
+        {
+          "tile": [
+            4,
+            4
+          ],
+          "lamp": "street_lamp"
+        },
+        {
+          "tile": [
+            35,
+            5
+          ],
+          "lamp": "street_lamp"
+        }
+      ],
+      "editor_decor": [
+        {
+          "editor_id": "edge_of_night_decor_0",
+          "sprite": "industrial_frame",
+          "x": 95,
+          "y": 70,
+          "scale": 0.9199999999999999,
+          "flip": false
+        },
+        {
+          "editor_id": "edge_of_night_decor_1",
+          "sprite": "checkpoint_post",
+          "x": 180,
+          "y": 230,
+          "scale": 0.72,
+          "flip": true
+        },
+        {
+          "editor_id": "edge_of_night_decor_2",
+          "sprite": "street_terminal",
+          "x": 330,
+          "y": 80,
+          "scale": 0.82,
+          "flip": false
+        },
+        {
+          "editor_id": "edge_of_night_decor_3",
+          "sprite": "warning_light",
+          "x": 455,
+          "y": 225,
+          "scale": 0.9199999999999999,
+          "flip": true
+        },
+        {
+          "editor_id": "edge_of_night_decor_4",
+          "sprite": "vending_unit",
+          "x": 540,
+          "y": 120,
+          "scale": 0.72,
+          "flip": false
+        }
+      ],
+      "pattern_decor": [
+        {
+          "id": "edge_of_night:fx",
+          "sprite": "fx_hack",
+          "x": 365,
+          "y": 110,
+          "scale": 0.62,
+          "alpha": 0.16,
+          "element": "fx_magic",
+          "anchor": "center"
+        }
+      ],
+      "ambient_groups": [
+        {
+          "id": "edge_of_night_maint",
+          "kind": "maintenance",
+          "spawn": [
+            9,
+            14
+          ],
+          "count": 1,
+          "seed": 9008
+        },
+        {
+          "id": "edge_of_night_porter",
+          "kind": "porter",
+          "spawn": [
+            30,
+            12
+          ],
+          "count": 1,
+          "seed": 9108
+        },
+        {
+          "id": "edge_of_night_medic",
+          "kind": "medic",
+          "spawn": [
+            24,
+            6
+          ],
+          "count": 1,
+          "seed": 9208
+        },
+        {
+          "id": "edge_of_night_scrap",
+          "kind": "scrap",
+          "spawn": [
+            16,
+            5
+          ],
+          "count": 1,
+          "seed": 9308
+        }
+      ],
+      "foliage_clumps": [
+        {
+          "x": 191,
+          "y": 245,
+          "radius": 28,
+          "density": 1.1,
+          "seed": 8188
+        },
+        {
+          "x": 486,
+          "y": 225,
+          "radius": 31,
+          "density": 1.25,
+          "seed": 8304
+        },
+        {
+          "x": 335,
+          "y": 165,
+          "radius": 24,
+          "density": 0.9,
+          "seed": 8436
+        }
+      ],
+      "decor_exclusions": [],
+      "pattern_exclusions": [],
+      "object_fx_hidden": [],
+      "outer_border_depth": 1,
+      "foliage_density": 0.89,
+      "floor_microtile": 4
+    }
+  },
+  "notes": {
+    "game": "The Small Machine at the Edge of Night",
+    "format": "Relay Moth Engine v1.44dev-compatible discrete rooms"
+  }
+}

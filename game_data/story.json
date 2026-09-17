@@ -1,0 +1,360 @@
+{
+  "schema": "signal-orchard-story/v1",
+  "rooms": [
+    {
+      "index": 0,
+      "key": "signal_orchard",
+      "title": "SIGNAL ORCHARD",
+      "subtitle": "A maintenance garden under dusk glass",
+      "intro": [
+        "Wake the orchard relays.",
+        "The signal comes from beneath the soil, but the machines answer first."
+      ],
+      "prompt": "RELAY NODE: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": null,
+      "previous_side": null,
+      "previous_fraction": 0.5,
+      "next_room": 1,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "signal_orchard_1",
+          "kind": "node",
+          "label": "RELAY NODE",
+          "required": 1.0
+        },
+        {
+          "object_id": "signal_orchard_2",
+          "kind": "node",
+          "label": "RELAY NODE",
+          "required": 1.0
+        },
+        {
+          "object_id": "signal_orchard_3",
+          "kind": "pump",
+          "label": "PUMP COUPLER",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "key": "wet_relay",
+      "title": "WET RELAY",
+      "subtitle": "Flooded service channels",
+      "intro": [
+        "Follow the drainage lights.",
+        "Water remembers every pump that stopped."
+      ],
+      "prompt": "PUMP COUPLER: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 0,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": 2,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "wet_relay_1",
+          "kind": "pump",
+          "label": "PUMP COUPLER",
+          "required": 1.0
+        },
+        {
+          "object_id": "wet_relay_2",
+          "kind": "switch",
+          "label": "SERVICE SWITCH",
+          "required": 1.0
+        },
+        {
+          "object_id": "wet_relay_3",
+          "kind": "node",
+          "label": "RELAY NODE",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "key": "greenhouse_below",
+      "title": "THE GREENHOUSE BELOW",
+      "subtitle": "Cable reeds and broken climate ribs",
+      "intro": [
+        "The lower garden is still growing.",
+        "Its roots have learned the shape of the pipes."
+      ],
+      "prompt": "SIGNAL MIRROR: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 1,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": 3,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "greenhouse_below_1",
+          "kind": "mirror",
+          "label": "SIGNAL MIRROR",
+          "required": 1.0
+        },
+        {
+          "object_id": "greenhouse_below_2",
+          "kind": "node",
+          "label": "RELAY NODE",
+          "required": 1.0
+        },
+        {
+          "object_id": "greenhouse_below_3",
+          "kind": "terminal",
+          "label": "FIELD TERMINAL",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "key": "pump_choir",
+      "title": "PUMP CHOIR",
+      "subtitle": "Three machines, one old rhythm",
+      "intro": [
+        "Listen before you touch anything.",
+        "The pumps only agree when they hear one another."
+      ],
+      "prompt": "PUMP COUPLER: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 2,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": 4,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "pump_choir_1",
+          "kind": "pump",
+          "label": "PUMP COUPLER",
+          "required": 1.0
+        },
+        {
+          "object_id": "pump_choir_2",
+          "kind": "pump",
+          "label": "PUMP COUPLER",
+          "required": 1.0
+        },
+        {
+          "object_id": "pump_choir_3",
+          "kind": "switch",
+          "label": "SERVICE SWITCH",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "key": "sleeper_gantry",
+      "title": "SLEEPER GANTRY",
+      "subtitle": "Maintenance walkers in the dark",
+      "intro": [
+        "The hexapods wait beneath the gantry.",
+        "Some remember work. Some remember being afraid."
+      ],
+      "prompt": "FIELD TERMINAL: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 3,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": 5,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "sleeper_gantry_1",
+          "kind": "terminal",
+          "label": "FIELD TERMINAL",
+          "required": 1.0
+        },
+        {
+          "object_id": "sleeper_gantry_2",
+          "kind": "node",
+          "label": "RELAY NODE",
+          "required": 1.0
+        },
+        {
+          "object_id": "sleeper_gantry_3",
+          "kind": "mirror",
+          "label": "SIGNAL MIRROR",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "key": "field_of_small_machines",
+      "title": "FIELD OF SMALL MACHINES",
+      "subtitle": "A colony of repair creatures",
+      "intro": [
+        "Nothing here is truly abandoned.",
+        "Tiny workers have made homes from everything we left behind."
+      ],
+      "prompt": "RELAY NODE: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 4,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": 6,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "field_of_small_machines_1",
+          "kind": "node",
+          "label": "RELAY NODE",
+          "required": 1.0
+        },
+        {
+          "object_id": "field_of_small_machines_2",
+          "kind": "switch",
+          "label": "SERVICE SWITCH",
+          "required": 1.0
+        },
+        {
+          "object_id": "field_of_small_machines_3",
+          "kind": "pump",
+          "label": "PUMP COUPLER",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "key": "dusk_switchyard",
+      "title": "DUSK SWITCHYARD",
+      "subtitle": "A small machine keeps its distance",
+      "intro": [
+        "Something smaller than the hexapods watches from the switchyard.",
+        "It waits until you are close before deciding whether to follow."
+      ],
+      "prompt": "SERVICE SWITCH: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 5,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": 7,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "dusk_switchyard_1",
+          "kind": "switch",
+          "label": "SERVICE SWITCH",
+          "required": 1.0
+        },
+        {
+          "object_id": "dusk_switchyard_2",
+          "kind": "mirror",
+          "label": "SIGNAL MIRROR",
+          "required": 1.0
+        },
+        {
+          "object_id": "dusk_switchyard_3",
+          "kind": "terminal",
+          "label": "FIELD TERMINAL",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "key": "edge_station",
+      "title": "EDGE STATION",
+      "subtitle": "Mote makes a choice",
+      "intro": [
+        "Mote has followed you only a little way.",
+        "At the edge station, the little machine begins looking back toward the switchyard instead of at you."
+      ],
+      "prompt": "RELAY NODE: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 6,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": 8,
+      "next_side": "EAST",
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "edge_station_1",
+          "kind": "node",
+          "label": "RELAY NODE",
+          "required": 1.0
+        },
+        {
+          "object_id": "edge_station_2",
+          "kind": "terminal",
+          "label": "FIELD TERMINAL",
+          "required": 1.0
+        },
+        {
+          "object_id": "edge_station_3",
+          "kind": "release",
+          "label": "MOTE",
+          "required": 1.0
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "key": "edge_of_night",
+      "title": "THE EDGE OF NIGHT",
+      "subtitle": "A final machine under a black sky",
+      "intro": [
+        "The signal is not a distress call.",
+        "It is an invitation to leave the garden unfinished."
+      ],
+      "prompt": "SIGNAL MIRROR: approach, then pulse to inspect.",
+      "complete_line": "The machine settles into a new rhythm.",
+      "pattern": "explicit",
+      "previous_room": 7,
+      "previous_side": "WEST",
+      "previous_fraction": 0.5,
+      "next_room": null,
+      "next_side": null,
+      "next_fraction": 0.5,
+      "objects": [
+        {
+          "object_id": "edge_of_night_1",
+          "kind": "mirror",
+          "label": "SIGNAL MIRROR",
+          "required": 1.0
+        },
+        {
+          "object_id": "edge_of_night_2",
+          "kind": "switch",
+          "label": "SERVICE SWITCH",
+          "required": 1.0
+        },
+        {
+          "object_id": "edge_of_night_3",
+          "kind": "core",
+          "label": "NIGHT CORE",
+          "required": 1.0
+        }
+      ]
+    }
+  ],
+  "notes": {
+    "length": "9 compact screen-sized rooms",
+    "progression": "authored sequential objectives; unlocked rooms remain revisitable from level menu"
+  }
+}

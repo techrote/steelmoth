@@ -10,6 +10,25 @@ Purpose: give future implementation agents durable context from the development 
 - Rendering intent from the original game brief: high ambient readability, localized directional lights, soft material response, restrained bloom, deep foreground overlap, and a dense but readable diorama.
 - Platform intent: Windows desktop browser / packaged desktop wrapper; keyboard/controller gameplay retained.
 
+## Current repository baseline
+
+The authoritative **v1.2.3** source distribution has been recovered from `the_small_machine_at_the_edge_of_night_webapp_v1_2_3.zip`, SHA-256:
+
+`2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`
+
+Steel Moth v1.2.3 is raw editable HTML/JavaScript/WebGL2/Python/JSON plus generated/material assets. The webapp ZIP is therefore the source distribution rather than a compiled-only release.
+
+SM-000 import evidence records:
+
+- internal `SHA256SUMS.txt`: 93/93 entries verified;
+- 94 release files copied and repository-copy verified;
+- Material-v2 validation: 314 regions;
+- 26 production GLSL programs compiled/linked in the inherited native validation path;
+- exact remote Git-blob checks for the principal runtime/material assets and `engine/game.js`;
+- preservation of the exact v1.2.3 Windows launcher bytes after correcting local Git CRLF normalization.
+
+See `docs/BASELINE_V123_PROVENANCE.md` and `docs/BASELINE_V123_IMPORT_REPORT.txt` for evidence and limitations.
+
 ## Historical renderer progression
 
 ### v1.2.0 historical claim
@@ -27,7 +46,7 @@ Conversation work reported an integrated Material-v2 renderer with:
 - legacy bump/spec maps for debug/fallback;
 - G-buffer/material debug views and validation tooling.
 
-These are **historical implementation claims**, not repository facts until the baseline is imported and revalidated.
+These details are now partly corroborated by the imported v1.2.3 source and inherited validation, but any subsystem-specific implementation assumption should still be checked against current source before refactoring.
 
 ### v1.2.1 historical patch
 
@@ -37,7 +56,7 @@ A patch attempted to address normal-direction inconsistency, yellow/glowing Surf
 
 The later audit determined v1.2.1 was not a trustworthy visual comparison artifact because it still carried stale v1.2.0 service-worker/cache identity and some fixes targeted the wrong subsystem. Work then tightened cache/version identity, lighting conventions, floor material response and player-shadow ownership.
 
-### v1.2.3 historical baseline
+### v1.2.3 baseline
 
 The user confirmed two material improvements after v1.2.3:
 
@@ -46,7 +65,7 @@ The user confirmed two material improvements after v1.2.3:
 
 The yellow artifact was traced to Fine GrassField/procedural rendering rather than the main deferred lighting path. The correction required procedural grass to consume coherent scene illumination and a suitable dark vegetation palette rather than behaving like a self-lit amber layer.
 
-**v1.2.3 is therefore the latest known good implementation baseline to import into this repository.**
+**v1.2.3 is the imported WebGL2/Material-v2 compatibility baseline for the WebGPU migration.**
 
 ## Overlap/bin screenshot findings
 
@@ -145,7 +164,6 @@ After WebGPU correctness and overlap/shadow architecture stabilize:
 
 ## Unresolved facts that must not be guessed
 
-- Exact current v1.2.3 source SHA/content until imported.
 - Whether the original authoritative bin/box screenshot files can be recovered and committed as reference artifacts.
 - Actual WebGL2 pass timings on GTX 1650 Super.
 - Actual WebGPU pass timings on GTX 1650 Super.
@@ -155,6 +173,7 @@ After WebGPU correctness and overlap/shadow architecture stabilize:
 ## Source/provenance categories
 
 - Product/rendering requirements: user game brief and explicit Steel Moth conversation decisions.
-- Historical implementation state: prior assistant delivery reports; must be revalidated after source import.
+- Current implementation baseline: imported v1.2.3 source plus provenance/validation records.
+- Historical implementation state: prior assistant delivery reports; use only where not contradicted by current source.
 - Screenshot analysis: Branch Steel Moth Forgetful conversation and user confirmation.
 - External WebGPU facts: official MDN/GPUWeb/WGSL documentation recorded in `RESEARCH_AND_DECISIONS.md`.

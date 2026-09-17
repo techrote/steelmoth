@@ -1,0 +1,10 @@
+/sw.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/engine/*
+  Cache-Control: no-cache
+/game_data/*
+  Cache-Control: no-cache
+/assets/generated/*
+  Cache-Control: public, max-age=86400

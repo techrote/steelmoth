@@ -7,7 +7,7 @@ This ledger records the repository-planning operation requested on 2026-09-16 an
 | Stage | Status | Result |
 | --- | --- | --- |
 | 1. Reconcile relevant conversations | complete | v1.2.0→v1.2.3 renderer history, Branch Steel Moth Forgetful bin/box findings, WebGPU migration decision, unverified v1.3 checkpoint, and lighting roadmap reconciled into `RAG_REFERENCE_STEELMOTH.md`. |
-| 2. Determine decomposition readiness | complete | plan is decomposable; implementation is intentionally blocked on source import because repository began empty. |
+| 2. Determine decomposition readiness | complete | plan is decomposable; implementation was initially blocked on source import because repository began empty. |
 | 3. Repair omissions/contradictions/weak assumptions | complete | separated targets from measurements; added baseline/source blocker, pseudo-depth research task, original-reference provenance, API/error-scope/format validation, complete frame-parity tasks, CI, final promotion gate, and safe later-lighting dependencies. |
 | 4. Create supporting canonical docs | complete | README, AGENTS, index, RAG reference, master programme, architecture, validation plan, lighting roadmap, research/decisions, concurrency plan, issue map, review record, ledger and GitHub workflow templates. |
 | 5. Milestone/dependency hierarchy | complete | M0–M8 and 50 task codes defined in `MASTER_WEBGPU_PROGRAMME.md`. |
@@ -38,11 +38,40 @@ This ledger records the repository-planning operation requested on 2026-09-16 an
 - `tools/validate_planning.py` — local/CI static consistency check for canonical task mapping/docs.
 - GitHub issue #51 — top-level execution tracker.
 
+## SM-000 baseline-import execution — 2026-09-17
+
+### Recovered source
+
+The authoritative v1.2.3 source distribution is the delivered webapp ZIP itself. SHA-256:
+
+`2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`
+
+### Import evidence
+
+- archive internal `SHA256SUMS.txt`: **93/93 OK**;
+- release files copied by repository import helper: **94**;
+- repository copy verification before commit: **PASS**;
+- JavaScript syntax checks: PASS;
+- v1.2.3 surface/webapp/coherence validators: PASS;
+- Material-v2 validation: PASS, **314 regions**;
+- renderer/ghost/visual/webapp validators: PASS;
+- GLSL validation: PASS, **26 production programs** plus MRT/fallback framebuffer checks;
+- planning consistency validation: PASS during the import workflow;
+- branch push completed successfully;
+- critical remote Git blobs were cross-checked against locally computed blobs from the authoritative ZIP, including `engine/game.js` and all five large generated runtime/material PNGs;
+- Windows launcher CRLF normalization introduced by local Git was corrected on the branch to the exact archive bytes.
+
+Full evidence is in `docs/BASELINE_V123_PROVENANCE.md`, `docs/BASELINE_V123_FILE_MANIFEST.tsv`, and `docs/BASELINE_V123_IMPORT_REPORT.txt`.
+
+### SM-000 status
+
+Source recovery, binary transfer, and repository import are complete. The only remaining gate is PR review/check/merge verification and issue closure.
+
 ## Current blockers
 
-### B-001 — implementation source absent
+### B-001 — baseline source import
 
-`techrote/steelmoth` was empty when first inspected. Historical conversations identify v1.2.3 as the latest known good baseline, but no implementation tree exists here yet. **#1 / SM-000** owns recovery/import/provenance and is the root implementation blocker.
+**Resolved by SM-000 import branch.** The source tree and binary assets are now present in Git and validated. Once the import PR is merged, B-001 is fully removed from the programme dependency graph.
 
 ### B-002 — authoritative box/bin screenshots absent
 
@@ -80,7 +109,7 @@ Canonical task/issue mapping is maintained in `docs/ISSUE_MAP.md`:
 12. Performance vocabulary distinguishes target, measured GPU timing, CPU timing, and informal utilization context.
 13. Hosted/software CI may validate APIs/tests but cannot substitute for real GTX 1650 Super performance evidence.
 
-## Final planning verification performed
+## Planning verification performed
 
 - Inspected repository/root and docs contents after updates.
 - Re-searched all `SM-*` issue titles after corrections: 50 task issues present, with no duplicate task code observed in the reconciled set.
@@ -88,4 +117,4 @@ Canonical task/issue mapping is maintained in `docs/ISSUE_MAP.md`:
 - Reconciled unsafe dependency findings from the second review in issue bodies and `DEPENDENCY_AND_CONCURRENCY.md`.
 - Added `tools/validate_planning.py` so the same canonical-map/dependency/index checks can run automatically once the repository is checked out/CI is established.
 
-No gameplay/WebGPU implementation or target-hardware benchmark was performed during this planning-only repository bootstrap; those are intentionally represented by open task issues rather than implied as complete.
+No WebGPU implementation or target-hardware benchmark was performed during SM-000; those remain represented by open programme tasks rather than implied as complete.
