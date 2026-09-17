@@ -3,10 +3,16 @@
 <title>Steel Moth WebGPU lifecycle smoke</title>
 <canvas id="probe" width="8" height="8" style="width:8px;height:8px"></canvas>
 <pre id="status">Running WebGPU lifecycle smoke…</pre>
+<script id="webgpuSmokeResult" type="application/json">{"schema":"steelmoth-webgpu-browser-smoke/v1","ok":false,"status":"pending"}</script>
 <script src="engine/webgpu_device.js?v=sm102-1"></script>
 <script>
 (async()=>{
   const API=globalThis.SteelMothWebGPUDevice,result={schema:'steelmoth-webgpu-browser-smoke/v1',ok:false,browser:navigator.userAgent,secureContext:isSecureContext,autoPolicy:null,actual:null,deliberateFailure:null};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('webgpuSmokeResult').textContent=json;document.body.dataset.webgpuSmokeDone='1'};
+  const bounded=async(promise,ms)=>{
+    let timer;const timeout=new Promise(resolve=>{timer=setTimeout(()=>resolve({__smTimeout:true}),ms)});
+    try{return await Promise.race([promise,timeout])}finally{clearTimeout(timer)}
+  };
   try{
     result.autoPolicy=API.resolveBackendPolicy('auto');
     if(result.autoPolicy.selected!=='webgl2'||API.AUTO_WEBGPU_ENABLED!==false)throw new Error('SM-505 Auto gate was bypassed');
@@ -17,12 +23,17 @@
     else{
       const manager=new API.WebGPUDeviceManager({navigatorRef:navigator});
       try{
-        const initial=await manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1});await manager.resize(11,7,1);const after=manager.diagnostics();
-        result.actual={available:true,initialized:true,initial,afterResize:after};manager.close();
-      }catch(error){result.actual={available:true,initialized:false,status:'adapter-or-device-unavailable',message:String(error?.message||error),fallback:'webgl2'}}
+        const initial=await bounded(manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1}),2000);
+        if(initial?.__smTimeout){manager.close();result.actual={available:true,initialized:false,status:'initialization-timeout',fallback:'webgl2'}}
+        else{
+          const resized=await bounded(manager.resize(11,7,1),1000);
+          if(resized?.__smTimeout){manager.close();result.actual={available:true,initialized:true,status:'resize-timeout',initial,fallback:'webgl2'}}
+          else{const after=manager.diagnostics();result.actual={available:true,initialized:true,status:'ready',initial,afterResize:after};manager.close()}
+        }
+      }catch(error){manager.close();result.actual={available:true,initialized:false,status:'adapter-or-device-unavailable',message:String(error?.message||error),fallback:'webgl2'}}
     }
     result.ok=true;
   }catch(error){result.error=String(error?.stack||error)}
-  const json=JSON.stringify(result);document.getElementById('status').textContent=json;const script=document.createElement('script');script.id='webgpuSmokeResult';script.type='application/json';script.textContent=json;document.body.appendChild(script);document.body.dataset.webgpuSmokeDone='1';
+  publish();
 })();
 </script>
