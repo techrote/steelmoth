@@ -3,12 +3,12 @@
   const localPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const secureEnough = location.protocol === 'https:' || localPreview;
 
-  // SM-100 renderer boundary. game.js remains the v1.2.3 compatibility producer;
-  // these modules capture its renderer-facing submissions into a backend-neutral
-  // RenderScene and replay that scene through the existing WebGL2 backend.
-  // Failure is deliberately non-fatal: gameplay and direct WebGL2 rendering remain
-  // authoritative and the adapter records/prints its own initialization error.
+  // SM-100/SM-101 renderer boundary. game.js remains the v1.2.3 compatibility
+  // producer; the shared transform module is loaded synchronously by index.html.
+  // RenderScene capture is then canonicalized through that authority before the
+  // scene is replayed through the existing WebGL2 backend.
   const renderSceneReady = import('./engine/render_scene.js?v=sm100-1')
+    .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1'))
     .then(() => import('./engine/webgl2_scene_adapter.js?v=sm100-1'))
     .then(() => globalThis.SteelMothWebGL2SceneAdapter?.installWhenGameAvailable?.(globalThis) || null)
     .catch(err => {
