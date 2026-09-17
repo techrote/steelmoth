@@ -2,7 +2,8 @@
 """Validate Steel Moth deterministic render fixtures and recovered references.
 
 SM-001 deliberately owns fixture data and provenance, not browser capture automation.
-SM-002 consumes this corpus in the renderer harness.
+SM-002 consumes this corpus in the renderer harness. SM-002's harness-smoke fixture
+is intentionally auxiliary to, rather than a member of, the SM-001 corpus index.
 """
 from __future__ import annotations
 
@@ -18,6 +19,7 @@ REFERENCE_ROOT = ROOT / "render-tests" / "references"
 ATLAS = ROOT / "assets" / "generated" / "atlas.json"
 INDEX = FIXTURE_DIR / "index.json"
 PROVENANCE = REFERENCE_ROOT / "provenance.json"
+AUXILIARY_FIXTURE_FILES = {"harness-smoke.json"}
 
 REQUIRED_SCENE_KEYS = {
     "walls", "water", "path_cells", "objects", "blocker_styles",
@@ -197,6 +199,9 @@ def validate_references(provenance: dict):
     missing = resolution.get("binsupleft", {})
     if missing.get("status") != "missing":
         raise ValueError("binsupleft provenance must explicitly remain 'missing' until authoritative recovery")
+    note = str(missing.get("note", "")).lower()
+    if "historical screenshot" not in note or "not been recovered" not in note:
+        raise ValueError("binsupleft provenance must record historical existence and unrecovered original bytes")
     if resolution.get("binsupright", {}).get("status") != "recovered-supplementary":
         raise ValueError("binsupright must remain supplementary and must not substitute for binsupleft")
 
@@ -244,16 +249,21 @@ def main():
     if not args.fixture:
         fixture_files = {p.name for p in FIXTURE_DIR.glob("*.json") if p.name != "index.json"}
         indexed_files = {entry["file"] for entry in entries.values()}
-        extra = sorted(fixture_files - indexed_files)
+        extra = sorted(fixture_files - indexed_files - AUXILIARY_FIXTURE_FILES)
         missing = sorted(indexed_files - fixture_files)
-        if extra or missing:
-            raise ValueError(f"fixture index mismatch: extra={extra}, missing={missing}")
+        auxiliary_missing = sorted(AUXILIARY_FIXTURE_FILES - fixture_files)
+        if extra or missing or auxiliary_missing:
+            raise ValueError(
+                f"fixture index mismatch: extra={extra}, missing={missing}, "
+                f"auxiliary_missing={auxiliary_missing}"
+            )
         validate_references(read_json(PROVENANCE))
 
     for name, digest in results:
         print(f"PASS {name} {digest}")
     if not args.fixture:
         print(f"PASS references {len(read_json(PROVENANCE)['recovered'])} exact PNGs")
+        print(f"PASS auxiliary fixtures {', '.join(sorted(AUXILIARY_FIXTURE_FILES))}")
         print(f"PASS corpus {len(results)} fixtures; repeated loads={args.repeat}; gameplay save state=not required")
     return 0
 
