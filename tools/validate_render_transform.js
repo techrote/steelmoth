@@ -34,9 +34,7 @@ for(const f of [
   ['offset',120,70,80,40,'center',null],
   ['offset',120,90,80,40,'bottom',null],
   ['offset',55,42,20,8,'bottom',{sx:5,sy:4,sw:10,sh:8}],
-]){
-  assert.deepEqual(T.legacyFootAnchor(art,...f),oldFoot(art,...f));
-}
+]) assert.deepEqual(T.legacyFootAnchor(art,...f),oldFoot(art,...f));
 
 // v1 root semantics intentionally stay invariant under rendering rotation/flip;
 // those alter texel orientation, not ground-contact ordering.
@@ -49,19 +47,26 @@ assert.equal(rf.rotation,1.234);assert.equal(rf.flip,true);
 assert.deepEqual(T.editorBounds(art,'crate',100,90,true,2),{x0:80,y0:70,x1:120,y1:90,w:40,h:20,root:{x:100,y:90,normalized:[.5,1],metadataSource:'material-v2-metadata',authority:'shared-render-transform/v1'}});
 const centredEditor=T.editorBounds(art,'crate',100,80,false,2);assert.equal(centredEditor.y0,70);assert.equal(centredEditor.y1,90);assert.equal(centredEditor.root.y,90);
 
-// Shadow footprint/profile calculations now consume the same explicit root.
+// Shadow geometry retains its accepted contact point while that contact is now
+// represented explicitly as an offset from the canonical sprite root.
 assert.deepEqual(T.shadowFootRect(metadata.crate,100,90,40,20),[92,88,108,90]);
 const sections=T.shadowSections(metadata.crate,100,90,40,20);assert.equal(sections.length,1);assert.equal(sections[0].z,0);
+const shadow=T.shadowPlacement(art,'offset',{x:120,y:70,w:80,h:40,anchor:'center',contactX:120,contactY:86});
+assert.deepEqual(shadow.root,{x:100,y:82,normalized:[.25,.8],metadataSource:'material-v2-metadata',authority:'shared-render-transform/v1'});
+assert.deepEqual(shadow.contact,{x:120,y:86});assert.deepEqual(shadow.contactOffset,{x:20,y:4});
+assert.equal(shadow.rect[3],86); // old fallback shadow contact remains byte-equivalent
 
 // RenderScene static/dynamic/foreground copies canonicalize to the same numeric root.
 const b=new Scene.RenderSceneBuilder({sequence:1,roomId:'fixture'});
 b.captureStatic([{name:'crate',x:100,y:90,w:40,h:20,alpha:1,anchor:'bottom',mode:'flat'}],renderer);
 b.withScope('player',()=>b.captureSprite('addHD',['crate',100,80,40,20,1,false,0,[1,1,1],false],renderer));
 b.withScope('foreground',()=>b.captureSprite('addHDForeground',['crate',100,80,40,20,1,0,[1,1,1],false],renderer));
-const scene=b.finalize({logicalSize:[640,360]});
-assert.equal(scene.transformAuthority.schema,T.SCHEMA);
+const scene=b.finalize({logicalSize:[640,360],occluders:[{source:'offset-test',rect:[112,80,128,86],x:120,y:83,contactY:86,rootX:100,rootY:82,rootAuthority:'shared-render-transform/v1',shadowContactX:120,shadowContactY:86,shadowContactOffsetX:20,shadowContactOffsetY:4}]});
+assert.equal(scene.transformAuthority.schema,T.SCHEMA);assert.equal(scene.transformAuthority.shadowContactPolicy,'explicit-offset-from-shared-root');
 for(const s of scene.sprites){assert.equal(s.root.authority,'shared-render-transform/v1');assert.equal(s.root.x,100);assert.equal(s.root.y,90)}
 assert.deepEqual(scene.stats.spriteCategories,{static:1,ground:0,dynamic:1,foreground:1,top:0});
+assert.equal(scene.occluders[0].root.x,100);assert.equal(scene.occluders[0].root.y,82);assert.equal(scene.occluders[0].root.authority,'shared-render-transform/v1');
+assert.deepEqual(scene.occluders[0].shadowContact,{x:120,y:86,offsetX:20,offsetY:4});
 
 // Future WebGPU consumers can query stable numeric roots directly; no backend-specific
 // transform reconstruction is required.
