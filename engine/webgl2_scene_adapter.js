@@ -56,7 +56,12 @@
       this.active=true;this.pending=[];this.lastError='';this.builder=new Scene.RenderSceneBuilder({sequence:this.sequence++,roomId:this.game.room?.key||`room-${this.game.room?.index??'unknown'}`});
       this.builder.captureStatic(this.renderer.staticMaterialSprites||[],this.renderer);return result;
     }
-    capture(method,args){if(!this.active||this.disabled)return this.originals[method](...args);this.pending.push([method,args]);try{return this.builder.captureSprite(method,args,this.renderer)}catch(error){this.lastError=String(error?.stack||error);return null}}
+    capture(method,args){
+      if(!this.active||this.disabled)return this.originals[method](...args);
+      this.pending.push([method,args]);
+      try{this.builder.captureSprite(method,args,this.renderer);return undefined}
+      catch(error){this.lastError=String(error?.stack||error);return undefined}
+    }
     fallback(endArgs,error){this.failedFrames++;this.lastError=String(error?.stack||error);console.warn('Render Scene bridge disabled after capture failure; WebGL2 direct submission restored for this session.',error);for(const [method,args] of this.pending)this.originals[method](...args);this.disabled=true;this.active=false;this.builder=null;return this.originals.end(...endArgs)}
     end(...args){
       if(!this.active||this.disabled)return this.originals.end(...args);if(this.lastError)return this.fallback(args,new Error(this.lastError));
