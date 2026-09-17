@@ -48,8 +48,12 @@
     };
     P.finalize=function(frame={}){
       const scene=finalize.call(this,frame);
-      for(const o of scene.occluders||[]){o.root={...(o.root||{}),authority:'shared-render-transform/v1',anchorMode:'explicit-caster-root'}}
-      scene.transformAuthority={schema:T.SCHEMA,rootConvention:'unrotated-ground-contact',rotationAffectsRoot:false,flipAffectsRoot:false};
+      for(const o of scene.occluders||[]){
+        const x=Number(o.rootX),y=Number(o.rootY),hasShared=Number.isFinite(x)&&Number.isFinite(y);
+        o.root={...(o.root||{}),x:hasShared?x:o.root?.x,y:hasShared?y:o.root?.y,authority:hasShared?String(o.rootAuthority||'shared-render-transform/v1'):'explicit-occluder-contact',anchorMode:hasShared?'shared-caster-root':'explicit-caster-contact'};
+        if(hasShared)o.shadowContact={x:Number.isFinite(Number(o.shadowContactX))?Number(o.shadowContactX):o.root.x,y:Number.isFinite(Number(o.shadowContactY))?Number(o.shadowContactY):o.root.y,offsetX:Number(o.shadowContactOffsetX)||0,offsetY:Number(o.shadowContactOffsetY)||0};
+      }
+      scene.transformAuthority={schema:T.SCHEMA,rootConvention:'unrotated-ground-contact',rotationAffectsRoot:false,flipAffectsRoot:false,shadowContactPolicy:'explicit-offset-from-shared-root'};
       return scene;
     };
     return true;
