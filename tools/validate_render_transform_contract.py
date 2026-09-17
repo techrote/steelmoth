@@ -30,10 +30,19 @@ def main():
     require('scene.transformAuthority=' in scene_adapter,'RenderScene does not advertise transform authority')
     require('SteelMothRenderTransformIntegration?.patchExistingGame?.(game)' in webgl_adapter,'late Game construction is not bound to shared transform integration')
 
+    # webapp intentionally contains two branches: a render-test-only SM-100 baseline
+    # branch and the normal SM-101 chain. A global string-position sort is invalid
+    # because the baseline branch mentions render_scene first. Verify the actual
+    # normal promise chain instead, and verify the baseline bypass is separately
+    # gated to renderTest requests.
+    normal_chain="""import('./engine/render_transform.js?v=sm101-1')
+      .then(() => import('./engine/render_transform_integration.js?v=sm101-1'))
+      .then(() => import('./engine/render_scene.js?v=sm100-1'))
+      .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1')))\n    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm100-1'))"""
+    require(normal_chain in webapp,'normal webapp transform/scene modules are not chained in the required execution order')
     order=['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_scene.js?v=sm100-1','render_transform_scene_adapter.js?v=sm101-1','webgl2_scene_adapter.js?v=sm100-1']
-    positions=[webapp.find(x) for x in order]
-    require(all(p>=0 for p in positions),f'webapp missing transform/scene module: {positions}')
-    require(positions==sorted(positions),'webapp transform modules are loaded in unsafe order')
+    for item in order:
+        require(item in webapp,f'webapp missing transform/scene module: {item}')
     require('renderTransformBaseline' in webapp and "params.get('renderTest')" in webapp,'test-only before/after browser parity mode is missing or insufficiently gated')
     for item in order:
         require(item in sw,f'offline CORE missing {item}')
