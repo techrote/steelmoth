@@ -57,21 +57,23 @@ The authoritative v1.2.3 source distribution is the delivered webapp ZIP itself.
 - renderer/ghost/visual/webapp validators: PASS;
 - GLSL validation: PASS, **26 production programs** plus MRT/fallback framebuffer checks;
 - planning consistency validation: PASS during the import workflow;
-- branch push completed successfully;
 - critical remote Git blobs were cross-checked against locally computed blobs from the authoritative ZIP, including `engine/game.js` and all five large generated runtime/material PNGs;
-- Windows launcher CRLF normalization introduced by local Git was corrected on the branch to the exact archive bytes.
+- Windows launcher CRLF normalization introduced by local Git was corrected to the exact archive bytes;
+- PR #52 was squash-merged to `main` at commit `089d7a34ceae1b12c72b6426b38be410e087d50e`;
+- issue #1 closed automatically as completed;
+- the merged `main` runtime atlas blob was rechecked and matches the authoritative Git blob SHA `8a48fd0354169cab2bb6ade51f29f6ef93e28f31`.
 
 Full evidence is in `docs/BASELINE_V123_PROVENANCE.md`, `docs/BASELINE_V123_FILE_MANIFEST.tsv`, and `docs/BASELINE_V123_IMPORT_REPORT.txt`.
 
 ### SM-000 status
 
-Source recovery, binary transfer, and repository import are complete. The only remaining gate is PR review/check/merge verification and issue closure.
+**Complete.** Source recovery, binary transfer, repository import, PR review/merge, merge verification, and issue closure are complete. The programme's former root source blocker is removed.
 
 ## Current blockers
 
 ### B-001 — baseline source import
 
-**Resolved by SM-000 import branch.** The source tree and binary assets are now present in Git and validated. Once the import PR is merged, B-001 is fully removed from the programme dependency graph.
+**Resolved.** SM-000 / #1 is complete and merged to `main`.
 
 ### B-002 — authoritative box/bin screenshots absent
 
