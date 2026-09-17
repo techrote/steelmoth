@@ -6,7 +6,7 @@ errors=[]
 def need(cond,msg):
     if not cond: errors.append(msg)
 js=(ROOT/'engine/render_harness.js').read_text(encoding='utf-8')
-idx=(ROOT/'index.html').read_text(encoding='utf-8')
+entry=(ROOT/'render-test.html').read_text(encoding='utf-8')
 fixture=json.loads((ROOT/'render-tests/fixtures/harness-smoke.json').read_text(encoding='utf-8'))
 doc=(ROOT/'docs/RENDER_CAPTURE_HARNESS.md').read_text(encoding='utf-8')
 need(fixture.get('schema')=='steelmoth-render-fixture/v1','fixture schema')
@@ -18,9 +18,9 @@ need('signalOrchardStateV103' in js and 'signalOrchardGraphicsV123' in js,'persi
 need('Math.random =' in js,'seeded PRNG hook')
 need("game.paused = true" in js,'simulation pause')
 need("game.render = () => originalRender(config.fixedTimeMs)" in js,'fixed renderer time')
-need('engine/render_harness.js' in idx,'index harness script missing')
-pos_h=idx.find('engine/render_harness.js'); pos_g=idx.find('engine/game.js')
-need(0 <= pos_h < pos_g,'harness must load before game.js')
+need('engine/render_harness.js' in entry,'render-test bootstrap harness script missing')
+need("source=source.replace(gameTag,harnessTag)" in entry,'render-test bootstrap replacement missing')
+need("+gameTag" in entry,'render-test bootstrap must place harness immediately before game.js')
 for angle in ['0','45','90','135','180','225','270','315']:
     need(angle in doc,f'doc angle {angle}')
 if errors:
