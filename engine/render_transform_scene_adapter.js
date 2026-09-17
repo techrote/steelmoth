@@ -33,7 +33,10 @@
     const captureStatic=P.captureStatic,captureSprite=P.captureSprite,finalize=P.finalize;
     P.captureStatic=function(staticSprites=[],renderer=null){
       const before=this.sprites.length,result=captureStatic.call(this,staticSprites,renderer),added=this.sprites.slice(before);
-      for(let i=0;i<added.length;i++){const d=staticSprites[i]||{};canonicalize(added[i],renderer,{anchor:d.anchor||'bottom'})}
+      for(const rec of added){
+        const ordinal=Number(String(rec.id||'').split(':').pop()),d=Number.isInteger(ordinal)?(staticSprites[ordinal]||{}):{};
+        canonicalize(rec,renderer,{anchor:d.anchor||'bottom'});
+      }
       return result;
     };
     P.captureSprite=function(method,args,renderer){
