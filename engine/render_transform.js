@@ -33,7 +33,9 @@
     const x=finite(opts.x),y=finite(opts.y),w=finite(opts.w),h=finite(opts.h),anchor=String(opts.anchor||'center'),rotation=finite(opts.rotation),flip=!!opts.flip,metaRoot=rootMetadata(art,name),region=sourceRegion(art,name),subrect=opts.subrect||null;
     let rootX,rootY,fullW=w,fullH=h,bounds=frameBounds({x,y,w,h,anchor});
     if(subrect&&region){
-      const sx=finite(subrect.sx),sy=finite(subrect.sy),sw=Math.max(1,finite(subrect.sw,region.w)),sh=Math.max(1,finite(subrect.sh,region.h)),scaleX=w/sw,scaleY=h/sh;
+      // Match imported getSpriteFootAnchor exactly: falsy sw/sh fall back to the
+      // full source region before the >=1 clamp.
+      const sx=finite(subrect.sx||0),sy=finite(subrect.sy||0),sw=Math.max(1,finite(subrect.sw||region.w,region.w)),sh=Math.max(1,finite(subrect.sh||region.h,region.h)),scaleX=w/sw,scaleY=h/sh;
       fullW=region.w*scaleX;fullH=region.h*scaleY;
       const left=x-w*.5-sx*scaleX,top=y-h*.5-sy*scaleY;
       rootX=left+metaRoot.x*fullW;rootY=top+metaRoot.y*fullH;
