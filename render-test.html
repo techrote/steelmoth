@@ -9,7 +9,8 @@
     if(!response.ok)throw new Error(`index.html: HTTP ${response.status}`);
     let source=await response.text();
     const gameTag='<script src="engine/game.js?v=1.2.3"><\/script>';
-    const harnessTag='<script src="engine/render_harness.js?v=1.2.3"><\/script>\n'+gameTag;
+    const adapterTag='<script src="engine/render_fixture_adapter.js?v=1.2.3"><\/script>\n';
+    const harnessTag=adapterTag+'<script src="engine/render_harness.js?v=1.2.3"><\/script>\n'+gameTag;
     if(!source.includes(gameTag))throw new Error('game.js bootstrap tag not found in index.html');
     source=source.replace(gameTag,harnessTag);
     document.open();document.write(source);document.close();
