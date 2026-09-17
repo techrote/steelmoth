@@ -3,6 +3,7 @@ const CACHE = 'small-machine-web-v1.2.3-r1';
 const CORE = [
   './index.html', './style.css?v=1.2.3', './webapp.js?v=1.2.3', './manifest.webmanifest',
   './engine/game.js?v=1.2.3', './engine/editor.js?v=1.2.3', './engine/foliagefx.js?v=1.2.3', './engine/surfacefx.js?v=1.2.3',
+  './engine/render_scene.js?v=sm100-1', './engine/webgl2_scene_adapter.js?v=sm100-1',
   './game_data/maps.json', './game_data/story.json', './game_data/sprites.json',
   './game_data/luts.json', './game_data/effects.json', './assets/generated/atlas.json'
 ];
