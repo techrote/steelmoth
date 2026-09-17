@@ -56,8 +56,10 @@ def main() -> int:
         unpack=extract/'steelmoth'
         required=[
             'index.html','engine/game.js','engine/editor.js','engine/surfacefx.js','engine/foliagefx.js',
-            'engine/render_scene.js','engine/webgl2_scene_adapter.js','assets/generated/atlas.json',
-            'game_data/maps.json','tools/validate_webapp_v123.py','tools/validate_render_scene_contract.py'
+            'engine/render_transform.js','engine/render_transform_integration.js','engine/render_scene.js',
+            'engine/render_transform_scene_adapter.js','engine/webgl2_scene_adapter.js','assets/generated/atlas.json',
+            'game_data/maps.json','tools/validate_webapp_v123.py','tools/validate_render_scene_contract.py',
+            'tools/validate_render_transform_contract.py','docs/ROOT_FOOT_CONVENTION.md'
         ]
         missing=[p for p in required if not (unpack/p).is_file()]
         if missing:
@@ -82,6 +84,7 @@ def main() -> int:
             checks=[
                 [sys.executable,'tools/validate_webapp_v123.py'],
                 [sys.executable,'tools/validate_render_scene_contract.py'],
+                [sys.executable,'tools/validate_render_transform_contract.py'],
                 [sys.executable,'tools/validate_render_harness.py'],
                 [sys.executable,'tools/validate_render_fixtures.py','--repeat','2'],
             ]
