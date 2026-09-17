@@ -25,6 +25,7 @@ This ledger records the repository-planning operation requested on 2026-09-16 an
 - `AGENTS.md` — autonomous execution contract.
 - `docs/INDEX.md` — source-of-truth order/status vocabulary.
 - `docs/RAG_REFERENCE_STEELMOTH.md` — historical/reconciled context.
+- `docs/BASELINE_V123_AUDIT.md` — SM-004 audited implementation contract for the imported baseline.
 - `docs/RESEARCH_AND_DECISIONS.md` — sourced WebGPU findings, ADRs and open questions.
 - `docs/MASTER_WEBGPU_PROGRAMME.md` — 50-task M0–M8 decomposition.
 - `docs/WEBGPU_ARCHITECTURE.md` — target renderer contracts.
@@ -69,15 +70,51 @@ Full evidence is in `docs/BASELINE_V123_PROVENANCE.md`, `docs/BASELINE_V123_FILE
 
 **Complete.** Source recovery, binary transfer, repository import, PR review/merge, merge verification, and issue closure are complete. The programme's former root source blocker is removed.
 
+## SM-002 deterministic capture harness — 2026-09-17
+
+**Complete.** PR #53 merged the deterministic WebGL2 render-test entrypoint/harness, named fixture loading, eight canonical light angles, self-describing screenshot/diagnostics metadata, seeded/fixed-time isolation, and a local Chromium automation path. The managed execution environment could not provide a trustworthy EGL/ANGLE GPU capture path, and that limitation is recorded rather than faked.
+
+SM-002 closed issue #3. SM-001 later integrated its richer fixture corpus with this harness through a narrow test-only adapter.
+
+## SM-001 visual references and regression fixtures — 2026-09-17
+
+**Complete.** PR #54 merged the deterministic visual fixture corpus, provenance/catalog documentation, reference validator, and eight exact historical PNGs under `render-tests/references/original/` by reusing the exact Git blobs uploaded under `images/`.
+
+Recovered exact reference artifacts:
+
+- `boxleft.png`, `boxright.png`, `boxup.png`, `boxdown.png`;
+- `binsleft.png`, `binsright.png`, `binsup.png`;
+- supplementary `binsupright.png`.
+
+The user later clarified that `binsupleft.png` also existed historically and was simply omitted when the images were attached. Its original bytes/file are still unrecovered/uncommitted, so the current `binsupleft` fixture remains explicitly reconstructed and must not be represented as the original screenshot.
+
+Issue #2 is closed as completed because its blocking rule explicitly allowed missing originals to be recorded while independent deterministic fixture work completed.
+
+## SM-004 imported-baseline contract audit — 2026-09-17
+
+Source audit result: **no baseline runtime corrective patch required.** The renderer core on current main remains byte-identical to the imported v1.2.3 `engine/game.js` blob, so the SM-000 executable validation evidence applies to the exact renderer bytes audited.
+
+Principal reconciliations recorded in `docs/BASELINE_V123_AUDIT.md`:
+
+- Material-v2 atlases, 314-region coverage, MRT G-buffer, deferred GGX-style lighting, bounded height self-shadow, half-resolution contact shadow, macro projected shadows, debug views and cache/version closure are present.
+- WebGL2 G2.R is **local Material-v2 pseudo-height**, not final fragment visibility/ownership depth.
+- v1.2.3 has no object-ID G-buffer target or hardware per-pixel sprite ownership path; material sprites are foot/painter ordered.
+- `getSpriteFootAnchor()` is shared by Material-v2 descriptors, but macro-shadow and FoliageFX root/bottom conventions remain independent; SM-101 therefore remains necessary.
+- static material ghost-clearing is explicit and covered by inherited regression tooling.
+- grass/water/foliage are coherent forward adapters using the lit scene/main-light direction, not yet canonical future WebGPU light/depth consumers.
+- the stronger diagnostic-light preset is a reproducible test preset, not the v1.2.3 compatibility runtime default.
+
+These findings confirm rather than reorder the SM-100 → SM-101/SM-200 → SM-201/202 dependency rationale.
+
 ## Current blockers
 
 ### B-001 — baseline source import
 
 **Resolved.** SM-000 / #1 is complete and merged to `main`.
 
-### B-002 — authoritative box/bin screenshots absent
+### B-002 — authoritative box/bin screenshot corpus
 
-The original `boxes`, `binsright`, `binsleft`, `binsupleft`, and `binsup` files are not yet committed. **#2 / SM-001** owns recovery/provenance. Deterministic reconstructed fixtures may proceed but may not be mislabeled as originals.
+**Largely resolved.** SM-001 / #2 committed eight exact historical directional references and the deterministic fixture corpus. The only missing original artifact is `binsupleft.png`: the user has confirmed that the screenshot was historical, but its original bytes/file have not been recovered. This does not block independent migration work; reconstructed `binsupleft` fixture output must continue to be labeled reconstructed.
 
 ### B-003 — target-hardware performance evidence absent
 
@@ -85,7 +122,7 @@ No pass-level GTX 1650 Super WebGL2/WebGPU dataset has been measured in this rep
 
 ### B-004 — canonical pseudo-depth formula intentionally unresolved
 
-The exact projection from root/local pixel/Material-v2 height/layer bias to fragment ownership depth must be derived and validated before production use. **#12 / SM-201** owns this research/decision.
+The exact projection from shared root/transform + local Material-v2 height + layer bias to fragment ownership depth must be derived and validated before production use. SM-004 confirmed that existing WebGL2 G2.R is only local material height and is not this formula. **#12 / SM-201** owns the research/decision.
 
 ## Issue mapping
 
@@ -98,13 +135,13 @@ Canonical task/issue mapping is maintained in `docs/ISSUE_MAP.md`:
 ## Significant planning corrections
 
 1. Source import/provenance became an explicit root milestone because the repository was empty.
-2. Historical renderer claims are context until revalidated against imported source.
-3. Pseudo-depth derivation became a research/decision issue before implementation.
+2. Historical renderer claims remain context until classified against imported source; SM-004 now provides that classification for the v1.2.3 renderer contracts.
+3. Pseudo-depth derivation remains a research/decision issue before implementation; local Material-v2 height is not accepted ownership depth.
 4. API/WGSL/resource validation is independent of screenshot/performance success.
-5. Material-v2 parity now includes self/contact shadow, ordinary transparent/effect, bloom/post and final output paths rather than stopping at G-buffer/direct lighting.
+5. Material-v2 parity includes self/contact shadow, ordinary transparent/effect, bloom/post and final output paths rather than stopping at G-buffer/direct lighting.
 6. DSO is decomposed into occluder data → clustering → dominance → hard core → distance hierarchy → Dark Bloom → temporal soft history → final visibility composition.
 7. Temporal shadow work is explicitly serialized after correct static-frame results.
-8. Water/foliage/Fine Grass are canonical light/depth consumers, not independent lighting worlds.
+8. Water/foliage/Fine Grass must become canonical light/depth consumers in WebGPU; their v1.2.3 lit-scene adapters are compatibility behaviour, not the final architecture.
 9. Cross-browser functional parity (SM-405) is separated from target-hardware/default promotion (SM-505).
 10. `Auto` remains migration-gated until SM-505; adapter availability alone cannot promote WebGPU.
 11. GTAO requires colour/material semantic correctness; SSGI follows stabilized GTAO; volumetrics follow stabilized SSGI; adaptive quality follows mature effect tiers.
@@ -117,6 +154,6 @@ Canonical task/issue mapping is maintained in `docs/ISSUE_MAP.md`:
 - Re-searched all `SM-*` issue titles after corrections: 50 task issues present, with no duplicate task code observed in the reconciled set.
 - Compared task counts by milestone against `ISSUE_MAP.md`: M0 6, M1 5, M2 8, M3 8, M4 6, M5 6, M6 4, M7 3, M8 4 = 50.
 - Reconciled unsafe dependency findings from the second review in issue bodies and `DEPENDENCY_AND_CONCURRENCY.md`.
-- Added `tools/validate_planning.py` so the same canonical-map/dependency/index checks can run automatically once the repository is checked out/CI is established.
+- Added `tools/validate_planning.py` so the same canonical-map/dependency/index checks can run automatically once repository CI is established.
 
-No WebGPU implementation or target-hardware benchmark was performed during SM-000; those remain represented by open programme tasks rather than implied as complete.
+No target-hardware benchmark has yet been accepted; SM-003 remains the WebGL2 GTX 1650 Super measurement lane and may proceed concurrently with documentation/source-audit work where baseline identity is pinned.

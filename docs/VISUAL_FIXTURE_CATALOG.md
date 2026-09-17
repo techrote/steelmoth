@@ -24,7 +24,7 @@ SM-001 recovered eight exact PNGs from the user's retained Library and preserves
 
 The historical `boxes` positive-control family was recovered as four directional captures: `boxleft.png`, `boxright.png`, `boxup.png`, and `boxdown.png`. No source file literally named `boxes.png` was found, so the family label is retained without fabricating such a file.
 
-The requested `binsright.png`, `binsleft.png`, and `binsup.png` were recovered. `binsupright.png` was also recovered from the same directional family and is retained as supplementary evidence. An authoritative `binsupleft.png` was **not** recovered after exact-title and semantic Library searches. Its absence is explicit in provenance; the `binsupleft` JSON fixture is reconstructed and must never be represented as an original screenshot.
+The requested `binsright.png`, `binsleft.png`, and `binsup.png` were recovered. `binsupright.png` was also recovered from the same directional family and is retained as supplementary evidence. The user later confirmed that `binsupleft.png` **was also a historical screenshot**, but its original bytes/file have not been recovered or committed. Its artifact status therefore remains explicitly missing in provenance; the current `binsupleft` JSON fixture is reconstructed and must never be represented as the original screenshot.
 
 ## Fixture inventory
 
@@ -35,7 +35,7 @@ The requested `binsright.png`, `binsleft.png`, and `binsup.png` were recovered. 
 | `box-pair` | compact overlap control | two overlapping `cargo_crate` sprites | box directional family |
 | `binsright` | overlapping-bin directional control | three overlapping `dumpster` sprites | `binsright.png` |
 | `binsleft` | opposite horizontal bin direction | same deterministic bin topology | `binsleft.png` |
-| `binsupleft` | diagonal overlap stress case | same deterministic bin topology | **missing original** |
+| `binsupleft` | diagonal overlap stress case | same deterministic bin topology | historical image confirmed; **original artifact missing** |
 | `binsup` | upward directional bin case | same deterministic bin topology | `binsup.png` |
 | `crate` | Material-v2 box/crate control | `cargo_crate` | none |
 | `barrel` | cylindrical normal control | `rust_barrel` | none |
@@ -49,9 +49,9 @@ The requested `binsright.png`, `binsleft.png`, and `binsup.png` were recovered. 
 
 ## Expected observations
 
-The recovered box captures remain positive controls: compact isolated objects historically produced convincing Material-v2/direct-light response. The bin captures document the overlap failure family. `binsright` and `binsleft` are expected to expose fragmented shadow ownership when large overlapping sprites are treated independently. `binsupleft` exists to exercise the historical direction sensitivity; because its original screenshot is missing, it is a deliberately reconstructed topology rather than a visual-parity oracle. `binsup` records the later qualitative target: one coherent lower-bin primary shadow with softer low-frequency residual occlusion rather than several independently strong wedges.
+The recovered box captures remain positive controls: compact isolated objects historically produced convincing Material-v2/direct-light response. The bin captures document the overlap failure family. `binsright` and `binsleft` are expected to expose fragmented shadow ownership when large overlapping sprites are treated independently. `binsupleft` exists to exercise the historical direction sensitivity; because its original artifact is currently unavailable, the fixture is a deliberately reconstructed topology rather than a visual-parity oracle for that historical image. `binsup` records the later qualitative target: one coherent lower-bin primary shadow with softer low-frequency residual occlusion rather than several independently strong wedges.
 
-These observations are diagnostic expectations, not renderer fixes or pass/fail screenshot thresholds. Future WebGPU ownership, clustering, DSO, and Dark Bloom work should add machine-readable representation metrics without changing the immutable provenance of the original PNGs.
+These observations are diagnostic expectations, not renderer fixes or pass/fail screenshot thresholds. Future WebGPU ownership, clustering, DSO, and Dark Bloom work should add machine-readable representation metrics without changing the immutable provenance of recovered original PNGs.
 
 ## SM-002 integration handoff
 

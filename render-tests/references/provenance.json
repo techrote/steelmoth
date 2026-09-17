@@ -15,7 +15,7 @@
     "binsright":{"status":"recovered","file":"binsright.png"},
     "binsleft":{"status":"recovered","file":"binsleft.png"},
     "binsup":{"status":"recovered","file":"binsup.png"},
-    "binsupleft":{"status":"missing","note":"Library searches by exact filename/title and semantic visual description did not recover an authoritative binsupleft image. The deterministic binsupleft fixture is therefore reconstructed and must never be labeled as an original screenshot."},
+    "binsupleft":{"status":"missing","note":"The user later confirmed binsupleft.png was a historical screenshot and had simply not been attached with the others. Its original bytes/file have not been recovered or committed. The deterministic binsupleft fixture is therefore reconstructed and must never be labeled as the original screenshot."},
     "binsupright":{"status":"recovered-supplementary","file":"binsupright.png","note":"Recovered from the same directional bin screenshot family; retained as supplementary evidence and not substituted for binsupleft."}
   }
 }

@@ -28,11 +28,13 @@ SM-000 import evidence records:
 - preservation of the exact v1.2.3 Windows launcher bytes after correcting local Git CRLF normalization;
 - merged `main` baseline commit: `089d7a34ceae1b12c72b6426b38be410e087d50e`.
 
-See `docs/BASELINE_V123_PROVENANCE.md` and `docs/BASELINE_V123_IMPORT_REPORT.txt` for evidence and limitations.
+SM-004 subsequently audited the imported source contract-by-contract. `docs/BASELINE_V123_AUDIT.md` is the authoritative implementation reconciliation; historical renderer claims below should be interpreted through that audit.
+
+See `docs/BASELINE_V123_PROVENANCE.md`, `docs/BASELINE_V123_IMPORT_REPORT.txt`, and `docs/BASELINE_V123_AUDIT.md` for evidence and limitations.
 
 ## Historical renderer progression
 
-### v1.2.0 historical claim
+### v1.2.0 historical claim — reconciled by SM-004
 
 Conversation work reported an integrated Material-v2 renderer with:
 
@@ -47,7 +49,12 @@ Conversation work reported an integrated Material-v2 renderer with:
 - legacy bump/spec maps for debug/fallback;
 - G-buffer/material debug views and validation tooling.
 
-These details are now partly corroborated by the imported v1.2.3 source and inherited validation, but any subsystem-specific implementation assumption should still be checked against current source before refactoring.
+SM-004 verified these mechanisms in the imported v1.2.3 source, with two important qualifications:
+
+1. WebGL2 `G2.R` is **local Material-v2 pseudo-height**, not the future light-independent fragment-ownership depth. The baseline has no object-ID attachment or per-pixel hardware ownership depth for material sprites.
+2. Material descriptors share `getSpriteFootAnchor()` for ordering, but v1.2.3 does not yet have one universal root/foot authority: macro-shadow and FoliageFX root/bottom conventions remain separately implemented.
+
+Thus the successful Material-v2 material/direct-light response is a preserved baseline contract, while backend-neutral scene extraction, unified transforms and true per-pixel ownership remain migration work.
 
 ### v1.2.1 historical patch
 
@@ -66,11 +73,17 @@ The user confirmed two material improvements after v1.2.3:
 
 The yellow artifact was traced to Fine GrassField/procedural rendering rather than the main deferred lighting path. The correction required procedural grass to consume coherent scene illumination and a suitable dark vegetation palette rather than behaving like a self-lit amber layer.
 
+SM-004 verified the source-side fix: Fine GrassField samples the lit scene/current main-light direction and caps blade alpha; FoliageFX samples the lit scene and Material-v2 normals; water also uses the lit scene and main-light direction. These remain forward compatibility adapters rather than consumers of the future canonical WebGPU light/depth/visibility buffers.
+
 **v1.2.3 is the current imported WebGL2/Material-v2 compatibility baseline for the WebGPU migration.**
 
 ## Overlap/bin screenshot findings
 
-A conversation fork named **Branch Steel Moth Forgetful** contained the omitted box/bin screenshots. The reconciled conclusions are:
+A conversation fork named **Branch Steel Moth Forgetful** contained the omitted box/bin screenshots. SM-001 recovered and committed eight exact historical references: `boxleft`, `boxright`, `boxup`, `boxdown`, `binsleft`, `binsright`, `binsup`, and supplementary `binsupright`.
+
+The user later clarified that `binsupleft.png` was also a historical screenshot; it was simply omitted when the other references were attached. Its original bytes/file have not yet been recovered or committed, so the current `binsupleft` deterministic fixture remains explicitly reconstructed rather than being mislabeled as the original image.
+
+The reconciled conclusions are:
 
 ### Boxes — positive control
 
@@ -85,6 +98,7 @@ A conversation fork named **Branch Steel Moth Forgetful** contained the omitted 
 
 ### binsupleft
 
+- the historical screenshot existed, although the original artifact is not currently committed;
 - the failure changed with light direction;
 - a static footprint-only correction is insufficient.
 
@@ -120,7 +134,7 @@ Explicit prohibitions:
 
 ## Diagnostic lighting preset
 
-The user used and approved these stronger settings for visual diagnosis; they should become a reproducible test preset and may become defaults after baseline reconciliation:
+The user used and approved these stronger settings for visual diagnosis. SM-001 now records them as a reproducible deterministic fixture preset:
 
 - Emissive strength: `2`
 - Light-radius multiplier: `2`
@@ -129,6 +143,8 @@ The user used and approved these stronger settings for visual diagnosis; they sh
 - Player cone intensity: `2`
 - Cone inner angle: `30°`
 - Cone outer angle: `60°`
+
+SM-004 verified that these are **not** the v1.2.3 compatibility runtime defaults. Baseline defaults remain emissive `1`, light-radius multiplier `1`, omni `60 / 0.16`, and cone `2 / 17° / 30°`. Any promotion of the stronger preset to product defaults is a separate visual/product decision.
 
 ## Performance targets
 
@@ -144,11 +160,13 @@ Programme targets:
 - p95 renderer GPU time ≤ `14.5 ms`
 - absolute 60-Hz frame budget `16.67 ms`
 
-These are **targets, not measured baseline results**. Earlier observed ~12% → ~35% GPU utilization after lighting improvements was informal Task Manager context on a GTX 1650 Super and must not be treated as pass-level benchmark data.
+These are **targets, not measured baseline results**. Earlier observed ~12% → ~35% GPU utilization after lighting improvements was informal Task Manager context on a GTX 1650 Super and must not be treated as pass-level benchmark data. SM-003 owns the target-hardware WebGL2 measurement dataset.
 
 ## Historical v1.3 checkpoint
 
 A later development attempt reportedly created a WebGPU checkpoint with distinct G-buffer, clustering, DSO, contact-shadow and Dark Bloom passes and identified a static bottom-anchor versus Material-v2 center interpretation mismatch. However the checkpoint was explicitly **not release-ready**: actual WebGPU frame execution/readback, authoritative bin visual review, editor stale-state checks, and GTX 1650 Super timings were not verified. Treat that work as inspiration/recoverable implementation only if its source is available; do not accept its unverified claims as completed milestones.
+
+SM-004 found the baseline condition that makes that historical warning relevant: static and live Material-v2 descriptors both call `getSpriteFootAnchor()`, but with different input anchor conventions, while macro shadows and foliage retain additional root/bottom conventions. SM-101 therefore remains necessary before SM-201 derives final ownership depth.
 
 ## Lighting roadmap already agreed in principle
 
@@ -165,16 +183,16 @@ After WebGPU correctness and overlap/shadow architecture stabilize:
 
 ## Unresolved facts that must not be guessed
 
-- Whether the original authoritative bin/box screenshot files can be recovered and committed as reference artifacts.
+- The original bytes/file for the historical `binsupleft.png` screenshot remain unrecovered/uncommitted; do not substitute the reconstructed fixture for it.
 - Actual WebGL2 pass timings on GTX 1650 Super.
 - Actual WebGPU pass timings on GTX 1650 Super.
-- Exact pseudo-depth projection formula that produces stable per-pixel ownership for all sprite classes; this needs a dedicated derivation/validation task.
+- Exact pseudo-depth projection formula that produces stable per-pixel ownership for all sprite classes; SM-004 confirmed the current WebGL2 G2 local-height channel is not that formula.
 - Which optional WebGPU texture/query features are exposed by the real target browsers/adapters at runtime.
 
 ## Source/provenance categories
 
 - Product/rendering requirements: user game brief and explicit Steel Moth conversation decisions.
-- Current implementation baseline: imported v1.2.3 source plus provenance/validation records.
-- Historical implementation state: prior assistant delivery reports; use only where not contradicted by current source.
-- Screenshot analysis: Branch Steel Moth Forgetful conversation and user confirmation.
+- Current implementation baseline: imported v1.2.3 source plus provenance/validation records and `docs/BASELINE_V123_AUDIT.md`.
+- Historical implementation state: prior assistant delivery reports; use only where not contradicted by current source/audit.
+- Screenshot analysis: recovered SM-001 references, Branch Steel Moth Forgetful conversation, and user confirmation regarding `binsupleft`.
 - External WebGPU facts: official MDN/GPUWeb/WGSL documentation recorded in `RESEARCH_AND_DECISIONS.md`.
