@@ -1,9 +1,8 @@
 'use strict';
 
-// Compatibility interposition for the imported v1.2.3 runtime.  The baseline
-// renderer/game file remains byte-identical; active root/foot/editor/shadow
-// queries are redirected to the shared SM-101 transform authority before the
-// asynchronously loaded game data can construct a Game instance.
+// Compatibility interposition for the imported v1.2.3 runtime. The baseline
+// game/renderer source remains byte-identical while active root/foot/editor/
+// shadow queries are redirected to the shared SM-101 transform authority.
 (function(root){
   const T=root?.SteelMothRenderTransform;
   if(!T)throw new Error('SteelMothRenderTransform must load before render_transform_integration.js');
@@ -31,12 +30,20 @@
     return editor;
   }
 
-  if(typeof baseline.setupWysiwygEditor==='function'){
-    root.setupWysiwygEditor=function(game){return patchEditor(baseline.setupWysiwygEditor.call(this,game))};
-  }
+  if(typeof baseline.setupWysiwygEditor==='function')root.setupWysiwygEditor=function(game){return patchEditor(baseline.setupWysiwygEditor.call(this,game))};
   if(root.rmfEditor)patchEditor(root.rmfEditor);
 
-  // Expose explicit diagnostics so tests and future backends can verify which
-  // authority owns active compatibility calls without relying on source shape.
-  root.SteelMothRenderTransformIntegration={schema:'steelmoth-render-transform-integration/v1',authority:T.SCHEMA,baseline,patchEditor};
+  function patchExistingGame(game){
+    if(!game||game.__sm101SharedTransform)return game;
+    game.__sm101SharedTransform=true;game.renderTransform=T;
+    // If async module loading lost the race with Game construction, rebuild the
+    // static descriptor cache once. The shared resolver intentionally reproduces
+    // the old coordinates, so this changes authority rather than placement.
+    try{if(game.renderer&&typeof game.ensureBackground==='function'){game.bgKey='';game.ensureBackground(true)}}catch(error){console.warn('SM-101 static-root cache refresh failed; direct rendering remains available.',error)}
+    patchEditor(root.rmfEditor);
+    return game;
+  }
+  if(root.game)patchExistingGame(root.game);
+
+  root.SteelMothRenderTransformIntegration={schema:'steelmoth-render-transform-integration/v1',authority:T.SCHEMA,baseline,patchEditor,patchExistingGame};
 })(typeof globalThis!=='undefined'?globalThis:window);
