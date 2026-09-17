@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth render-test bootstrap</title>
+<pre id="bootstrapStatus">Loading deterministic render-test entrypoint…</pre>
+<script>
+(async()=>{
+  try{
+    const response=await fetch('index.html',{cache:'no-store'});
+    if(!response.ok)throw new Error(`index.html: HTTP ${response.status}`);
+    let source=await response.text();
+    const gameTag='<script src="engine/game.js?v=1.2.3"><\/script>';
+    const harnessTag='<script src="engine/render_harness.js?v=1.2.3"><\/script>\n'+gameTag;
+    if(!source.includes(gameTag))throw new Error('game.js bootstrap tag not found in index.html');
+    source=source.replace(gameTag,harnessTag);
+    document.open();document.write(source);document.close();
+  }catch(error){
+    document.getElementById('bootstrapStatus').textContent=String(error?.stack||error);
+    document.body.dataset.renderTestError='1';
+  }
+})();
+</script>
