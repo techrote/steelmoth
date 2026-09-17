@@ -1,0 +1,33 @@
+{
+  "schema": "steelmoth-render-fixture-index/v1",
+  "fixture_schema": "steelmoth-render-fixture/v1",
+  "diagnostic_preset": {
+    "preset": "diagnostic-v1",
+    "emissive": 2.0,
+    "light_radius": 2.0,
+    "player_omni_radius": 80,
+    "player_omni_intensity": 1.6,
+    "player_cone_intensity": 2.0,
+    "player_cone_inner_angle_deg": 30,
+    "player_cone_outer_angle_deg": 60
+  },
+  "angle_convention": "screen-space: 0=east, 90=south, 180=west, 270=north",
+  "fixtures": [
+    {"name":"barrel","file":"barrel.json","state_sha256":"a9d8b0e2a263e7a4c43da0094d9e60ac405ae7099dd7e126927108741dc13e8b"},
+    {"name":"binsleft","file":"binsleft.json","state_sha256":"5492756c8adeca1857d88b17cacabbb1168cd98ee9fa97490eb9bc0ea9db4c4b"},
+    {"name":"binsright","file":"binsright.json","state_sha256":"8714d997396eee58d8391818768b4ddbb4cde02b9164c6b3658ce39b603f8f47"},
+    {"name":"binsup","file":"binsup.json","state_sha256":"e636d5d7262a84aba9918066adc95c0feee3e2dae5eea4c1b5368541f65e1349"},
+    {"name":"binsupleft","file":"binsupleft.json","state_sha256":"c07bcbc489b0bce746e26533353b2750f99629e92c970f64938f656af758af31"},
+    {"name":"box-pair","file":"box-pair.json","state_sha256":"6f92e7462704df76d94086710753ac5b31d278ae8cf32ab4b538143f65e479b6"},
+    {"name":"cabinet","file":"cabinet.json","state_sha256":"2bcac897c569e7a94e061fd3625fb0f86e364a59bfdfac753bf996e17eb990ea"},
+    {"name":"crate","file":"crate.json","state_sha256":"7172eecca15e82dcb79db62f610f45450ae90d99dd41325d2638442f38f0b47e"},
+    {"name":"dense-mixed","file":"dense-mixed.json","state_sha256":"4dc7b52eff7147e82f97681229ebe752b2c7897c972766288c1b744fc6eac8be"},
+    {"name":"empty-floor","file":"empty-floor.json","state_sha256":"b76ccbc405f0438d013d8066add2a1c939997877aa653eb131604114fadaf836"},
+    {"name":"foliage-dense","file":"foliage-dense.json","state_sha256":"49b67c61b8ac6183a66664c22811eee03522d0d719dfdbcefd01b6353215be42"},
+    {"name":"lamp-pole","file":"lamp-pole.json","state_sha256":"d443e23ac379ca54f634f81c30c5fdfb2595a22e7da3604be062c73f5c1416d6"},
+    {"name":"pipe-bundle","file":"pipe-bundle.json","state_sha256":"e06db8e96cd98a5a8b93a692c1937c41d1c808c5aa6ffebb20ce3586cf4c384c"},
+    {"name":"robot","file":"robot.json","state_sha256":"081be674a5fc43cfd154575721f071b2f70c658d339226c020855a496cd3b1b9"},
+    {"name":"single-box","file":"single-box.json","state_sha256":"448f734d0e5b47d1546f3458ceb46f355697bc29b7fe6f284e36b2d941466e4d"},
+    {"name":"water-material","file":"water-material.json","state_sha256":"56b48810bf8c0ff808d642bc58ff3f372c2d463d98d18b485b9dd545d9121bf1"}
+  ]
+}

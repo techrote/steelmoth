@@ -1,0 +1,21 @@
+{
+  "schema": "steelmoth-visual-reference-provenance/v1",
+  "recovered": {
+    "binsleft.png": {"path":"render-tests/references/original/binsleft.png","sha256":"16fbf52c3a13ed6c9b02c3a3136972bb381747436b5e96870a2d175afa3995f8","bytes":101097,"dimensions":[433,365],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"},
+    "binsright.png": {"path":"render-tests/references/original/binsright.png","sha256":"47f6083cf5c56aee999510e1cb6c5075a3814ce996e3ecfbaeac4c76272b2f15","bytes":177776,"dimensions":[433,365],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"},
+    "binsup.png": {"path":"render-tests/references/original/binsup.png","sha256":"9d0a033657d0b58180356ba1896147e7b2c574fd9d4b116a62a1435cf76c91e1","bytes":94320,"dimensions":[433,365],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"},
+    "binsupright.png": {"path":"render-tests/references/original/binsupright.png","sha256":"dffd795ba1619373df60492fbd9535cd141500a588ae5d8424ae590a64ed3aa7","bytes":103666,"dimensions":[433,365],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"},
+    "boxdown.png": {"path":"render-tests/references/original/boxdown.png","sha256":"e962a89bc7f18a059c4f83a5a50484be5ea2d60a8c7f24c414cb9fc57701dec5","bytes":160591,"dimensions":[416,432],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"},
+    "boxleft.png": {"path":"render-tests/references/original/boxleft.png","sha256":"c83fecb3582066717d0988da71881e7a3c52bcea32496333200656680dd3f03f","bytes":149455,"dimensions":[416,432],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"},
+    "boxright.png": {"path":"render-tests/references/original/boxright.png","sha256":"42461855cee25b925fb5b5d648ef7f892947261f502ce5ba23c451c5255cebc5","bytes":137261,"dimensions":[416,432],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"},
+    "boxup.png": {"path":"render-tests/references/original/boxup.png","sha256":"4466204c64cf6e574b1e17d28856dc94b93f64473a59cdbc2d0758bfb9635a2b","bytes":136688,"dimensions":[416,432],"status":"recovered-authoritative-conversation-upload","source":"user Library recovery during SM-001; original filename preserved"}
+  },
+  "historical_reference_resolution": {
+    "boxes": {"status":"recovered-as-directional-series","files":["boxleft.png","boxright.png","boxup.png","boxdown.png"],"note":"The historical RAG uses 'boxes' as the positive-control family; no source file literally named boxes.png was located."},
+    "binsright":{"status":"recovered","file":"binsright.png"},
+    "binsleft":{"status":"recovered","file":"binsleft.png"},
+    "binsup":{"status":"recovered","file":"binsup.png"},
+    "binsupleft":{"status":"missing","note":"Library searches by exact filename/title and semantic visual description did not recover an authoritative binsupleft image. The deterministic binsupleft fixture is therefore reconstructed and must never be labeled as an original screenshot."},
+    "binsupright":{"status":"recovered-supplementary","file":"binsupright.png","note":"Recovered from the same directional bin screenshot family; retained as supplementary evidence and not substituted for binsupleft."}
+  }
+}
