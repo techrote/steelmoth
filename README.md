@@ -4,7 +4,7 @@ Steel Moth is the current engine/game codebase for **The Small Machine at the Ed
 
 ## Repository status
 
-The verified **v1.2.3 WebGL2/Material-v2 source baseline is now imported on the SM-000 branch** from the exact delivered webapp/source ZIP. The recovered archive SHA-256 is `2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`; its internal release checks verified 93/93 listed files, and the repository import report records 94 release files copied and verified. See [`docs/BASELINE_V123_PROVENANCE.md`](docs/BASELINE_V123_PROVENANCE.md).
+The verified **v1.2.3 WebGL2/Material-v2 source baseline is now on `main`**, merged by PR #52 at commit `089d7a34ceae1b12c72b6426b38be410e087d50e`. It was imported from the exact delivered webapp/source ZIP. The recovered archive SHA-256 is `2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`; its internal release checks verified 93/93 listed files, and the repository import report records 94 release files copied and verified. See [`docs/BASELINE_V123_PROVENANCE.md`](docs/BASELINE_V123_PROVENANCE.md).
 
 No WebGPU implementation or GTX 1650 Super performance result should be inferred from the baseline import. Those remain later programme tasks with explicit validation gates.
 
@@ -50,7 +50,7 @@ Read in this order:
 
 ## Current execution state
 
-**SM-000 / #1** is the baseline-import gate. Its source-recovery and binary-transfer blockers are resolved; the remaining gate is PR/check/merge verification. Once SM-000 is merged, independent M0 evidence/CI work may proceed and the earliest migration work remains constrained by `docs/DEPENDENCY_AND_CONCURRENCY.md`.
+**SM-000 / #1 is complete.** The authoritative v1.2.3 source/assets are merged to `main`, the import evidence is recorded, and the former root source blocker is removed. Independent M0 evidence/CI work can now proceed, and migration work may advance only according to `docs/DEPENDENCY_AND_CONCURRENCY.md`.
 
 ## Autonomous continuation
 
