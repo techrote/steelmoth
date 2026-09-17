@@ -6,6 +6,7 @@
   const params = new URLSearchParams(location.search);
   const truthy = v => /^(1|true|yes|on)$/i.test(String(v || ''));
   const enabled = truthy(params.get('renderTest') || params.get('render_test'));
+  const includeCanvasData = truthy(params.get('includeCanvasData'));
   const ANGLES = Object.freeze([0,45,90,135,180,225,270,315]);
   const num = (name, fallback, lo, hi) => {
     const raw = Number(params.get(name));
@@ -52,6 +53,14 @@
   }
   function canvasBlob(canvas) {
     return new Promise((resolve,reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('canvas.toBlob returned null')), 'image/png'));
+  }
+  function blobDataUrl(blob) {
+    return new Promise((resolve,reject) => {
+      const reader=new FileReader();
+      reader.onload=()=>resolve(String(reader.result||''));
+      reader.onerror=()=>reject(reader.error||new Error('FileReader failed'));
+      reader.readAsDataURL(blob);
+    });
   }
   function writeResult(result) {
     lastResult = result;
@@ -151,13 +160,20 @@
     game.render = () => originalRender(config.fixedTimeMs);
   }
   async function buildResult(game) {
-    // Force a deterministic presentation before hashing the canvas.
+    // Force one deterministic presentation after all asynchronous renderer modules
+    // have settled. The browser-parity runner may request the exact PNG bytes used
+    // for this hash so it never has to race a later animation-frame redraw.
     game.render();
-    const canvas=document.getElementById('game'), blob=await canvasBlob(canvas), diag=game.diagnostics();
+    const canvas=document.getElementById('game'), blob=await canvasBlob(canvas), diag=game.diagnostics(), canvasHash=await sha256Blob(blob);
     const actualDpr=Number(window.devicePixelRatio||1), scene={fixture:fixture.id,room:game.room?.key||null,roomIndex:game.room?.index??null,position:[game.x,game.y],completed:[...game.state.completed].sort(),collectibles:[...game.state.moths].sort(),companions:[...game.state.robots].sort(),lightAngle:config.lightAngle,quality:config.quality,seed:config.seed,fixedTimeMs:config.fixedTimeMs};
     const metadata={schema:'steelmoth-render-capture/v1',buildVersion:diag.version||null,backend:'webgl2',fixture:fixture.id,fixtureSchema:fixture.schema,config,scene,viewport:{requestedNative:[config.width,config.height],actualNative:diag.renderer?.native||[canvas.width,canvas.height],dprRequested:config.dpr,dprActual:actualDpr,dprMatched:Math.abs(actualDpr-config.dpr)<.01},renderer:diag.renderer||null,diagnosticLight:game.playerLightCone(),environment:{userAgent:navigator.userAgent,platform:navigator.platform||null},limitations:['WebGPU is not implemented in the v1.2.3 baseline; backend=webgl2 is the only accepted backend in SM-002.']};
     const stable={config:metadata.config,scene:metadata.scene,viewport:{requestedNative:metadata.viewport.requestedNative,actualNative:metadata.viewport.actualNative,dprRequested:metadata.viewport.dprRequested,dprActual:metadata.viewport.dprActual},renderer:{materialPipeline:metadata.renderer?.materialPipeline||null,gBuffer:metadata.renderer?.gBuffer?{size:metadata.renderer.gBuffer.size,float:metadata.renderer.gBuffer.float}:null}};
-    const result={ok:true,metadata,sceneFingerprint:fnv1a(stableStringify(stable)),canvasPng:{bytes:blob.size,sha256:await sha256Blob(blob)},performance:{gpuTimingAvailable:!!diag.renderer?.gpuTimerQueries,gpuTimesMs:diag.renderer?.gpuTimesMs||null,note:'Values are evidence only for the actual browser/adapter used. Headless or software rendering is not hardware performance evidence.'}};
+    const canvasPng={bytes:blob.size,sha256:canvasHash};
+    if(includeCanvasData)canvasPng.dataUrl=await blobDataUrl(blob);
+    const result={ok:true,metadata,sceneFingerprint:fnv1a(stableStringify(stable)),canvasPng,performance:{gpuTimingAvailable:!!diag.renderer?.gpuTimerQueries,gpuTimesMs:diag.renderer?.gpuTimesMs||null,note:'Values are evidence only for the actual browser/adapter used. Headless or software rendering is not hardware performance evidence.'}};
+    // Freeze presentation after the accepted frame. requestAnimationFrame continues,
+    // but cannot replace the pixels between hash acceptance and CDP screenshot.
+    game.render=()=>{};
     writeResult(result); document.body.dataset.renderTestReady='1'; return result;
   }
   async function capture() {
@@ -173,6 +189,12 @@
       const deadline=performance.now()+15000;
       while ((!window.game || document.body.dataset.ready!=='1') && performance.now()<deadline) await new Promise(r=>setTimeout(r,25));
       if (!window.game) throw new Error('game did not become ready within 15 seconds');
+      // SM-100/101 compatibility modules load asynchronously from webapp.js. A
+      // parity capture taken before that promise resolves tests a race, not the
+      // accepted renderer path, so require the bridge to settle first.
+      if(globalThis.steelMothRenderSceneReady&&typeof globalThis.steelMothRenderSceneReady.then==='function')await globalThis.steelMothRenderSceneReady;
+      if(!window.game.renderSceneBridge)throw new Error('render scene compatibility bridge did not attach before capture');
+      if(!globalThis.steelMothRenderTransformBaseline&&!window.game.renderTransform)throw new Error('SM-101 shared transform authority did not attach before capture');
       applyState(window.game,fixture);
       for(let i=0;i<config.settleFrames;i++) await new Promise(r=>requestAnimationFrame(r));
       const result=await buildResult(window.game); readyResolve(result);
