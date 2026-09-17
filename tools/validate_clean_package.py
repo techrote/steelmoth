@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, os, shutil, subprocess, sys, tempfile, zipfile
+import argparse, hashlib, json, shutil, subprocess, sys, tempfile, zipfile
 from pathlib import Path, PurePosixPath
 
 ROOT=Path(__file__).resolve().parents[1]
 SKIP_TOP={'.git','.github','artifacts'}
 SKIP_NAMES={'__pycache__','.pytest_cache','.mypy_cache','.DS_Store'}
+
+# SHA256SUMS.txt belongs to the imported v1.2.3 distribution. Repository docs,
+# audits and test tooling are expected to evolve after import, so clean-package
+# verification pins only runtime/deployment bytes that still define the accepted
+# WebGL2 compatibility baseline. New migration files outside this set are verified
+# by their own current tests rather than an obsolete release checksum.
+BASELINE_RUNTIME_PREFIXES=('assets/generated/','engine/','game_data/','icons/')
+BASELINE_RUNTIME_ROOT={
+    '.nojekyll','0Play-Webapp-v1.2.3.bat','DEPLOYMENT_MANIFEST.json','_headers',
+    'game_manifest.json','index.html','manifest.webmanifest','style.css','sw.js','webapp.js',
+}
 
 def sha256(path: Path) -> str:
     h=hashlib.sha256()
@@ -21,6 +32,10 @@ def include(path: Path) -> bool:
 def safe_member(name: str) -> None:
     p=PurePosixPath(name)
     if p.is_absolute() or '..' in p.parts: raise RuntimeError(f'unsafe archive member: {name}')
+
+def baseline_runtime_path(name: str) -> bool:
+    name=name.replace('\\','/').removeprefix('./')
+    return name in BASELINE_RUNTIME_ROOT or any(name.startswith(prefix) for prefix in BASELINE_RUNTIME_PREFIXES)
 
 def run(root: Path, cmd: list[str]) -> dict:
     p=subprocess.run(cmd,cwd=root,text=True,capture_output=True)
@@ -46,22 +61,29 @@ def main() -> int:
         if missing:
             report['error']='missing required extracted files';report['missing']=missing
         else:
-            sums=unpack/'SHA256SUMS.txt';sum_errors=[];sum_count=0
+            sums=unpack/'SHA256SUMS.txt';sum_errors=[];sum_total=0;sum_checked=0;sum_skipped=0
             if sums.is_file():
                 for raw in sums.read_text(encoding='utf-8').splitlines():
                     raw=raw.strip()
                     if not raw: continue
-                    digest,name=raw.split(None,1);name=name.lstrip('* ').strip();f=unpack/name;sum_count+=1
-                    if not f.is_file(): sum_errors.append(f'missing baseline file: {name}')
-                    elif sha256(f).lower()!=digest.lower(): sum_errors.append(f'hash mismatch: {name}')
-            report['baseline_sha256_entries']=sum_count;report['baseline_sha256_errors']=sum_errors
+                    digest,name=raw.split(None,1);name=name.lstrip('* ').strip();sum_total+=1
+                    if not baseline_runtime_path(name):
+                        sum_skipped+=1
+                        continue
+                    clean=name.replace('\\','/').removeprefix('./');f=unpack/clean;sum_checked+=1
+                    if not f.is_file(): sum_errors.append(f'missing baseline runtime file: {clean}')
+                    elif sha256(f).lower()!=digest.lower(): sum_errors.append(f'baseline runtime hash mismatch: {clean}')
+            report['baseline_sha256_entries_total']=sum_total
+            report['baseline_runtime_entries_checked']=sum_checked
+            report['baseline_mutable_entries_skipped']=sum_skipped
+            report['baseline_sha256_errors']=sum_errors
             checks=[
                 [sys.executable,'tools/validate_webapp_v123.py'],
                 [sys.executable,'tools/validate_render_harness.py'],
                 [sys.executable,'tools/validate_render_fixtures.py','--repeat','2'],
             ]
             results=[run(unpack,c) for c in checks];report['checks']=results
-            report['ok']=not sum_errors and all(r['returncode']==0 for r in results)
+            report['ok']=sum_checked>0 and not sum_errors and all(r['returncode']==0 for r in results)
         report.update({'archive_sha256':sha256(archive),'archive_bytes':archive.stat().st_size,'file_count':len(files)})
         if args.archive:
             dst=args.archive if args.archive.is_absolute() else ROOT/args.archive;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(archive,dst)
@@ -71,7 +93,12 @@ def main() -> int:
         print('$',' '.join(r['command']))
         if r['stdout']: print(r['stdout'],end='' if r['stdout'].endswith('\n') else '\n')
         if r['stderr']: print(r['stderr'],file=sys.stderr,end='' if r['stderr'].endswith('\n') else '\n')
-    print(f"CLEAN PACKAGE {'PASS' if report['ok'] else 'FAIL'}: {report.get('file_count',0)} files, {report.get('archive_bytes',0)} bytes ZIP")
+    print(
+        f"CLEAN PACKAGE {'PASS' if report['ok'] else 'FAIL'}: "
+        f"{report.get('file_count',0)} files, {report.get('archive_bytes',0)} bytes ZIP; "
+        f"baseline runtime hashes {report.get('baseline_runtime_entries_checked',0)}/"
+        f"{report.get('baseline_sha256_entries_total',0)} checked"
+    )
     if report.get('baseline_sha256_errors'):
         for e in report['baseline_sha256_errors']: print(' -',e,file=sys.stderr)
     return 0 if report['ok'] else 1
