@@ -1,0 +1,10 @@
+Optional offline renderer/material tooling requirements (not required to run the webapp):
+
+Python 3.10+
+Pillow
+NumPy
+SciPy
+
+`tools/validate_glsl_v120.py` additionally uses the system EGL/OpenGL ES shared libraries when available.
+
+The webapp itself remains a static WebGL2 application and requires none of these Python packages.

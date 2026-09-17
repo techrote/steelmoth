@@ -1,0 +1,87 @@
+{
+  "schema": "signal-orchard-effects/v1",
+  "max_active": 18,
+  "presets": {
+    "pulse": {
+      "kind": 0,
+      "life": 1.0,
+      "element": "fx_pulse",
+      "index": 224,
+      "params": [
+        1.05,
+        0,
+        0,
+        0
+      ]
+    },
+    "objective_generic": {
+      "kind": 1,
+      "life": 1.15,
+      "element": "fx_objective",
+      "index": 220,
+      "params": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    "teleport": {
+      "kind": 2,
+      "life": 0.9,
+      "element": "fx_teleport",
+      "index": 210,
+      "params": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    "collectible_pickup": {
+      "kind": 3,
+      "life": 0.9,
+      "element": "fx_magic",
+      "index": 220,
+      "params": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    "portal_start": {
+      "kind": 4,
+      "life": 1.1,
+      "element": "fx_portal",
+      "index": 215,
+      "params": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    "portal_end": {
+      "kind": 5,
+      "life": 1.1,
+      "element": "fx_portal",
+      "index": 220,
+      "params": [
+        1,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "objective_map": {
+    "node": "objective_generic",
+    "pump": "objective_generic",
+    "switch": "objective_generic",
+    "mirror": "objective_generic",
+    "terminal": "objective_generic",
+    "release": "objective_generic",
+    "core": "objective_generic"
+  }
+}

@@ -1,0 +1,178 @@
+The Small Machine at the Edge of Night / Steel Moth renderer — v1.2.0 Validation
+
+BASELINE AUDIT
+PASS — latest executable workspace baseline v1.1.2 inspected before modification
+PASS — inherited v1.1.2 grounded sectioned-silhouette macro shadow contracts retained
+PASS — shared getSpriteFootAnchor was not assumed: implemented explicitly and regression-gated
+PASS — static material canvases now explicitly identity-clear before every rebuild
+PASS — per-frame G0/G1/G2 attachments explicitly clear with clearBufferfv
+PASS — legacy material shaders declare/bind uBumpStrength consistently
+PASS — Material-v2 deferred shader declares/binds uNormalStrength consistently
+PASS — historical u_bump_strength / u_normal_strength mismatch is rejected by source regression
+
+MATERIAL V2
+PASS — deterministic Material-v2 generation for all 314 atlas regions
+PASS — Normal/Roughness atlas coordinate-identical to albedo atlas
+PASS — Height/Material atlas coordinate-identical to albedo atlas
+PASS — legacy bump/specular atlases retained for fallback/debug comparison
+PASS — Normal/Roughness channel contract: RGB explicit XYZ normal, A roughness
+PASS — Height/Material channel contract: R pseudo-world Z/64, G local AO, B metalness, A emissive/aux
+PASS — safe transparent gutters: normal=(128,128,255), height/material=(0,255,0,0)
+PASS — nearest material textures + half-pixel atlas-region UV inset
+PASS — every region has Material-v2 metadata and machine-readable report entry
+PASS — generator records parameters, material class, height scale, root anchor and material summary
+PASS — classes present: flat, vertical_plane, box, barrel, pole, frame, pipe, robot, character, foliage, glass
+PASS — standing representative roots (crate/barrel/lamp/robot/player) are exact visible Z=0
+PASS — floor material has deliberately low macro-height
+PASS — barrel/pole normals have horizontal wrap variation rather than planar bump derivative
+PASS — cabinet roughness/metalness vary spatially
+PASS — pipe runs remain distinguishable
+
+MATERIAL V2 DETERMINISM
+PASS — generator rerun produced byte-identical:
+       sprite_material_normal_roughness.png
+       sprite_material_height_material.png
+       material_v2_report.json
+       atlas.json
+
+PSEUDO-G-BUFFER / MRT
+PASS — G0 RGBA8 albedo/coverage
+PASS — G1 preferred RGBA16F normal/roughness
+PASS — G2 preferred RGBA16F pseudo-Z/metalness/AO/emissive
+PASS — automatic RGBA8 G1/G2 fallback
+PASS — framebuffer-completeness check is performed at runtime
+PASS — native validation creates and verifies preferred mixed float MRT framebuffer complete
+PASS — native validation creates and verifies all-RGBA8 fallback MRT framebuffer complete
+PASS — static HD material descriptors rasterize into G-buffer
+PASS — dynamic player/robot/ordinary HD descriptors rasterize into G-buffer
+PASS — foreground/subrect descriptors use same material/root convention
+PASS — static procedural background/floor receives conservative flat default material
+PASS — SurfaceFX/FoliageFX remain explicitly specialized forward adapters rather than a second HD material convention
+
+DEFERRED LIGHTING
+PASS — fullscreen direct lighting consumes G0/G1/G2
+PASS — restrained diffuse response
+PASS — GGX normal distribution
+PASS — Schlick Fresnel
+PASS — Smith/Schlick geometry visibility
+PASS — dielectric F0 ~= 0.04
+PASS — metallic F0 derives from albedo
+PASS — metallic diffuse energy is correspondingly reduced
+PASS — roughness, metalness, material AO, normal, height and PBR-specular user scales
+PASS — explicit pseudo-Z on player/environment light groups
+PASS — player face cone uses pseudo-Z 22
+
+HEIGHT SELF-SHADOWING
+PASS — G2 pseudo-depth ray trace integrated per selected direct light
+PASS — bounded quality 0/8/12/16/28 samples
+PASS — configured self-shadowed-light count
+PASS — jitter/dither
+PASS — depth bias
+PASS — maximum trace distance
+PASS — transparent sample skip
+PASS — early exit on blocker
+PASS — visual-material test finds 104/2082 tested crate sample rays blocked by its generated pseudo-height structure
+
+SCREEN-SPACE CONTACT SHADOWS
+PASS — independent half-resolution persistent contact target
+PASS — bounded contact quality 0/4/8/12 samples
+PASS — configurable trace distance and strength
+PASS — pseudo-depth ray trace toward dominant/player light
+PASS — early exit
+PASS — deferred 3x3 depth-aware reconstruction
+PASS — weighting rejects blur across large pseudo-depth discontinuities
+PASS — unused contactTemp scratch render target removed before release
+
+MACRO SHADOW COMPATIBILITY
+PASS — v1.1.2 macro projected sectioned-silhouette terrain shadow path retained
+PASS — 26 inherited macro shadow profiles validate
+PASS — maximum sampled inherited terrain section height 20.59 logical px
+PASS — flashlight hard-occlusion split retained
+PASS — robot perception continues using physical obstruction authority
+PASS — local Material-v2 self/contact visibility is separate from macro projected shadow mask
+
+STATIC REBUILD / EDITOR / GHOST MATERIAL
+PASS — static Material-v2 descriptor list resets per rebuild
+PASS — bump/spec/NR/HM static canvases explicitly clear before reconstruction
+PASS — all three MRT targets clear every frame
+PASS — setBackground replaces static descriptors
+PASS — editor rebuild invalidates/reconstructs static material state
+PASS — ghost-material regression models object present -> clear/rebuild -> object deleted -> baseline restored
+
+SHARED FOOT/FOREGROUND PARITY
+PASS — getSpriteFootAnchor is a shared helper
+PASS — StaticPainter recordMaterialSprite consumes shared helper
+PASS — GLRenderer recordMaterialSprite consumes shared helper
+PASS — subrect material path reconstructs full sprite scale/root
+PASS — foreground descriptors preserve same region/height/roughness/material data as ordinary world rendering
+
+MATERIAL + DEPTH UI
+PASS — Material v2 toggle
+PASS — temporary Legacy material pipeline fallback toggle
+PASS — Normal strength
+PASS — Height strength
+PASS — Roughness scale
+PASS — Metalness scale
+PASS — Material AO strength
+PASS — PBR specular strength
+PASS — Self shadowing / quality / light count / bias / max distance
+PASS — Contact shadows / distance / strength / quality
+PASS — fullscreen debug views: albedo, pseudo-depth, normals, roughness, metalness, material AO, emissive, diffuse, specular, self-shadow, contact-shadow, final
+PASS — debug material views bypass ordinary post/bloom distortion
+
+GPU / SHADER VALIDATION
+Environment: surfaceless EGL / OpenGL ES 3.2 Mesa 25.0.7-2 / llvmpipe LLVM 19.1.7
+PASS — game.js: 21 production GLSL programs compile + link
+PASS — surfacefx.js: 2 production GLSL programs compile + link
+PASS — foliagefx.js: 3 production GLSL programs compile + link
+PASS — total 26 production program pairs compile + link
+PASS — inherited SurfaceFX local variable using GLSL reserved word `coherent` corrected to `windField` without behavior change
+
+GPU DIAGNOSTICS / BOUNDS
+PASS — persistent render targets; no per-frame target allocation
+PASS — best-effort EXT_disjoint_timer_query_webgl2 instrumentation
+PASS — G-buffer GPU timing slot
+PASS — contact-shadow GPU timing slot
+PASS — direct-lighting GPU timing slot
+PASS — diagnostics explicitly state height-self-shadow cost is integrated in directLighting timer
+PASS — material buffer memory estimate
+PASS — self-shadow sample/light count diagnostics
+PASS — contact sample count diagnostics
+PASS — active debug-mode diagnostics
+
+VISUAL / MATERIAL ACCEPTANCE DIAGNOSTICS
+PASS — crate coherent plane response
+PASS — crate generated self-shadow blockers
+PASS — barrel wrapped normal response under horizontal light sweep
+PASS — pole wrapped normal response
+PASS — cabinet spatial roughness/metalness variation
+PASS — pipe separation maintained
+PASS — robot metalness/root contract
+PASS — floor remains low-height/mostly flat
+PASS — deterministic before/after captures generated for crate, barrel, cabinet, pipe cluster, lamp/pole, robot and mixed terrain
+PASS — deterministic moving-light sweep GIFs generated for crate, barrel, cabinet, pipe cluster, lamp and maintenance robot
+NOTE — diagnostic captures use the exact generated Material-v2 fields and shader-equivalent lighting math; they are not mislabeled as live-browser screenshots
+
+GAMEPLAY / WEBAPP PRESERVATION
+PASS — game_data/maps.json byte-identical to v1.1.2
+PASS — game_data/story.json byte-identical to v1.1.2
+PASS — game_data/sprites.json byte-identical to v1.1.2
+PASS — game_data/luts.json byte-identical to v1.1.2
+PASS — game_data/effects.json byte-identical to v1.1.2
+PASS — 9 rooms / 27 objectives retained
+PASS — static dependency closure
+PASS — PWA/service worker retained
+PASS — service-worker cache bumped to small-machine-web-v1.2.0-r1
+PASS — graphics namespace signalOrchardGraphicsV120 applies new renderer defaults without changing gameplay save namespace
+PASS — local static HTTP server serves index.html and Material-v2 atlas metadata/assets successfully
+
+MANAGED BROWSER LIMITATION
+The available managed Chromium build exposes no WebGL1/WebGL2 context and its localhost navigation is administratively blocked. It is therefore not used as evidence for live GPU rendering or FPS. Production GPU correctness is gated by native OpenGL ES shader/link/MRT framebuffer validation plus deterministic material-field moving-light captures. Runtime GPU timer instrumentation is included for target WebGL2 hardware.
+
+FINAL PACKAGE GATE
+PASS — release candidate ZIP was clean-extracted to a new directory
+PASS — internal SHA256SUMS verified before validation
+PASS — Node syntax checks passed from clean extraction
+PASS — Material-v2, renderer, ghost-material, visual-material, GLSL/MRT, v1.1.2 macro-shadow and static-web validators passed from clean extraction
+PASS — internal SHA256SUMS verified again after validation (excluding transient __pycache__ additions)
+NOTE — the final external ZIP SHA-256 is recorded beside the downloadable artifact to avoid a self-referential archive checksum.

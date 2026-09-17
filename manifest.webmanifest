@@ -1,0 +1,27 @@
+{
+  "name": "The Small Machine at the Edge of Night",
+  "short_name": "Small Machine",
+  "description": "A cybernetic exploration game with geometry-aware dynamic lighting, terrain shadows and reactive robot perception.",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#071216",
+  "theme_color": "#071216",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "version": "1.2.3"
+}

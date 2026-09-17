@@ -1,0 +1,32 @@
+The Small Machine at the Edge of Night — Webapp v1.2.3 Validation
+
+ROOT-CAUSE REGRESSION
+PASS — Fine GrassField no longer sources base/tip/highlight from Dusk-Rust far_forest/tree_lights
+PASS — old Fine GrassField alpha >1 formula removed
+PASS — Fine GrassField alpha capped at 0.42
+PASS — Fine GrassField samples lit Material-v2 scene
+PASS — Fine GrassField uses actual main-light direction
+PASS — FoliageFX samples lit Material-v2 scene
+PASS — FoliageFX uses Material-v2 normal atlas in Material-v2 renderer
+PASS — FoliageFX retains legacy bump fallback
+PASS — screen/world light-vector convention matches deferred path
+PASS — quality-3 hard-light visibility profile = 193 cone / 257 omni rays
+PASS — local preview unregisters old service workers and removes small-machine-web-* caches
+
+RENDERER / MATERIAL
+PASS — 26 production GLSL programs compile + link under OpenGL ES 3.2 Mesa llvmpipe
+PASS — float MRT and RGBA8 fallback G-buffer framebuffers complete
+PASS — 314 Material-v2 regions aligned and valid
+PASS — representative crate/barrel/pole/cabinet/pipe/robot/floor material checks
+PASS — crate pseudo-height self-shadow blocker regression
+PASS — ghost-material/static-buffer clear regression
+PASS — Material-v2 debug / fallback / G-buffer source contracts
+
+WEBAPP
+PASS — v1.2.3 version/cache/script query closure
+PASS — signalOrchardGraphicsV123 fresh graphics namespace
+PASS — static-host deployment has no server-side runtime dependency
+PASS — 9 rooms / 27 objectives unchanged
+PASS — Windows preview launcher present
+
+The managed validation environment does not provide a trustworthy interactive WebGL browser screenshot path. The user screenshot itself was used for the root-cause colour/palette audit; exact GLSL, material, static-deployment and source-contract validations are executable release gates.

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Small Machine at the Edge of Night</title>
+<meta name="theme-color" content="#071216">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="A compact cybernetic exploration game built on Relay Moth Engine.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css?v=1.2.3">
+</head>
+<body>
+<div id="app">
+  <div id="frame">
+    <canvas id="game" width="640" height="360" aria-label="The Small Machine at the Edge of Night game canvas"></canvas>
+    <canvas id="editorOverlay" width="640" height="360" aria-label="WYSIWYG editor interaction overlay"></canvas>
+    <div id="wysiwygEditor" class="hidden">
+      <div id="editorToolbar">
+        <div class="editorToolGroup">
+          <button data-editor-tool="brush" class="active" title="Brush (B)">BRUSH</button>
+          <button data-editor-tool="select" title="Select / area select (S)">SELECT</button>
+          <button data-editor-tool="object" title="Object select: objectives, collectibles, ambient actors, auxiliary actors and pattern FX (O)">OBJECT</button>
+          <button data-editor-tool="move" title="Move selection (V)">MOVE</button>
+          <button data-editor-tool="erase" title="Erase (E); right click always removes">ERASE</button>
+        </div>
+        <div class="editorToolGroup">
+          <button id="editorUndo">UNDO</button><button id="editorRedo">REDO</button>
+          <button id="editorCopy">COPY</button><button id="editorPaste">PASTE</button><button id="editorDelete">DELETE</button>
+          <button id="editorGrid" class="active">GRID</button><button id="editorChrome" title="Hide editor UI but keep canvas editing active (Tab)">HIDE UI</button>
+        </div>
+        <div class="editorToolGroup editorSaveGroup">
+          <button id="editorSave" title="Static webapp: downloads the edited map JSON; writable dev server: saves to project">SAVE MAPS</button>
+          <button id="editorDownload">DOWNLOAD JSON</button>
+          <button id="editorClose">CLOSE</button>
+        </div>
+        <div id="editorStatus"></div>
+      </div>
+      <aside id="editorPalette">
+        <div class="editorPaletteTitle">WYSIWYG PALETTE</div>
+        <div id="editorCategoryTabs">
+          <button data-editor-category="tiles" class="active">TILES</button>
+          <button data-editor-category="blockers">BLOCKERS</button>
+          <button data-editor-category="trees">TALL SCENERY</button>
+          <button data-editor-category="decor">DECOR</button>
+          <button data-editor-category="grass">GRASS FX</button>
+          <button data-editor-category="lamps">LAMPS</button>
+          <button data-editor-category="robots">COMPANIONS</button>
+          <button data-editor-category="moths">COLLECTIBLES</button>
+          <button data-editor-category="wildlife">AMBIENT ACTORS</button>
+          <button data-editor-category="mini">AUX ACTORS</button>
+          <button data-editor-category="ambient">AMBIENT</button>
+        </div>
+        <input id="editorPaletteSearch" placeholder="filter palette…" autocomplete="off">
+        <div id="editorPaletteGrid"></div>
+        <div class="editorPaletteHint">left click paints · right click removes · OBJECT selects objectives/hexapods/fragments · drag SELECT for area · Ctrl+C/V copy/paste · edits preview immediately</div>
+      </aside>
+    </div>
+    <div id="roomHeader">
+      <div id="roomTitle"></div>
+      <div id="roomSubtitle"></div>
+      <div id="roomLead"></div>
+    </div>
+    <div id="objectiveHud"></div>
+    <div id="collectibleHud">✦ 2</div>
+    <button id="levelButton" title="Area select / save controls">☰</button>
+    <button id="fxButton" title="Graphics / lighting / post-processing settings">✦</button>
+    <button id="gearButton" title="Multi-channel LUT mixer">⚙</button>
+    <div id="toast"></div>
+<div id="pauseBadge" class="hidden">PAUSED · MOVE OR PRESS P TO RESUME</div>
+<div id="runtimeStatus"></div>
+    <div id="fps"></div>
+  </div>
+</div>
+
+<div id="storyModal" class="modal hidden">
+  <div class="storyCard">
+    <div class="storyEyebrow">THE SMALL MACHINE AT THE EDGE OF NIGHT</div>
+    <div id="storyBody"></div>
+    <div class="storyHint">click · space · enter · esc</div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal hidden">
+  <div class="toolPanel helpPanel">
+    <h2>HOW TO PLAY</h2>
+    <div class="twoCol">
+      <div><b>Mouse</b><br>aim player light cone<br>movement stays keyboard/controller</div>
+      <div><b>Keyboard</b><br>WASD / arrows: move<br>Space / E: field pulse / inspect<br>C: gather fragments<br>F: companion formation<br>U: LUT mixer<br>G: graphics / lighting</div>
+      <div><b>Tools</b><br>F2: WYSIWYG room editor<br>F3: colour lab<br>F4: advanced LUT editor<br>F8: raster export<br>G: graphics / lighting<br><br><b>Editor</b><br>left: paint/select/drag<br>right: remove decoration<br>Ctrl+C/V: copy/paste<br>Delete: remove selection<br>Ctrl+Z/Y: undo/redo</div>
+      <div><b>Controller</b><br>Xbox / standard + generic HID<br>stick / D-pad: move<br>A: pulse · B: gather<br>X: formation · Y: LUT mixer<br>Start: area select<br><br><b>Game</b><br>P: pause · H: help · L: area select<br>F11: fullscreen · Q: quit page</div>
+    </div>
+    <button data-close="helpModal">CLOSE</button>
+  </div>
+</div>
+
+
+
+<div id="levelMenu" class="modal hidden">
+  <div class="toolPanel levelPanel">
+    <div class="panelTop"><h2>AREA SELECT + SAVE</h2><span>unlocked areas only</span></div>
+    <div id="saveSummary"></div>
+    <div id="levelList"></div>
+    <div class="levelActions">
+      <button id="resetObjectives">RESET THIS AREA</button>
+      <button id="resetSave">RESET ALL SAVE</button>
+      <button data-close="levelMenu">CLOSE</button>
+    </div>
+    <div class="floatingHint">L / Start opens this menu · reset this area also returns its fragment</div>
+  </div>
+</div>
+
+<div id="graphicsMenu" class="floating graphicsPanel hidden">
+  <div class="panelTop"><h2>GRAPHICS + LIGHTING</h2><span>editable values · B = full-light override</span></div>
+  <div class="settingsGrid compactSettings">
+    <section>
+      <h3>DISPLAY + POST</h3>
+      <label>Max framerate <input type="number" min="15" max="240" step="1" data-gfx="maxFPS"></label>
+      <label class="toggleRow">Bloom <input type="checkbox" data-gfx="bloom"></label>
+      <label>Bloom strength <input type="number" min="0" max="1.5" step="0.01" data-gfx="bloomIntensity"></label>
+      <label>Bloom threshold <input type="number" min="0.2" max="1.1" step="0.01" data-gfx="bloomThreshold"></label>
+      <label>Saturation <input type="number" min="0.5" max="1.5" step="0.01" data-gfx="saturation"></label>
+      <label>Colour grade <input type="number" min="0" max="0.25" step="0.005" data-gfx="gradeMix"></label>
+      <label>Vignette <input type="number" min="0" max="0.65" step="0.01" data-gfx="vignette"></label>
+      <label>Fixed grain <input type="number" min="0" max="0.025" step="0.0005" data-gfx="grain"></label>
+      <label>Exposure <input type="number" min="0.65" max="1.6" step="0.01" data-gfx="exposure"></label>
+      <label>Brightness <input type="number" min="-0.35" max="0.35" step="0.01" data-gfx="brightness"></label>
+      <label>Contrast <input type="number" min="0.5" max="1.8" step="0.01" data-gfx="contrast"></label>
+      <label>Gamma <input type="number" min="0.45" max="2.2" step="0.01" data-gfx="gamma"></label>
+      <label>Temperature <input type="number" min="-1" max="1" step="0.02" data-gfx="gradeTemperature"></label>
+      <label>Green / magenta tint <input type="number" min="-1" max="1" step="0.02" data-gfx="gradeTint"></label>
+      <label>Shadow lift <input type="number" min="-0.25" max="0.35" step="0.01" data-gfx="shadowLift"></label>
+      <label>Highlight gain <input type="number" min="-0.5" max="0.8" step="0.01" data-gfx="highlightGain"></label>
+    </section>
+    <section>
+      <h3>LIGHT + MATERIAL</h3>
+      <label class="toggleRow">Emissive lighting <input type="checkbox" data-gfx="lighting"></label>
+      <label>Ambient · initial <input type="number" min="0.1" max="1.2" step="0.01" data-gfx="ambientInitial"></label>
+      <label>Ambient · complete <input type="number" min="0.1" max="1.2" step="0.01" data-gfx="ambientComplete"></label>
+      <label class="toggleRow">Force complete light <input type="checkbox" data-gfx="forceCompleteLight"></label>
+      <label>Emissive strength <input type="number" min="0" max="2.5" step="0.02" data-gfx="emissive"></label>
+      <label>Light radius <input type="number" min="0.5" max="4" step="0.02" data-gfx="lightRadius"></label>
+      <label class="toggleRow">Projected shadows <input type="checkbox" data-gfx="shadows"></label>
+      <label>Shadow strength <input type="number" min="0" max="0.85" step="0.01" data-gfx="shadowStrength"></label>
+      <label>Shadow length <input type="number" min="0.2" max="3.5" step="0.02" data-gfx="shadowLength"></label>
+      <label>Shadow softness <input type="number" min="0" max="4" step="0.02" data-gfx="shadowSoftness"></label>
+      <label>Shadowed point lights <input type="number" min="1" max="8" step="1" data-gfx="shadowLightCount"></label>
+      <label class="toggleRow">Terrain light occlusion <input type="checkbox" data-gfx="terrainLightOcclusion"></label>
+      <label>Occlusion quality · 0–3 <input type="number" min="0" max="3" step="1" data-gfx="terrainOcclusionQuality"></label>
+      <label>Occlusion strength <input type="number" min="0" max="1" step="0.02" data-gfx="terrainOcclusionStrength"></label>
+      <label>Occlusion edge softness <input type="number" min="0" max="12" step="0.1" data-gfx="terrainOcclusionSoftness"></label>
+      <label class="toggleRow">Ambient occlusion <input type="checkbox" data-gfx="ao"></label>
+      <label>AO strength <input type="number" min="0" max="0.8" step="0.01" data-gfx="aoStrength"></label>
+      <label class="toggleRow">Sprite bump lighting <input type="checkbox" data-gfx="bump"></label>
+      <label>Bump strength <input type="number" min="0" max="3" step="0.02" data-gfx="bumpStrength"></label>
+      <label>Specular response <input type="number" min="0" max="1.5" step="0.01" data-gfx="specular"></label>
+    </section>
+    <section>
+      <h3>MATERIAL + DEPTH</h3>
+      <label class="toggleRow">Material v2 <input type="checkbox" data-gfx="materialV2"></label>
+      <label class="toggleRow">Legacy material pipeline <input type="checkbox" data-gfx="materialPipelineLegacy"></label>
+      <label>Normal strength <input type="number" min="0" max="3" step="0.02" data-gfx="normalStrength"></label>
+      <label>Height strength <input type="number" min="0" max="3" step="0.02" data-gfx="heightStrength"></label>
+      <label>Roughness scale <input type="number" min="0.2" max="2" step="0.02" data-gfx="roughnessScale"></label>
+      <label>Metalness scale <input type="number" min="0" max="2" step="0.02" data-gfx="metalnessScale"></label>
+      <label>Material AO strength <input type="number" min="0" max="1" step="0.01" data-gfx="materialAOStrength"></label>
+      <label>PBR specular strength <input type="number" min="0" max="2" step="0.02" data-gfx="pbrSpecularStrength"></label>
+      <label class="toggleRow">Height self-shadowing <input type="checkbox" data-gfx="selfShadowing"></label>
+      <label>Self-shadow quality · 0–4 <input type="number" min="0" max="4" step="1" data-gfx="selfShadowQuality"></label>
+      <label>Self-shadowed lights <input type="number" min="0" max="8" step="1" data-gfx="selfShadowLightCount"></label>
+      <label>Self-shadow bias <input type="number" min="0.05" max="5" step="0.05" data-gfx="selfShadowBias"></label>
+      <label>Self-shadow max distance <input type="number" min="8" max="160" step="1" data-gfx="selfShadowMaxDistance"></label>
+      <label class="toggleRow">Contact shadows <input type="checkbox" data-gfx="contactShadows"></label>
+      <label>Contact distance <input type="number" min="4" max="36" step="1" data-gfx="contactShadowDistance"></label>
+      <label>Contact strength <input type="number" min="0" max="1" step="0.01" data-gfx="contactShadowStrength"></label>
+      <label>Contact quality · 0–3 <input type="number" min="0" max="3" step="1" data-gfx="contactShadowQuality"></label>
+      <div class="settingsNote">Material v2 writes albedo, pseudo-Z, XYZ normals, roughness, metalness, local material AO and emissive into a WebGL2 MRT G-buffer. Legacy bump/spec remains only for fallback/A-B comparison.</div>
+      <h3>MATERIAL DEBUG</h3>
+      <label class="toggleRow">Albedo <input type="checkbox" data-gfx="debugAlbedo"></label>
+      <label class="toggleRow">Pseudo-depth <input type="checkbox" data-gfx="debugPseudoDepth"></label>
+      <label class="toggleRow">Normals <input type="checkbox" data-gfx="debugNormals"></label>
+      <label class="toggleRow">Roughness <input type="checkbox" data-gfx="debugRoughness"></label>
+      <label class="toggleRow">Metalness <input type="checkbox" data-gfx="debugMetalness"></label>
+      <label class="toggleRow">Material AO <input type="checkbox" data-gfx="debugMaterialAO"></label>
+      <label class="toggleRow">Emissive / aux <input type="checkbox" data-gfx="debugEmissive"></label>
+      <label class="toggleRow">Direct diffuse <input type="checkbox" data-gfx="debugDiffuse"></label>
+      <label class="toggleRow">Specular <input type="checkbox" data-gfx="debugSpecular"></label>
+      <label class="toggleRow">Self-shadow factor <input type="checkbox" data-gfx="debugSelfShadow"></label>
+      <label class="toggleRow">Contact factor <input type="checkbox" data-gfx="debugContactShadow"></label>
+      <label class="toggleRow">Final combined <input type="checkbox" data-gfx="debugFinal"></label>
+    </section>
+    <section>
+      <h3>PLAYER LIGHT</h3>
+      <label>Omni radius <input type="number" min="8" max="180" step="1" data-gfx="playerOmniRadius"></label>
+      <label>Omni intensity <input type="number" min="0" max="2" step="0.01" data-gfx="playerOmniIntensity"></label>
+      <label>Cone range <input type="number" min="40" max="520" step="1" data-gfx="playerConeRange"></label>
+      <label>Cone intensity <input type="number" min="0" max="3" step="0.01" data-gfx="playerConeIntensity"></label>
+      <label>Cone inner angle <input type="number" min="1" max="75" step="0.5" data-gfx="playerConeInnerAngle"></label>
+      <label>Cone outer angle <input type="number" min="4" max="80" step="0.5" data-gfx="playerConeOuterAngle"></label>
+      <div class="settingsNote">The player omni and mouse cone are occluded by the same terrain rectangles used by robot line-of-sight. The omni intensity is independent of the global emissive multiplier so the player remains faintly readable in near-black scenes.</div>
+    </section>
+    <section>
+      <h3>LIGHT GROUPS</h3>
+      <label>Pulse radius <input type="number" min="16" max="520" step="1" data-gfx="pulseLightRadius"></label>
+      <label>Pulse intensity <input type="number" min="0" max="5" step="0.01" data-gfx="pulseLightIntensity"></label>
+      <label>Objective radius <input type="number" min="0" max="320" step="1" data-gfx="objectiveLightRadius"></label>
+      <label>Objective intensity <input type="number" min="0" max="2" step="0.005" data-gfx="objectiveLightIntensity"></label>
+      <label>Companion radius <input type="number" min="0" max="260" step="1" data-gfx="companionLightRadius"></label>
+      <label>Companion intensity <input type="number" min="0" max="2" step="0.01" data-gfx="companionLightIntensity"></label>
+      <label>Fragment radius <input type="number" min="0" max="260" step="1" data-gfx="fragmentLightRadius"></label>
+      <label>Fragment intensity <input type="number" min="0" max="2" step="0.01" data-gfx="fragmentLightIntensity"></label>
+      <label>Orbiters radius <input type="number" min="0" max="220" step="1" data-gfx="orbiterLightRadius"></label>
+      <label>Orbiters intensity <input type="number" min="0" max="2" step="0.01" data-gfx="orbiterLightIntensity"></label>
+      <label>Ambient life radius <input type="number" min="0" max="180" step="1" data-gfx="ambientLifeLightRadius"></label>
+      <label>Ambient life intensity <input type="number" min="0" max="1" step="0.01" data-gfx="ambientLifeLightIntensity"></label>
+      <label>Firefly radius <input type="number" min="0" max="140" step="1" data-gfx="fireflyLightRadius"></label>
+      <label>Firefly intensity <input type="number" min="0" max="1" step="0.01" data-gfx="fireflyLightIntensity"></label>
+      <div class="settingsNote">Per-group controls feed the bounded 16-light shader budget. Global Emissive strength still scales world/object lights; the player omni and cone have their own direct intensity controls.</div>
+    </section>
+    <section>
+      <h3>SURFACE FX</h3>
+      <label class="toggleRow">SurfaceFX master <input type="checkbox" data-gfx="surfaceFX"></label>
+      <label class="toggleRow">Water material <input type="checkbox" data-gfx="waterFX"></label>
+      <label>Water quality · 0 legacy / 1–4 <input type="number" min="0" max="4" step="1" data-gfx="waterQuality"></label>
+      <label>Water strength <input type="number" min="0" max="3.5" step="0.02" data-gfx="waterStrength"></label>
+      <label>Wave scale <input type="number" min="0.2" max="6" step="0.05" data-gfx="waterWaveScale"></label>
+      <label>Wave speed <input type="number" min="0" max="5" step="0.05" data-gfx="waterWaveSpeed"></label>
+      <label>Shore foam <input type="number" min="0" max="4" step="0.02" data-gfx="shoreFoamStrength"></label>
+      <label>Ripple strength <input type="number" min="0" max="4" step="0.02" data-gfx="waterRippleStrength"></label>
+      <label>Ripple budget <input type="number" min="1" max="12" step="1" data-gfx="waterRippleBudget"></label>
+      <label>Water normal strength <input type="number" min="0" max="5" step="0.02" data-gfx="waterNormalStrength"></label>
+      <label>Water detail strength <input type="number" min="0" max="5" step="0.02" data-gfx="waterDetailStrength"></label>
+      <label>Water highlights <input type="number" min="0" max="5" step="0.02" data-gfx="waterHighlightStrength"></label>
+      <label>Water edge response <input type="number" min="0" max="5" step="0.02" data-gfx="waterEdgeStrength"></label>
+      <label>Water refraction <input type="number" min="0" max="4" step="0.02" data-gfx="waterRefractionStrength"></label>
+      <label class="toggleRow">Fine GrassField source <input type="checkbox" data-gfx="grassFX"></label>
+      <label class="toggleRow">Fine GrassField detail <input type="checkbox" data-gfx="grassFineFX"></label>
+      <label>Fine grass quality · 0–4 <input type="number" min="0" max="4" step="1" data-gfx="grassQuality"></label>
+      <label>Fine grass density <input type="number" min="0" max="4" step="0.05" data-gfx="grassDensity"></label>
+      <input type="hidden" data-gfx="grassHeroStrength" value="1">
+      <label>Fine wind strength <input type="number" min="0" max="4" step="0.05" data-gfx="grassWindStrength"></label>
+      <label>Fine wind speed <input type="number" min="0" max="4.5" step="0.05" data-gfx="grassWindSpeed"></label>
+      <label>Fine interaction push <input type="number" min="0" max="4.5" step="0.05" data-gfx="grassPushStrength"></label>
+      <div class="settingsNote">SurfaceFX remains responsible for water and optional low-level GrassField texture/detail. Physical readable plants are owned by FoliageFX below.</div>
+    </section>
+    <section>
+      <h3>FOLIAGE FX</h3>
+      <label class="toggleRow">Foliage animation <input type="checkbox" data-gfx="foliageFX"></label>
+      <label>Foliage quality · 0 static / 1–3 <input type="number" min="0" max="3" step="1" data-gfx="foliageQuality"></label>
+      <label>Foliage wind strength <input type="number" min="0" max="4" step="0.05" data-gfx="foliageWindStrength"></label>
+      <label>Foliage wind speed <input type="number" min="0" max="4.5" step="0.05" data-gfx="foliageWindSpeed"></label>
+      <label>Foliage interaction strength <input type="number" min="0" max="4" step="0.05" data-gfx="foliageInteractionStrength"></label>
+      <label>Foliage shading strength <input type="number" min="0" max="2" step="0.05" data-gfx="foliageShadingStrength"></label>
+      <label>Foliage bend amount <input type="number" min="0" max="3" step="0.05" data-gfx="foliageBendAmount"></label>
+      <label class="toggleRow">Show root anchors <input type="checkbox" data-gfx="foliageShowRoots"></label>
+      <label class="toggleRow">Show interaction radii <input type="checkbox" data-gfx="foliageShowInteractionRadii"></label>
+      <label class="toggleRow">Freeze wind <input type="checkbox" data-gfx="foliageFreezeWind"></label>
+      <label class="toggleRow">Category visualization <input type="checkbox" data-gfx="foliageCategoryView"></label>
+      <div class="settingsNote">Root-locked, opaque HD atlas foliage. Quality 0 keeps the plants static; 1–3 progressively add coherent wind, pseudo-normal shading, bounded actor interaction and tip flutter.</div>
+      <label class="toggleRow">Floater-FX · magical / hidden by default <input type="checkbox" data-gfx="floaterFX"></label>
+      <label>Floater strength <input type="number" min="0" max="3" step="0.05" data-gfx="floaterStrength"></label>
+    </section>
+    <section>
+      <h3>FX</h3>
+      <label class="toggleRow">Objective / magic FX <input type="checkbox" data-gfx="magicFX"></label>
+      <label>Special FX intensity <input type="number" min="0" max="2" step="0.02" data-gfx="fxIntensity"></label>
+      <label class="toggleRow">Level portal FX <input type="checkbox" data-gfx="portalFX"></label>
+    </section>
+    <section>
+      <h3>MACHINE FRAGMENT ORBIT</h3>
+      <label>Orbit speed <input type="number" min="0.05" max="4" step="0.05" data-gfx="mothOrbitSpeed"></label>
+      <label>Orbit distance <input type="number" min="0.35" max="2.5" step="0.05" data-gfx="mothOrbitDistance"></label>
+      <label>Orbit chaos <input type="number" min="0" max="2" step="0.05" data-gfx="mothChaos"></label>
+      <div class="settingsNote">Values are editable directly. Ambient light fades from INITIAL to COMPLETE after the room's final objective. Press B during play to force the complete-light state globally.</div>
+    </section>
+  </div>
+  <div class="settingsFooter"><button id="resetGraphics">RESET DEFAULTS</button><button data-close="graphicsMenu">CLOSE</button></div>
+</div>
+
+<div id="lutMixer" class="floating hidden">
+  <div class="floatingTitle">MULTI-CHANNEL LUT MIXER</div>
+  <div id="channelRows"></div>
+  <div class="floatingHint">↑↓ channel · ←→ bank · U/Esc close · F5 reload · L area select</div>
+</div>
+
+<div id="colourLab" class="modal hidden">
+  <div class="toolPanel colourLabPanel">
+    <div class="panelTop"><h2>MY COLOUR LAB</h2><span>F4 advanced</span></div>
+    <div class="paletteTabs" id="paletteTabs"></div>
+    <div class="colourNames">PINK · PURPLE · BLUE · SKY · TEAL · MINT · GREEN · YELLOW · ORANGE · RED · WHITE · BLACK</div>
+    <label>COLOUR A<input id="colourA" value="PINK" maxlength="24"></label>
+    <label>COLOUR B<input id="colourB" value="PURPLE" maxlength="24"></label>
+    <div class="labButtons">
+      <button id="generatePalette">MAKE PALETTE</button>
+      <button id="orderRandom">ORDER RANDOMISE</button>
+      <button id="colourRandom">COLOUR RANDOMISE</button>
+      <button id="patternRandom">PATTERN RANDOMISE</button>
+    </div>
+    <div id="labPreview"></div>
+    <div class="floatingHint">1–5 palette · Tab field · Enter generate · hidden Ctrl+Z undo · F6 download LUT JSON</div>
+    <button data-close="colourLab">CLOSE</button>
+  </div>
+</div>
+
+<div id="advancedLut" class="modal hidden">
+  <div class="toolPanel advancedPanel">
+    <div class="panelTop"><h2>ADVANCED 256-COLOUR LUT EDITOR</h2><span>F3 child page</span></div>
+    <div class="advancedControls">
+      <select id="advancedTheme"></select>
+      <select id="advancedElement"></select>
+      <input id="advancedIndex" type="range" min="0" max="255" value="128">
+      <input id="advancedColour" value="#FF66DD" maxlength="7">
+      <button id="applyAdvanced">SET COLOUR</button>
+    </div>
+    <canvas id="lutGrid" width="512" height="256"></canvas>
+    <div class="floatingHint">click a cell · edit #RRGGBB · Ctrl+Z undo · F6 download LUT JSON</div>
+    <button data-close="advancedLut">CLOSE</button>
+  </div>
+</div>
+
+<script src="engine/surfacefx.js?v=1.2.3"></script>
+<script src="engine/foliagefx.js?v=1.2.3"></script>
+<script src="engine/editor.js?v=1.2.3"></script>
+<script src="engine/game.js?v=1.2.3"></script>
+<script src="webapp.js?v=1.2.3"></script>
+</body>
+</html>
