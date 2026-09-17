@@ -41,7 +41,11 @@ def main():
             url=f'http://127.0.0.1:{port}/render-test.html?{query}'; shot=(run_dir/'capture.png').resolve()
             cssw=max(160,round(a.width/a.dpr)); cssh=max(90,round(a.height/a.dpr))
             with tempfile.TemporaryDirectory(prefix='steelmoth-chrome-') as profile:
-                cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--enable-webgl',f'--user-data-dir={profile}',f'--force-device-scale-factor={a.dpr}',f'--window-size={cssw},{cssh}','--virtual-time-budget=6000',f'--screenshot={shot}','--dump-dom',url]
+                # Chrome 152 no longer automatically falls back to software WebGL
+                # in headless environments. These are trusted, local deterministic
+                # fixtures, so explicitly allow SwiftShader rather than accepting a
+                # timeout or silently treating a non-render as parity evidence.
+                cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--enable-webgl','--enable-unsafe-swiftshader',f'--user-data-dir={profile}',f'--force-device-scale-factor={a.dpr}',f'--window-size={cssw},{cssh}','--virtual-time-budget=6000',f'--screenshot={shot}','--dump-dom',url]
                 proc=subprocess.Popen(cmd,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
                 try:
                     stdout,stderr=proc.communicate(timeout=a.browser_timeout)
