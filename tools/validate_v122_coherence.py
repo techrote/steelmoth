@@ -8,7 +8,7 @@ assert "const BUILD_VERSION='1.2.3'" in js
 # The release remains v1.2.3 while migration runtime modules may legitimately
 # advance the service-worker revision. Pin the current revision so a runtime
 # module change cannot ship without a corresponding offline-cache identity bump.
-assert 'small-machine-web-v1.2.3-r2' in sw
+assert 'small-machine-web-v1.2.3-r3' in sw
 assert "sw.js?v=1.2.3" in web and "updateViaCache:'none'" in web
 for token in ['engine/game.js?v=1.2.3','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3','webapp.js?v=1.2.3']:
     assert token in idx,token

@@ -28,6 +28,19 @@
   globalThis.steelMothRenderSceneReady = renderSceneReady;
   globalThis.steelMothRenderTransformBaseline = renderTransformBaseline;
 
+  // SM-102 platform lifecycle. Auto intentionally remains WebGL2 until SM-505;
+  // explicit WebGPU initializes only the future backend's device/context platform
+  // layer while the accepted WebGL2 renderer keeps presentation ownership.
+  const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
+    .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
+    .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
+    .catch(err => {
+      globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
+      console.warn('WebGPU platform lifecycle unavailable; continuing with WebGL2.', err);
+      return null;
+    });
+  globalThis.steelMothBackendReady = backendReady;
+
   async function clearLocalPreviewCaches(){
     if(!('serviceWorker' in navigator)) return;
     const hadController = !!navigator.serviceWorker.controller;

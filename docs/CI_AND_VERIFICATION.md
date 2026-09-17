@@ -1,6 +1,6 @@
 # CI and verification
 
-Steel Moth uses one stable cross-platform verification runner plus focused package, GLSL and bounded browser-parity jobs. The goal is to automate repository/source correctness without pretending hosted software rendering is target-hardware evidence.
+Steel Moth uses one stable cross-platform verification runner plus focused package, GLSL and bounded browser jobs. The goal is to automate repository/source correctness without pretending hosted software rendering or hosted WebGPU exposure is target-hardware evidence.
 
 ## Local entrypoints
 
@@ -65,16 +65,36 @@ For each case it requires both the canvas PNG SHA-256 and the headless-browser v
 
 This is strong before/after visual-regression evidence for the root/foot refactor in one controlled browser environment. It is **not** evidence of target-GPU timing, broad browser compatibility, or final human visual approval.
 
+### SM-102 WebGPU lifecycle gate
+
+The normal source/regression runner includes:
+
+```text
+node tools/validate_webgpu_lifecycle.js
+python tools/validate_webgpu_contract.py
+```
+
+The deterministic JavaScript test uses fake adapter/device/context objects to exercise success and failure paths that cannot be induced reliably on hosted physical hardware: capability inventory, optional-feature negotiation, validation scopes, configure/reconfigure, uncaptured errors, device loss, deliberate initialization failure and fallback. It also asserts that `Auto` does not request a WebGPU adapter before SM-505.
+
+When Chrome/Chromium is available, run the browser smoke:
+
+```text
+python tools/validate_webgpu_browser.py --report artifacts/webgpu-browser-smoke.json
+```
+
+The smoke loads the actual browser API entrypoint, asserts the staged `Auto → WebGL2` policy, exercises deliberate failure handling and, when `navigator.gpu` plus a usable adapter are exposed, performs real device/context configure + resize/reconfigure. Hosted Linux may legitimately expose no usable WebGPU adapter; that absence is recorded rather than converted into a fabricated success. Fallback correctness still must pass.
+
 SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxiliary harness fixture. The SM-001 corpus manifest remains authority for its 16 regression fixtures.
 
 ## CI workflow
 
-`.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has four independent jobs:
+`.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has five independent jobs:
 
-1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene and SM-101 RenderTransform contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
-2. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for the representative SM-101 fixtures, with screenshot artifacts retained;
-3. **GLSL + MRT software validation** — production GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
-4. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation including current RenderScene/RenderTransform contracts.
+1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform and SM-102 WebGPU lifecycle contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
+2. **WebGPU lifecycle browser smoke** — real headless Chrome/Chromium policy/capability/failure smoke with structured evidence;
+3. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for the representative SM-101 fixtures, with screenshot artifacts retained;
+4. **GLSL + MRT software validation** — production GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
+5. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle contracts.
 
 Each job writes structured evidence under `artifacts/` and uploads it even when an earlier validation step fails where possible.
 
@@ -92,17 +112,17 @@ The probe launches a child command that exits 17 and verifies both output stream
 
 Hosted CI must not be used as evidence for:
 
-- GTX 1650 Super GPU time, utilization, or memory behaviour;
+- GTX 1650 Super GPU time, utilization, memory behaviour, feature inventory or driver support;
 - 1080p/60 target-hardware performance acceptance;
 - human final screenshot/art-direction approval;
-- Chrome/Firefox hardware WebGPU support;
+- Chrome/Firefox hardware WebGPU support on the target machine;
 - device-loss behaviour on a real target adapter;
 - authoritative moving-light visual quality.
 
-Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505. The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only.
+Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505. The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. The SM-102 browser job proves staged lifecycle/fallback behavior in its hosted browser only; deterministic fake-device tests provide controlled coverage of loss and failure states.
 
-The current migration still has no production WebGPU/WGSL backend. SM-102/SM-104 must register real production WGSL/API tests once those resources exist; no fake WebGPU pass is accepted.
+SM-102 introduces a production WebGPU device/context layer but still no WebGPU game-frame renderer or production WGSL. SM-103 will add resource/frame-graph/pipeline scaffolding; SM-104 must extend verification with the real production descriptors, WGSL modules, compilation information and validation-scope evidence.
 
 ## Extending the gate
 
-Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness, as SM-101 does for screenshot parity.
+Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness, as SM-101 and SM-102 do.

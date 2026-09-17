@@ -23,7 +23,7 @@ def json_get(url:str,timeout=2):
     with urllib.request.urlopen(url,timeout=timeout) as r: return json.loads(r.read().decode('utf-8'))
 
 class CDP:
-    def __init__(self,url:str,timeout=5):
+    def __init__(self,url:str,timeout=20):
         self.ws=websocket.create_connection(url,timeout=timeout,origin='http://127.0.0.1');self.seq=0
     def call(self,method:str,params=None):
         self.seq+=1;ident=self.seq;self.ws.send(json.dumps({'id':ident,'method':method,'params':params or {}}))
@@ -77,7 +77,11 @@ def main():
                             except Exception: pass
                             time.sleep(.2)
                         if not target: raise RuntimeError('Chrome DevTools page target did not become available')
-                        cdp=CDP(target['webSocketDebuggerUrl']);cdp.call('Page.enable');cdp.call('Runtime.enable')
+                        # Hosted SwiftShader can leave the page main thread occupied for several
+                        # seconds while the first WebGL frame/material targets are created. Keep
+                        # individual CDP request timeout below the overall browser deadline but
+                        # large enough not to turn that startup latency into a false parity failure.
+                        cdp=CDP(target['webSocketDebuggerUrl'],timeout=max(10,min(30,a.browser_timeout*.5)));cdp.call('Page.enable');cdp.call('Runtime.enable')
                         while time.monotonic()<deadline:
                             ready=cdp.eval("document.body && (document.body.dataset.renderTestReady==='1' || document.body.dataset.renderTestError==='1')")
                             if ready: break
