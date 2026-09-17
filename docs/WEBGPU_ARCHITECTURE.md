@@ -4,6 +4,18 @@
 
 Define the target renderer architecture and invariants that implementation issues must preserve. This is not a statement that the code already exists in the repository.
 
+## v1.2.3 baseline reconciliation (SM-004)
+
+`docs/BASELINE_V123_AUDIT.md` records the source-level audit of the imported WebGL2 compatibility baseline. This architecture remains the target, but downstream work must start from these verified baseline facts:
+
+- v1.2.3 has no backend-neutral Render Scene Description, WebGPU backend, object-ID attachment, hardware fragment-ownership depth, reusable pseudo-depth hierarchy, clustering, DSO, or Dark Bloom;
+- Material-v2 G2.R is **local material pseudo-height**, not the future light-independent fragment visibility depth;
+- Material descriptors share `getSpriteFootAnchor()` for ordering, but macro-shadow and FoliageFX root/bottom conventions remain separate, so root authority is only partially centralized;
+- static, dynamic, and foreground Material-v2 descriptors are painter/foot ordered rather than resolved by per-pixel object ownership;
+- SurfaceFX grass/water and FoliageFX coherently sample the lit WebGL2 scene/current main-light direction, but they do not yet consume the canonical future light/depth/visibility buffers defined below.
+
+Consequently SM-100, SM-101, SM-200, SM-201 and SM-202 remain necessary in their existing dependency order. In particular, SM-200 must preserve local Material-v2 height semantics without silently treating that channel as the accepted SM-201 ownership formula.
+
 ## Backend model
 
 ```text
@@ -106,11 +118,11 @@ Start explicit and debuggable. Candidate production layout:
 
 - **G0 `rgba8unorm`** — linear/unlit albedo + coverage;
 - **G1 `rgba16float`** — pseudo-world normal XYZ + roughness;
-- **G2 `rgba16float`** — pseudo-world Z/height + metalness + material AO + emissive/aux;
+- **G2 `rgba16float`** — Material-v2 local height / derived pseudo-world Z plus metalness + material AO + emissive/aux, with exact ownership semantics defined by SM-201/202;
 - **Object ID `r32uint`** — stable visible instance/object ID;
 - **Depth** — suitable depth format after adapter validation, initially `depth32float` if supported as required by the implementation.
 
-Do not pack normals/material channels until correctness/performance data justifies it.
+Do not pack normals/material channels until correctness/performance data justifies it. Do not copy the WebGL2 `debugPseudoDepth` label into WebGPU as proof that a final ownership-depth formula already exists.
 
 ## Frame graph target
 
