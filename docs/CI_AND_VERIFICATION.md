@@ -50,7 +50,9 @@ Validate a clean source ZIP/extraction without relying on the current checkout l
 python tools/validate_clean_package.py --report artifacts/clean-package.json
 ```
 
-The package check creates a temporary ZIP, rejects unsafe archive paths, extracts into a fresh directory, re-verifies the inherited `SHA256SUMS.txt` baseline entries, then runs the v1.2.3 webapp, render-harness, and render-fixture validators from the extracted copy.
+The package check creates a temporary ZIP, rejects unsafe archive paths, and extracts into a fresh directory. It re-verifies the runtime/deployment subset of the inherited v1.2.3 `SHA256SUMS.txt`—the generated assets, engine/game data/icons, launcher and static-webapp entry/deployment files that still define the accepted compatibility baseline. Historical reports, documentation and validation tooling listed in the old release checksum file are intentionally allowed to evolve after import and are checked by their current tests rather than treated as immutable release bytes. The extracted copy then runs the v1.2.3 webapp, render-harness, and render-fixture validators.
+
+SM-002's `render-tests/fixtures/harness-smoke.json` is an intentional auxiliary harness fixture and is validated separately by `validate_render_harness.py`; the SM-001 corpus manifest remains the authority for its 16 regression fixtures.
 
 ## CI workflow
 
@@ -98,4 +100,4 @@ The current v1.2.3 baseline has no production WebGPU backend or WGSL modules, so
 
 ## Extending the gate
 
-Future issues should add deterministic checks to `tools/run_checks.py` when they are fast and repository-native. Hardware/browser tests should remain separate unless a runner can execute them meaningfully. Do not hide a hardware requirement inside a software-CI pass.
+Future issues should add deterministic checks to `tools/run_checks.py` when they are fast and repository-native. Retained historical regression scripts must validate the retained contract rather than pinning an obsolete intermediate release-version string. Hardware/browser tests should remain separate unless a runner can execute them meaningfully. Do not hide a hardware requirement inside a software-CI pass.
