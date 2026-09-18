@@ -74,7 +74,7 @@ These are diagnostic composition bounds, not a claim about final game luminance.
 
 ## Reserved GTAO interface
 
-SM-307 defines the consumer side of GTAO without implementing GTAO:
+SM-307 defines the consumer side of GTAO without implementing GTAO. **SM-307 does not generate GTAO.**
 
 - semantic: visibility, `0 = occluded`, `1 = visible`;
 - boundary resolution: full resolution;
