@@ -46,7 +46,7 @@ jobs:
           if-no-files-found: warn
 
   webgpu-api-smoke:
-    name: WebGPU lifecycle + resources + WGSL + G-buffer + ownership + depth hierarchy + lighting + local shadows validation
+    name: WebGPU lifecycle + resources + WGSL + G-buffer + ownership + depth hierarchy + lighting + local shadows + transparent FX validation
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -80,6 +80,8 @@ jobs:
         run: python tools/validate_webgpu_lighting_browser.py --require-webgpu --report artifacts/webgpu-lighting-browser.json
       - name: Validate bounded Material-v2 self/contact shadows and depth-aware contact reconstruction
         run: python tools/validate_webgpu_local_shadows_browser.py --require-webgpu --report artifacts/webgpu-local-shadows-browser.json
+      - name: Validate transparent sprite/particle/objective/guide FX blending, atlas sampling and ordering hooks
+        run: python tools/validate_webgpu_transparent_fx_browser.py --require-webgpu --report artifacts/webgpu-transparent-fx-browser.json
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,6 +96,7 @@ jobs:
             artifacts/webgpu-depth-hierarchy-browser.json
             artifacts/webgpu-lighting-browser.json
             artifacts/webgpu-local-shadows-browser.json
+            artifacts/webgpu-transparent-fx-browser.json
           if-no-files-found: warn
 
   webgl2-transform-parity:
@@ -181,6 +184,7 @@ jobs:
 # formula; SM-202 requires real fragment-depth/object-ID ownership readback;
 # SM-203 requires the shared min/max hierarchy; SM-204 requires one canonical light
 # buffer and restrained deferred Material-v2 PBR parity; SM-205 requires bounded
-# local-height self-shadow and half-resolution/depth-aware contact-shadow validation.
-# Hosted success remains API/data correctness evidence only, never target-GPU
-# performance or final human visual acceptance.
+# local-height self-shadow and half-resolution/depth-aware contact-shadow validation;
+# SM-206 requires bounded transparent atlas/procedural FX with explicit alpha/additive
+# blend and ordering/depth hooks. Hosted success remains API/data correctness evidence
+# only, never target-GPU performance or final human visual acceptance.
