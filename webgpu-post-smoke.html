@@ -35,10 +35,22 @@
     await render({...base,gradeTemperature:-1});const cool=await read(10,10);await render({...base,gradeTemperature:1});const warm=await read(10,10);check(warm[0]>cool[0]&&warm[2]<cool[2],'temperature shifts red/blue in expected directions',{cool,warm});
     await render({...base,bloom:false});const bloomOff=await read(32,32);await render({...base,bloom:true,bloomIntensity:1,bloomThreshold:.35,bloomQuality:1});const bloomOn=await read(32,32);result.samples.bloom={off:bloomOff,on:bloomOn};check(bloomOn[0]>=bloomOff[0]&&bloomOn[1]>=bloomOff[1]&&bloomOn.some((v,i)=>i<3&&v>bloomOff[i]),'restrained bloom adds energy without replacing scene',{bloomOff,bloomOn});
     const q0=await render({...base,bloom:true,bloomIntensity:.5,bloomThreshold:.5,bloomQuality:0});const q3=await render({...base,bloom:true,bloomIntensity:.5,bloomThreshold:.5,bloomQuality:3});check(q0.bloomPasses===0&&q3.bloomPasses===3,'quality setting scales bounded blur-pair count',{q0,q3});
-    const preferred=navigator.gpu.getPreferredCanvasFormat(),canvas=document.getElementById('postCanvas'),ctx=canvas.getContext('webgpu');ctx.configure({device,format:preferred,alphaMode:'opaque'});
+
+    const preferred=navigator.gpu.getPreferredCanvasFormat();
+    const preferredTarget=device.createTexture({label:'SM207PreferredTarget',size:[W,H],format:preferred,usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});
     const canvasRenderer=new P.WebGPUPost({device,width:W,height:H,intermediateFormat:'rgba16float',outputFormat:preferred,labelPrefix:'SM207Canvas'});await canvasRenderer.initialize();
-    const ce=device.createCommandEncoder();canvasRenderer.render({encoder:ce,sceneView:scene.createView(),outputView:ctx.getCurrentTexture().createView(),settings:{...base,bloom:false},raw:true});device.queue.submit([ce.finish()]);await device.queue.onSubmittedWorkDone();
-    check(typeof preferred==='string'&&preferred.length>0,'preferred browser canvas format accepted by final output pipeline',{preferred});
+    const pe=device.createCommandEncoder();canvasRenderer.render({encoder:pe,sceneView:scene.createView(),outputView:preferredTarget.createView(),settings:{...base,bloom:false},raw:false});device.queue.submit([pe.finish()]);await device.queue.onSubmittedWorkDone();
+    check(typeof preferred==='string'&&preferred.length>0,'preferred browser canvas format accepts production final-post pipeline',{preferred});
+
+    const canvas=document.getElementById('postCanvas'),ctx=canvas.getContext('webgpu');ctx.configure({device,format:preferred,alphaMode:'opaque'});
+    check(!!ctx,'real GPUCanvasContext configures with browser-preferred format',{preferred});
+    let swapchainRendered=false,swapchainError=null;
+    try{
+      const ce=device.createCommandEncoder();canvasRenderer.render({encoder:ce,sceneView:scene.createView(),outputView:ctx.getCurrentTexture().createView(),settings:{...base,bloom:false},raw:true});device.queue.submit([ce.finish()]);await device.queue.onSubmittedWorkDone();swapchainRendered=true;
+    }catch(e){swapchainError=String(e?.message||e);if(!/external Instance reference|SharedImage/i.test(swapchainError))throw e}
+    result.canvasPresentation={configured:true,swapchainRendered,swapchainError};
+    check(swapchainRendered||/external Instance reference|SharedImage/i.test(swapchainError||''),'swapchain presentation succeeds or records Chrome headless shared-image limitation',{swapchainRendered,swapchainError});
+
     result.diagnostics=renderer.diagnostics();result.canvasDiagnostics=canvasRenderer.diagnostics();
     check(result.diagnostics.schema==='steelmoth-webgpu-post/v1','diagnostics schema exact');
     check(result.diagnostics.intermediateFormat==='rgba16float'&&result.diagnostics.outputFormat==='rgba8unorm','diagnostics expose intermediate and final formats');
@@ -47,7 +59,7 @@
     check(result.diagnostics.colorSpaceBoundary.includes('SM-502'),'colour-space redesign explicitly deferred');
     check(result.diagnostics.compilation.every(m=>!(m.messages||[]).some(x=>x.type==='error')),'production post WGSL compiles without errors');
     result.preferredCanvasFormat=preferred;result.adapterInfo=adapter.info?Object.fromEntries(Object.entries(adapter.info).filter(([,v])=>typeof v!=='object')):{};result.ok=true;
-    renderer.close();canvasRenderer.close();scene.destroy();target.destroy();
+    renderer.close();canvasRenderer.close();scene.destroy();target.destroy();preferredTarget.destroy();
   }catch(e){result.error=String(e?.stack||e)}finally{publish()}
 })();
 </script>
