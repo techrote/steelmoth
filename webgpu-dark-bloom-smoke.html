@@ -29,7 +29,7 @@ try{
   const tier=B.buildTierMap(plan);check(tier.counts[1]>0&&tier.counts[2]>0&&tier.counts[3]>0,'production tier map consumes SM-304 near/mid/far distance semantics');
   const hardTexture=device.createTexture({label:'SM305 fixture hard core',size:{width,height,depthOrArrayLayers:1},format:'r32float',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});
   const rangeTexture=device.createTexture({label:'SM305 fixture depth ranges',size:{width,height,depthOrArrayLayers:1},format:'rg32float',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});
-  const writeHard=data=>device.queue.writeTexture({texture:hardTexture},data,{bytesPerRow:width*4,rowsPerImage:height},{width,height,depthOrArrayLayers:1});
+  const writeHard=data=>{const upload=data instanceof Float32Array?data:Float32Array.from(data);device.queue.writeTexture({texture:hardTexture},upload,{bytesPerRow:width*4,rowsPerImage:height},{width,height,depthOrArrayLayers:1})};
   const writeRanges=data=>device.queue.writeTexture({texture:rangeTexture},data,{bytesPerRow:width*8,rowsPerImage:height},{width,height,depthOrArrayLayers:1});
   writeHard(hard);writeRanges(ranges);
   const bloom=new B.WebGPUDarkBloom({device,width,height,quality:'Medium'}),source={hierarchySnapshot:plan,hardMaskView:hardTexture.createView(),depthRangeView:rangeTexture.createView(),width,height,roomId:'sm305-browser'};
