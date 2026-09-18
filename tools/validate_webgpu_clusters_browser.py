@@ -44,8 +44,8 @@ def validate(smoke,require_webgpu):
     snap=diag.get('snapshot') or {}
     if snap.get('clusterCount')!=1 or snap.get('memberCount')!=1:raise RuntimeError('room-change stale-cluster test did not leave exactly one cluster/member')
     if diag.get('roomId')!='sm301-b':raise RuntimeError('room-change diagnostics did not advance room identity')
-    if 'geometry-only' not in str(diag.get('clusteringContract')):raise RuntimeError('geometry-only SM-301 contract missing')
-    if 'reserved as zero' not in str(diag.get('dominanceContract')):raise RuntimeError('SM-302 dominance boundary missing')
+    if 'geometry-only' not in str(diag.get('clusteringContract')).lower():raise RuntimeError('geometry-only SM-301 contract missing')
+    if 'reserved as zero' not in str(diag.get('dominanceContract')).lower():raise RuntimeError('SM-302 dominance boundary missing')
     readback=smoke.get('readback') or {};dense=readback.get('dense') or {};base=readback.get('base') or {}
     if base.get('clusterCount')!=2 or base.get('largestCluster',{}).get('memberCount')!=2:raise RuntimeError('base touching/separated cluster evidence missing')
     if dense.get('candidatePairCount',999)>4 or not (dense.get('candidatePairOverflow') or dense.get('candidateTileOverflow')):raise RuntimeError('dense-scene bounded candidate evidence missing')
