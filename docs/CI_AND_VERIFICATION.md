@@ -123,25 +123,32 @@ python tools/validate_webgpu_validation_browser.py \
   --report artifacts/webgpu-validation-browser.json
 ```
 
-Unlike the earlier lifecycle/resource smoke commands, CI runs this with `--require-webgpu`. The hosted Chrome lane had already demonstrated a usable SwiftShader adapter in SM-103, so losing real WebGPU execution now fails the API-validation job rather than silently reducing it to fake-device coverage.
+Unlike the earlier lifecycle/resource smoke commands, CI runs this with `--require-webgpu`. Losing real WebGPU execution fails the API-validation job rather than silently reducing it to fake-device coverage.
 
-The SM-104 browser gate:
+The SM-104 browser gate compiles registered WGSL, collects compilation information, creates actual render/compute pipelines under validation scopes, submits representative commands, creates registered resource descriptors, exercises resize, performs a real atlas upload, validates optional-feature absence, deliberately captures a validation error, and forces initialization/device-loss fallback without changing gameplay-authoritative sentinel state.
 
-- compiles every currently registered production-infrastructure WGSL module;
-- collects `GPUShaderModule.getCompilationInfo()` and fails compilation errors;
-- creates actual async render/compute pipelines under validation scopes;
-- records one real render draw and one compute dispatch and submits them;
-- creates the registered preferred/core/fallback texture and buffer descriptors;
-- exercises resize-dependent versus fixed resources through `ResourceRegistry`;
-- performs a real `GPUQueue.copyExternalImageToTexture()` atlas upload;
-- requests a second real device with no optional features to prove the core path does not require `timestamp-query`;
-- deliberately creates an invalid buffer descriptor and requires a scoped validation failure with a diagnostic label;
-- injects WebGPU initialization failure and requires a usable WebGL2 compatibility context plus unchanged gameplay-authoritative sentinel state;
-- destroys a separate live WebGPU device and requires `device.lost` to transition the backend runtime to WebGL2 with the sentinel state unchanged.
+The report schema and precise evidence boundary are documented in `WEBGPU_API_VALIDATION.md`. Firefox remains explicitly unexecuted in this hosted Chromium lane; target Firefox execution belongs to SM-405.
 
-The report schema and precise evidence boundary are documented in `WEBGPU_API_VALIDATION.md`; `render-tests/webgpu-validation-report.sample.json` is explicitly a non-measured schema example.
+### SM-200 Material-v2 G-buffer/readback gate
 
-The browser page is standards-based rather than Chromium-specific, but the current hosted collector uses Chromium DevTools Protocol. Firefox is therefore recorded as not executed in SM-104 CI instead of being falsely inferred from Chromium success. Target Firefox execution remains part of the SM-405 cross-browser gate.
+The normal source/regression runner adds:
+
+```text
+node tools/validate_webgpu_gbuffer.js
+python tools/validate_webgpu_gbuffer_contract.py
+```
+
+The required real-WebGPU browser gate is:
+
+```text
+python tools/validate_webgpu_gbuffer_browser.py \
+  --require-webgpu \
+  --report artifacts/webgpu-gbuffer-browser.json
+```
+
+This uses the production `engine/webgpu_gbuffer.js` WGSL, attachment formats and resource descriptors. It uploads the coordinate-identical Material-v2 atlases and performs GPU readback checks for a flat control, crate/box, barrel/cylinder and a representative mixed-metal prop. It also verifies static/dynamic/foreground material parity, alpha cutout, deletion-to-clear behaviour, adjacent-atlas isolation, stable object IDs and execution of all registered G-buffer debug views.
+
+The production SM-200 attachment contract is documented in `WEBGPU_GBUFFER_SM200.md`. In particular the `depth32float` attachment is allocated and deterministically cleared but does not yet write ownership depth: SM-201 derives that projection and SM-202 implements per-pixel ownership. CI must not reinterpret successful SM-200 object-ID writes as completion of SM-201/202.
 
 SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxiliary harness fixture. The SM-001 corpus manifest remains authority for its 16 regression fixtures.
 
@@ -149,11 +156,11 @@ SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxil
 
 `.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has five independent jobs:
 
-1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform, SM-102 lifecycle, SM-103 resource/frame infrastructure and SM-104 validation contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
-2. **WebGPU lifecycle + resource + WGSL validation** — real headless Chrome lifecycle/fallback and resource smoke plus a required-real-WebGPU SM-104 WGSL/pipeline/resource/atlas/deliberate-error/device-loss gate with structured browser/adapter evidence;
+1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform, SM-102 lifecycle, SM-103 resource/frame infrastructure, SM-104 validation and SM-200 G-buffer contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
+2. **WebGPU lifecycle + resources + WGSL + G-buffer validation** — real headless Chrome lifecycle/fallback and resource smoke, required-real-WebGPU SM-104 validation, then required-real-WebGPU SM-200 production G-buffer rendering/readback with structured browser/adapter evidence;
 3. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for representative SM-101 fixtures, with screenshot artifacts retained;
 4. **GLSL + MRT software validation** — production WebGL2 GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
-5. **clean source package + extraction** — fresh archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle/resource/API-validation contracts.
+5. **clean source package + extraction** — fresh archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle/resource/API-validation/G-buffer contracts.
 
 Each job writes structured evidence under `artifacts/` and uploads it even when an earlier validation step fails where possible.
 
@@ -178,9 +185,9 @@ Hosted CI must not be used as evidence for:
 - spontaneous device-loss behaviour on a physical target adapter;
 - authoritative moving-light visual quality.
 
-The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. SM-102 proves staged lifecycle/fallback behavior. SM-103 proves resource/frame infrastructure on the exposed hosted adapter. SM-104 proves the current registered WGSL/pipeline/resource/failure paths on the exact reported hosted Chrome/adapter and deliberately induced loss/failure states. None of those software/hosted results are target-GPU performance or Firefox evidence.
+The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. SM-102 proves staged lifecycle/fallback behavior. SM-103 proves resource/frame infrastructure on the exposed hosted adapter. SM-104 proves registered API/WGSL/pipeline/failure paths. SM-200 additionally proves its production Material-v2 G-buffer layouts and readback semantics on that same class of hosted real-WebGPU adapter. None of those hosted results are target-GPU performance, Firefox acceptance, final ownership-depth correctness, or human visual approval.
 
-The current SM-104 WGSL inventory is infrastructure-only because SM-200 has not yet added the Material-v2 WebGPU G-buffer. Every later issue that adds production WGSL, formats, layouts, atlas classes or passes must extend the SM-104 inventory/tests in the same change. Gate A is therefore a growing release gate, not a one-time checkbox frozen at SM-104.
+The production WGSL inventory is a growing gate. Every issue that adds shaders, formats, layouts, atlas classes or passes must add corresponding source and real-browser validation rather than treating SM-104/SM-200 as frozen one-time checkpoints.
 
 ## Extending the gate
 
