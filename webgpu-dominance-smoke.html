@@ -55,7 +55,7 @@ try{
   check(hr.ownerObjectId===firstOwner,'hysteresis retains previous owner for small challenger advantage');
   check(!!(hr.flags&D.FLAGS.HYSTERESIS_HELD),'hysteresis-held flag set');
   check(hr.challengerDelta>0&&hr.challengerDelta<=hr.hysteresisThreshold,'held challenger delta is below explicit threshold');
-  const farDeg=probe.deg<270?0:180,switched=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(farDeg)],held.history),sr=switched.records[0];
+  const farDeg=probe.deg<270?180:0,switched=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(farDeg)],held.history),sr=switched.records[0];
   check(sr.ownerObjectId!==firstOwner,'decisive moving-light change switches owner');
   check(!!(sr.flags&D.FLAGS.SWITCHED),'switch flag set after decisive score change');
   check(sr.challengerDelta>sr.hysteresisThreshold,'switch requires challenger to exceed threshold');
