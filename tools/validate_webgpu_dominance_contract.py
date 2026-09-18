@@ -19,7 +19,7 @@ need("webgpuDominanceDone" in smoke and "readback" in smoke and "timeline" in sm
 need("Page.captureScreenshot" in runner and "--require-webgpu" in runner and "steelmoth-webgpu-dominance-browser-report/v1" in runner,'hosted WebGPU debug-evidence runner contract missing')
 need("validate_webgpu_dominance.js" in checks and "validate_webgpu_dominance_contract.py" in checks,'stable verification runner must include SM-302 checks')
 need("engine/webgpu_dominance.js" in package and "webgpu-dominance-smoke.html" in package and "WEBGPU_DOMINANCE_SM302.md" in package,'clean-package inventory must include SM-302 artifacts')
-for phrase in ['Exposed silhouette','Pseudo-height','Front depth','0.055','±1–2°','48 bytes','8,704','single-owner','SM-303']:
+for phrase in ['Exposed silhouette','Pseudo-height','Front depth','0.055','±1–2°','48 bytes','8,704','one coherent primary macro-shadow owner','SM-303']:
     need(phrase in docs,f'documentation missing {phrase!r}')
 if errors:
     print('SM-302 dominance contract FAIL')
