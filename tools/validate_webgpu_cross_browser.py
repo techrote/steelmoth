@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, functools, http.server, json, platform, socketserver, threading, time
+import argparse, functools, http.server, json, platform, socketserver, threading, time, urllib.parse
 from pathlib import Path
 from typing import Any
 
@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.common.exceptions import JavascriptException, WebDriverException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from validate_webgpu_gbuffer_browser import raw_fixture_expectations
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -108,6 +109,9 @@ def make_driver(name: str):
         options.set_preference("dom.webgpu.enabled", True)
         options.set_preference("gfx.webgpu.ignore-blocklist", True)
         options.set_preference("gfx.webrender.all", True)
+        options.set_preference("gfx.webrender.software", True)
+        options.set_preference("webgl.force-enabled", True)
+        options.set_preference("webgl.disabled", False)
         options.set_preference("browser.cache.disk.enable", False)
         options.set_preference("browser.cache.memory.enable", False)
         options.set_preference("network.http.use-cache", False)
@@ -123,7 +127,8 @@ def browser_metadata(driver, name: str):
         "platformName": caps.get("platformName"),
         "userAgent": driver.execute_script("return navigator.userAgent"),
         "navigatorPlatform": driver.execute_script("return navigator.platform"),
-        "navigatorGpuPresent": bool(driver.execute_script("return !!navigator.gpu")),
+        "navigatorGpuPresentAtAboutBlank": bool(driver.execute_script("return !!navigator.gpu")),
+        "navigatorGpuSecureContextEvidenceComesFromProbe": True,
         "headless": True,
         "firefoxWebGPUPreferenceForcedOn": name == "firefox",
         "firefoxBlocklistIgnoredForHostedFunctionalCI": name == "firefox",
@@ -150,11 +155,15 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
         driver.set_page_load_timeout(max(30, timeout))
         driver.set_script_timeout(max(30, timeout))
         report["environment"] = browser_metadata(driver, name)
+        gbuffer_expected = json.dumps(raw_fixture_expectations(), separators=(",", ":"))
         for index, (label, page, gates) in enumerate(MATRIX, start=1):
             record = {"label": label, "page": page, "gates": gates, "ok": False}
             started = time.monotonic()
             try:
-                driver.get(f"{base_url}/{page}?sm405=1&browser={name}&run={index}")
+                query = {"sm405": "1", "browser": name, "run": str(index)}
+                if label == "gbuffer-material-controls":
+                    query["expected"] = gbuffer_expected
+                driver.get(f"{base_url}/{page}?{urllib.parse.urlencode(query)}")
                 result = wait_result(driver, timeout)
                 payload = result["parsed"]
                 record["durationSeconds"] = round(time.monotonic() - started, 3)
@@ -196,8 +205,10 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
                 logs = driver.get_log("browser")
                 report["console"] = logs[-200:]
                 severe = [entry for entry in logs if str(entry.get("level", "")).upper() == "SEVERE"]
-                if severe:
-                    report["failures"].append({"label": "browser-console", "error": f"{len(severe)} SEVERE console entries", "entries": severe[-20:]})
+                significant = [entry for entry in severe if "favicon.ico" not in str(entry.get("message", ""))]
+                report["ignoredConsoleNoise"] = [entry for entry in severe if entry not in significant]
+                if significant:
+                    report["failures"].append({"label": "browser-console", "error": f"{len(significant)} significant SEVERE console entries", "entries": significant[-20:]})
             except WebDriverException as exc:
                 report["consoleLogUnavailable"] = str(exc)
         report["gateCoverage"] = {
