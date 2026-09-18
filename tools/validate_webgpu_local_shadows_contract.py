@@ -16,7 +16,7 @@ def need(src,needle,label):
 
 def main()->int:
     module=text('engine/webgpu_local_shadows.js');node=text('tools/validate_webgpu_local_shadows.js');smoke=text('webgpu-local-shadows-smoke.html');runner=text('tools/validate_webgpu_local_shadows_browser.py');checks=text('tools/run_checks.py');workflow=text('.github/workflows/verification.yml',required=False);webapp=text('webapp.js');sw=text('sw.js');package=text('tools/validate_clean_package.py');docs=text('docs/WEBGPU_LOCAL_SHADOWS_SM205.md');index=text('docs/INDEX.md')
-    for needle in ["SCHEMA='steelmoth-webgpu-local-shadows/v1'","SELF_QUALITY_SAMPLES=Object.freeze([0,8,12,16,28])","CONTACT_QUALITY_SAMPLES=Object.freeze([0,4,8,12])","MAX_SELF_LIGHTS=8","DEBUG_MODES=Object.freeze(['self-shadow','contact-shadow'])",'SELF_WGSL','CONTACT_WGSL','RECONSTRUCT_WGSL','selfShadowReference','contactOcclusionReference','reconstructContactReference','WebGPULocalShadows','sm205:self','sm205:contact','sm205:contact-visibility','Lighting.LIGHT_BUFFER_NAME']:
+    for needle in ["SCHEMA='steelmoth-webgpu-local-shadows/v1'","SELF_QUALITY_SAMPLES=Object.freeze([0,8,12,16,28])","CONTACT_QUALITY_SAMPLES=Object.freeze([0,4,8,12])","MAX_SELF_LIGHTS=8","DEBUG_MODES=Object.freeze(['self-shadow','contact-shadow'])",'SELF_WGSL','CONTACT_WGSL','RECONSTRUCT_WGSL','selfShadowReference','contactOcclusionReference','reconstructContactReference','WebGPULocalShadows',"this._name('self')","this._name('contact')","this._name('contact-visibility')",'Lighting.LIGHT_BUFFER_NAME']:
         need(module,needle,'local shadow module')
     for forbidden in ['DSO','Dark Bloom','GTAO','SSGI']:
         # These words may appear only in diagnostics/docs, not as implementation ownership markers.
