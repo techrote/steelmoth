@@ -4,7 +4,9 @@ SM-405 is the functional/cross-browser gate after the M0–M4 renderer work. It 
 
 ## Evidence boundary
 
-The dedicated SM-405 job is accepted only when both Chrome and Firefox execute the complete matrix and the direct probe proves a real `GPUAdapter`/`GPUDevice`, WGSL pipeline creation, queue submission, deterministic compute readback, canvas submission, a captured validation error, and an available WebGL2 fallback context. The Firefox hosted-CI profile explicitly enables WebGPU and ignores the hosted machine's graphics blocklist; that makes the result useful browser-implementation functional evidence, but **not** physical-target support certification.
+The dedicated SM-405 job is accepted only when both Chrome and Firefox execute the complete matrix and the direct probe proves a real `GPUAdapter`/`GPUDevice`, WGSL pipeline creation, queue submission, deterministic compute readback, a captured validation error, and the production initialization-failure path. SM-405 deliberately does **not** claim final WebGPU canvas/presentation ownership: the staged M0–M4 production WebGPU path is offscreen while normal presentation remains WebGL2 until SM-505. WebGL2 fallback/playability is therefore covered by the production lifecycle/fallback contract plus the inherited real-browser WebGL2 compatibility gate, rather than by inventing a premature WebGPU presentation requirement here.
+
+The Firefox hosted-CI profile explicitly enables WebGPU, ignores the hosted machine's graphics blocklist, and permits parent-process WebGPU for the headless runner if the normal GPU process is unavailable. Those overrides are recorded in the JSON evidence. They can establish browser-implementation functional evidence when an adapter is exposed, but are **not** physical-target support certification.
 
 Hosted screenshots are retained for inspection, but no automated run is described as human visual sign-off. Likewise, no SM-405 result is GTX 1650 Super GPU timing, memory, driver-support, or 1080p/60 evidence. Those remain SM-500/501/505 concerns.
 
@@ -32,11 +34,11 @@ SM-405 screenshots provide a browser-by-browser diagnostic record, not a new vis
 
 ## Browser matrix
 
-The dedicated workflow runs on `windows-latest` and records browser/version/platform/user-agent plus adapter description/features/limits where exposed. Chrome uses its WebGPU test enablement flag so hosted runners can exercise the real implementation. Firefox uses its current WebGPU preference plus an explicit hosted-CI blocklist override; that override is recorded in the JSON evidence and must not be omitted from later support claims.
+The dedicated workflow runs on `windows-latest` and records browser/version/platform/user-agent plus adapter description/features/limits where exposed. Chrome uses its WebGPU test enablement flag so hosted runners can exercise the real implementation. Firefox uses its current WebGPU preference plus explicit hosted-CI blocklist and parent-process overrides; those overrides are recorded in the JSON evidence and must not be omitted from later support claims.
 
 The same 23-page production matrix runs in both Chrome and Firefox:
 
-1. direct API/compute/canvas/fallback probe;
+1. direct API/compute/failure probe;
 2. lifecycle/fallback;
 3. WGSL/resource validation;
 4. G-buffer/material controls;
@@ -60,11 +62,11 @@ The same 23-page production matrix runs in both Chrome and Firefox:
 22. editor ghost-state integration;
 23. room/resize/backend/device transition invalidation.
 
-Any page failure, timeout, missing structured result, failed direct compute readback, missing WebGL2 fallback context, or exposed false `realWebGPU` flag makes the browser and aggregate job fail.
+Any page failure, timeout, missing structured result, failed direct compute readback, or exposed false `realWebGPU` flag makes the browser and aggregate job fail. A browser with `navigator.gpu` but no obtainable adapter is recorded as a blocker rather than converted into a pass.
 
 ## Device loss, initialization failure, and fallback
 
-The direct probe executes the production `WebGPUDeviceManager` deliberate adapter-failure path and requires it to fail closed. The inherited lifecycle and validation gates cover initialization failure/fallback and validation handling, while SM-404 covers backend/device transition invalidation. The fallback control is a real WebGL2 context in both browsers plus the retained WebGL2 regression/package gates. A black-canvas or uncaptured transition failure is a blocker, not an allowed warning.
+The direct probe executes the production `WebGPUDeviceManager` deliberate adapter-failure path and requires it to fail closed. The inherited lifecycle and validation gates cover initialization failure/fallback and validation handling, while SM-404 covers backend/device transition invalidation. The retained real-browser WebGL2 compatibility job remains the presentation/playability fallback control until SM-505 owns final WebGPU presentation. A black-canvas or uncaptured transition failure in an owned path is a blocker, not an allowed warning.
 
 ## Acceptance record
 
