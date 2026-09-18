@@ -23,7 +23,7 @@ need(doc,'does not claim GTX 1650 Super GPU timing','truthful timing evidence bo
 need(doc,'SM-305 Dark Bloom','Dark Bloom scope boundary');need(doc,'SM-306 temporal','temporal scope boundary');need(doc,'SM-307 final visibility','composition scope boundary')
 need(webapp,'./engine/webgpu_dso_hierarchy.js?v=sm304-1','runtime staging')
 need(sw,'./engine/webgpu_dso_hierarchy.js?v=sm304-1','offline cache staging')
-need(sw,"small-machine-web-v1.2.3-r15",'cache revision bump')
+need(sw,"small-machine-web-v1.2.3-r",'revisioned v1.2.3 cache identity')
 need(workflow,'validate_webgpu_dso_hierarchy_browser.py --require-webgpu','required real-WebGPU gate')
 need(workflow,'webgpu-dso-hierarchy-smoke.html','browser fixture workflow scope')
 print('SM-304 DSO hierarchy source/document/runtime contract: PASS')

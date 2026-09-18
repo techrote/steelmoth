@@ -1,0 +1,64 @@
+name: SM-305 WebGPU Dark Bloom
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_dark_bloom.js'
+      - 'engine/webgpu_dso_hierarchy.js'
+      - 'engine/webgpu_depth_hierarchy.js'
+      - 'webgpu-dark-bloom-smoke.html'
+      - 'tools/validate_webgpu_dark_bloom*'
+      - 'tools/run_checks.py'
+      - 'tools/validate_clean_package.py'
+      - 'docs/WEBGPU_DARK_BLOOM_SM305.md'
+      - 'docs/WEBGPU_ARCHITECTURE.md'
+      - 'docs/WEBGPU_VALIDATION_PLAN.md'
+      - 'render-tests/fixtures/binsup.json'
+      - 'webapp.js'
+      - 'sw.js'
+      - '.github/workflows/sm305-dark-bloom.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sm305-dark-bloom-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  dark-bloom:
+    name: bounded residual + depth-aware upsample + GPU readback
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser validation dependency
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Validate deterministic Dark Bloom reference and contract
+        run: |
+          node --check engine/webgpu_dark_bloom.js
+          node tools/validate_webgpu_dark_bloom.js
+          python tools/validate_webgpu_dark_bloom_contract.py
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-305 WebGPU validation' >&2; exit 1; fi
+      - name: Validate Dark Bloom WGSL, bounded controls, depth rejection and readback
+        run: python tools/validate_webgpu_dark_bloom_browser.py --require-webgpu --report artifacts/webgpu-dark-bloom-browser.json
+      - name: Upload SM-305 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm305-webgpu-dark-bloom-${{ github.run_id }}
+          path: |
+            artifacts/webgpu-dark-bloom-browser.json
+            artifacts/webgpu-dark-bloom-browser.png
+          if-no-files-found: warn
