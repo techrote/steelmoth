@@ -9,12 +9,12 @@ Define the target renderer architecture and invariants that implementation issue
 `docs/BASELINE_V123_AUDIT.md` records the source-level audit of the imported WebGL2 compatibility baseline. This architecture remains the target, but downstream work must start from these verified baseline facts:
 
 - v1.2.3 has no backend-neutral Render Scene Description, WebGPU backend, object-ID attachment, hardware fragment-ownership depth, reusable pseudo-depth hierarchy, clustering, DSO, or Dark Bloom;
-- Material-v2 G2.R is **local material pseudo-height**, not the future light-independent fragment visibility depth;
-- Material descriptors share `getSpriteFootAnchor()` for ordering, but macro-shadow and FoliageFX root/bottom conventions remain separate, so root authority is only partially centralized;
+- Material-v2 G2.R is **local material pseudo-height**, not fragment visibility depth;
+- Material descriptors share `getSpriteFootAnchor()` for ordering, but macro-shadow and FoliageFX root/bottom conventions were separate in the baseline;
 - static, dynamic, and foreground Material-v2 descriptors are painter/foot ordered rather than resolved by per-pixel object ownership;
 - SurfaceFX grass/water and FoliageFX coherently sample the lit WebGL2 scene/current main-light direction, but they do not yet consume the canonical future light/depth/visibility buffers defined below.
 
-Consequently SM-100, SM-101, SM-200, SM-201 and SM-202 remain necessary in their existing dependency order. In particular, SM-200 must preserve local Material-v2 height semantics without silently treating that channel as the accepted SM-201 ownership formula.
+SM-100/101 subsequently established the backend-neutral scene and shared root authority, and SM-200 ported Material-v2 representation without changing ownership semantics. SM-201 now defines the canonical ownership projection; SM-202 remains responsible for enabling real per-pixel hardware depth/object ownership.
 
 ## Backend model
 
@@ -91,16 +91,18 @@ One authority only for:
 - fragment visibility depth;
 - foreground/layer bias.
 
-The exact fragment-depth projection is not finalized here; SM-201 must derive and test it. No subsystem may independently invent a competing convention.
+SM-101 owns root/foot placement. SM-201 owns the light-independent fragment-depth projection, specified in `PSEUDO_DEPTH_MODEL.md` and executable in `engine/pseudo_depth.js`:
 
-Required properties:
+```text
+worldZ = clamp(localHeight, 0, 1) * 64
+projectedGroundY = fragmentScreenY + worldZ
+visibilityKey = layer * 1024 + projectedGroundY + bias
+depth01 = clamp((3072 - visibilityKey) / 5120, 0, 1)
+```
 
-- deterministic;
-- light-independent;
-- alpha-cutout aware;
-- static/dynamic/foreground/editor parity;
-- stable under subpixel movement;
-- compatible with fixed screen-sized-room camera.
+Larger visibility keys are nearer; the inverse 0..1 mapping is intended for a conventional `less` depth comparison when SM-202 enables production ownership writes. Static and dynamic share layer 0; ground/foreground/top use explicit -1/+1/+2 lanes. The model is deterministic, light-independent, alpha-cutout aware, stable under subpixel movement, and defined from the same shared transform for static/dynamic/foreground/editor paths. Rotation changes actual raster fragment position but not the SM-101 root; horizontal flip changes UV/height sampling without introducing a second geometry convention.
+
+No subsystem may independently invent a competing convention. G2.R remains local Material-v2 height, not final visibility depth.
 
 ## Material-v2 resources
 
@@ -114,15 +116,15 @@ Legacy bump/spec maps are WebGL2 compatibility/debug resources, not dependencies
 
 ## Initial G-buffer
 
-Start explicit and debuggable. Candidate production layout:
+Start explicit and debuggable. Production staging layout:
 
 - **G0 `rgba8unorm`** — linear/unlit albedo + coverage;
 - **G1 `rgba16float`** — pseudo-world normal XYZ + roughness;
-- **G2 `rgba16float`** — Material-v2 local height / derived pseudo-world Z plus metalness + material AO + emissive/aux, with exact ownership semantics defined by SM-201/202;
+- **G2 `rgba16float`** — Material-v2 local height plus metalness + material AO + emissive/aux;
 - **Object ID `r32uint`** — stable visible instance/object ID;
-- **Depth** — suitable depth format after adapter validation, initially `depth32float` if supported as required by the implementation.
+- **Depth `depth32float`** — allocated and deterministically cleared by SM-200; SM-202 will apply the accepted SM-201 ownership projection and depth test.
 
-Do not pack normals/material channels until correctness/performance data justifies it. Do not copy the WebGL2 `debugPseudoDepth` label into WebGPU as proof that a final ownership-depth formula already exists.
+Do not pack normals/material channels until correctness/performance data justifies it. Do not relabel local G2 height as ownership depth.
 
 ## Frame graph target
 
