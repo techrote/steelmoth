@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth WebGPU API validation</title>
+<canvas id="probe" width="8" height="8" style="width:8px;height:8px"></canvas>
+<canvas id="fallback" width="8" height="8" style="width:8px;height:8px"></canvas>
+<pre id="status">Running WebGPU validation suite…</pre>
+<script id="webgpuValidationResult" type="application/json">{"schema":"steelmoth-webgpu-validation-browser-smoke/v1","ok":false,"status":"pending"}</script>
+<script src="engine/webgpu_device.js?v=sm102-1"></script>
+<script src="engine/webgpu_resources.js?v=sm103-1"></script>
+<script src="engine/backend_runtime.js?v=sm103-1"></script>
+<script src="engine/webgpu_validation.js?v=sm104-1"></script>
+<script>
+(async()=>{
+  const Device=globalThis.SteelMothWebGPUDevice,Resources=globalThis.SteelMothWebGPUResources,Backend=globalThis.SteelMothBackendRuntime,Validation=globalThis.SteelMothWebGPUValidation;
+  const result={schema:'steelmoth-webgpu-validation-browser-smoke/v1',ok:false,browser:navigator.userAgent,secureContext:isSecureContext,actual:null,limitations:[]};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('webgpuValidationResult').textContent=json;document.body.dataset.webgpuValidationDone='1'};
+  const bounded=async(promise,ms,label)=>{let timer;const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(`${label||'operation'} timed out after ${ms} ms`)),ms)});try{return await Promise.race([promise,timeout])}finally{clearTimeout(timer)}};
+  const waitFor=async(predicate,ms,label)=>{const deadline=performance.now()+ms;while(performance.now()<deadline){if(predicate())return true;await new Promise(r=>setTimeout(r,20))}throw new Error(`${label} did not settle within ${ms} ms`)};
+  const canvas=()=>{const c=document.createElement('canvas');c.width=8;c.height=8;return c};
+  const state={room:'validation-room',saveRevision:17,objectiveCount:3};const stateSnapshot=()=>JSON.stringify(state);
+  let manager=null,suite=null,optionalManager=null,failureRuntime=null,lossRuntime=null;
+  try{
+    if(!navigator.gpu){result.actual={available:false,initialized:false,status:'navigator.gpu-unavailable'};result.limitations.push({test:'all-real-webgpu',reason:'navigator.gpu unavailable in this browser/environment'});result.ok=true;publish();return}
+    manager=new Device.WebGPUDeviceManager({navigatorRef:navigator});
+    const initial=await bounded(manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1}),5000,'primary WebGPU initialization');
+    const atlas=document.createElement('canvas');atlas.width=2;atlas.height=2;const ctx=atlas.getContext('2d');ctx.fillStyle='#123456';ctx.fillRect(0,0,2,2);ctx.fillStyle='#fedcba';ctx.fillRect(1,1,1,1);
+    suite=new Validation.WebGPUValidationSuite({device:manager.device,adapter:manager.adapter,queue:manager.device.queue,preferredCanvasFormat:manager.format,labelPrefix:'SM104'});
+    const validation=await bounded(suite.run({atlasSource:atlas}),8000,'WGSL/pipeline/resource validation');
+
+    optionalManager=new Device.WebGPUDeviceManager({navigatorRef:navigator,desiredFeatures:[]});
+    const optionalInitial=await bounded(optionalManager.initialize({canvas:canvas(),width:4,height:4,dpr:1,desiredFeatures:[]}),5000,'optional-feature-absence device');
+    if(optionalManager.requestedFeatures.length!==0)throw new Error('optional-feature-absence device unexpectedly requested optional features');
+    const optionalFeatureAbsence={ok:true,adapterAdvertisesTimestampQuery:manager.features.includes('timestamp-query'),requestedFeatures:[...optionalManager.requestedFeatures],deviceStatus:optionalManager.status,diagnostics:optionalInitial};
+
+    const beforeFailure=stateSnapshot();
+    failureRuntime=new Backend.BackendRuntime({root:globalThis,documentRef:document,locationRef:{search:'',hostname:'127.0.0.1'},storage:null,navigatorRef:navigator,managerFactory:opts=>new Device.WebGPUDeviceManager({...opts,navigatorRef:navigator,failureStage:'device'}),canvasFactory:canvas});
+    const failure=await bounded(failureRuntime.select('webgpu',{persist:false}),5000,'deliberate initialization fallback');
+    const webgl=document.getElementById('fallback').getContext('webgl2');
+    if(failure.activeBackend!=='webgl2'||failure.presentationBackend!=='webgl2'||failure.status!=='fallback'||!failure.fallbackReason)throw new Error('deliberate WebGPU initialization failure did not select explicit WebGL2 fallback');
+    if(stateSnapshot()!==beforeFailure)throw new Error('deliberate WebGPU failure mutated gameplay-authoritative state');
+    if(!webgl)throw new Error('WebGL2 compatibility context unavailable after deliberate WebGPU failure');
+    const fallback={ok:true,status:failure.status,activeBackend:failure.activeBackend,presentationBackend:failure.presentationBackend,reason:failure.fallbackReason,webgl2Context:true,stateUnchanged:true};
+
+    const beforeLoss=stateSnapshot();
+    lossRuntime=new Backend.BackendRuntime({root:globalThis,documentRef:document,locationRef:{search:'',hostname:'127.0.0.1'},storage:null,navigatorRef:navigator,canvasFactory:canvas});
+    const lossReady=await bounded(lossRuntime.select('webgpu',{persist:false}),5000,'device-loss runtime initialization');
+    if(lossReady.activeBackend!=='webgpu')throw new Error(`device-loss runtime could not initialize WebGPU: ${lossReady.fallbackReason||lossReady.status}`);
+    lossRuntime.manager.device.destroy();await waitFor(()=>lossRuntime.activeBackend==='webgl2'&&lossRuntime.status==='fallback-device-lost',2500,'device-loss fallback');
+    const loss=lossRuntime.diagnostics();if(loss.presentationBackend!=='webgl2'||stateSnapshot()!==beforeLoss)throw new Error('device loss did not preserve WebGL2 presentation/gameplay state');
+    const deviceLoss={ok:true,status:loss.status,activeBackend:loss.activeBackend,presentationBackend:loss.presentationBackend,reason:loss.fallbackReason,stateUnchanged:true};
+
+    result.actual={available:true,initialized:true,status:'ready',initial,validation,optionalFeatureAbsence,fallback,deviceLoss};result.ok=true;
+  }catch(error){result.error=String(error?.stack||error);if(error?.validationReport)result.validationReport=error.validationReport;result.actual=result.actual||{available:!!navigator.gpu,initialized:!!manager?.device,status:'validation-failed'}}
+  finally{try{suite?.close()}catch(_e){}try{manager?.close()}catch(_e){}try{optionalManager?.close()}catch(_e){}try{failureRuntime?.close()}catch(_e){}try{lossRuntime?.close()}catch(_e){}}
+  publish();
+})();
+</script>
