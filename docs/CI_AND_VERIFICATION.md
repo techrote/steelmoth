@@ -84,17 +84,37 @@ python tools/validate_webgpu_browser.py --report artifacts/webgpu-browser-smoke.
 
 The smoke loads the actual browser API entrypoint, asserts the staged `Auto → WebGL2` policy, exercises deliberate failure handling and, when `navigator.gpu` plus a usable adapter are exposed, performs real device/context configure + resize/reconfigure. Hosted Linux may legitimately expose no usable WebGPU adapter; that absence is recorded rather than converted into a fabricated success. Fallback correctness still must pass.
 
+### SM-103 WebGPU resource/frame infrastructure gate
+
+The normal source/regression runner additionally includes:
+
+```text
+node tools/validate_webgpu_resources.js
+python tools/validate_webgpu_resources_contract.py
+```
+
+The deterministic fake-device test verifies that named persistent resources survive ordinary frames, only resize-dependent textures rebuild on surface resize, all definitions rebuild on device reset, static and dynamic upload paths remain separate and bounded, dynamic arenas reuse one buffer across frames, frame-graph dependencies compile in stable order, missing/cyclic dependencies fail, every pass and pipeline creation uses validation error scopes, pipeline keys reuse cached objects, and diagnostics report dimensions/formats/estimated bytes/rebuild counts.
+
+When Chrome/Chromium is available, run:
+
+```text
+python tools/validate_webgpu_resources_browser.py \
+  --report artifacts/webgpu-resource-browser-smoke.json
+```
+
+If the hosted browser exposes a usable WebGPU adapter, this smoke creates actual GPU textures/buffers, performs queue uploads, submits command buffers through scoped frame-graph passes, executes three frames, and performs two manager/registry resizes while asserting selective resource rebuilding. If the hosted browser does not expose a usable adapter, that fact is recorded and deterministic unit coverage remains authoritative for resource lifecycle semantics; no fake hardware claim is made.
+
 SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxiliary harness fixture. The SM-001 corpus manifest remains authority for its 16 regression fixtures.
 
 ## CI workflow
 
 `.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has five independent jobs:
 
-1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform and SM-102 WebGPU lifecycle contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
-2. **WebGPU lifecycle browser smoke** — real headless Chrome/Chromium policy/capability/failure smoke with structured evidence;
+1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform, SM-102 WebGPU lifecycle and SM-103 resource/frame infrastructure contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
+2. **WebGPU lifecycle + resource browser smoke** — real headless Chrome/Chromium lifecycle/fallback smoke plus, when a usable adapter exists, persistent-resource/resize/scoped-frame execution with structured evidence;
 3. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for the representative SM-101 fixtures, with screenshot artifacts retained;
 4. **GLSL + MRT software validation** — production GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
-5. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle contracts.
+5. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle/resource contracts.
 
 Each job writes structured evidence under `artifacts/` and uploads it even when an earlier validation step fails where possible.
 
@@ -119,10 +139,10 @@ Hosted CI must not be used as evidence for:
 - device-loss behaviour on a real target adapter;
 - authoritative moving-light visual quality.
 
-Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505. The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. The SM-102 browser job proves staged lifecycle/fallback behavior in its hosted browser only; deterministic fake-device tests provide controlled coverage of loss and failure states.
+Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505. The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. The SM-102 browser job proves staged lifecycle/fallback behavior in its hosted browser only; deterministic fake-device tests provide controlled coverage of loss and failure states. The SM-103 hosted smoke proves only API/resource lifecycle correctness on the exposed hosted adapter, while its byte estimates are accounting estimates rather than measured VRAM residency.
 
-SM-102 introduces a production WebGPU device/context layer but still no WebGPU game-frame renderer or production WGSL. SM-103 will add resource/frame-graph/pipeline scaffolding; SM-104 must extend verification with the real production descriptors, WGSL modules, compilation information and validation-scope evidence.
+SM-103 provides persistent resource/frame-graph/pipeline scaffolding but still no WebGPU game-frame renderer or production WGSL. SM-104 must extend verification with real production descriptors, WGSL modules, compilation information and validation-scope evidence.
 
 ## Extending the gate
 
-Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness, as SM-101 and SM-102 do.
+Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness, as SM-101 through SM-103 do.
