@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+'use strict';
+const assert=require('assert');
+const P=require('../engine/webgpu_post.js');
+const checks=[];
+function check(ok,msg){assert.ok(ok,msg);checks.push(msg)}
+function near(a,b,e=.00001){return Math.abs(a-b)<=e}
+check(P.SCHEMA==='steelmoth-webgpu-post/v1','schema pinned');
+check(P.DEFAULTS.bloomThreshold===.70&&P.DEFAULTS.bloomIntensity===1&&P.DEFAULTS.bloomQuality===1,'compatibility bloom defaults pinned');
+check(JSON.stringify([0,1,2,3].map(P.bloomPassesForQuality))==='[0,1,2,3]','bloom quality tiers map monotonically to blur-pair count');
+const n=P.normalizeSettings({bloomIntensity:99,bloomThreshold:-3,bloomQuality:9,gamma:0,gradeTemperature:9,gradeTint:-9});
+check(n.bloomIntensity===4&&n.bloomThreshold===0&&n.bloomQuality===3&&n.gamma===.1&&n.gradeTemperature===1&&n.gradeTint===-1,'settings normalization is bounded');
+const base={bloom:false,saturation:1,gradeMix:0,vignette:0,grain:0,exposure:1,brightness:0,contrast:1,gamma:1,gradeTemperature:0,gradeTint:0,shadowLift:0,highlightGain:0};
+const dark=[.12,.12,.12], mid=[.28,.20,.12], bright=[.62,.52,.42];
+const exposureLow=P.applyPostReference(mid,[0,0,0],{...base,exposure:.7});
+const exposureHigh=P.applyPostReference(mid,[0,0,0],{...base,exposure:2});
+check(exposureHigh[0]>exposureLow[0]&&exposureHigh[1]>exposureLow[1],'exposure sweep is monotonic');
+const br0=P.applyPostReference(mid,[0,0,0],{...base,brightness:-.1});
+const br1=P.applyPostReference(mid,[0,0,0],{...base,brightness:.1});
+check(br1.every((v,i)=>v>br0[i]),'brightness sweep is monotonic');
+const gam0=P.applyPostReference(mid,[0,0,0],{...base,gamma:.7});
+const gam1=P.applyPostReference(mid,[0,0,0],{...base,gamma:1.8});
+check(gam1[0]>gam0[0],'higher gamma raises mid-tones');
+const sat0=P.applyPostReference(mid,[0,0,0],{...base,saturation:0});
+const sat2=P.applyPostReference(mid,[0,0,0],{...base,saturation:2});
+check(Math.max(...sat0)-Math.min(...sat0)<1e-6&&Math.max(...sat2)-Math.min(...sat2)>.1,'saturation sweep spans grayscale to stronger chroma');
+const grade0=P.applyPostReference(mid,[0,0,0],{...base,gradeMix:0},[1.3,.8,.7]);
+const grade1=P.applyPostReference(mid,[0,0,0],{...base,gradeMix:1},[1.3,.8,.7]);
+check(grade1[0]>grade0[0]&&grade1[2]<grade0[2],'grade mix moves toward grade vector');
+const center=P.applyPostReference(bright,[0,0,0],{...base,vignette:.8},[1,1,1],[.5,.5],[32,32]);
+const edge=P.applyPostReference(bright,[0,0,0],{...base,vignette:.8},[1,1,1],[.99,.99],[63,63]);
+check(edge[0]<center[0],'vignette attenuates corners');
+const warm=P.applyPostReference(mid,[0,0,0],{...base,gradeTemperature:1});
+const cool=P.applyPostReference(mid,[0,0,0],{...base,gradeTemperature:-1});
+check(warm[0]>cool[0]&&warm[2]<cool[2],'temperature sweep warms/cools expected channels');
+const lift0=P.applyPostReference(dark,[0,0,0],{...base,shadowLift:-.2});
+const lift1=P.applyPostReference(dark,[0,0,0],{...base,shadowLift:.2});
+check(lift1[0]>lift0[0],'shadow lift is monotonic in dark values');
+const hi0=P.applyPostReference(bright,[0,0,0],{...base,highlightGain:0});
+const hi1=P.applyPostReference(bright,[0,0,0],{...base,highlightGain:1});
+check(hi1[0]>hi0[0],'highlight gain is monotonic in highlights');
+const bloomOff=P.applyPostReference(mid,[.2,.2,.2],{...base,bloom:false});
+const bloomOn=P.applyPostReference(mid,[.2,.2,.2],{...base,bloom:true,bloomIntensity:1});
+check(bloomOn[0]>bloomOff[0],'bloom intensity contributes only when enabled');
+const packed=P.packPostSettings(P.DEFAULTS,[1.1,.9,.8],[640,360]);
+check(packed.length===24&&near(packed[0],1)&&near(packed[1],1)&&near(packed[20],640)&&near(packed[21],360),'post uniform layout is stable and aligned');
+check(P.BRIGHT_WGSL.includes('knee=.12')&&P.BLUR_WGSL.includes('.227027')&&P.POST_WGSL.includes('smoothstep(.12,.56')&&P.RAW_WGSL.includes('textureLoad'),'WGSL pins bright/blur/post/raw compatibility equations');
+console.log(`SM-207 post model PASS: ${checks.length} checks`);
