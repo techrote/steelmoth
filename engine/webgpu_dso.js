@@ -52,7 +52,7 @@
 
   const WGSL=`
 struct Job { ids: vec4<u32>, counts: vec4<u32>, ownerBounds: vec4<f32>, shadow: vec4<f32>, };
-struct Member { meta: vec2<u32>, shape: vec2<f32>, bounds: vec4<f32>, };
+struct Member { ident: vec2<u32>, shape: vec2<f32>, bounds: vec4<f32>, };
 struct Params { extent: vec4<u32>, counts: vec4<u32>, };
 @group(0) @binding(0) var<storage, read> jobs: array<Job>;
 @group(0) @binding(1) var<storage, read> members: array<Member>;
