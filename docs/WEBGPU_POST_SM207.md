@@ -1,6 +1,6 @@
 # SM-207 WebGPU bloom, grading, post-processing, and final-output contract
 
-SM-207 establishes the staged WebGPU frame-output path after SM-204 opaque lighting and SM-206 transparent/gameplay feedback. It ports the restrained v1.2.3 bloom and post controls, provides a deliberate raw/debug bypass, and proves presentation into the browser's preferred WebGPU canvas format. WebGL2 remains the production presentation authority until SM-505.
+SM-207 establishes the staged WebGPU frame-output path after SM-204 opaque lighting and SM-206 transparent/gameplay feedback. It ports the restrained v1.2.3 bloom and post controls, provides a deliberate raw/debug bypass, and proves the final pipeline against the browser's preferred WebGPU canvas format. WebGL2 remains the production presentation authority until SM-505.
 
 ## Compatibility baseline
 
@@ -22,7 +22,7 @@ Raw/debug output is a distinct pipeline using `textureLoad()`. It copies the alr
 
 ## Browser presentation
 
-`WebGPUPost` takes a WebGPU render-attachment view and output format; it has no WebGL framebuffer assumptions. The browser gate configures a real `GPUCanvasContext` with `navigator.gpu.getPreferredCanvasFormat()`, renders to `getCurrentTexture()`, and waits for successful submission. Numeric evidence uses a separate `rgba8unorm` readback target.
+`WebGPUPost` takes a WebGPU render-attachment view and output format; it has no WebGL framebuffer assumptions. The hosted browser gate obtains `navigator.gpu.getPreferredCanvasFormat()`, executes the production final-post pipeline successfully against a render attachment of exactly that format, and configures a real `GPUCanvasContext` with the same format. It also attempts submission to `getCurrentTexture()`. Current hosted headless Chrome/Dawn can fail that final swapchain acquisition because its SharedImage compositor backing is unavailable; that exact infrastructure limitation is recorded separately and is not treated as evidence about shader/pipeline format compatibility. Numeric evidence uses a separate `rgba8unorm` readback target.
 
 ## Colour-space boundary
 
@@ -30,6 +30,6 @@ SM-207 conservatively retains the v1.2.3 transfer behavior. It does not add sRGB
 
 ## Verification
 
-Deterministic checks cover defaults, persistence, normalization, monotonic exposure/brightness/gamma/temperature/shadow/highlight controls, saturation/grade/vignette behavior, bloom enable/intensity/quality, uniform layout, and compatibility shader constants. Required hosted real-WebGPU validation additionally covers WGSL compilation, `rgba16float` bloom targets, representative GPU before/after samples, raw copy parity, restrained bloom, bounded quality scaling, and real preferred-format canvas presentation.
+Deterministic checks cover defaults, persistence, normalization, monotonic exposure/brightness/gamma/temperature/shadow/highlight controls, saturation/grade/vignette behavior, bloom enable/intensity/quality, uniform layout, and compatibility shader constants. Required hosted real-WebGPU validation additionally covers WGSL compilation, `rgba16float` bloom targets, representative GPU before/after samples, raw copy parity, restrained bloom, bounded quality scaling, preferred-format final-pipeline execution, real `GPUCanvasContext` configuration, and an explicit swapchain-presentation attempt with any host compositor limitation recorded.
 
-Passing SM-207 proves staged API/data/numeric post parity and browser presentation viability. It does not prove SM-502 colour-space redesign, SM-505 backend promotion, target-GPU performance, later water/foliage ordering, or subjective final visual approval.
+Passing SM-207 proves staged API/data/numeric post parity and browser-format presentation viability without WebGL-specific assumptions. It does not claim that the hosted headless compositor itself can allocate a WebGPU swapchain, and it does not prove SM-502 colour-space redesign, SM-505 backend promotion, target-GPU performance, later water/foliage ordering, or subjective final visual approval.
