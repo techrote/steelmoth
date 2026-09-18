@@ -72,7 +72,7 @@ Foreground remains an intentional separate lane rather than geometry pretending 
 
 SM-202 retains all SM-200 debug modes and adds `depth`. `object-id` and `depth` can therefore be inspected independently. `readPixel()` returns G0/G1/G2/Object-ID plus the `depth32float` value for deterministic representation tests.
 
-Readback staging buffers are validation/debug resources only, not normal per-frame allocations in the intended renderer path.
+The depth diagnostic deliberately uses a tiny compute pass that performs `textureLoad` on the production `texture_depth_2d`, writes that shader-visible value into a storage buffer, then copies four bytes to a mappable staging buffer. The initial direct depth-texture-to-buffer probe produced a zero value on hosted Chrome/Dawn despite the winning G-buffer/object-ID fragment being correct; using the same `textureLoad` path downstream shaders will consume avoids treating implementation-specific depth-copy behaviour as the ownership value. The compute/storage/map buffers are validation/debug resources only, not normal per-frame allocations in the intended renderer path.
 
 ## Required regression evidence
 
