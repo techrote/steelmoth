@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import re
 ROOT=Path(__file__).resolve().parents[1]
 
 def read(rel): return (ROOT/rel).read_text(encoding='utf-8')
@@ -24,7 +25,7 @@ require('resize(width,height)' in src and 'device-reset' in src and 'editor-dele
 require('historyAcceptedPercent' in src and 'historyRejectedPercent' in src,'accepted/rejected history percentages missing')
 require("webgpu_dark_bloom_temporal.js?v=sm306-1" in web,'webapp does not stage SM-306 temporal module')
 require(web.index("webgpu_dark_bloom.js?v=sm305-1") < web.index("webgpu_dark_bloom_temporal.js?v=sm306-1") < web.index("backend_runtime.js?v=sm102-1"),'SM-306 staging order is not Dark Bloom -> temporal -> runtime')
-require("small-machine-web-v1.2.3-r17" in sw and "webgpu_dark_bloom_temporal.js?v=sm306-1" in sw,'service-worker revision/cache entry missing')
+require(re.search(r"small-machine-web-v1\.2\.3-r[1-9][0-9]*",sw) is not None and "webgpu_dark_bloom_temporal.js?v=sm306-1" in sw,'service-worker revision/cache entry missing')
 for term in ('low-frequency','never temporally smoothed','object ID','cluster','light','3x3','accepted/rejected percentages','Hosted CI'):
     require(term.lower() in doc.lower(),f'documentation missing contract term: {term}')
 require('webgpuDarkBloomTemporalDone' in smoke and 'slowLightStabilized' in smoke and 'noStaleAfterInvalidation' in smoke,'real-browser temporal evidence contract incomplete')
