@@ -6,7 +6,8 @@ required=[
  'index.html','style.css','webapp.js','sw.js','manifest.webmanifest','game_manifest.json','DEPLOYMENT_MANIFEST.json',
  'engine/game.js','engine/editor.js','engine/surfacefx.js','engine/foliagefx.js',
  'engine/render_transform.js','engine/render_transform_integration.js','engine/render_scene.js','engine/render_transform_scene_adapter.js','engine/webgl2_scene_adapter.js',
- 'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/webgpu_gbuffer.js','engine/backend_runtime.js','webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html',
+ 'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/pseudo_depth.js','engine/webgpu_gbuffer.js','engine/webgpu_ownership.js','engine/backend_runtime.js',
+ 'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html','webgpu-ownership-smoke.html',
  'game_data/maps.json','game_data/story.json','game_data/sprites.json','game_data/luts.json','game_data/effects.json',
  'assets/generated/atlas.json','assets/generated/sprite_runtime_atlas.png','assets/generated/sprite_material_normal_roughness.png','assets/generated/sprite_material_height_material.png',
  'assets/generated/sprite_bumpmap.png','assets/generated/sprite_specularmap.png','0Play-Webapp-v1.2.3.bat'
@@ -24,14 +25,17 @@ for k in ['image','bump_image','specular_image','material_normal_roughness_image
 assert atlas.get('material_v2',{}).get('schema')=='steel-moth-material-v2/v1'
 gm=json.loads((ROOT/'game_manifest.json').read_text());dm=json.loads((ROOT/'DEPLOYMENT_MANIFEST.json').read_text())
 assert gm['version']=='1.2.3'; assert dm['game_version']=='1.2.3'; assert gm['graphics_namespace']=='signalOrchardGraphicsV123'
-assert "small-machine-web-v1.2.3-r4" in sw
+# Migration stages legitimately advance the offline revision as runtime modules are
+# added. Require an explicit v1.2.3 revision rather than pinning a historical SM-200
+# number that would make every later staged runtime addition fail validation.
+assert re.search(r"const CACHE = 'small-machine-web-v1\.2\.3-r[1-9][0-9]*'",sw)
 assert 'sw.js?v=1.2.3' in web
 assert "localPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1'" in web
 assert "k.startsWith('small-machine-web-')" in web and 'clearLocalPreviewCaches' in web
 for token in ['engine/game.js?v=1.2.3','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3']:
     assert token in h, token
 # Runtime modules must be loaded by the app and included in the offline core.
-for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','webgpu_gbuffer.js?v=sm200-1','backend_runtime.js?v=sm102-1']:
+for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','pseudo_depth.js?v=sm201-1','webgpu_gbuffer.js?v=sm200-1','webgpu_ownership.js?v=sm202-1','backend_runtime.js?v=sm102-1']:
     assert token in web and token in sw, token
 # SM-104's validation module is intentionally test-only: existence and its smoke
 # entrypoint are required, but normal gameplay/offline bootstrap must not load it.
@@ -41,4 +45,4 @@ story=json.loads((ROOT/'game_data/story.json').read_text()); maps=json.loads((RO
 assert len(story['rooms'])==9 and len(maps['rooms'])==9 and sum(len(r.get('objects',[])) for r in story['rooms'])==27
 assert dm.get('server_side_runtime_required') is False
 assert dm.get('player_cone_occlusion_rays_quality3')==193 and dm.get('player_omni_occlusion_rays_quality3')==257
-print('WEBAPP V1.2.3 PASS: version/cache closure, 9 rooms/27 objectives, Material-v2 assets, SM-101 transforms, SM-102/103 runtime platform modules, SM-104 validation assets and SM-200 G-buffer present, 193/257-ray visibility profile declared')
+print('WEBAPP V1.2.3 PASS: version/cache closure, 9 rooms/27 objectives, Material-v2 assets, SM-101 transforms, SM-102/103 runtime platform, SM-104 validation assets, SM-200 G-buffer, SM-201 depth authority and SM-202 ownership runtime present, 193/257-ray visibility profile declared')

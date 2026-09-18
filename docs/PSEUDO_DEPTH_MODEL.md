@@ -1,12 +1,12 @@
 # Canonical pseudo-depth projection model
 
-Status: **SM-201 accepted model; production depth writes remain deferred to SM-202**.
+Status: **SM-201 accepted model; SM-202 production adoption complete in the staged WebGPU ownership path**.
 
 ## Purpose
 
 Steel Moth needs one light-independent fragment-ownership depth for overlapping Material-v2 sprites. The model must use the shared SM-101 root/foot authority, preserve the Material-v2 world-height semantics established by the generator/SM-200, remain deterministic under editor/runtime placement, and be expressible directly in WebGPU without teaching static, dynamic, foreground, editor or shadow paths different formulas.
 
-The executable reference is `engine/pseudo_depth.js`, schema `steelmoth-pseudo-depth/v1`. It is a research/reference module in SM-201. `engine/webgpu_gbuffer.js` intentionally keeps `depthWriteEnabled:false` and `depthCompare:'always'`; SM-202 is the production implementation owner.
+The executable reference is `engine/pseudo_depth.js`, schema `steelmoth-pseudo-depth/v1`. SM-202 mechanically adopts its constants and formula in `engine/webgpu_ownership.js`; `docs/WEBGPU_OWNERSHIP_SM202.md` records the production depth/object-ID contract and required readback evidence.
 
 ## Coordinate model and units
 
@@ -52,7 +52,7 @@ B = metalness
 A = emissive/material auxiliary
 ```
 
-SM-200 writes the compatibility-scaled/clamped local height into G2.R. SM-201 interprets that normalized local height as:
+SM-200 writes the compatibility-scaled/clamped local height into G2.R. The ownership model interprets that normalized local height as:
 
 ```text
 worldZ = clamp(localHeight, 0, 1) * 64
@@ -81,7 +81,7 @@ visibilityKey = layer * 1024 + projectedGroundY + bias
 | `foreground` | 1 | explicit foreground copy/layer |
 | `top` | 2 | formal overlay lane; normal top/UI presentation may remain outside ownership depth |
 
-Static and dynamic deliberately share the same lane. The purpose of SM-201 is to replace category/painter ownership with geometry where possible, not encode the old draw order into hardware depth. Foreground remains an explicit separate visibility contract because those copies are intentionally forced in front.
+Static and dynamic deliberately share the same lane. The purpose of the model is to replace category/painter ownership with geometry where possible, not encode the old draw order into hardware depth. Foreground remains an explicit separate visibility contract because those copies are intentionally forced in front.
 
 `LAYER_STRIDE = 1024` is larger than the complete fixed-camera world-depth span (`screen Y 0..360` plus `worldZ 0..64` and normal fine bias), so lanes cannot cross accidentally.
 
@@ -96,7 +96,7 @@ DEPTH_KEY_MAX = 3072
 depth01 = clamp((3072 - visibilityKey) / 5120, 0, 1)
 ```
 
-Nearer/larger visibility keys therefore produce smaller `depth01`, suitable for a conventional `less` comparison in SM-202. The generous range leaves room around the current ground/world/foreground/top lanes without tying the formula to framebuffer resolution.
+Nearer/larger visibility keys therefore produce smaller `depth01`. SM-202 uses `depth32float`, fragment `@builtin(frag_depth)` writes and a conventional `less` comparison. The generous range leaves room around the current ground/world/foreground/top lanes without tying the formula to framebuffer resolution.
 
 The WebGPU specification defines NDC depth as 0..1 and leaves near/far interpretation to the application through projection/depth comparison. See <https://gpuweb.github.io/gpuweb/#coordinate-systems> and WGSL `frag_depth` at <https://gpuweb.github.io/gpuweb/wgsl/#frag-depth-builtin>.
 
@@ -109,7 +109,7 @@ if sourceAlpha < 0.12:
     no ownership depth is produced
 ```
 
-SM-202 must perform the same discard before writing depth/object ID. Transparent atlas padding therefore cannot occlude another sprite.
+SM-202 performs that discard before writing depth/object ID. Transparent atlas padding and transparent holes therefore cannot occlude another sprite.
 
 ## Local sprite position, rotation, flip and subrects
 
@@ -138,7 +138,7 @@ The committed numeric vectors in `render-tests/pseudo-depth/vectors.json` pin th
 - a foreground fragment at Y=40 remains in front of an ordinary world fragment at Y=400 because lane separation is explicit;
 - alpha below 0.12 produces no ownership depth.
 
-The reference test also checks a rotated fragment, flip geometry invariance, static/dynamic lane parity, depth-range mapping and light-angle independence.
+The reference test also checks a rotated fragment, flip geometry invariance, static/dynamic lane parity, depth-range mapping and light-angle independence. SM-202's real-WebGPU test additionally reads the production depth/object attachments to ensure those same invariants survive shader execution.
 
 ## Box/bin overlap prototype
 
@@ -161,7 +161,7 @@ box-a (Y=166) > box-b (Y=157)
 
 For each object the debug prototype also samples a vertical-face point above the root and assigns matching world-Z; the reconstructed ownership key remains equal to the object's root key. This directly demonstrates the intended `screenY + worldZ` cancellation.
 
-These fixture visualizations are model/debug evidence, not a claim of final per-pixel screenshot parity. The original bin imagery remains qualitative evidence for later ownership/DSO work; SM-202 must implement real per-fragment depth/object writes before visual ownership can be judged in the production WebGPU path.
+These fixture visualizations remain model/debug evidence. SM-202 adds synthetic vertical-face WebGPU overlap/readback fixtures to prove the production attachment follows the same model. The original bin imagery remains qualitative evidence for later ownership/DSO visual work.
 
 ## Rejected alternatives
 
@@ -187,7 +187,7 @@ Encoding static/dynamic submission sequence into depth would preserve the old re
 
 ### Light-dependent projection
 
-Any formula containing light direction, shadow direction or cone state is rejected. Ownership describes visible geometry and must remain unchanged when only lighting changes.
+Any formula containing light direction, shadow direction or cone state is rejected. Ownership describes visible geometry and remains unchanged when only lighting changes; SM-202 pins this with an eight-angle production readback matrix.
 
 ### Rotating the root
 
@@ -195,12 +195,12 @@ SM-101 explicitly fixes the root as an unrotated ground-contact authority. Rotat
 
 ### Stable-ID hash epsilon
 
-Adding an object-ID hash to depth would make exact ties deterministic but physically arbitrary and would encode identity into geometry. Exact coplanar ties remain a submission/tie-policy concern for SM-202; semantic biases must be explicit data rather than hidden hashes.
+Adding an object-ID hash to depth would make exact ties deterministic but physically arbitrary and would encode identity into geometry. SM-202 keeps `depthCompare: less`; exact coplanar ties retain the first equal-depth owner unless explicit geometry/layer/bias distinguishes them. Semantic biases must be explicit data rather than hidden hashes.
 
 ## Production adoption boundary
 
-SM-201 accepts the mathematical model and reference implementation only. It does **not** change the production G-buffer pipeline, WebGL2 compatibility renderer, editor rendering, or gameplay state.
+**SM-202 production adoption complete.** `engine/webgpu_ownership.js` is the staged WebGPU ownership implementation and must remain mechanically equivalent to this reference model. Its WGSL constants are emitted from `engine/pseudo_depth.js`, its material pass writes `@builtin(frag_depth)`, and its object-ID attachment is depth-tested by the same winning fragment.
 
-SM-202 must consume `engine/pseudo_depth.js` semantics when it enables hardware depth/object ownership. It must not copy/rederive the formula independently in WGSL, editor code and CPU diagnostics. A production WGSL form may be mechanically equivalent, but its constants and tests must stay contract-linked to this reference model.
+The compatibility SM-200 class remains as a material-only control path with depth writes disabled; this is intentional for A/B validation and does not supersede the SM-202 production ownership path. Normal game presentation remains WebGL2 until the later backend-promotion gate, so SM-202 changes representation capability rather than the user's default renderer.
 
-Downstream depth hierarchy, clustering, DSO, GTAO, SSGI and volumetric work must consume the resolved ownership depth produced from this model rather than Material-v2 local height directly.
+Downstream depth hierarchy, clustering, DSO, GTAO, SSGI and volumetric work must consume the resolved ownership depth/object field produced by SM-202 rather than Material-v2 local height directly.

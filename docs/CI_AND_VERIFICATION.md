@@ -148,7 +148,41 @@ python tools/validate_webgpu_gbuffer_browser.py \
 
 This uses the production `engine/webgpu_gbuffer.js` WGSL, attachment formats and resource descriptors. It uploads the coordinate-identical Material-v2 atlases and performs GPU readback checks for a flat control, crate/box, barrel/cylinder and a representative mixed-metal prop. It also verifies static/dynamic/foreground material parity, alpha cutout, deletion-to-clear behaviour, adjacent-atlas isolation, stable object IDs and execution of all registered G-buffer debug views.
 
-The production SM-200 attachment contract is documented in `WEBGPU_GBUFFER_SM200.md`. In particular the `depth32float` attachment is allocated and deterministically cleared but does not yet write ownership depth: SM-201 derives that projection and SM-202 implements per-pixel ownership. CI must not reinterpret successful SM-200 object-ID writes as completion of SM-201/202.
+The production SM-200 attachment contract is documented in `WEBGPU_GBUFFER_SM200.md`. Its original class deliberately remains a depth-disabled material/control path. SM-201 subsequently accepted the ownership projection and SM-202 layers production hardware ownership on top without changing these material semantics.
+
+### SM-201/SM-202 pseudo-depth and ownership gate
+
+The deterministic reference/model checks are:
+
+```text
+node tools/validate_pseudo_depth.js
+python tools/validate_pseudo_depth_contract.py
+node tools/validate_webgpu_ownership.js
+python tools/validate_webgpu_ownership_contract.py
+```
+
+The required real-WebGPU ownership gate is:
+
+```text
+python tools/validate_webgpu_ownership_browser.py \
+  --require-webgpu \
+  --report artifacts/webgpu-ownership-browser.json
+```
+
+This gate executes `engine/webgpu_ownership.js`, which mechanically adopts the accepted `steelmoth-pseudo-depth/v1` constants and formula. It reads back `depth32float` and `r32uint` object ownership from the production pass and requires:
+
+- per-pixel two-object overlap ownership rather than whole-quad painter order;
+- identical ownership when the two overlapping draws are reversed;
+- exposed rear pixels and transparent front holes resolving correctly;
+- numeric GPU depth matching the SM-201 CPU reference;
+- static/dynamic depth parity and only the documented foreground lane advantage;
+- explicit layer/fine-bias behaviour;
+- object-ID/depth invariance across the eight diagnostic light angles;
+- stable owner identity for ±0.25, ±0.5 and ±1 logical-pixel object perturbations;
+- deterministic clear after deletion/empty submission;
+- executable object-ID and depth debug modes.
+
+The exact production contract is `WEBGPU_OWNERSHIP_SM202.md`. The inherited SM-101 WebGL2 pixel-parity job remains the non-overlap compatibility control: SM-202 does not change normal WebGL2 presentation.
 
 SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxiliary harness fixture. The SM-001 corpus manifest remains authority for its 16 regression fixtures.
 
@@ -156,11 +190,11 @@ SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxil
 
 `.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has five independent jobs:
 
-1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform, SM-102 lifecycle, SM-103 resource/frame infrastructure, SM-104 validation and SM-200 G-buffer contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
-2. **WebGPU lifecycle + resources + WGSL + G-buffer validation** — real headless Chrome lifecycle/fallback and resource smoke, required-real-WebGPU SM-104 validation, then required-real-WebGPU SM-200 production G-buffer rendering/readback with structured browser/adapter evidence;
-3. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for representative SM-101 fixtures, with screenshot artifacts retained;
+1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform, SM-102 lifecycle, SM-103 resource/frame infrastructure, SM-104 validation, SM-200 G-buffer, SM-201 pseudo-depth and SM-202 ownership contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
+2. **WebGPU lifecycle + resources + WGSL + G-buffer + ownership validation** — real headless Chrome lifecycle/fallback and resource smoke, required-real-WebGPU SM-104 validation, SM-200 production G-buffer rendering/readback, then SM-202 fragment-depth/object-ID ownership readback with eight-angle and perturbation checks;
+3. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for representative SM-101 fixtures, retained as the WebGL2 compatibility/non-overlap control;
 4. **GLSL + MRT software validation** — production WebGL2 GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
-5. **clean source package + extraction** — fresh archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle/resource/API-validation/G-buffer contracts.
+5. **clean source package + extraction** — fresh archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle/resource/API-validation/G-buffer/pseudo-depth/ownership contracts.
 
 Each job writes structured evidence under `artifacts/` and uploads it even when an earlier validation step fails where possible.
 
@@ -185,9 +219,9 @@ Hosted CI must not be used as evidence for:
 - spontaneous device-loss behaviour on a physical target adapter;
 - authoritative moving-light visual quality.
 
-The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. SM-102 proves staged lifecycle/fallback behavior. SM-103 proves resource/frame infrastructure on the exposed hosted adapter. SM-104 proves registered API/WGSL/pipeline/failure paths. SM-200 additionally proves its production Material-v2 G-buffer layouts and readback semantics on that same class of hosted real-WebGPU adapter. None of those hosted results are target-GPU performance, Firefox acceptance, final ownership-depth correctness, or human visual approval.
+The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. SM-102 proves staged lifecycle/fallback behavior. SM-103 proves resource/frame infrastructure on the exposed hosted adapter. SM-104 proves registered API/WGSL/pipeline/failure paths. SM-200 proves Material-v2 G-buffer layouts/readback semantics. SM-201/202 prove the accepted pseudo-depth formula and tested per-pixel ownership/object-ID representation on the hosted real-WebGPU adapter. None of those hosted results are target-GPU performance, Firefox acceptance, complete deferred-lighting parity, DSO visual quality, or human visual approval.
 
-The production WGSL inventory is a growing gate. Every issue that adds shaders, formats, layouts, atlas classes or passes must add corresponding source and real-browser validation rather than treating SM-104/SM-200 as frozen one-time checkpoints.
+The production WGSL inventory is a growing gate. Every issue that adds shaders, formats, layouts, atlas classes or passes must add corresponding source and real-browser validation rather than treating earlier milestones as frozen one-time checkpoints.
 
 ## Extending the gate
 
