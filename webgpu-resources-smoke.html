@@ -1,0 +1,47 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth WebGPU resource infrastructure smoke</title>
+<canvas id="probe" width="8" height="8" style="width:8px;height:8px"></canvas>
+<pre id="status">Running WebGPU resource infrastructure smoke…</pre>
+<script id="webgpuResourceSmokeResult" type="application/json">{"schema":"steelmoth-webgpu-resource-browser-smoke/v1","ok":false,"status":"pending"}</script>
+<script src="engine/webgpu_device.js?v=sm102-1"></script>
+<script src="engine/webgpu_resources.js?v=sm103-1"></script>
+<script>
+(async()=>{
+  const Device=globalThis.SteelMothWebGPUDevice,Infra=globalThis.SteelMothWebGPUResources;
+  const result={schema:'steelmoth-webgpu-resource-browser-smoke/v1',ok:false,browser:navigator.userAgent,secureContext:isSecureContext,actual:null};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('webgpuResourceSmokeResult').textContent=json;document.body.dataset.webgpuResourceSmokeDone='1'};
+  const bounded=async(promise,ms)=>{let timer;const timeout=new Promise(resolve=>{timer=setTimeout(()=>resolve({__smTimeout:true}),ms)});try{return await Promise.race([promise,timeout])}finally{clearTimeout(timer)}};
+  try{
+    if(!navigator.gpu){result.actual={available:false,status:'navigator.gpu-unavailable',fallback:'webgl2'};result.ok=true;publish();return}
+    const manager=new Device.WebGPUDeviceManager({navigatorRef:navigator});
+    const initial=await bounded(manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1}),2500);
+    if(initial?.__smTimeout){manager.close();result.actual={available:true,initialized:false,status:'initialization-timeout',fallback:'webgl2'};result.ok=true;publish();return}
+    const infra=new Infra.WebGPUInfrastructure({device:manager.device,queue:manager.device.queue,width:8,height:8,dynamicUploadBytes:1024,labelPrefix:'SM103Smoke'});
+    const texUsage=Infra.TEXTURE_USAGE.RENDER_ATTACHMENT|Infra.TEXTURE_USAGE.TEXTURE_BINDING,bufUsage=Infra.BUFFER_USAGE.STORAGE;
+    infra.registry.defineTexture('surface',{format:'rgba8unorm',usage:texUsage,size:'surface'});
+    infra.registry.defineTexture('fixed',{format:'rgba8unorm',usage:Infra.TEXTURE_USAGE.TEXTURE_BINDING,size:{width:4,height:4}});
+    infra.registry.uploadStatic('static-data',new Uint32Array([1,2,3,4]),{usage:bufUsage,maxBytes:1024});
+    infra.registry.ensureDynamicArena('actors',{capacity:1024,usage:bufUsage,alignment:256});
+    infra.graph.addPass({name:'prepare-buffer',writes:['dynamic:actors'],execute(){}});
+    infra.graph.addPass({name:'consume-buffer',after:['prepare-buffer'],reads:['dynamic:actors','static-data'],execute({device,registry}){const encoder=device.createCommandEncoder({label:'SM103Smoke:consume'});encoder.clearBuffer(registry.require('static-data').handle);device.queue.submit([encoder.finish()])}});
+    const pipelineA=await infra.pipelines.getRender('factory-only',(_device,label)=>({label,kind:'factory-only'}));
+    const pipelineB=await infra.pipelines.getRender('factory-only',(_device,label)=>({label,kind:'unexpected'}));
+    if(pipelineA!==pipelineB)throw new Error('pipeline cache failed to reuse factory result');
+    const dims=[[8,8],[11,7],[13,9]];
+    for(let i=0;i<dims.length;i++){
+      const [w,h]=dims[i];
+      if(i){const cfg=await bounded(manager.resize(w,h,1),1200);if(cfg?.__smTimeout)throw new Error(`manager resize ${w}x${h} timed out`);infra.resize(cfg.width,cfg.height)}
+      const frame=await bounded(infra.executeFrame({prepare:({registry})=>registry.uploadDynamic('actors',new Uint32Array([i,w,h,i+1]))}),1500);if(frame?.__smTimeout)throw new Error(`resource frame ${i} timed out`);
+    }
+    if(manager.device.queue.onSubmittedWorkDone){const done=await bounded(manager.device.queue.onSubmittedWorkDone(),1500);if(done?.__smTimeout)throw new Error('queue completion timed out')}
+    const diagnostics=infra.diagnostics(),surface=diagnostics.resources.resources.find(x=>x.name==='surface'),fixed=diagnostics.resources.resources.find(x=>x.name==='fixed'),arena=diagnostics.resources.dynamicArenas.find(x=>x.name==='actors');
+    if(diagnostics.frameCount!==3||diagnostics.frameGraph.executionCount!==3)throw new Error('frame graph execution count mismatch');
+    if(diagnostics.resources.resizeCount!==2||!surface||surface.createCount<3||surface.rebuildCount<2)throw new Error('surface resize invalidation mismatch');
+    if(!fixed||fixed.createCount!==1||fixed.rebuildCount!==0)throw new Error('fixed resource should survive resize');
+    if(!arena||arena.capacity!==1024||diagnostics.pipelines.hits<1||diagnostics.pipelines.misses!==1)throw new Error('bounded upload or pipeline-cache diagnostics mismatch');
+    result.actual={available:true,initialized:true,status:'ready',initial,diagnostics};result.ok=true;infra.close();manager.close();
+  }catch(error){result.error=String(error?.stack||error);result.actual=result.actual||{available:!!navigator.gpu,initialized:false,status:'resource-smoke-failed'}}
+  publish();
+})();
+</script>
