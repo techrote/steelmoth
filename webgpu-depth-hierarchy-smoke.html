@@ -1,0 +1,58 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth WebGPU pseudo-depth hierarchy validation</title>
+<canvas id="probe" width="8" height="8" style="width:8px;height:8px"></canvas>
+<pre id="status">Running SM-203 WebGPU depth hierarchy validation…</pre>
+<script id="webgpuDepthHierarchyResult" type="application/json">{"schema":"steelmoth-webgpu-depth-hierarchy-browser-smoke/v1","ok":false,"status":"pending"}</script>
+<script src="engine/webgpu_device.js?v=sm102-1"></script>
+<script src="engine/webgpu_resources.js?v=sm103-1"></script>
+<script src="engine/webgpu_depth_hierarchy.js?v=sm203-1"></script>
+<script>
+(async()=>{
+  const Device=globalThis.SteelMothWebGPUDevice,H=globalThis.SteelMothWebGPUDepthHierarchy;
+  const result={schema:'steelmoth-webgpu-depth-hierarchy-browser-smoke/v1',ok:false,browser:navigator.userAgent,secureContext:isSecureContext,checks:[],levels:[],diagnostics:null};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('webgpuDepthHierarchyResult').textContent=json;document.body.dataset.webgpuDepthHierarchyDone='1'};
+  const check=(condition,message,detail=null)=>{if(!condition)throw new Error(message+(detail?`: ${JSON.stringify(detail)}`:''));result.checks.push(message)};
+  const near=(a,b,e=2e-6)=>Math.abs(Number(a)-Number(b))<=e;
+  const same=(a,b,e=2e-6)=>near(a[0],b[0],e)&&near(a[1],b[1],e);
+  let manager=null,hierarchy=null,sourceDepth=null,sourceObject=null;
+  try{
+    check(!!navigator.gpu,'navigator.gpu available for required SM-203 hierarchy run');
+    manager=new Device.WebGPUDeviceManager({navigatorRef:navigator});await manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1});check(!!manager.device,'WebGPU device initialized');
+    const device=manager.device,W=5,HGT=3;
+    const depths=[.9,.7,.2,.4,.8,.6,.5,.3,.1,.75,.95,.65,.45,.25,.05],ids=[0,1,1,0,1,1,0,1,1,0,1,1,0,1,1];
+    sourceDepth=device.createTexture({label:'SM203:source-depth',size:{width:W,height:HGT,depthOrArrayLayers:1},format:'depth32float',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.TEXTURE_BINDING});
+    sourceObject=device.createTexture({label:'SM203:source-object',size:{width:W,height:HGT,depthOrArrayLayers:1},format:'r32uint',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.TEXTURE_BINDING});
+    const sourceWGSL=`
+      @vertex fn vs(@builtin(vertex_index) i:u32)->@builtin(position) vec4f{let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[i],0,1);}
+      struct Out{@location(0) id:u32,@builtin(frag_depth) depth:f32};
+      @fragment fn fs(@builtin(position) p:vec4f)->Out{
+        let d=array<f32,15>(0.9,0.7,0.2,0.4,0.8,0.6,0.5,0.3,0.1,0.75,0.95,0.65,0.45,0.25,0.05);
+        let ids=array<u32,15>(0u,1u,1u,0u,1u,1u,0u,1u,1u,0u,1u,1u,0u,1u,1u);
+        let i=u32(p.y)*5u+u32(p.x);if(ids[i]==0u){discard;}var o:Out;o.id=ids[i];o.depth=d[i];return o;
+      }`;
+    device.pushErrorScope('validation');const module=device.createShaderModule({label:'SM203:source',code:sourceWGSL});const sourcePipe=device.createRenderPipeline({label:'SM203:source-pipeline',layout:'auto',vertex:{module,entryPoint:'vs'},fragment:{module,entryPoint:'fs',targets:[{format:'r32uint'}]},primitive:{topology:'triangle-list'},depthStencil:{format:'depth32float',depthWriteEnabled:true,depthCompare:'always'}});const setupError=await device.popErrorScope();check(!setupError,'synthetic canonical depth source pipeline validates',setupError?.message);
+    const enc=device.createCommandEncoder(),pass=enc.beginRenderPass({colorAttachments:[{view:sourceObject.createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}],depthStencilAttachment:{view:sourceDepth.createView(),depthClearValue:1,depthLoadOp:'clear',depthStoreOp:'store'}});pass.setPipeline(sourcePipe);pass.draw(3);pass.end();device.queue.submit([enc.finish()]);await device.queue.onSubmittedWorkDone();
+
+    hierarchy=new H.WebGPUDepthHierarchy({device,queue:device.queue,labelPrefix:'SM203'});await hierarchy.build({depthTexture:sourceDepth,objectIdTexture:sourceObject,width:W,height:HGT});
+    let diag=hierarchy.diagnostics();check(diag.format==='rg32float','hierarchy uses core rg32float min/max representation');check(diag.levelCount===4,'5x3 source builds four hierarchy levels',diag.levels);check(JSON.stringify(diag.levels.map(q=>[q.width,q.height]))===JSON.stringify([[5,3],[3,2],[2,1],[1,1]]),'odd dimensions use ceil-halving at every level',diag.levels);check(diag.valid===true,'hierarchy is valid after complete rebuild');
+    const cpu=H.buildCPUHierarchy(depths,ids,W,HGT);
+    for(let li=0;li<cpu.length;li++){
+      const gpu=[];for(let y=0;y<cpu[li].height;y++)for(let x=0;x<cpu[li].width;x++){const q=await hierarchy.readLevelPixel(li,x,y),i=(y*cpu[li].width+x)*2,ref=[cpu[li].data[i],cpu[li].data[i+1]];check(same(q,ref),`level ${li} texel ${x},${y} matches direct CPU min/max reduction`,{q,ref});gpu.push(q)}result.levels.push({level:li,width:cpu[li].width,height:cpu[li].height,ranges:gpu});
+    }
+    check(same(result.levels[0].ranges[0],[1,0]),'object-ID zero marks empty source depth despite depth clear value 1');check(same(result.levels.at(-1).ranges[0],[.05,.95]),'root level encloses all occupied canonical depths');
+
+    const fakeOwnership={_record(name){return name==='depth'?{handle:sourceDepth,width:W,height:HGT}:{handle:sourceObject,width:W,height:HGT}}};await hierarchy.buildFromOwnership(fakeOwnership);const root=await hierarchy.readLevelPixel(3,0,0);check(same(root,[.05,.95]),'buildFromOwnership consumes canonical depth/object records through one shared API',root);
+
+    hierarchy.invalidate('room-change');check(hierarchy.diagnostics().valid===false&&hierarchy.diagnostics().lastInvalidationReason==='room-change','room invalidation marks hierarchy stale deterministically');let staleRejected=false;try{hierarchy.levelView(0)}catch(_e){staleRejected=true}check(staleRejected,'stale hierarchy cannot be sampled before rebuild');await hierarchy.buildFromOwnership(fakeOwnership);check(same(await hierarchy.readLevelPixel(3,0,0),root),'room rebuild reproduces identical root range');
+
+    hierarchy.resize(7,5);diag=hierarchy.diagnostics();check(diag.valid===false&&diag.extent.width===7&&diag.extent.height===5,'resize rebuilds level resources and invalidates old contents',diag.extent);hierarchy.resize(W,HGT);await hierarchy.buildFromOwnership(fakeOwnership);check(same(await hierarchy.readLevelPixel(3,0,0),root),'resize round-trip rebuild is deterministic');
+
+    const debugTarget=device.createTexture({size:{width:W,height:HGT,depthOrArrayLayers:1},format:'rgba8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});for(const mode of H.DEBUG_MODES)await hierarchy.renderDebug(debugTarget,0,mode,'rgba8unorm');debugTarget.destroy();check(H.DEBUG_MODES.length===4,'min/max/span/occupancy debug views compile and execute');check(hierarchy.levelForFootprint(1)===0&&hierarchy.levelForFootprint(4)===2,'sampling helper selects bounded logarithmic hierarchy level');
+
+    diag=hierarchy.diagnostics();check(diag.compilation.every(q=>q.messages.every(m=>m.type!=='error')),'hierarchy WGSL compilation reports contain no errors',diag.compilation);result.diagnostics=diag;result.ok=true;
+  }catch(error){result.error=String(error?.stack||error);try{result.diagnostics=hierarchy?.diagnostics?.()||null}catch(_e){}}
+  finally{try{hierarchy?.close()}catch(_e){}try{sourceDepth?.destroy()}catch(_e){}try{sourceObject?.destroy()}catch(_e){}try{manager?.close()}catch(_e){}}
+  publish();
+})();
+</script>
