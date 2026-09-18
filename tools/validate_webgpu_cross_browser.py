@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, functools, http.server, json, platform, socketserver, threading, time, urllib.parse
+
+import argparse
+import functools
+import http.server
+import json
+import platform
+import socketserver
+import threading
+import time
+import urllib.parse
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +47,48 @@ MATRIX = [
     ("room-transition-history", "webgpu-transition-smoke.html", "E"),
 ]
 
+# These pages already exercise the production WebGPUDeviceManager (or, for the
+# direct API probe, intentionally own adapter acquisition themselves). The
+# remaining historical smoke pages predate the manager and call requestAdapter
+# directly. Hosted Firefox on windows-latest exposes only its fallback adapter,
+# so the test server injects the same preferred->fallback acquisition policy as
+# the production manager into those legacy pages. This is recorded per page and
+# is functional/API evidence only; it is never physical adapter certification.
+FIREFOX_NATIVE_ADAPTER_PAGES = frozenset({
+    "webgpu-cross-browser-smoke.html",
+    "webgpu-smoke.html",
+    "webgpu-validation-smoke.html",
+    "webgpu-gbuffer-smoke.html",
+    "webgpu-ownership-smoke.html",
+    "webgpu-depth-hierarchy-smoke.html",
+})
+
+FIREFOX_FALLBACK_BOOTSTRAP = r"""
+<script id="sm405HostedFirefoxAdapterBootstrap">
+(() => {
+  const gpu = navigator.gpu;
+  if (!gpu || typeof gpu.requestAdapter !== 'function') return;
+  const original = gpu.requestAdapter.bind(gpu);
+  const patched = async options => {
+    const first = await original(options || {});
+    if (first || (options && options.forceFallbackAdapter)) return first;
+    const fallback = await original({forceFallbackAdapter:true});
+    if (fallback) window.__sm405HostedFallbackAdapterUses = (window.__sm405HostedFallbackAdapterUses || 0) + 1;
+    return fallback;
+  };
+  let installed = false;
+  try { gpu.requestAdapter = patched; installed = gpu.requestAdapter === patched; } catch (_) {}
+  if (!installed) {
+    try {
+      Object.defineProperty(gpu, 'requestAdapter', {value:patched, configurable:true});
+      installed = gpu.requestAdapter === patched;
+    } catch (_) {}
+  }
+  window.__sm405HostedFallbackAdapterShimInstalled = installed;
+})();
+</script>
+"""
+
 RESULT_SCRIPT = r"""
 return (() => {
   const body = document.body;
@@ -65,6 +116,7 @@ return (() => {
 })();
 """
 
+
 def find_key(value: Any, key: str):
     if isinstance(value, dict):
         if key in value:
@@ -75,12 +127,44 @@ def find_key(value: Any, key: str):
         for child in value:
             yield from find_key(child, key)
 
+
 class Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *_args):
         pass
 
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        query = urllib.parse.parse_qs(parsed.query)
+        page = Path(urllib.parse.unquote(parsed.path)).name
+        if (
+            query.get("browser") == ["firefox"]
+            and page.endswith(".html")
+            and page not in FIREFOX_NATIVE_ADAPTER_PAGES
+        ):
+            local = Path(self.translate_path(parsed.path))
+            try:
+                text = local.read_text(encoding="utf-8")
+            except (OSError, UnicodeError):
+                return super().do_GET()
+            marker = '<meta charset="utf-8">'
+            if marker in text:
+                text = text.replace(marker, marker + "\n" + FIREFOX_FALLBACK_BOOTSTRAP, 1)
+            else:
+                text = FIREFOX_FALLBACK_BOOTSTRAP + "\n" + text
+            payload = text.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+        return super().do_GET()
+
+
 class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
+
 
 def make_driver(name: str):
     if name == "chrome":
@@ -119,6 +203,7 @@ def make_driver(name: str):
         return webdriver.Firefox(options=options)
     raise ValueError(name)
 
+
 def browser_metadata(driver, name: str):
     caps = dict(driver.capabilities or {})
     return {
@@ -136,6 +221,7 @@ def browser_metadata(driver, name: str):
         "firefoxWebGPUAllowedInParentForHostedHeadlessCI": name == "firefox",
     }
 
+
 def wait_result(driver, timeout: float):
     deadline = time.monotonic() + timeout
     last = None
@@ -148,6 +234,7 @@ def wait_result(driver, timeout: float):
             return last
         time.sleep(0.2)
     raise TimeoutError(f"page did not publish a completed structured result in {timeout:.0f}s; last={last!r}")
+
 
 def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
     report = {"browser": name, "ok": False, "environment": None, "pages": [], "failures": []}
@@ -175,6 +262,11 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
                 record["ok"] = bool(payload.get("ok"))
                 real_flags = list(find_key(payload, "realWebGPU"))
                 record["realWebGPUFlags"] = real_flags
+                if name == "firefox" and page not in FIREFOX_NATIVE_ADAPTER_PAGES:
+                    shim = driver.execute_script("return {installed:!!window.__sm405HostedFallbackAdapterShimInstalled, uses:Number(window.__sm405HostedFallbackAdapterUses||0)}")
+                    record["hostedFirefoxAdapterShim"] = shim
+                    if not shim.get("installed"):
+                        raise RuntimeError("hosted Firefox fallback-adapter bootstrap did not install")
                 if label == "api-probe":
                     if not payload.get("ok") or (payload.get("webgpu") or {}).get("realWebGPU") is not True:
                         raise RuntimeError("direct cross-browser probe did not prove real WebGPU execution")
@@ -226,6 +318,7 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
                 pass
     return report
 
+
 def main():
     parser = argparse.ArgumentParser(description="SM-405 Windows Chrome/Firefox functional WebGPU matrix")
     parser.add_argument("--browsers", nargs="+", choices=["chrome", "firefox"], default=["chrome", "firefox"])
@@ -272,6 +365,7 @@ def main():
             print(f"  - {failure.get('label')}: {failure.get('error')}")
     print(f"SM-405 CROSS-BROWSER {'PASS' if aggregate['ok'] else 'FAIL'}: {report_path}")
     return 0 if aggregate["ok"] else 1
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
