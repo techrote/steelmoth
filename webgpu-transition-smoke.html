@@ -1,0 +1,69 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>SteelMoth SM-404 transition invalidation smoke</title><style>html,body{margin:0;background:#101518;color:#d9f6ef;font:14px ui-monospace,monospace}main{padding:18px;max-width:960px}canvas{width:720px;height:260px;border:1px solid #49645d;image-rendering:pixelated}.pass{color:#8ff0ba}.fail{color:#ff9b9b}pre{white-space:pre-wrap;font-size:12px}</style></head><body><main><h1>SM-404 transition invalidation</h1><canvas id="diag" width="720" height="260"></canvas><pre id="webgpuTransitionResult">running</pre></main>
+<script src="engine/webgpu_resources.js?v=sm103-1"></script>
+<script src="engine/webgpu_depth_hierarchy.js?v=sm203-1"></script>
+<script src="engine/webgpu_transition_state.js?v=sm404-1"></script>
+<script>
+(async()=>{
+ const out=document.getElementById('webgpuTransitionResult'),canvas=document.getElementById('diag'),ctx=canvas.getContext('2d');
+ const checks=[],check=(id,ok,detail='')=>checks.push({id,ok:!!ok,detail:String(detail||'')});
+ const report={schema:'steelmoth-webgpu-transition-smoke/v1',ok:false,checks,captures:[],readback:{realWebGPU:false},evidenceBoundary:'Hosted Chrome validates transition invalidation and real WebGPU resource lifecycle. Screenshot is diagnostic evidence only; no target-GPU timing or human visual sign-off is claimed.'};
+ const probe=name=>({name,valid:true,history:true,calls:[],invalidate(reason,clear){this.calls.push([String(reason),!!clear]);this.valid=false;if(clear)this.history=false}});
+ try{
+   check('navigator-gpu',!!navigator.gpu);if(!navigator.gpu)throw new Error('WebGPU unavailable');
+   const adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});check('adapter',!!adapter);if(!adapter)throw new Error('WebGPU adapter unavailable');
+   const device=await adapter.requestDevice();check('device',!!device);report.readback.realWebGPU=true;
+   const registry=new SteelMothWebGPUResources.ResourceRegistry({device,queue:device.queue,width:32,height:24,labelPrefix:'SM404'});
+   const surface=registry.defineTexture('sm404:surface',{size:'surface',format:'rgba8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.TEXTURE_BINDING});
+   const staticBuffer=registry.defineBuffer('sm404:static',{size:64,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST});
+   const surfaceHandle=surface.handle,staticHandle=staticBuffer.handle,resourceGeneration=registry.generation;
+   registry.resize(64,40);const surface2=registry.require('sm404:surface'),static2=registry.require('sm404:static');
+   check('surface-texture-rebuilt',surface2.handle!==surfaceHandle,`${surface2.width}x${surface2.height}`);
+   check('static-buffer-preserved',static2.handle===staticHandle);
+   check('resource-device-generation-stable',registry.generation===resourceGeneration,registry.generation);
+   check('resource-resize-count',registry.diagnostics().resizeCount===1,registry.diagnostics().resizeCount);
+
+   const maps=await fetch('game_data/maps.json',{cache:'no-store'}).then(r=>r.json()),roomKeys=Object.keys(maps.rooms||{});check('real-room-set',roomKeys.length>=3,roomKeys.length);
+   const graph=new SteelMothWebGPUTransitionState.RenderTransitionInvalidationGraph({roomId:roomKeys[0],backend:'webgpu',extent:{width:32,height:24,dpr:1}});
+   const depth=new SteelMothWebGPUDepthHierarchy.WebGPUDepthHierarchy({device,width:32,height:24,labelPrefix:'SM404Depth'}),depthGeneration=depth.resourceGeneration;depth.valid=true;
+   const targets={};for(const name of SteelMothWebGPUTransitionState.STAGES)targets[name]=probe(name);targets.depthHierarchy=depth;for(const [name,target] of Object.entries(targets))graph.register(name,target);
+   check('all-targets-registered',graph.diagnostics().registered.length===SteelMothWebGPUTransitionState.STAGES.length);
+
+   const game={state:{room:0},rooms:roomKeys.map(key=>({key,spec:{id:key}})),room:null,renderScene:{old:true},renderer:{lastRenderScene:{old:true}},renderSceneBridge:{lastScene:{old:true},transitionRevision:0},enterRoom(index){this.state.room=index;this.room=this.rooms[index];this.renderScene={room:this.room.key}}};game.room=game.rooms[0];
+   SteelMothWebGPUTransitionState.installGameIntegration(game,graph);check('game-integration',game.webgpuTransitionState===graph);
+   let prior=roomKeys[0];
+   for(let i=0;i<roomKeys.length;i++){
+     graph.markRebuilt();depth.valid=true;for(const [name,target] of Object.entries(targets)){if(name!=='depthHierarchy'){target.valid=true;target.history=true}}
+     graph.recordDerived('objectId',{room:prior,ids:[`${prior}:object`]});graph.recordDerived('clusters',{room:prior,ids:[`${prior}:cluster`]});graph.recordDerived('darkBloomTemporal',{room:prior,energy:.5});
+     const oldStamp=graph.currentStamp('old-room');game.renderScene={room:prior};game.renderer.lastRenderScene={room:prior};game.renderSceneBridge.lastScene={room:prior};game.enterRoom(i,'WEST');
+     check(`room-${i}-authority`,graph.roomId===roomKeys[i],graph.roomId);
+     check(`room-${i}-ghosts`,graph.readDerived('objectId')===null&&graph.readDerived('clusters')===null&&graph.readDerived('darkBloomTemporal')===null);
+     check(`room-${i}-stamp-rejected`,!graph.isCurrentStamp(oldStamp));
+     check(`room-${i}-scene-cleared`,game.renderer.lastRenderScene===null&&game.renderSceneBridge.lastScene===null);
+     check(`room-${i}-depth-invalid`,depth.valid===false,depth.lastInvalidationReason);
+     check(`room-${i}-history-cleared`,targets.dominance.history===false&&targets.darkBloomTemporal.history===false);
+     prior=roomKeys[i];
+   }
+   check('depth-token',String(depth.lastInvalidationReason).startsWith('sm404:room-change:'),depth.lastInvalidationReason);
+   check('depth-generation-preserved',depth.resourceGeneration===depthGeneration,`${depth.resourceGeneration}/${depthGeneration}`);
+
+   graph.markRebuilt();for(const [name,target] of Object.entries(targets)){if(name!=='depthHierarchy'){target.valid=true;target.history=true}}depth.valid=true;
+   graph.recordDerived('clusters',{ids:['keep-cluster']});graph.recordDerived('occluders',{ids:['keep-occluder']});graph.recordDerived('objectId',{ids:['drop-object']});const clusterCalls=targets.clusters.calls.length,occluderCalls=targets.occluders.calls.length;
+   graph.invalidate('resize',{extent:{width:64,height:40,dpr:1}});
+   check('resize-cluster-preserved',graph.readDerived('clusters')?.ids?.[0]==='keep-cluster');check('resize-occluder-preserved',graph.readDerived('occluders')?.ids?.[0]==='keep-occluder');check('resize-object-rejected',graph.readDerived('objectId')===null);check('resize-no-cluster-call',targets.clusters.calls.length===clusterCalls);check('resize-no-occluder-call',targets.occluders.calls.length===occluderCalls);check('resize-depth-invalidated',depth.valid===false&&String(depth.lastInvalidationReason).startsWith('sm404:resize:'));
+
+   const backend={activeBackend:'webgpu',manager:{configuration:{width:64,height:40,dpr:1}},async select(mode){this.activeBackend=mode;return{activeBackend:mode}},async resizeProbe(width,height,dpr=1){const old=this.manager.configuration;this.manager.configuration={width,height,dpr};return old.width===width&&old.height===height&&old.dpr===dpr?{width,height,dpr,infrastructureResized:false}:{width,height,dpr,infrastructureResized:true}},_deviceLost(){this.activeBackend='webgl2'}};
+   SteelMothWebGPUTransitionState.installBackendIntegration(backend,graph);graph.markRebuilt();graph.recordDerived('clusters',{ids:['old-backend']});for(const target of Object.values(targets))if('history'in target)target.history=true;
+   await backend.select('webgl2',{persist:false});check('backend-event',graph.lastEvent.reason==='backend-reconfigure'&&graph.backend==='webgl2');check('backend-stale-cluster-rejected',graph.readDerived('clusters')===null);check('backend-history-cleared',targets.dominance.history===false&&targets.darkBloomTemporal.history===false);
+   const beforeNoop=graph.revision;await backend.resizeProbe(64,40,1);check('noop-resize-no-event',graph.revision===beforeNoop,`${graph.revision}/${beforeNoop}`);
+   await backend.resizeProbe(80,45,1);check('changed-resize-event',graph.lastEvent.reason==='resize'&&graph.extent.width===80&&graph.extent.height===45);
+   backend._deviceLost(null,{reason:'destroyed'});check('device-loss-event',graph.lastEvent.reason==='device-rebuild'&&graph.backend==='webgl2');
+
+   const diag=graph.diagnostics();check('diagnostics-events',diag.events.length>=roomKeys.length+4,diag.events.length);check('diagnostics-no-blanket-reset',diag.contract.blanketReset===false);check('diagnostics-stale-guard',diag.contract.staleDerivedStateRejected===true);check('diagnostics-selective-resize',diag.contract.resizePreservesGeometry===true);
+   report.diagnostics=diag;report.resources=registry.diagnostics();report.readback.depth={valid:depth.valid,lastInvalidationReason:depth.lastInvalidationReason,invalidationCount:depth.invalidationCount,resourceGeneration:depth.resourceGeneration};report.captures=diag.events.map(e=>({revision:e.revision,reason:e.reason,room:e.toRoomId,backend:e.toBackend,epochs:e.epochs,affected:e.affected.length}));
+   report.ok=checks.every(c=>c.ok);ctx.fillStyle='#0d1113';ctx.fillRect(0,0,720,260);ctx.font='12px ui-monospace,monospace';checks.slice(0,18).forEach((c,i)=>{ctx.fillStyle=c.ok?'#8ff0ba':'#ff9b9b';ctx.fillText(`${c.ok?'PASS':'FAIL'} ${c.id}`,12,18+i*12)});ctx.fillStyle='#d9f6ef';ctx.fillText(`rooms ${roomKeys.length} · revision ${diag.revision} · epochs r${diag.epochs.room}/s${diag.epochs.surface}/b${diag.epochs.backend}`,12,246);
+   depth.close();registry.close();device.destroy?.();
+ }catch(error){report.error=String(error?.stack||error);report.ok=false}
+ out.textContent=JSON.stringify(report);out.className=report.ok?'pass':'fail';document.body.dataset.webgpuTransitionDone='1';window.__sm404Report=report;
+})()
+</script></body></html>
