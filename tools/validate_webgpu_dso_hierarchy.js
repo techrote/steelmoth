@@ -1,0 +1,30 @@
+'use strict';
+const assert=require('assert');
+const H=require('../engine/webgpu_dso.js');
+const S=require('../engine/webgpu_dso_hierarchy.js');
+
+function syntheticHardPlan(){
+  const width=160,height=96,tileSize=32,columns=Math.ceil(width/tileSize),rows=Math.ceil(height/tileSize),count=columns*rows;
+  const ownerBounds=[20,36,44,60],shadowDir=[1,0],ownerThrow=80;
+  const members=[
+    {objectId:2,flags:0,throwLength:20,strength:1,bounds:[20,8,26,14]},
+    {objectId:3,flags:0,throwLength:24,strength:1,bounds:[20,18,26,24]},
+    {objectId:4,flags:0,throwLength:50,strength:1,bounds:[20,68,30,78]}
+  ];
+  const tileHeaders=new Uint32Array(count*2);for(let i=0;i<count;i++){tileHeaders[i*2]=0;tileHeaders[i*2+1]=1}
+  return{schema:H.SNAPSHOT_SCHEMA,roomId:'sm304-controlled',lightId:'player-light',grid:{width,height,tileSize,columns,rows,count},jobs:[{clusterId:1,ownerObjectId:1,lightId:'player-light',lightIdHash:123,memberOffset:0,memberCount:members.length,flags:1,ownerBounds,shadowDir,ownerThrow,ownerScore:1,sweptBounds:[20,8,124,78],clusterBounds:[20,8,44,78]}],members,tileHeaders,tileRefs:Uint32Array.of(0),diagnostics:{distanceSimplification:false,darkBloom:false,temporalAccumulation:false}};
+}
+const hard=syntheticHardPlan(),plan=S.buildHierarchyPlan(hard),repeat=S.buildHierarchyPlan(hard);
+assert.strictEqual(plan.schema,S.SNAPSHOT_SCHEMA);assert.strictEqual(plan.sourceSchema,H.SNAPSHOT_SCHEMA);assert.strictEqual(plan.quality,'Medium');assert.strictEqual(plan.signature,repeat.signature,'fixed hierarchy plan must be deterministic');
+assert.strictEqual(plan.diagnostics.distanceSimplification,true);assert.strictEqual(plan.diagnostics.projectedThrowSelection,true);assert.strictEqual(plan.diagnostics.darkBloom,false);assert.strictEqual(plan.diagnostics.temporalAccumulation,false);
+assert(plan.diagnostics.activeTileCount>0&&plan.diagnostics.activeTileCount<plan.diagnostics.totalTileCount,'compact tile list must skip empty/unaffected tiles');assert(plan.diagnostics.expensiveTileSkipRatio>0,'tile culling must report avoided expensive traversal');assert.strictEqual(plan.diagnostics.tileRefOverflow,0);
+assert.strictEqual(plan.members.filter(m=>m.maxTier>=0).length,3,'near contour retains all bounded SM-303 secondary structure');assert.strictEqual(plan.members.filter(m=>m.maxTier>=1).length,1,'mid contour drops small secondary detail');assert.strictEqual(plan.members.filter(m=>m.maxTier>=2).length,0,'far contour retains only the dominant owner mass for this controlled fixture');
+const original=H.rasterizeDSOReference(hard),near=S.rasterizeHierarchyReference(plan,{forceLevel:'near'}),mid=S.rasterizeHierarchyReference(plan,{forceLevel:'mid'}),far=S.rasterizeHierarchyReference(plan,{forceLevel:'far'}),banded=S.rasterizeHierarchyReference(plan),banded2=S.rasterizeHierarchyReference(plan);
+assert.deepStrictEqual(Array.from(near),Array.from(original),'near contour must exactly preserve SM-303 hard-core geometry');assert.deepStrictEqual(Array.from(banded),Array.from(banded2),'distance-banded reference must be deterministic');
+const metrics=S.contourMetrics(plan);assert(metrics.near.disconnectedIslandCount>metrics.mid.disconnectedIslandCount,'mid contour must reduce disconnected fine islands');assert(metrics.mid.disconnectedIslandCount>metrics.far.disconnectedIslandCount,'far contour must reduce disconnected islands again');assert(metrics.near.totalSmallIslandArea>metrics.mid.totalSmallIslandArea,'mid contour must reduce small-island area');assert(metrics.mid.totalSmallIslandArea>metrics.far.totalSmallIslandArea,'far contour must remove residual small-island area');assert(metrics.near.silhouetteEdgeLength>metrics.mid.silhouetteEdgeLength,'mid contour must reduce silhouette edge complexity');assert(metrics.mid.silhouetteEdgeLength>metrics.far.silhouetteEdgeLength,'far contour must reduce silhouette edge complexity again');
+let primaryPixels=0;for(let y=0;y<hard.grid.height;y++)for(let x=0;x<hard.grid.width;x++){if(H.sweptContains(x+.5,y+.5,hard.jobs[0].ownerBounds,hard.jobs[0].shadowDir,hard.jobs[0].ownerThrow)){primaryPixels++;assert(far[y*hard.grid.width+x]===1,`far contour lost dominant owner mass at ${x},${y}`)}}assert(primaryPixels>0,'primary coverage fixture must contain owner shadow pixels');
+const job=plan.jobs[0],nearP=[50,48],midP=[80,48],farP=[118,48];assert.strictEqual(S.levelForDistance(S.sourceDistance(nearP,job.nearBounds,job.shadowDir),job),'near');assert.strictEqual(S.levelForDistance(S.sourceDistance(midP,job.nearBounds,job.shadowDir),job),'mid');assert.strictEqual(S.levelForDistance(S.sourceDistance(farP,job.nearBounds,job.shadowDir),job),'far');
+assert.strictEqual(S.JOB_STRIDE,112);assert.strictEqual(S.MEMBER_STRIDE,80);assert.strictEqual(S.TILE_STRIDE,16);const packed=S.packJobs(plan.jobs),dv=new DataView(packed.buffer,packed.byteOffset,packed.byteLength);assert.strictEqual(dv.getUint32(0,true),1);assert.strictEqual(dv.getUint32(4,true),1);assert.strictEqual(dv.getUint32(20,true),3);
+const low=S.buildHierarchyPlan(hard,{quality:'Low'}),high=S.buildHierarchyPlan(hard,{quality:'High'}),ultra=S.buildHierarchyPlan(hard,{quality:'Ultra'});assert(low.jobs[0].nearEnd<plan.jobs[0].nearEnd&&plan.jobs[0].nearEnd<high.jobs[0].nearEnd&&high.jobs[0].nearEnd<ultra.jobs[0].nearEnd,'quality tiers must monotonically retain near detail farther down the throw');assert(low.jobs[0].farSnap>=plan.jobs[0].farSnap&&plan.jobs[0].farSnap>=high.jobs[0].farSnap&&high.jobs[0].farSnap>=ultra.jobs[0].farSnap,'quality tiers must monotonically refine far contour quantization');
+const overlay=S.debugHierarchy(plan,metrics);assert(overlay.contract.includes('projected throw')&&overlay.jobs[0].farMemberCount===0,'debug overlay must expose hierarchy decisions and contract');
+console.log('SM-304 DSO hierarchy deterministic + structural tests: PASS',JSON.stringify({quality:plan.quality,activeTiles:plan.diagnostics.activeTileCount,totalTiles:plan.diagnostics.totalTileCount,skipRatio:plan.diagnostics.expensiveTileSkipRatio,metrics,banded:H.connectedMetrics(banded,hard.grid.width,hard.grid.height,{tileSize:plan.grid.tileSize})}));
