@@ -24,7 +24,7 @@
   }
 
   function layerFor(category,explicitLayer=null){
-    if(Number.isFinite(Number(explicitLayer)))return Number(explicitLayer);
+    if(explicitLayer!=null&&Number.isFinite(Number(explicitLayer)))return Number(explicitLayer);
     return CATEGORY_LAYER[String(category||'dynamic')]??0;
   }
 
