@@ -1,0 +1,11 @@
+
+DevTools listening on ws://127.0.0.1:56988/devtools/browser/cdbf679c-558d-43c4-a2eb-20160e2ff0d0
+[16628:17344:0918/151351.875:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Created TensorFlow Lite XNNPACK delegate for CPU.
+[16628:35316:0918/151407.973:ERROR:chrome\updater\ipc\update_service_dialer_win.cc:75] Failed to open named pipe server process 28044: Access is denied. (0x5)
+[16628:31852:0918/151407.976:ERROR:chrome\updater\ipc\update_service_dialer_win.cc:75] Failed to open named pipe server process 28044: Access is denied. (0x5)
+[16628:35316:0918/151410.067:ERROR:chrome\updater\ipc\update_service_dialer_win.cc:75] Failed to open named pipe server process 34988: Access is denied. (0x5)
+[16628:31852:0918/151410.150:ERROR:chrome\updater\ipc\update_service_dialer_win.cc:75] Failed to open named pipe server process 34464: Access is denied. (0x5)
+[16628:35316:0918/151410.233:ERROR:chrome\updater\ipc\update_service_dialer_win.cc:75] Failed to open named pipe server process 31804: Access is denied. (0x5)
+[16628:31852:0918/151410.316:ERROR:chrome\updater\ipc\update_service_dialer_win.cc:75] Failed to open named pipe server process 12128: Access is denied. (0x5)
+[16628:17344:0918/151414.591:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

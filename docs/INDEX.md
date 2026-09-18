@@ -41,6 +41,8 @@ Do not silently promote a historical suggestion into a requirement.
 - [`ISSUE_SET_REVIEW_2026-09-16.md`](ISSUE_SET_REVIEW_2026-09-16.md) — two independent issue-set reviews, defects found, and corrections applied.
 - [`EXECUTION_LEDGER.md`](EXECUTION_LEDGER.md) — durable record of planning/reconciliation stages, blockers and implementation checkpoints.
 
+- **WEBGL2_BASELINE_PERFORMANCE.md** — measured SM-003 GTX 1650 Super compatibility-renderer baseline, methodology and evidence boundary.
+
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
