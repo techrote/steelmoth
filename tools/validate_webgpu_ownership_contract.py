@@ -31,7 +31,7 @@ def main()->int:
     model=text('docs/PSEUDO_DEPTH_MODEL.md')
     index=text('docs/INDEX.md')
 
-    for needle in ["require('./pseudo_depth.js')",'@builtin(frag_depth)','depthWriteEnabled:true',"depthCompare:'less'",'depthLayer','depthBias','aspect:\'depth-only\'']:
+    for needle in ["require('./pseudo_depth.js')",'@builtin(frag_depth)','depthWriteEnabled:true',"depthCompare:'less'",'depthLayer','depthBias','DEPTH_READBACK_WGSL','texture_depth_2d','textureLoad(depthTex','copyBufferToBuffer','depthReadback:\'compute-textureLoad-to-buffer\'']:
         need(ownership,needle,'ownership module')
     need(ownership,'PseudoDepth.MAX_WORLD_Z','ownership module canonical constants')
     need(ownership,'PseudoDepth.LAYER_STRIDE','ownership module canonical constants')
@@ -56,7 +56,7 @@ def main()->int:
         need(sw,needle,'offline core')
     for needle in ['engine/pseudo_depth.js','engine/webgpu_ownership.js','webgpu-ownership-smoke.html','validate_webgpu_ownership_contract.py','WEBGPU_OWNERSHIP_SM202.md']:
         need(package,needle,'clean-package inventory')
-    for needle in ['@builtin(frag_depth)','depthCompare = "less"','eight diagnostic light angles','SM-203']:
+    for needle in ['@builtin(frag_depth)','depthCompare = "less"','eight diagnostic light angles','SM-203','textureLoad']:
         need(docs,needle,'SM-202 canonical documentation')
     need(model,'SM-202 production adoption complete','pseudo-depth status reconciliation')
     need(index,'WEBGPU_OWNERSHIP_SM202.md','documentation index')
