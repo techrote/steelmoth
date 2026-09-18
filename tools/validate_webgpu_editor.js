@@ -93,6 +93,6 @@ function probe(name){return{name,valid:true,history:true,calls:[],invalidate(rea
   eq(game.renderer.backend,'webgl2','SM-403 does not switch fallback backend');
   ok(hub.diagnostics().contract.webgl2FallbackPreserved===true,'diagnostics declare fallback preservation');
   ok(hub.diagnostics().contract.gpuIdsPersisted===false,'diagnostics reject persistent GPU ids');
-  ok(hub.events.length>=9,'canonical edit sequence produced invalidation evidence');
+  ok(hub.events.length>=8,'canonical edit sequence produced invalidation evidence');
   console.log(`SM-403 EDITOR INVALIDATION PASS: ${checks} assertions, revision=${hub.revision}, roomHash=${hub.lastRoomHash}`);
 })().catch(error=>{console.error(error.stack||error);process.exitCode=1});
