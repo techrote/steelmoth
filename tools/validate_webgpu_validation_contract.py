@@ -10,7 +10,7 @@ def require(haystack:str,needle:str,where:str)->None:
     if needle not in haystack:raise AssertionError(f'{where}: missing {needle!r}')
 
 def main()->int:
-    engine=text('engine/webgpu_validation.js');page=text('webgpu-validation-smoke.html');runner=text('tools/validate_webgpu_validation_browser.py');checks=text('tools/run_checks.py');workflow=text('.github/workflows/verification.yml');docs=text('docs/WEBGPU_API_VALIDATION.md');clean=text('tools/validate_clean_package.py')
+    engine=text('engine/webgpu_validation.js');page=text('webgpu-validation-smoke.html');runner=text('tools/validate_webgpu_validation_browser.py');checks=text('tools/run_checks.py');docs=text('docs/WEBGPU_API_VALIDATION.md');clean=text('tools/validate_clean_package.py')
     for needle in ['steelmoth-webgpu-validation/v1','steelmoth-webgpu-validation-report/v1','infrastructure-render-probe','infrastructure-compute-probe','getCompilationInfo','createRenderPipelineAsync','createComputePipelineAsync','copyExternalImageToTexture','deliberate-invalid-buffer','profile:\'fallback\'','WebGPUValidationSuite']:
         require(engine,needle,'engine/webgpu_validation.js')
     for needle in ['engine/webgpu_validation.js?v=sm104-1','optionalFeatureAbsence','fallback-device-lost','failureStage:\'device\'','getContext(\'webgl2\')','stateUnchanged']:
@@ -19,8 +19,14 @@ def main()->int:
         require(runner,needle,'tools/validate_webgpu_validation_browser.py')
     for needle in ['js-webgpu-validation','webgpu-validation','webgpu-validation-contract']:
         require(checks,needle,'tools/run_checks.py')
-    require(workflow,'validate_webgpu_validation_browser.py --require-webgpu','verification workflow')
-    require(workflow,'artifacts/webgpu-validation-browser.json','verification workflow')
+    workflow_path=ROOT/'.github/workflows/verification.yml'
+    if workflow_path.is_file():
+        workflow=workflow_path.read_text(encoding='utf-8')
+        require(workflow,'validate_webgpu_validation_browser.py --require-webgpu','verification workflow')
+        require(workflow,'artifacts/webgpu-validation-browser.json','verification workflow')
+    # Clean source archives intentionally exclude .github/.git. CI wiring is checked
+    # in the repository checkout above; the extracted archive must remain independently
+    # valid without manufacturing workflow files that are outside package scope.
     for needle in ['engine/webgpu_validation.js','webgpu-validation-smoke.html','tools/validate_webgpu_validation_contract.py','docs/WEBGPU_API_VALIDATION.md']:
         require(clean,needle,'tools/validate_clean_package.py')
     for needle in ['Production inventory','Compilation information','Validation scopes','Atlas upload','Optional-feature absence','Device loss','WebGL2 fallback','Evidence boundary','Firefox']:
