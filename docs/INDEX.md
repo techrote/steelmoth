@@ -26,8 +26,9 @@ Do not silently promote a historical suggestion into a requirement.
 - [`WEBGPU_DEVICE_LIFECYCLE.md`](WEBGPU_DEVICE_LIFECYCLE.md) — SM-102 adapter/device/context lifecycle, staged backend selection, diagnostics, loss/error handling and WebGL2 fallback contract.
 - [`WEBGPU_RESOURCE_INFRASTRUCTURE.md`](WEBGPU_RESOURCE_INFRASTRUCTURE.md) — SM-103 persistent resource registry, bounded upload arenas, explicit frame graph, pipeline cache, invalidation and diagnostics contract.
 - [`WEBGPU_API_VALIDATION.md`](WEBGPU_API_VALIDATION.md) — SM-104 executable WGSL/pipeline/resource/failure-path inventory, report schemas and evidence boundaries.
-- [`WEBGPU_GBUFFER_SM200.md`](WEBGPU_GBUFFER_SM200.md) — SM-200 production Material-v2 G-buffer formats, atlas semantics, deterministic clears/readbacks, object-ID and debug contract without prematurely defining ownership depth.
-- [`PSEUDO_DEPTH_MODEL.md`](PSEUDO_DEPTH_MODEL.md) — SM-201 accepted light-independent fragment ownership projection, units/ranges/layers, numeric vectors, box/bin prototypes and rejected alternatives; production depth writes remain SM-202 scope.
+- [`WEBGPU_GBUFFER_SM200.md`](WEBGPU_GBUFFER_SM200.md) — SM-200 production Material-v2 G-buffer formats, atlas semantics, deterministic clears/readbacks and material/object-ID debug contract; its depth-disabled class is retained as a compatibility/control path.
+- [`PSEUDO_DEPTH_MODEL.md`](PSEUDO_DEPTH_MODEL.md) — SM-201 accepted light-independent fragment ownership projection, units/ranges/layers, numeric vectors and rejected alternatives, now mechanically adopted by SM-202.
+- [`WEBGPU_OWNERSHIP_SM202.md`](WEBGPU_OWNERSHIP_SM202.md) — SM-202 production per-pixel fragment-depth/object-ID ownership, alpha cutout, layer/bias, readback/debug and eight-angle/perturbation validation contract.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
@@ -40,7 +41,7 @@ Do not silently promote a historical suggestion into a requirement.
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
-- `.github/workflows/verification.yml` — hosted source/regression, required real-WebGPU WGSL/pipeline/resource/G-buffer validation, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
+- `.github/workflows/verification.yml` — hosted source/regression, required real-WebGPU WGSL/pipeline/resource/G-buffer/ownership validation, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
 - `tools/run_checks.py` — stable cross-platform verification runner and failure-report contract.
 - `tools/validate_clean_package.py` — fresh ZIP/extraction/integrity validation.
 - `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented implementation PR contract.
@@ -74,10 +75,12 @@ SM-103 layers deterministic persistent GPU ownership on that lifecycle: named te
 
 SM-104 makes that WebGPU platform independently falsifiable. The production validation inventory compiles WGSL with compilation-info collection, creates and executes real render/compute pipelines under validation scopes, creates core/fallback descriptors, exercises `copyExternalImageToTexture`, validates optional-feature absence, deliberately captures an invalid descriptor, and forces both initialization failure and device loss back to WebGL2 without mutating gameplay-authoritative sentinel state.
 
-SM-200 is the first production WebGPU representation pass on that infrastructure. It adds the explicit Material-v2 G0/G1/G2/Object-ID/Depth attachment set, coordinate-identical nearest-sampled atlas upload, alpha-cutout material submission for static/dynamic/foreground RenderScene records, deterministic per-frame clears, executable debug views and required real-WebGPU fixture readbacks. Its depth attachment remains clear-only pending SM-202.
+SM-200 is the first production WebGPU representation pass on that infrastructure. It adds the explicit Material-v2 G0/G1/G2/Object-ID/Depth attachment set, coordinate-identical nearest-sampled atlas upload, alpha-cutout material submission for static/dynamic/foreground RenderScene records, deterministic per-frame clears, executable debug views and required real-WebGPU fixture readbacks. The original SM-200 class remains a depth-disabled material/control path for A/B validation.
 
-SM-201 resolves the ownership-depth research question without prematurely changing production rendering. The accepted `steelmoth-pseudo-depth/v1` model reconstructs pseudo-ground ownership as `fragmentScreenY + worldZ`, combines it with explicit layer/bias lanes, and maps the resulting visibility key monotonically into 0..1 WebGPU depth. Numeric vectors and box/bin prototypes pin vertical-face cancellation, static/dynamic parity, foreground separation, alpha cutout, subpixel stability, rotation/flip semantics and light-angle independence.
+SM-201 resolves the ownership-depth research question. The accepted `steelmoth-pseudo-depth/v1` model reconstructs pseudo-ground ownership as `fragmentScreenY + worldZ`, combines it with explicit layer/bias lanes, and maps the resulting visibility key monotonically into 0..1 WebGPU depth. Numeric vectors and box/bin prototypes pin vertical-face cancellation, static/dynamic parity, foreground separation, alpha cutout, subpixel stability, rotation/flip semantics and light-angle independence.
 
-The root/foot problem and the ownership-depth model are therefore both specified. SM-202 remains responsible for mechanically adopting the SM-201 formula into per-pixel hardware depth/object ownership; it must not invent a second formula.
+SM-202 mechanically adopts that model in the staged production WebGPU ownership pass. Covered Material-v2 fragments now write canonical `depth32float` plus the stable object ID under `depthCompare: less`; alpha-cutout pixels own neither. Static and dynamic share one depth lane, foreground retains its explicit lane, and explicit fine bias is data-driven. Real-WebGPU CI reads depth/object-ID buffers for two-bin overlap, reversed submission order, transparent holes, the eight light angles and ±0.25/0.5/1-pixel perturbations. Object-ID and depth debug views are executable. Normal game presentation still remains WebGL2 pending later full-frame/backend-promotion gates.
+
+The root/foot authority and per-pixel ownership representation are therefore implemented prerequisites for the shared depth hierarchy and later clustering/DSO work. Downstream systems must consume the resolved SM-202 ownership field rather than treating G2.R local height as ownership depth.
 
 Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, the SM-004 audit, implemented subsystem contracts, and current verification reports.
