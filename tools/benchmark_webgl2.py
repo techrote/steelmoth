@@ -380,7 +380,7 @@ def main() -> int:
                 result = launch_run(executable, server_port, scenario, run_number, args, scenario_dir / f"run-{run_number:02d}.chrome.log")
                 result["host"] = {"os": platform.platform(), "python": platform.python_version(), "gpu": gpu}
                 path = scenario_dir / f"run-{run_number:02d}.json"
-                path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                path.write_text(json.dumps(result, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
                 all_runs[scenario["id"]].append(result)
     except Exception as exc:
         print(f"WebGL2 benchmark failed: {exc}", file=sys.stderr)
