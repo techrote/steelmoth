@@ -361,6 +361,7 @@ def main() -> int:
         print("GTX 1650 Super not found; target-hardware baseline remains blocked and no result was fabricated.", file=sys.stderr)
         return 2
     selected = [item for item in SCENARIOS if not args.scenario or item["id"] in args.scenario]
+    source = git_metadata()
     output = args.out if args.out.is_absolute() else ROOT / args.out
     output.mkdir(parents=True, exist_ok=True)
     handler = lambda *a, **k: Quiet(*a, directory=str(ROOT), **k)
@@ -393,7 +394,7 @@ def main() -> int:
         "ok": len(selected) == len(SCENARIOS) and all(item["ok"] for item in aggregates.values()),
         "generatedAtUtc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "durationSeconds": (dt.datetime.now(dt.timezone.utc) - started).total_seconds(),
-        "source": git_metadata(),
+        "source": source,
         "target": {"gpu": "NVIDIA GeForce GTX 1650 SUPER", "memoryMiB": 4096, "resolution": [1920, 1080], "dpr": 1, "designFps": 60},
         "environment": {"os": platform.platform(), "browserExecutable": executable, "gpu": gpu},
         "methodology": {"warmupFrames": args.warmup_frames, "samplesPerGpuQueryMode": args.sample_frames, "measuredFramesPerRun": args.sample_frames * 2, "runsPerScenario": args.runs, "quality": args.quality, "freshBrowserAndProfilePerRun": True, "gpuAndPassQueriesAlternateBecauseWebGL2ElapsedQueriesCannotNest": True},
