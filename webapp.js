@@ -30,8 +30,9 @@
 
   // SM-102/103 platform/resource lifecycle plus the Material-v2 representation
   // chain through SM-207 post, SM-300 bounded occluder preparation, SM-301
-  // stable geometry-only clustering, SM-302 stable per-light dominant ownership
-  // and SM-303 tile-local DSO hard macro occlusion.
+  // stable geometry-only clustering, SM-302 stable per-light dominant ownership,
+  // SM-303 tile-local DSO hard macro occlusion and SM-304 projected-throw
+  // near/mid/far silhouette hierarchy with compact expensive-tile traversal.
   // Auto remains WebGL2 until SM-505; staged WebGPU modules do not change presentation.
   const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
     .then(() => import('./engine/webgpu_resources.js?v=sm103-1'))
@@ -47,11 +48,12 @@
     .then(() => import('./engine/webgpu_clusters.js?v=sm301-1'))
     .then(() => import('./engine/webgpu_dominance.js?v=sm302-1'))
     .then(() => import('./engine/webgpu_dso.js?v=sm303-1'))
+    .then(() => import('./engine/webgpu_dso_hierarchy.js?v=sm304-1'))
     .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
-      console.warn('WebGPU staged renderer lifecycle through post/occluder/cluster/dominance/DSO preparation unavailable; continuing with WebGL2.', err);
+      console.warn('WebGPU staged renderer lifecycle through post/occluder/cluster/dominance/DSO hierarchy preparation unavailable; continuing with WebGL2.', err);
       return null;
     });
   globalThis.steelMothBackendReady = backendReady;
