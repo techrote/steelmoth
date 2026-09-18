@@ -1,0 +1,82 @@
+name: SM-403 WebGPU editor integration
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_editor_state.js'
+      - 'engine/editor.js'
+      - 'engine/webgl2_scene_adapter.js'
+      - 'engine/webgpu_depth_hierarchy.js'
+      - 'tools/validate_webgpu_editor.js'
+      - 'tools/validate_webgpu_editor_contract.py'
+      - 'webgpu-editor-smoke.html'
+      - 'docs/WEBGPU_EDITOR_SM403.md'
+      - 'webapp.js'
+      - 'sw.js'
+      - '.github/workflows/sm403-editor.yml'
+  workflow_dispatch:
+
+jobs:
+  editor-invalidation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax and deterministic editor regression
+        run: |
+          node --check engine/webgpu_editor_state.js
+          node --check tools/validate_webgpu_editor.js
+          node tools/validate_webgpu_editor.js
+          python tools/validate_webgpu_editor_contract.py
+      - name: Verify Chrome WebGPU runtime
+        run: |
+          command -v google-chrome || command -v google-chrome-stable || command -v chromium
+          google-chrome --version || google-chrome-stable --version || chromium --version
+      - name: Real-WebGPU editor invalidation smoke
+        run: |
+          mkdir -p artifacts
+          python -m http.server 8765 --bind 127.0.0.1 >artifacts/sm403-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          sleep 1
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium)"
+          URL='http://127.0.0.1:8765/webgpu-editor-smoke.html'
+          timeout 90 "$CHROME" --headless=new --no-sandbox --disable-dev-shm-usage --disable-background-networking --disable-component-update --disable-default-apps --disable-sync --metrics-recording-only --no-first-run --enable-webgl --enable-unsafe-webgpu --virtual-time-budget=12000 --dump-dom "$URL" > artifacts/webgpu-editor-dom.html
+          "$CHROME" --headless=new --no-sandbox --disable-dev-shm-usage --enable-webgl --enable-unsafe-webgpu --virtual-time-budget=12000 --window-size=1000,520 --screenshot=artifacts/webgpu-editor-browser.png "$URL"
+          python - <<'PY'
+          import html,json,re
+          from pathlib import Path
+          text=Path('artifacts/webgpu-editor-dom.html').read_text(encoding='utf-8')
+          m=re.search(r'<pre id="webgpuEditorResult"[^>]*>(.*?)</pre>',text,re.S)
+          if not m:raise SystemExit('SM-403 browser FAIL: result element missing')
+          payload=html.unescape(m.group(1)).strip();report=json.loads(payload)
+          if not report.get('ok'):raise SystemExit('SM-403 browser FAIL: '+str(report.get('error') or [c for c in report.get('checks',[]) if not c.get('ok')][:2]))
+          checks=report.get('checks') or []
+          if len(checks)<24:raise SystemExit(f'SM-403 browser FAIL: only {len(checks)} assertions')
+          if not (report.get('readback') or {}).get('realWebGPU'):raise SystemExit('SM-403 browser FAIL: real WebGPU evidence missing')
+          depth=(report.get('readback') or {}).get('depth') or {}
+          if depth.get('valid') is not False or depth.get('lastInvalidationReason')!='sm403:undo':raise SystemExit(f'SM-403 browser FAIL: production depth state {depth}')
+          caps={c.get('id'):c for c in report.get('captures',[])}
+          if not {'before-move','after-move','after-reload'} <= set(caps):raise SystemExit('SM-403 browser FAIL: capture sequence incomplete')
+          if caps['before-move']['identity']['decor'][1]['authorId']!=caps['after-move']['identity']['decor'][1]['authorId']:raise SystemExit('SM-403 browser FAIL: move changed author identity')
+          if caps['before-move']['identity']['hash']!=caps['after-reload']['identity']['hash']:raise SystemExit('SM-403 browser FAIL: save/reload identity mismatch')
+          Path('artifacts/webgpu-editor-browser.json').write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+          print(f"SM-403 WEBGPU EDITOR PASS: {len(checks)} assertions, revision={(report.get('diagnostics') or {}).get('revision')}")
+          PY
+      - name: Upload SM-403 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm403-webgpu-editor-evidence
+          path: |
+            artifacts/webgpu-editor-browser.json
+            artifacts/webgpu-editor-browser.png
+            artifacts/webgpu-editor-dom.html
+            artifacts/sm403-http.log
+          if-no-files-found: warn
