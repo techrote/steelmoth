@@ -6,13 +6,15 @@ This document defines the WebGPU Material-v2 representation introduced by SM-200
 
 ## Production attachments
 
-| Attachment | WebGPU format | Clear | SM-200 meaning |
+| Attachment | WebGPU format | Deterministic clear | SM-200 meaning |
 | --- | --- | --- | --- |
-| G0 | `rgba8unorm` | `(0,0,0,0)` | unlit/tinted albedo RGB + alpha coverage |
-| G1 | `rgba16float` | `(0.5,0.5,1,1)` | encoded normalized pseudo-world normal XYZ + roughness |
+| G0 | `rgba8unorm` | `(0,0,0,0)` | unlit/tinted albedo RGB + binary written-fragment coverage |
+| G1 | `rgba16float` | `(0.5,0.5,1,0.88)` | encoded normalized pseudo-world normal XYZ + roughness |
 | G2 | `rgba16float` | `(0,0,1,0)` | local Material-v2 height, metalness, material AO, emissive/aux |
 | Object ID | `r32uint` | `0` | deterministic stable renderer-object ID for written fragments |
 | Depth | `depth32float` | `1.0` | allocated/cleared production depth attachment; ownership projection intentionally absent |
+
+The G1 roughness clear of `0.88` and sprite alpha-cutout threshold of `0.12` deliberately match the audited v1.2.3 G-buffer rather than introducing new defaults during migration.
 
 The depth attachment is deliberately configured with `depthCompare: "always"` and `depthWriteEnabled: false`. SM-200 therefore does **not** claim that painter order has become the accepted fragment-depth formula. SM-201 derives the light-independent root/local-height/layer projection; SM-202 owns hardware per-pixel depth/object ownership.
 
@@ -33,13 +35,23 @@ source HM atlas: R=height, G=material AO, B=metalness, A=emissive/aux
 WebGPU G2:       R=height, G=metalness, B=material AO, A=emissive/aux
 ```
 
-G2.R remains **local material pseudo-height**. It is not visibility depth.
+G2.R remains **local material pseudo-height**. It is not visibility depth. The runtime multiplier is the same compatibility `heightFactor` used by WebGL2: rendered full-sprite height divided by the atlas region's default world height, clamped to `0.18..4.5`. Material-v2 metadata is already baked into the generated atlas; SM-200 does not add a competing height-bias formula.
 
-Normal XYZ is decoded from the Material-v2 atlas, transformed for sprite flip/rotation, normalized, and re-encoded into G1 RGB. Roughness remains G1.A. Alpha coverage below the configured cutout threshold is discarded before any G-buffer/object-ID write.
+Normal XYZ is decoded from the Material-v2 atlas, transformed for sprite flip/rotation, normalized, and re-encoded into G1 RGB. Roughness remains G1.A.
+
+The three v1.2.3 albedo modes are preserved rather than collapsed into generic multiply tint:
+
+- `normal`: `mix(albedo, albedo * tint, 0.07)`;
+- `flat`: `mix(albedo, tint, tintStrength)`, with the compatibility default `0.18` where no explicit strength exists;
+- `tint`: the inherited luminance-driven colourisation formula.
+
+Descriptors below alpha `0.5` are excluded as in the compatibility material descriptor path. For accepted descriptors, source albedo alpha below `0.12` is discarded; surviving G0 pixels write alpha/coverage `1.0`, matching v1.2.3.
 
 ## Submission boundary
 
 `engine/webgpu_gbuffer.js` consumes backend-neutral RenderScene records via `buildSceneInstances()`/`renderScene()`. SM-200 covers the material-bearing `static`, `dynamic`, and `foreground` categories required by issue #11. Stable string instance IDs are deterministically mapped to non-zero `u32` object IDs; clear/unowned pixels remain object ID zero.
+
+Static descriptors retain source sequence order. Dynamic and foreground descriptors use the shared SM-101 root Y plus source sequence as their painter-order compatibility key, mirroring the audited WebGL2 material submission without defining hardware ownership depth.
 
 The implementation uses one bounded persistent instance storage buffer and batched category draws. It does not allocate one GPU resource per sprite or create per-object pipelines. Resize recreation is delegated to the SM-103 resource registry.
 
@@ -69,7 +81,7 @@ These are representation/debug views, not final post-processing.
 `webgpu-gbuffer-smoke.html` and `tools/validate_webgpu_gbuffer_browser.py` execute the production WGSL and production attachment descriptors on a real WebGPU device in hosted Chrome. The required gate covers:
 
 - shader compilation information and render-pipeline validation;
-- exact production G0/G1/G2/Object-ID/Depth formats;
+- exact production G0/G1/G2/Object-ID/Depth formats and compatibility clears;
 - real generated atlas upload and sampling;
 - crate/box source-channel readback;
 - barrel/cylinder normal readback;
