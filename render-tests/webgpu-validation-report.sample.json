@@ -1,0 +1,49 @@
+{
+  "schema": "steelmoth-webgpu-validation-browser-report/v1",
+  "sampleOnly": true,
+  "ok": null,
+  "evidenceBoundary": "Schema example only. This file is not a measured browser, adapter, compatibility, visual, or performance result.",
+  "browserVersion": {
+    "product": "<browser product/version>",
+    "userAgent": "<user agent>"
+  },
+  "smoke": {
+    "schema": "steelmoth-webgpu-validation-browser-smoke/v1",
+    "ok": null,
+    "browser": "<runtime user agent>",
+    "secureContext": true,
+    "actual": {
+      "available": true,
+      "initialized": true,
+      "status": "<ready|validation-failed|navigator.gpu-unavailable>",
+      "initial": {
+        "schema": "steelmoth-webgpu-device/v1",
+        "adapterFeatures": [],
+        "adapterLimits": {},
+        "requestedFeatures": [],
+        "preferredCanvasFormat": "<format>"
+      },
+      "validation": {
+        "schema": "steelmoth-webgpu-validation-report/v1",
+        "ok": null,
+        "inventory": {
+          "schema": "steelmoth-webgpu-validation/v1",
+          "shaders": [],
+          "pipelines": [],
+          "resourceLayouts": []
+        },
+        "shaders": [],
+        "pipelines": [],
+        "resources": null,
+        "atlasUpload": null,
+        "pipelineExercise": null,
+        "deliberateValidation": null
+      },
+      "optionalFeatureAbsence": null,
+      "fallback": null,
+      "deviceLoss": null
+    },
+    "limitations": []
+  },
+  "notExecuted": []
+}
