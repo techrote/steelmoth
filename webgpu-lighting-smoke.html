@@ -1,0 +1,46 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-204 WebGPU lighting smoke</title>
+<pre id="webgpuLightingResult">running…</pre>
+<script>
+(async()=>{
+  const result={schema:'steelmoth-webgpu-lighting-smoke/v1',ok:false,checks:[],controls:{},diagnostics:null};
+  const check=(ok,msg,detail=null)=>{result.checks.push({ok:!!ok,msg,detail});if(!ok)throw new Error(msg+(detail?`: ${JSON.stringify(detail)}`:''))};
+  const loadBitmap=async url=>{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(`${url}: HTTP ${r.status}`);return createImageBitmap(await r.blob())};
+  const publish=()=>{document.getElementById('webgpuLightingResult').textContent=JSON.stringify(result);document.body.dataset.webgpuLightingDone='1'};
+  try{
+    if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+    const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw new Error('requestAdapter returned null');const device=await adapter.requestDevice();
+    await import('./engine/webgpu_resources.js?v=sm103-1');
+    await import('./engine/pseudo_depth.js?v=sm201-1');
+    await import('./engine/webgpu_gbuffer.js?v=sm200-1');
+    await import('./engine/webgpu_ownership.js?v=sm202-1');
+    await import('./engine/webgpu_lighting.js?v=sm204-1');
+    const O=globalThis.SteelMothWebGPUOwnership,L=globalThis.SteelMothWebGPULighting;
+    check(!!O?.WebGPUOwnershipGBuffer,'SM-202 ownership G-buffer available');check(!!L?.WebGPUDeferredLighting,'SM-204 deferred lighting available');
+    const meta=await (await fetch('assets/generated/atlas.json',{cache:'no-store'})).json(),[albedo,nr,hm]=await Promise.all([loadBitmap(meta.image),loadBitmap(meta.material_normal_roughness_image),loadBitmap(meta.material_height_image)]);
+    const width=640,height=360,gb=new O.WebGPUOwnershipGBuffer({device,width,height,maxInstances:32,labelPrefix:'SM204Smoke'});await gb.setAtlases({albedo,normalRoughness:nr,heightMaterial:hm,meta});
+    const names=['floor_plate','cargo_crate','rust_barrel','server_cabinet','hex_maintenance_idle_0'],xs=[70,190,310,430,550],sprites=[];
+    for(let i=0;i<names.length;i++){const name=names[i],r=meta.regions[name];check(Array.isArray(r),`control atlas region exists: ${name}`);const w=r[2]*meta.world_scale,h=r[3]*meta.world_scale,y=180;sprites.push({id:`control:${name}`,atlas:'hd',category:'dynamic',spriteId:name,materialId:null,transform:{x:xs[i],y,w,h,rotation:0,flip:false},root:{x:xs[i],y:y+h*.5},style:{alpha:1,tint:[1,1,1],glow:false,materialMode:'normal'},depthLayer:0,depthBias:0});}
+    const scene={sprites,materials:[],lights:[]};await gb.renderScene(scene,meta);
+    const lighting=new L.WebGPUDeferredLighting({device,width,height,registry:gb.registry,pipelines:gb.pipelines,labelPrefix:'SM204SmokeLighting'});await lighting.initialize();
+    const samples={};
+    for(let i=0;i<names.length;i++){
+      let found=null;outer:for(let dy=-8;dy<=8;dy+=2)for(let dx=-8;dx<=8;dx+=2){const x=Math.round(xs[i]+dx),y=180+dy,p=await gb.readPixel(x,y);if(p.objectId){found={x,y,p};break outer}}
+      check(!!found,`covered Material-v2 sample found: ${names[i]}`);samples[names[i]]=found;
+    }
+    const settings={lighting:true,ambient:.30,emissive:1,lightRadius:1,normalStrength:1,heightStrength:1,roughnessScale:1,metalnessScale:1,materialAOStrength:.62,pbrSpecularStrength:.70};
+    const angleList=[0,45,90,135,180,225,270,315];let globalMaxError=0;
+    for(const name of names){
+      const s=samples[name],fixture=[];for(const angle of angleList){const a=angle*Math.PI/180,radius=90,raw={id:'light:control:0',group:'control',x:s.x+Math.cos(a)*radius,y:s.y+Math.sin(a)*radius,z:24,radius:200,intensity:1,color:[1,1,1]},lightScene={lights:[raw]};const canonical=L.buildCanonicalLights(lightScene,settings),sample={g0:s.p.g0.map(v=>v/255),g1:s.p.g1,g2:s.p.g2};let maxError=0,outputs={};
+        for(const mode of ['diffuse','specular','final']){await lighting.render(gb,lightScene,settings,{debug:mode});const gpu=await lighting.readPixel(s.x,s.y),cpu=L.shadePixelReference(sample,canonical,settings,[s.x+.5,s.y+.5],mode);const err=Math.max(...gpu.slice(0,3).map((v,c)=>Math.abs(v-cpu[c])));maxError=Math.max(maxError,err);outputs[mode]={gpu,cpu,error:err};}
+        globalMaxError=Math.max(globalMaxError,maxError);check(maxError<.035,`${name} ${angle}° GPU matches v1.2.3 CPU reference`,{maxError});fixture.push({angle,maxError,outputs});
+      }result.controls[name]=fixture;
+    }
+    const mixed={lights:[{id:'light:playerOmni:0',group:'playerOmni',independent:true,x:320,y:180,z:22,radius:80,intensity:.16,color:[1,1,1]},{id:'light:player-cone:0',type:'cone',x:240,y:180,z:22,dx:1,dy:0,range:248,intensity:2,color:[.82,.90,.96],innerCos:Math.cos(17*Math.PI/180),outerCos:Math.cos(30*Math.PI/180)}]};await lighting.render(gb,mixed,settings,{debug:'light-count'});const countPx=await lighting.readPixel(samples.floor_plate.x,samples.floor_plate.y),expected=2/L.MAX_LIGHTS;check(Math.abs(countPx[0]-expected)<.003,'active light-count debug output matches canonical buffer',{actual:countPx[0],expected});
+    const packed=L.buildCanonicalLights({...mixed,playerCone:mixed.lights[1]},settings);check(packed.length===2,'player cone de-duplicates in canonical buffer');check(lighting.diagnostics().oneCanonicalLightBuffer==='sm204:lights','one canonical GPU light buffer owns opaque direct lights');check(lighting.diagnostics().debugModes.includes('diffuse')&&lighting.diagnostics().debugModes.includes('specular')&&lighting.diagnostics().debugModes.includes('final')&&lighting.diagnostics().debugModes.includes('light-count'),'required lighting debug outputs exposed');
+    result.maxReferenceError=globalMaxError;result.diagnostics=lighting.diagnostics();result.adapterInfo=adapter.info?Object.fromEntries(Object.entries(adapter.info).filter(([,v])=>typeof v!=='object')):{};result.ok=true;
+    lighting.close();gb.close();albedo.close();nr.close();hm.close();
+  }catch(e){result.error=String(e?.stack||e)}finally{publish()}
+})();
+</script>
