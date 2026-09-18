@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-402 WebGPU ordering smoke</title>
+<style>
+body{margin:0;background:#081014;color:#d7e8e7;font:13px/1.35 monospace}main{padding:18px}#strip{display:flex;gap:2px;flex-wrap:wrap;margin:12px 0}.stage{width:92px;height:32px;padding:4px;border:1px solid #486;overflow:hidden}pre{white-space:pre-wrap;max-width:1100px}
+</style>
+<main><h1>SM-402 ordering</h1><div id="strip"></div><pre id="webgpuOrderingResult">running…</pre></main>
+<script src="engine/webgpu_ordering.js?v=sm402-1"></script>
+<script>
+(async()=>{
+  const O=globalThis.SteelMothWebGPUOrdering,checks=[],captures=[];
+  const check=(label,ok,detail=null)=>checks.push({label,ok:!!ok,detail});
+  const out=document.getElementById('webgpuOrderingResult');
+  try{
+    check('ordering module loaded',!!O);
+    if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+    const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw new Error('WebGPU adapter unavailable');
+    const device=await adapter.requestDevice();check('real WebGPU device acquired',!!device);
+    const transparentFrame={stages:{'world-alpha':[{}],'world-additive':[{}],'top-additive':[{}],'top-alpha':[{}]},effects:[{}],objective:{visible:true},guide:{visible:true}};
+    const foliage={instances:[{id:'fine',fineGrass:true},{id:'back',frontBlend:.1},{id:'front',frontBlend:.9}]};
+    const plan=O.buildFramePlan({transparentFrame,foliage,water:{enabled:true}}),raw=O.buildFramePlan({transparentFrame,foliage,water:true,raw:true}),debug=O.buildFramePlan({transparentFrame,foliage,water:true,debug:true});
+    check('canonical plan validates',O.validatePlan(plan));
+    check('fourteen explicit stages',plan.stages.length===14,plan.order);
+    check('water precedes Fine Grass',plan.order.indexOf('water')<plan.order.indexOf('fine-grass'));
+    check('Fine Grass precedes background foliage',plan.order.indexOf('fine-grass')<plan.order.indexOf('foliage-background'));
+    check('background foliage precedes world alpha',plan.order.indexOf('foliage-background')<plan.order.indexOf('world-alpha'));
+    check('world additive precedes foreground foliage',plan.order.indexOf('world-additive')<plan.order.indexOf('foliage-foreground'));
+    check('foreground foliage precedes post',plan.order.indexOf('foliage-foreground')<plan.postIndex);
+    check('post effects follow post',plan.order.indexOf('post-effects')>plan.postIndex);
+    check('objective follows top alpha',plan.order.indexOf('objective')>plan.order.indexOf('top-alpha'));
+    check('guide follows objective',plan.order.indexOf('guide')>plan.order.indexOf('objective'));
+    check('raw keeps canonical order',JSON.stringify(raw.order)===JSON.stringify(plan.order));
+    check('debug keeps canonical order',JSON.stringify(debug.order)===JSON.stringify(plan.order));
+    check('raw uses explicit copy boundary',raw.stages[raw.postIndex].operation==='raw-copy');
+    check('debug uses explicit copy boundary',debug.stages[debug.postIndex].operation==='debug-copy');
+    check('water behind actor rejected',!O.contributionVisible({kind:'water',depth01:.8},.4));
+    check('background foliage behind actor rejected',!O.contributionVisible({kind:'foliage',frontBlend:.1,depth01:.8},.4));
+    check('foreground foliage crosses actor only by classifier',O.contributionVisible({kind:'foliage',frontBlend:.9,depth01:.8},.4));
+    check('objective remains depth-independent',O.contributionVisible({kind:'objective',depth01:1},.1));
+    const gpu=await O.encodeDebugStageIds(device,plan);
+    const rb=device.createBuffer({size:gpu.bytes,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ,label:'sm402:debug-ordering-readback'}),enc=device.createCommandEncoder();enc.copyBufferToBuffer(gpu.buffer,0,rb,0,gpu.bytes);device.queue.submit([enc.finish()]);await rb.mapAsync(GPUMapMode.READ);const ids=Array.from(new Uint32Array(rb.getMappedRange().slice(0)));rb.unmap();
+    const expected=[14,...Array.from({length:14},(_,i)=>i+1),0];
+    check('real GPU stage count readback',ids[0]===14,ids);
+    check('real GPU canonical stage IDs readback',expected.every((v,i)=>ids[i]===v),ids);
+    const info=await device.createShaderModule({code:O.DEBUG_COPY_WGSL}).getCompilationInfo();check('ordering WGSL compilation clean',!info.messages.some(m=>m.type==='error'),info.messages.map(m=>m.message));
+    const stack=O.simulateLayerStack([{id:'actor',kind:'actor'},{id:'water',kind:'water',depth01:.8},{id:'back',kind:'foliage',frontBlend:.1,depth01:.8},{id:'nearGlow',kind:'world-additive',depth01:.2},{id:'front',kind:'foliage',frontBlend:.9,depth01:.8},{id:'fx',kind:'fx'},{id:'objective',kind:'objective'},{id:'guide',kind:'guide'}],{opaqueDepth:.4});
+    check('representative overlap rejects buried water/foliage',stack.rejected.map(q=>q.id).join(',')==='water,back',stack);
+    check('representative overlap retains explicit foreground/readability',stack.accepted.map(q=>q.id).join(',')==='actor,nearGlow,front,fx,objective,guide',stack);
+    const diag=O.diagnostics(plan);check('no hidden backend ordering',diag.hiddenBackendOrdering===false);check('water uses stable opaque scene',diag.waterSceneSource==='opaque-resolved');
+    captures.push({label:'canonical-order',rows:O.debugRows(plan)});captures.push({label:'raw-bypass',operation:raw.stages[raw.postIndex].operation,order:raw.order});captures.push({label:'debug-bypass',operation:debug.stages[debug.postIndex].operation,order:debug.order});captures.push({label:'overlap',stack});captures.push({label:'gpu-readback',ids});
+    const strip=document.getElementById('strip');for(const q of O.debugRows(plan)){const e=document.createElement('div');e.className='stage';e.textContent=`${q.ordinal} ${q.id}`;e.style.opacity=q.enabled?'1':'.42';strip.appendChild(e)}
+    const result={schema:'steelmoth-webgpu-ordering-browser/v1',ok:checks.every(q=>q.ok),checks,captures,readback:{realWebGPU:true,stageIds:ids},diagnostics:diag,timing:{gpuTimingClaimed:false},evidenceBoundary:'Hosted WebGPU validates the explicit SM-402 ordering/debug ABI and representative canonical-depth/classifier semantics; it does not claim full WebGPU presentation cutover or target-GPU performance.'};
+    out.textContent=JSON.stringify(result,null,2);
+  }catch(err){out.textContent=JSON.stringify({schema:'steelmoth-webgpu-ordering-browser/v1',ok:false,error:String(err?.stack||err),checks,captures,readback:{realWebGPU:false},timing:{gpuTimingClaimed:false}},null,2)}finally{document.body.dataset.webgpuOrderingDone='1'}
+})();
+</script>
