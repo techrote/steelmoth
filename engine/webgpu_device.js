@@ -60,6 +60,7 @@
       this.failureStage=options.failureStage||'';
       this.adapter=null;this.device=null;this.context=null;this.canvas=null;this.format=null;this.configuration=null;
       this.status='idle';this.initializedAt=0;this.features=[];this.requestedFeatures=[];this.limits={};this.info=null;
+      this.adapterSelection='none';this.fallbackAdapterRequested=false;
       this.uncapturedErrors=[];this.loss=null;this.lastError=null;this.configureCount=0;this.resizeCount=0;
       this._generation=0;
     }
@@ -94,11 +95,19 @@
       });
     }
     async initialize(options={}){
-      this.close();this._generation++;const generation=this._generation;this.status='initializing';this.lastError=null;this.loss=null;this.uncapturedErrors=[];
+      this.close();this._generation++;const generation=this._generation;this.status='initializing';this.lastError=null;this.loss=null;this.uncapturedErrors=[];this.adapterSelection='none';this.fallbackAdapterRequested=false;
       this.canvas=options.canvas||null;const nav=options.navigatorRef||this.navigatorRef,gpu=nav?.gpu;
       try{
         this._fail('navigator');if(!gpu||typeof gpu.requestAdapter!=='function')throw new Error('WebGPU unavailable: navigator.gpu is not exposed');
-        this._fail('adapter');const adapter=await gpu.requestAdapter({powerPreference:options.powerPreference||this.powerPreference});if(!adapter)throw new Error('WebGPU unavailable: requestAdapter returned null');this.adapter=adapter;
+        this._fail('adapter');
+        let adapter=await gpu.requestAdapter({powerPreference:options.powerPreference||this.powerPreference});
+        if(adapter)this.adapterSelection='preferred';
+        if(!adapter&&options.allowFallbackAdapter!==false){
+          this.fallbackAdapterRequested=true;
+          adapter=await gpu.requestAdapter({forceFallbackAdapter:true});
+          if(adapter)this.adapterSelection='fallback';
+        }
+        if(!adapter)throw new Error('WebGPU unavailable: requestAdapter returned null (preferred and fallback)');this.adapter=adapter;
         this.features=featureList(adapter.features);this.limits=limitInventory(adapter.limits);this.info=await adapterInfo(adapter);
         const desired=Array.from(options.desiredFeatures||this.desiredFeatures).map(String);this.requestedFeatures=desired.filter(name=>adapter.features?.has?.(name));
         this._fail('device');this.device=await adapter.requestDevice({requiredFeatures:this.requestedFeatures});if(!this.device)throw new Error('WebGPU requestDevice returned no device');
@@ -119,7 +128,7 @@
       this.adapter=null;this.device=null;this.context=null;this.canvas=null;this.format=null;this.configuration=null;
     }
     close(){const hadResources=!!(this.device||this.context||this.adapter);this._releaseResources(true);if(hadResources||this.status!=='idle')this.status='closed'}
-    diagnostics(){return {schema:'steelmoth-webgpu-device/v1',status:this.status,available:!!this.navigatorRef?.gpu,initializedAt:this.initializedAt,adapterInfo:this.info,adapterFeatures:[...this.features],adapterLimits:{...this.limits},requestedFeatures:[...this.requestedFeatures],preferredCanvasFormat:this.format,configuration:this.configuration?{...this.configuration}:null,configureCount:this.configureCount,resizeCount:this.resizeCount,deviceLost:this.loss?{...this.loss}:null,uncapturedErrors:this.uncapturedErrors.map(x=>({...x})),lastError:this.lastError?{...this.lastError}:null}}
+    diagnostics(){return {schema:'steelmoth-webgpu-device/v1',status:this.status,available:!!this.navigatorRef?.gpu,initializedAt:this.initializedAt,adapterInfo:this.info,adapterFeatures:[...this.features],adapterLimits:{...this.limits},adapterSelection:this.adapterSelection,fallbackAdapterRequested:this.fallbackAdapterRequested,requestedFeatures:[...this.requestedFeatures],preferredCanvasFormat:this.format,configuration:this.configuration?{...this.configuration}:null,configureCount:this.configureCount,resizeCount:this.resizeCount,deviceLost:this.loss?{...this.loss}:null,uncapturedErrors:this.uncapturedErrors.map(x=>({...x})),lastError:this.lastError?{...this.lastError}:null}}
   }
 
   return {BACKENDS,AUTO_WEBGPU_ENABLED,AUTO_POLICY,DEFAULT_OPTIONAL_FEATURES,KNOWN_LIMITS,normalizeBackend,resolveBackendPolicy,WebGPUDeviceManager};

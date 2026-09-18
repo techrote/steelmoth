@@ -10,13 +10,14 @@
 <script>
 (async()=>{
   const Device=globalThis.SteelMothWebGPUDevice,G=globalThis.SteelMothWebGPUGBuffer;
-  const result={schema:'steelmoth-webgpu-gbuffer-browser-smoke/v1',ok:false,browser:navigator.userAgent,secureContext:isSecureContext,fixtures:{},checks:[],diagnostics:null};
+  const isFirefox=/Firefox\//.test(navigator.userAgent);
+  const result={schema:'steelmoth-webgpu-gbuffer-browser-smoke/v1',ok:false,browser:navigator.userAgent,secureContext:isSecureContext,fixtures:{},checks:[],diagnostics:null,atlasSourceType:isFirefox?'HTMLImageElement':'ImageBitmap'};
   const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('webgpuGBufferResult').textContent=json;document.body.dataset.webgpuGBufferDone='1'};
   const check=(condition,message,detail=null)=>{if(!condition)throw new Error(message+(detail?`: ${JSON.stringify(detail)}`:''));result.checks.push(message)};
   const near=(a,b,e=.025)=>Math.abs(Number(a)-Number(b))<=e;
   const near4=(a,b,e=.025)=>a.length===4&&b.length===4&&a.every((v,i)=>near(v,b[i],e));
   const expectedNormal=p=>{let x=p[0]/255*2-1,y=p[1]/255*2-1,z=p[2]/255*2-1;const d=Math.hypot(x,y,z)||1;x/=d;y/=d;z/=d;return[x*.5+.5,y*.5+.5,z*.5+.5,p[3]/255]};
-  const imageBitmap=async url=>{const blob=await (await fetch(url,{cache:'no-store'})).blob();try{return await createImageBitmap(blob,{colorSpaceConversion:'none',premultiplyAlpha:'none'})}catch(_e){return await createImageBitmap(blob)}};
+  const imageSource=async url=>{const blob=await (await fetch(url,{cache:'no-store'})).blob();if(isFirefox){const objectUrl=URL.createObjectURL(blob),img=new Image();img.src=objectUrl;await img.decode();img.close=()=>URL.revokeObjectURL(objectUrl);return img}try{return await createImageBitmap(blob,{colorSpaceConversion:'none',premultiplyAlpha:'none'})}catch(_e){return await createImageBitmap(blob)}};
   const fixtureInstance=(atlas,name,local,category='dynamic',id=`fixture:${name}`)=>{const r=G.regionRect(atlas,name);return{id,objectId:G.objectIdForStableId(id),category,sequence:0,rootY:8+r.h,spriteId:name,x:8+r.w/2,y:8+r.h/2,w:r.w,h:r.h,rotation:0,flip:false,uv:[r.u0,r.v0,r.u1,r.v1],tint:[1,1,1],alpha:1,heightFactor:1,tintStrength:.07,materialMode:'normal',materialModeValue:G.MATERIAL_MODE.normal,local};};
   const syntheticAtlases=()=>{const mk=(pixels)=>{const c=document.createElement('canvas');c.width=4;c.height=1;const x=c.getContext('2d');const d=x.createImageData(4,1);d.data.set(pixels.flat());x.putImageData(d,0,0);return c};return{meta:{source_size:[4,1],world_scale:1,regions:{flat:[0,0,1,1],neighbor:[1,0,1,1],transparent:[2,0,1,1]}},albedo:mk([[96,112,128,255],[8,240,12,255],[250,1,250,0],[255,255,255,255]]),normalRoughness:mk([[128,128,255,220],[255,128,128,32],[128,128,255,220],[0,255,128,128]]),heightMaterial:mk([[0,255,0,0],[255,16,255,64],[0,255,0,0],[128,64,32,255]])};};
   let manager=null,gb=null,images=[];
@@ -27,7 +28,7 @@
     manager=new Device.WebGPUDeviceManager({navigatorRef:navigator});await manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1});
     check(!!manager.device,'WebGPU device initialized');
     const atlas=await (await fetch('assets/generated/atlas.json',{cache:'no-store'})).json();
-    const [albedo,nr,hm]=await Promise.all([imageBitmap(atlas.image),imageBitmap(atlas.material_normal_roughness_image||'assets/generated/sprite_material_normal_roughness.png'),imageBitmap(atlas.material_height_image||'assets/generated/sprite_material_height_material.png')]);images=[albedo,nr,hm];
+    const [albedo,nr,hm]=await Promise.all([imageSource(atlas.image),imageSource(atlas.material_normal_roughness_image||'assets/generated/sprite_material_normal_roughness.png'),imageSource(atlas.material_height_image||'assets/generated/sprite_material_height_material.png')]);images=[albedo,nr,hm];
     check(albedo.width===nr.width&&nr.width===hm.width&&albedo.height===nr.height&&nr.height===hm.height,'Material-v2 atlases are coordinate-identical');
     gb=new G.WebGPUMaterialGBuffer({device:manager.device,queue:manager.device.queue,width:64,height:64,maxInstances:128,labelPrefix:'SM200'});await gb.setAtlases({albedo,normalRoughness:nr,heightMaterial:hm,meta:atlas});
     check(gb.diagnostics().formats.g1==='rgba16float'&&gb.diagnostics().formats.objectId==='r32uint','production G-buffer formats created');
@@ -53,7 +54,7 @@
     // The synthetic atlas is deliberately limited to coverage/order/clear/edge
     // checks. Canvas 2D premultiplies RGB when alpha is zero, while Material-v2
     // HM alpha stores emissive rather than opacity; production HM semantics above
-    // therefore use raw PNG expectations and ImageBitmap(premultiplyAlpha:none).
+    // therefore use raw PNG expectations and a browser-supported external source.
     const syn=syntheticAtlases();await gb.setAtlases({albedo:syn.albedo,normalRoughness:syn.normalRoughness,heightMaterial:syn.heightMaterial,meta:syn.meta});gb.resize(48,32);const rr=G.regionRect(syn.meta,'flat'),flat={id:'flat-control',objectId:G.objectIdForStableId('flat-control'),category:'dynamic',sequence:0,rootY:16,spriteId:'flat',x:24,y:16,w:32,h:16,rotation:0,flip:false,uv:[rr.u0,rr.v0,rr.u1,rr.v1],tint:[1,1,1],alpha:1,heightFactor:1,tintStrength:.07,materialMode:'normal',materialModeValue:G.MATERIAL_MODE.normal};await gb.renderInstances([flat]);const syntheticFlat=await gb.readPixel(24,16);check(syntheticFlat.g0.slice(0,3).every((v,i)=>Math.abs(v-[96,112,128][i])<=1)&&syntheticFlat.g0[3]===255,'synthetic flat control reaches the production pass with binary coverage',syntheticFlat.g0);result.fixtures.syntheticFlat={readback:syntheticFlat};
 
     const parity=[];for(const category of ['static','dynamic','foreground']){const x={...flat,id:'parity-control',objectId:G.objectIdForStableId('parity-control'),category};await gb.renderInstances([x]);parity.push(await gb.readPixel(24,16))}check(parity.slice(1).every(p=>near4(p.g0,parity[0].g0,0)&&near4(p.g1,parity[0].g1,.001)&&near4(p.g2,parity[0].g2,.001)&&p.objectId===parity[0].objectId),'static/dynamic/foreground material values are identical for the same instance');result.fixtures.categoryParity=parity;
@@ -67,7 +68,7 @@
     const debugTarget=manager.device.createTexture({size:{width:48,height:32,depthOrArrayLayers:1},format:'rgba8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});for(const mode of G.DEBUG_MODES)await gb.renderDebug(debugTarget,mode,'rgba8unorm');debugTarget.destroy();check(true,'all production G-buffer debug views compile and execute');
 
     result.diagnostics=gb.diagnostics();check(result.diagnostics.depthAttachmentPolicy.includes('writes disabled'),'SM-200 depth attachment is explicit but does not invent SM-201/202 ownership depth');check(result.diagnostics.materialCompatibility.normalTintStrength===.07,'compatibility tint semantics recorded in diagnostics');result.ok=true;
-  }catch(error){result.error=String(error?.stack||error);try{result.diagnostics=gb?.diagnostics?.()||null}catch(_e){}}
+  }catch(error){result.error=String(error?.message||error?.stack||error);try{result.diagnostics=gb?.diagnostics?.()||null}catch(_e){}}
   finally{try{gb?.close()}catch(_e){}try{manager?.close()}catch(_e){}for(const img of images)try{img.close?.()}catch(_e){}}
   publish();
 })();
