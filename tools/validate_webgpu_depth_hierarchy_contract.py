@@ -38,11 +38,11 @@ def main()->int:
     if workflow:
         for needle in ['validate_webgpu_depth_hierarchy_browser.py','webgpu-depth-hierarchy-browser.json']:
             need(workflow,needle,'workflow hierarchy gate')
-    for needle in ['webgpu_depth_hierarchy.js?v=sm203-1']:
-        need(webapp,needle,'runtime module load');need(sw,needle,'offline core')
+    need(webapp,'webgpu_depth_hierarchy.js?v=sm203-1','runtime module load')
+    need(sw,'webgpu_depth_hierarchy.js?v=sm203-1','offline core')
     for needle in ['engine/webgpu_depth_hierarchy.js','webgpu-depth-hierarchy-smoke.html','validate_webgpu_depth_hierarchy_contract.py','WEBGPU_DEPTH_HIERARCHY_SM203.md']:
         need(package,needle,'clean-package inventory')
-    for needle in ['occupied min/max canonical ownership depth','(1.0, 0.0)','5x3','No effect should construct an independent pseudo-depth pyramid']:
+    for needle in ['nearest occupied canonical depth','farthest occupied canonical depth','(1.0, 0.0)','5x3','No effect should construct an independent pseudo-depth pyramid']:
         need(docs,needle,'SM-203 documentation')
     need(arch,'WEBGPU_DEPTH_HIERARCHY_SM203.md','architecture hierarchy status')
     need(index,'WEBGPU_DEPTH_HIERARCHY_SM203.md','documentation index')
