@@ -1,0 +1,61 @@
+name: SM-306 WebGPU Dark Bloom temporal
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_dark_bloom_temporal.js'
+      - 'engine/webgpu_dark_bloom.js'
+      - 'engine/webgpu_resources.js'
+      - 'webgpu-dark-bloom-temporal-smoke.html'
+      - 'tools/validate_webgpu_dark_bloom_temporal*'
+      - 'docs/WEBGPU_DARK_BLOOM_TEMPORAL_SM306.md'
+      - 'docs/WEBGPU_ARCHITECTURE.md'
+      - 'docs/WEBGPU_VALIDATION_PLAN.md'
+      - 'webapp.js'
+      - 'sw.js'
+      - '.github/workflows/sm306-dark-bloom-temporal.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sm306-dark-bloom-temporal-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  temporal:
+    name: soft-history stabilization + invalidation + GPU readback
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser validation dependency
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Validate deterministic temporal reference and contract
+        run: |
+          node --check engine/webgpu_dark_bloom_temporal.js
+          node tools/validate_webgpu_dark_bloom_temporal.js
+          python tools/validate_webgpu_dark_bloom_temporal_contract.py
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-306 WebGPU validation' >&2; exit 1; fi
+      - name: Validate temporal WGSL, slow-light stabilization and invalidation
+        run: python tools/validate_webgpu_dark_bloom_temporal_browser.py --require-webgpu --report artifacts/webgpu-dark-bloom-temporal-browser.json
+      - name: Upload SM-306 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm306-webgpu-dark-bloom-temporal-${{ github.run_id }}
+          path: |
+            artifacts/webgpu-dark-bloom-temporal-browser.json
+            artifacts/webgpu-dark-bloom-temporal-browser.png
+          if-no-files-found: warn
