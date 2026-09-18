@@ -13,16 +13,13 @@ def main():
     engine=text('engine/webgpu_lighting.js');runner=text('tools/run_checks.py');workflow=optional_text('.github/workflows/verification.yml');webapp=text('webapp.js');sw=text('sw.js');docs=text('docs/WEBGPU_LIGHTING_SM204.md');index=text('docs/INDEX.md');package=text('tools/validate_clean_package.py')
     for needle in ["SCHEMA='steelmoth-webgpu-lighting/v1'","const LIGHT_STRIDE=64","const MAX_LIGHTS=16","buildCanonicalLights","packLights","WebGPUDeferredLighting","D_GGX","G1(","fres(","'light-count'"]:
         need(engine,needle,'engine/webgpu_lighting.js',errors)
-    for needle in ['positionRadius:vec4f','colorIntensity:vec4f','directionInnerOuter:vec4f','meta:vec4u','@group(0) @binding(3) var<storage,read> lights:array<Light>']:
+    for needle in ['positionRadius:vec4f','colorIntensity:vec4f','directionInnerOuter:vec4f','info:vec4u','@group(0) @binding(3) var<storage,read> lights:array<Light>']:
         need(engine,needle,'canonical light buffer',errors)
     if 'DSO' in engine or 'GTAO' in engine or 'SSGI' in engine or 'volumetric' in engine.lower():errors.append('engine/webgpu_lighting.js: SM-204 must not implement downstream shadow/AO/GI/volumetric systems')
     for needle in ['emissive:2','lightRadius:2','playerOmniRadius:80','playerOmniIntensity:1.6','playerConeInnerAngle:30','playerConeOuterAngle:60']:
         need(engine,needle,'diagnostic preset',errors)
     for needle in ['js-webgpu-lighting','webgpu-lighting','validate_webgpu_lighting.js','validate_webgpu_lighting_contract.py']:
         need(runner,needle,'tools/run_checks.py',errors)
-    # .github is intentionally excluded from clean source packages. Validate the
-    # workflow when present in a checkout, but do not make package extraction
-    # depend on metadata the package contract deliberately omits.
     if workflow is not None:
         need(workflow,'validate_webgpu_lighting_browser.py --require-webgpu','workflow browser gate',errors);need(workflow,'webgpu-lighting-browser.json','workflow artifact',errors)
     need(webapp,"webgpu_lighting.js?v=sm204-1",'webapp staged load',errors);need(sw,"webgpu_lighting.js?v=sm204-1",'service-worker core',errors)
