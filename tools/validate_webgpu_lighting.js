@@ -59,9 +59,17 @@ const d=L.shadePixelReference(sample,lights,settings,center,'diffuse'),s=L.shade
 assert.ok(d.some(v=>v>0)&&s.some(v=>v>0)&&f.some(v=>v>0),'diffuse/specular/final debug references must be populated');
 close(lc[0],lights.length/L.MAX_LIGHTS,1e-8,'active light count debug value');
 
-// Material AO affects ambient only; zero direct lights make this exact and pin the v1.2.3 role separation.
-const dark=L.shadePixelReference(sample,[],settings,center,'final'),aoOff=L.shadePixelReference({...sample,heightMaterial:[.28,.35,0,.04]},[],{...settings,materialAOStrength:0},center,'final');
-for(let c=0;c<3;c++)close(dark[c],aoOff[c],2e-6,`AO disabled ambient parity channel ${c}`);
+// Material AO is ambient-only. Disabling material AO makes different source AO values
+// identical, while the direct debug terms are invariant to source AO even when AO is enabled.
+const aoDisabledSettings={...settings,materialAOStrength:0};
+const aoDisabledA=L.shadePixelReference(sample,[],aoDisabledSettings,center,'final');
+const aoDisabledB=L.shadePixelReference({...sample,heightMaterial:[.28,.35,0,.04]},[],aoDisabledSettings,center,'final');
+for(let c=0;c<3;c++)close(aoDisabledA[c],aoDisabledB[c],2e-6,`AO-disabled ambient parity channel ${c}`);
+const aoDirectA=L.shadePixelReference(sample,lights,settings,center,'diffuse');
+const aoDirectB=L.shadePixelReference({...sample,heightMaterial:[.28,.35,0,.04]},lights,settings,center,'diffuse');
+const aoSpecA=L.shadePixelReference(sample,lights,settings,center,'specular');
+const aoSpecB=L.shadePixelReference({...sample,heightMaterial:[.28,.35,0,.04]},lights,settings,center,'specular');
+for(let c=0;c<3;c++){close(aoDirectA[c],aoDirectB[c],2e-6,`AO-independent diffuse channel ${c}`);close(aoSpecA[c],aoSpecB[c],2e-6,`AO-independent specular channel ${c}`);}
 
 // The canonical light buffer is representation-only and never owns gameplay state.
 const gameplay={room:3,objective:'relay',player:[12,34]},before=JSON.stringify(gameplay);L.buildCanonicalLights(baseScene,settings);assert.strictEqual(JSON.stringify(gameplay),before);
