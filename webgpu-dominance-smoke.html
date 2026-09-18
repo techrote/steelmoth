@@ -1,0 +1,74 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-302 WebGPU dominant occluder smoke</title>
+<canvas id="dominanceDebug" width="384" height="220"></canvas>
+<pre id="webgpuDominanceResult"></pre>
+<script type="module">
+const result={schema:'steelmoth-webgpu-dominance-browser-smoke/v1',ok:false,checks:[],diagnostics:null,readback:null,timeline:[],debug:null,error:null};
+const check=(ok,label)=>{result.checks.push({ok:!!ok,label});if(!ok)throw new Error(label)};
+const publish=()=>{document.getElementById('webgpuDominanceResult').textContent=JSON.stringify(result);document.body.dataset.webgpuDominanceDone='1'};
+try{
+  if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+  const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw new Error('requestAdapter returned null');
+  const device=await adapter.requestDevice();
+  await import('./engine/webgpu_resources.js?v=sm103-1');
+  await import('./engine/webgpu_gbuffer.js?v=sm200-1');
+  await import('./engine/webgpu_occluders.js?v=sm300-1');
+  await import('./engine/webgpu_clusters.js?v=sm301-1');
+  await import('./engine/webgpu_lighting.js?v=sm204-1');
+  await import('./engine/webgpu_dominance.js?v=sm302-1');
+  const O=globalThis.SteelMothWebGPUOccluders,C=globalThis.SteelMothWebGPUClusters,D=globalThis.SteelMothWebGPUDominance;
+  check(!!D?.WebGPUDominantOccluders,'SM-302 API available');
+  check(D.RECORD_STRIDE===48,'dominance ABI pinned to 48 bytes');
+  const opts={tileSize:32,maxOccluders:32,maxPerTile:16,maxTileRefs:256};
+  const scene={frame:{roomId:'sm302-cardinal',logicalSize:[128,96]},occluders:[
+    {id:'bin:left',rect:[20,20,48,60],root:{x:34,y:60},kind:'machine',source:'bin',sections:[{z:22}]},
+    {id:'bin:middle',rect:[46,30,74,70],root:{x:60,y:70},kind:'machine',source:'bin',sections:[{z:24}]},
+    {id:'bin:right',rect:[72,5,100,45],root:{x:86,y:46},kind:'machine',source:'bin',sections:[{z:20}]}
+  ]};
+  const occ=O.buildOccluderSnapshot(scene,opts),clusters=C.buildClusterSnapshot(occ),ids=Object.fromEntries(scene.occluders.map(o=>[o.id,O.objectIdForOccluder(o)]));
+  check(clusters.clusters.length===1&&clusters.clusters[0].memberCount===3,'three-bin fixture is one stable SM-301 cluster');
+  const lights=[
+    {id:'light:right',position:[620,38,24],radius:1000,intensity:1,expected:ids['bin:right']},
+    {id:'light:down',position:[60,620,24],radius:1000,intensity:1,expected:ids['bin:middle']},
+    {id:'light:left',position:[-500,38,24],radius:1000,intensity:1,expected:ids['bin:left']},
+    {id:'light:up',position:[60,-500,24],radius:1000,intensity:1,expected:ids['bin:right']}
+  ];
+  const cardinal=D.buildDominanceSnapshot(clusters,occ,lights);
+  check(cardinal.records.length===4,'one owner record per relevant cardinal light');
+  for(const light of lights){const r=cardinal.records.find(x=>x.lightId===light.id);check(!!r,`${light.id} record exists`);check(r.ownerObjectId===light.expected,`${light.id} expected exposed owner selected`)}
+  check(cardinal.records.every(r=>r.memberScores.length===3),'all three members receive inspectable scores');
+  check(cardinal.records.every(r=>r.memberScores.every(s=>Number.isFinite(s.score)&&Number.isFinite(s.components.exposedSilhouette)&&Number.isFinite(s.components.frontDepth))),'score components are finite');
+  check(cardinal.diagnostics.singleOwnerPerClusterLight===true&&cardinal.diagnostics.allMembersFullShadow===false,'single-owner macro-shadow contract pinned');
+  const cluster=clusters.clusters[0],center=[(cluster.bounds[0]+cluster.bounds[2])/2,(cluster.bounds[1]+cluster.bounds[3])/2],polar=(id,deg,r=600)=>{const a=deg*Math.PI/180;return{id,position:[center[0]+Math.cos(a)*r,center[1]+Math.sin(a)*r,24],radius:1200,intensity:1}};
+  let history=new Map(),stableOwner=0;
+  for(const deg of [-2,-1,0,1,2]){const s=D.buildDominanceSnapshot(clusters,occ,[polar('light:sweep',deg)],history),r=s.records[0];if(!stableOwner)stableOwner=r.ownerObjectId;check(r.ownerObjectId===stableOwner,`owner stable at ${deg} degree perturbation`);result.timeline.push({phase:'stable',deg,owner:r.ownerObjectId,score:r.ownerScore,flags:r.flags});history=s.history}
+  const tieScene={frame:{roomId:'sm302-hysteresis',logicalSize:[128,80]},occluders:[
+    {id:'tie:left',rect:[20,20,50,60],root:{x:35,y:60},kind:'machine',source:'bin',sections:[{z:20}]},
+    {id:'tie:right',rect:[48,20,78,60],root:{x:63,y:60},kind:'machine',source:'bin',sections:[{z:20}]}
+  ]};
+  const tieOcc=O.buildOccluderSnapshot(tieScene,opts),tieClusters=C.buildClusterSnapshot(tieOcc),tc=tieClusters.clusters[0],cc=[(tc.bounds[0]+tc.bounds[2])/2,(tc.bounds[1]+tc.bounds[3])/2],tieLight=deg=>{const a=deg*Math.PI/180;return{id:'light:tie',position:[cc[0]+Math.cos(a)*500,cc[1]+Math.sin(a)*500,24],radius:1000,intensity:1}};
+  const first=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(270)]),firstOwner=first.records[0].ownerObjectId;let probe=null;
+  for(const deg of [268,272,267,273]){const raw=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(deg)]);if(raw.records[0].ownerObjectId!==firstOwner){probe={deg,raw};break}}
+  check(!!probe,'small-angle raw challenger exists in symmetric fixture');
+  const held=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(probe.deg)],first.history),hr=held.records[0];
+  check(hr.ownerObjectId===firstOwner,'hysteresis retains previous owner for small challenger advantage');
+  check(!!(hr.flags&D.FLAGS.HYSTERESIS_HELD),'hysteresis-held flag set');
+  check(hr.challengerDelta>0&&hr.challengerDelta<=hr.hysteresisThreshold,'held challenger delta is below explicit threshold');
+  const farDeg=probe.deg<270?180:0,switched=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(farDeg)],held.history),sr=switched.records[0];
+  check(sr.ownerObjectId!==firstOwner,'decisive moving-light change switches owner');
+  check(!!(sr.flags&D.FLAGS.SWITCHED),'switch flag set after decisive score change');
+  check(sr.challengerDelta>sr.hysteresisThreshold,'switch requires challenger to exceed threshold');
+  result.timeline.push({phase:'tie',deg:270,owner:firstOwner},{phase:'held',deg:probe.deg,owner:hr.ownerObjectId,challenger:hr.challengerObjectId,delta:hr.challengerDelta,threshold:hr.hysteresisThreshold},{phase:'switched',deg:farDeg,owner:sr.ownerObjectId,delta:sr.challengerDelta,threshold:sr.hysteresisThreshold});
+  const gpuPath=new D.WebGPUDominantOccluders({device,maxDominanceRecords:64});
+  await gpuPath.update(clusters,occ,lights);let diag=gpuPath.diagnostics();check(diag.valid&&diag.snapshot.dominanceRecordCount===4,'persistent GPU dominance path accepted four cardinal records');
+  const gpu=await gpuPath.readback(),dv=new DataView(gpu.buffer,gpu.byteOffset,gpu.byteLength);check(dv.getUint32(0,true)===cardinal.records[0].clusterId,'GPU readback cluster ID matches CPU reference');check(dv.getUint32(8,true)===cardinal.records[0].ownerObjectId,'GPU readback owner ID matches CPU reference');
+  const initialUploads=diag.uploadCount;await gpuPath.update(clusters,occ,lights);diag=gpuPath.diagnostics();check(diag.uploadCount===initialUploads+1,'first history-bearing update uploads changed temporal metadata');const settledUploads=diag.uploadCount;await gpuPath.update(clusters,occ,lights);diag=gpuPath.diagnostics();check(diag.uploadCount===settledUploads,'settled identical owner/score/history state avoids redundant GPU upload');
+  gpuPath.invalidate('editor-change');let stale=false;try{gpuPath.bindings()}catch(_e){stale=true}check(stale,'editor invalidation rejects stale dominance bindings');
+  const roomScene={frame:{roomId:'sm302-room-b',logicalSize:[128,96]},occluders:[{id:'room:b',rect:[20,20,60,60],root:{x:40,y:60},kind:'machine',majorOccluder:true,sections:[{z:16}]}]},roomOcc=O.buildOccluderSnapshot(roomScene,opts),roomClusters=C.buildClusterSnapshot(roomOcc);await gpuPath.update(roomClusters,roomOcc,[{id:'light:room',position:[0,40,20],radius:500,intensity:1}]);diag=gpuPath.diagnostics();check(diag.roomId==='sm302-room-b'&&diag.historySize===1,'room change clears old hysteresis history and establishes only current owner');
+  const irrelevant=D.buildDominanceSnapshot(clusters,occ,[{id:'far',position:[5000,5000,24],radius:10,intensity:1}]);check(irrelevant.records.length===0&&irrelevant.diagnostics.irrelevantLightCount===1,'irrelevant light is culled before dominance record creation');
+  const debug=D.debugDominanceOverlay(cardinal);check(debug.length===4&&debug.every(r=>r.scores.length===3),'debug overlay exposes owner and per-member scores');result.debug=debug;
+  const ctx=document.getElementById('dominanceDebug').getContext('2d');ctx.clearRect(0,0,384,220);ctx.font='12px monospace';ctx.strokeStyle='#fff';ctx.fillStyle='#fff';const b=cluster.bounds;ctx.strokeRect(b[0]*2,b[1]*2,(b[2]-b[0])*2,(b[3]-b[1])*2);let y=132;for(const row of debug){ctx.fillText(`${row.lightId} owner=${row.ownerObjectId} score=${row.ownerScore.toFixed(3)} margin=${row.ownerMargin.toFixed(3)}`,8,y);y+=18}ctx.fillText(`held Δ=${hr.challengerDelta.toFixed(4)} ≤ ${hr.hysteresisThreshold.toFixed(4)}`,8,y);y+=18;ctx.fillText(`switch Δ=${sr.challengerDelta.toFixed(4)} > ${sr.hysteresisThreshold.toFixed(4)}`,8,y);
+  result.diagnostics=diag;result.readback={bytes:gpu.byteLength,firstClusterId:dv.getUint32(0,true),firstOwnerObjectId:dv.getUint32(8,true),cardinalOwners:Object.fromEntries(cardinal.records.map(r=>[r.lightId,r.ownerObjectId])),held:{delta:hr.challengerDelta,threshold:hr.hysteresisThreshold},switched:{delta:sr.challengerDelta,threshold:sr.hysteresisThreshold}};result.ok=true;gpuPath.close();
+}catch(error){result.error=String(error?.stack||error)}finally{publish()}
+</script>
