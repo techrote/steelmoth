@@ -72,7 +72,7 @@
   }
 
   const WGSL=`
-struct Instance { rootSize:vec4f, profile:vec4f, meta:vec4f, base:vec4f, ids:vec4u };
+struct Instance { rootSize:vec4f, profile:vec4f, aux:vec4f, base:vec4f, ids:vec4u };
 struct Output { color:vec4f, state:vec4f, ids:vec4u };
 struct Light { posRadius:vec4f,colorIntensity:vec4f,directionCone:vec4f,kindFlags:vec4f };
 struct Params { sizeCount:vec4u, timeWind:vec4f, shadeAmbient:vec4f, debugQuality:vec4u };
@@ -85,7 +85,7 @@ struct Params { sizeCount:vec4u, timeWind:vec4f, shadeAmbient:vec4f, debugQualit
 fn sat(x:f32)->f32{return clamp(x,0.0,1.0);}
 fn lightEnergy(i:Instance,p:vec2f,z:f32)->f32{var e=0.0;if(params.debugQuality.x==0u){return 0.0;}for(var k=0u;k<params.sizeCount.w;k++){let lp=lights[k].posRadius.xyz;let Ld=vec3f(lp.x-p.x,-(lp.y-p.y),lp.z-z);let d=length(vec2f(Ld.x,Ld.y));let r=max(lights[k].posRadius.w,1.0);if(d>r){continue;}let L=normalize(Ld);let wind=sin((i.rootSize.x*.88+i.rootSize.y*.26)/216.0*6.2831853+params.timeWind.x*(.34+.34*params.timeWind.z))*params.timeWind.y;let bend=wind*i.profile.x*params.shadeAmbient.x*2.1;let nx=clamp(-bend*.055,-.65,.65);let nz=sqrt(max(.001,1.0-nx*nx));let ndl=max(0.0,nx*L.x+nz*L.z);let lum=dot(lights[k].colorIntensity.rgb,vec3f(.2126,.7152,.0722));let a=exp(-2.3*(d/r)*(d/r));e+=lum*lights[k].colorIntensity.w*a*(.26+.74*ndl);}return e;}
 @compute @workgroup_size(64)
-fn main(@builtin(global_invocation_id) gid:vec3u){let idx=gid.x;if(idx>=params.sizeCount.z){return;}let i=instances[idx];let px=clamp(i32(round(i.rootSize.x)),0,i32(params.sizeCount.x)-1);let py=clamp(i32(round(i.rootSize.y)),0,i32(params.sizeCount.y)-1);let v=textureLoad(visibilityTex,vec2i(px,py),0);let dep=textureLoad(depthTex,vec2i(px,py),0);let directVis=sat(v.y);let ambientVis=sat(v.z);let direct=lightEnergy(i,i.rootSize.xy,i.rootSize.w*.18);let illum=select(1.0,clamp(params.shadeAmbient.y*ambientVis+direct*directVis*params.timeWind.w,0.0,2.0),params.debugQuality.x!=0u);let wind=sin((i.rootSize.x*.88+i.rootSize.y*.26)/216.0*6.2831853+params.timeWind.x*(.34+.34*params.timeWind.z))*params.timeWind.y;let bend=wind*i.profile.x*params.shadeAmbient.x*2.1;output[idx].color=vec4f(i.base.rgb*illum,i.base.a);output[idx].state=vec4f(illum,directVis,ambientVis,dep);output[idx].ids=vec4u(i.ids.x,i.ids.y,bitcast<u32>(bend),bitcast<u32>(i.meta.y));}
+fn main(@builtin(global_invocation_id) gid:vec3u){let idx=gid.x;if(idx>=params.sizeCount.z){return;}let i=instances[idx];let px=clamp(i32(round(i.rootSize.x)),0,i32(params.sizeCount.x)-1);let py=clamp(i32(round(i.rootSize.y)),0,i32(params.sizeCount.y)-1);let v=textureLoad(visibilityTex,vec2i(px,py),0);let dep=textureLoad(depthTex,vec2i(px,py),0);let directVis=sat(v.y);let ambientVis=sat(v.z);let direct=lightEnergy(i,i.rootSize.xy,i.rootSize.w*.18);let illum=select(1.0,clamp(params.shadeAmbient.y*ambientVis+direct*directVis*params.timeWind.w,0.0,2.0),params.debugQuality.x!=0u);let wind=sin((i.rootSize.x*.88+i.rootSize.y*.26)/216.0*6.2831853+params.timeWind.x*(.34+.34*params.timeWind.z))*params.timeWind.y;let bend=wind*i.profile.x*params.shadeAmbient.x*2.1;output[idx].color=vec4f(i.base.rgb*illum,i.base.a);output[idx].state=vec4f(illum,directVis,ambientVis,dep);output[idx].ids=vec4u(i.ids.x,i.ids.y,bitcast<u32>(bend),bitcast<u32>(i.aux.y));}
 `;
 
   class WebGPUFoliagePass{
