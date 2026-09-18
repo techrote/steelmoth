@@ -28,16 +28,18 @@
   globalThis.steelMothRenderSceneReady = renderSceneReady;
   globalThis.steelMothRenderTransformBaseline = renderTransformBaseline;
 
-  // SM-102/SM-103 platform and persistent-resource lifecycle. Auto intentionally
-  // remains WebGL2 until SM-505; explicit WebGPU initializes only the future
-  // backend's device/context/resource substrate while WebGL2 keeps presentation.
+  // SM-102/SM-103 platform/resource lifecycle plus the SM-200 production
+  // Material-v2 G-buffer module. Auto intentionally remains WebGL2 until SM-505;
+  // loading the G-buffer here makes its production layouts/shaders available to
+  // the staged WebGPU path without changing the presentation backend.
   const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
     .then(() => import('./engine/webgpu_resources.js?v=sm103-1'))
+    .then(() => import('./engine/webgpu_gbuffer.js?v=sm200-1'))
     .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
-      console.warn('WebGPU platform/resource lifecycle unavailable; continuing with WebGL2.', err);
+      console.warn('WebGPU platform/resource/G-buffer lifecycle unavailable; continuing with WebGL2.', err);
       return null;
     });
   globalThis.steelMothBackendReady = backendReady;
