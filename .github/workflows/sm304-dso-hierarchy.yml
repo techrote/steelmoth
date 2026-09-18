@@ -1,0 +1,62 @@
+name: SM-304 WebGPU DSO hierarchy
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_dso_hierarchy.js'
+      - 'engine/webgpu_dso.js'
+      - 'webgpu-dso-hierarchy-smoke.html'
+      - 'tools/validate_webgpu_dso_hierarchy*'
+      - 'tools/run_checks.py'
+      - 'tools/validate_clean_package.py'
+      - 'docs/WEBGPU_DSO_HIERARCHY_SM304.md'
+      - 'docs/LIGHTING_FIDELITY_ROADMAP.md'
+      - 'docs/WEBGPU_VALIDATION_PLAN.md'
+      - 'webapp.js'
+      - 'sw.js'
+      - '.github/workflows/sm304-dso-hierarchy.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sm304-dso-hierarchy-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  hierarchy:
+    name: projected-throw hierarchy + compact tile traversal + GPU readback
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser validation dependency
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Validate deterministic hierarchy, structural metrics and contract
+        run: |
+          node --check engine/webgpu_dso_hierarchy.js
+          node tools/validate_webgpu_dso_hierarchy.js
+          python tools/validate_webgpu_dso_hierarchy_contract.py
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-304 WebGPU validation' >&2; exit 1; fi
+      - name: Validate projected-throw hierarchy WGSL, exact readback and tile clearing
+        run: python tools/validate_webgpu_dso_hierarchy_browser.py --require-webgpu --report artifacts/webgpu-dso-hierarchy-browser.json
+      - name: Upload SM-304 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm304-webgpu-dso-hierarchy-${{ github.run_id }}
+          path: |
+            artifacts/webgpu-dso-hierarchy-browser.json
+            artifacts/webgpu-dso-hierarchy-browser.png
+          if-no-files-found: warn
