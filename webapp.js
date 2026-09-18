@@ -36,7 +36,8 @@
   // depth-aware Dark Bloom, SM-306 low-frequency soft-history stabilization,
   // SM-307 bounded DSO/self/contact/Bloom/AO visibility composition, SM-400
   // canonical-light/depth/visibility water staging, SM-401 rooted foliage /
-  // Fine Grass staging, and SM-402 explicit transparent/procedural/post ordering.
+  // Fine Grass staging, SM-402 explicit transparent/procedural/post ordering,
+  // and SM-403 editor invalidation against the same production render state.
   // Auto remains WebGL2 until SM-505; staged WebGPU modules do not change presentation.
   const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
     .then(() => import('./engine/webgpu_resources.js?v=sm103-1'))
@@ -59,11 +60,13 @@
     .then(() => import('./engine/webgpu_water.js?v=sm400-1'))
     .then(() => import('./engine/webgpu_foliage.js?v=sm401-1'))
     .then(() => import('./engine/webgpu_ordering.js?v=sm402-1'))
+    .then(() => import('./engine/webgpu_editor_state.js?v=sm403-1'))
+    .then(() => globalThis.SteelMothWebGPUEditorState?.installWhenEditorAvailable?.(globalThis) || null)
     .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
-      console.warn('WebGPU staged renderer lifecycle through post/occluder/cluster/dominance/DSO hierarchy/Dark Bloom/temporal/bounded visibility/canonical water/foliage/ordering preparation unavailable; continuing with WebGL2.', err);
+      console.warn('WebGPU staged renderer lifecycle through post/occluder/cluster/dominance/DSO hierarchy/Dark Bloom/temporal/bounded visibility/canonical water/foliage/ordering/editor-state preparation unavailable; continuing with WebGL2.', err);
       return null;
     });
   globalThis.steelMothBackendReady = backendReady;
