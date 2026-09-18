@@ -27,15 +27,16 @@ Roots stay locked through the existing `RootedDeformation.weight` contract. Wind
 
 ## Occlusion classification
 
-SM-401 makes the planned cost boundary explicit and bounded:
+SM-401 makes the planned cost boundary explicit and bounded. The size thresholds use the generated foliage instance's world-space height after atlas/world-scale conversion, so they are intentionally much smaller than source-sprite pixel heights:
 
 | vegetation | classification | receiver | contact | macro DSO |
 | --- | --- | ---: | ---: | ---: |
-| ground moss / Fine Grass / height < 14 px | receiver-only | yes | no | no |
-| fern / flower / height < 28 px | contact-receiver | yes | yes | no |
-| substantial bush / broad leaf >= 28 px | macro-eligible | yes | yes | yes |
+| ground moss / Fine Grass / any generated height < 5 world px | receiver-only | yes | no | no |
+| fern / flower cluster | contact-receiver | yes | yes | no |
+| bush >= 8 world px / broad leaf >= 10 world px | macro-eligible | yes | yes | yes |
+| smaller bush / broad leaf | contact-receiver | yes | yes | no |
 
-This avoids per-blade DSO simulation. Tiny grass is receiver-only. Medium foliage may participate in local contact/AO-style visibility. Only substantial foliage is eligible to become a macro occluder.
+This avoids per-blade DSO simulation. Fine Grass stays receiver-only regardless of generated height. Medium foliage may participate in local contact/AO-style visibility. Only substantial bush/broad-leaf instances are eligible to become macro occluders.
 
 ## Root/depth semantics
 
