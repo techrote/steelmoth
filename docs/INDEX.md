@@ -25,6 +25,7 @@ Do not silently promote a historical suggestion into a requirement.
 - [`ROOT_FOOT_CONVENTION.md`](ROOT_FOOT_CONVENTION.md) — SM-101 canonical sprite root/foot/placement API, compatibility rules, editor/shadow/backend integration and downstream contract.
 - [`WEBGPU_DEVICE_LIFECYCLE.md`](WEBGPU_DEVICE_LIFECYCLE.md) — SM-102 adapter/device/context lifecycle, staged backend selection, diagnostics, loss/error handling and WebGL2 fallback contract.
 - [`WEBGPU_RESOURCE_INFRASTRUCTURE.md`](WEBGPU_RESOURCE_INFRASTRUCTURE.md) — SM-103 persistent resource registry, bounded upload arenas, explicit frame graph, pipeline cache, invalidation and diagnostics contract.
+- [`WEBGPU_API_VALIDATION.md`](WEBGPU_API_VALIDATION.md) — SM-104 executable WGSL/pipeline/resource/failure-path inventory, report schemas and evidence boundaries.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
@@ -37,7 +38,7 @@ Do not silently promote a historical suggestion into a requirement.
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
-- `.github/workflows/verification.yml` — hosted source/regression, WebGPU lifecycle/resource smoke, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
+- `.github/workflows/verification.yml` — hosted source/regression, required real-WebGPU WGSL/pipeline/resource/failure validation, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
 - `tools/run_checks.py` — stable cross-platform verification runner and failure-report contract.
 - `tools/validate_clean_package.py` — fresh ZIP/extraction/integrity validation.
 - `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented implementation PR contract.
@@ -67,7 +68,9 @@ SM-100 introduced the first backend-neutral renderer boundary through typed Rend
 
 SM-102 adds the production WebGPU platform lifecycle boundary without claiming a WebGPU game renderer already exists. Explicit migration selection can acquire/inventory an adapter and device, negotiate exposed optional features, configure/reconfigure a dedicated WebGPU context, collect asynchronous errors/loss diagnostics, and fall back safely. Normal `Auto` remains WebGL2 and does not request an adapter until SM-505 authorizes promotion. During this device-only stage a successful explicit WebGPU selection still presents the game through the accepted WebGL2 compatibility renderer.
 
-SM-103 layers deterministic persistent GPU ownership on that lifecycle: named texture/buffer definitions survive ordinary frames, only surface-dependent resources rebuild on resize, backend reset rebuilds definitions on the replacement device, static uploads and bounded dynamic arenas are separate, pass order is explicit, and pipeline/resource diagnostics are inspectable. This remains infrastructure only; production WGSL and G-buffer/material passes begin in SM-104/SM-200.
+SM-103 layers deterministic persistent GPU ownership on that lifecycle: named texture/buffer definitions survive ordinary frames, only surface-dependent resources rebuild on resize, backend reset rebuilds definitions on the replacement device, static uploads and bounded dynamic arenas are separate, pass order is explicit, and pipeline/resource diagnostics are inspectable.
+
+SM-104 makes that WebGPU platform independently falsifiable. The current production validation inventory compiles WGSL with compilation-info collection, creates and executes real render/compute pipelines under validation scopes, creates core/fallback descriptors, exercises `copyExternalImageToTexture`, validates optional-feature absence, deliberately captures an invalid descriptor, and forces both initialization failure and device loss back to WebGL2 without mutating gameplay-authoritative sentinel state. The inventory is deliberately small before SM-200; every later production shader/resource issue must extend it rather than treating SM-104 as a one-time gate.
 
 The root/foot problem is therefore separated from the still-open ownership-depth problem. SM-201 remains responsible for deriving light-independent fragment depth from the shared root plus local material height/layer semantics, and SM-202 remains responsible for per-pixel depth/object ownership.
 
