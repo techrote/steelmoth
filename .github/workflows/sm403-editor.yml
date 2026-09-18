@@ -65,7 +65,7 @@ jobs:
           caps={c.get('id'):c for c in report.get('captures',[])}
           if not {'before-move','after-move','after-reload'} <= set(caps):raise SystemExit('SM-403 browser FAIL: capture sequence incomplete')
           if caps['before-move']['identity']['decor'][1]['authorId']!=caps['after-move']['identity']['decor'][1]['authorId']:raise SystemExit('SM-403 browser FAIL: move changed author identity')
-          if caps['before-move']['identity']['hash']!=caps['after-reload']['identity']['hash']:raise SystemExit('SM-403 browser FAIL: save/reload identity mismatch')
+          if caps['after-move']['identity']['hash']!=caps['after-reload']['identity']['hash']:raise SystemExit('SM-403 browser FAIL: save/reload identity mismatch')
           Path('artifacts/webgpu-editor-browser.json').write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
           print(f"SM-403 WEBGPU EDITOR PASS: {len(checks)} assertions, revision={(report.get('diagnostics') or {}).get('revision')}")
           PY
