@@ -11,6 +11,7 @@ src=read('engine/webgpu_visibility.js')
 web=read('webapp.js')
 sw=read('sw.js')
 doc=read('docs/WEBGPU_VISIBILITY_SM307.md')
+doc_plain=doc.replace('**','').replace('`','')
 arch=read('docs/WEBGPU_ARCHITECTURE.md')
 smoke=read('webgpu-visibility-smoke.html')
 workflow=read('.github/workflows/sm307-visibility.yml') if (ROOT/'.github/workflows/sm307-visibility.yml').exists() else ''
@@ -28,7 +29,7 @@ require('sourceFromPaths' in src and 'SM-205 WebGPULocalShadows' in src and 'SM-
 require("textureLoad(materialTex,p,0).z" in src,'Material-v2 G2 material AO channel not consumed')
 require('textureStore(visibilityOut' in src and 'textureStore(debugOut' in src,'visibility/debug GPU outputs missing')
 for phrase in ('0 = occluded','1 = visible','not multiplied independently','term toggles','hardCoreFloor','reserved GTAO interface','does not generate GTAO','Hosted CI'):
-    require(phrase.lower() in doc.lower(),f'documentation missing contract phrase: {phrase}')
+    require(phrase.lower() in doc_plain.lower(),f'documentation missing contract phrase: {phrase}')
 require('bounded visibility/occlusion' in arch.lower() and 'blindly multiplying' in arch.lower(),'canonical architecture no longer states bounded-composition rule')
 require('webgpuVisibilityDone' in smoke and 'toggle-matrix' in smoke and 'debug-matrix' in smoke and 'moving-light-a' in smoke and 'moving-light-b' in smoke and 'gtao-reserved' in smoke,'real-browser evidence matrix incomplete')
 require("webgpu_visibility.js?v=sm307-1" in web,'webapp does not stage SM-307 visibility module')
