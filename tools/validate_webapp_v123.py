@@ -30,10 +30,15 @@ assert "localPreview = location.hostname === 'localhost' || location.hostname ==
 assert "k.startsWith('small-machine-web-')" in web and 'clearLocalPreviewCaches' in web
 for token in ['engine/game.js?v=1.2.3','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3']:
     assert token in h, token
-for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','webgpu_validation.js?v=sm104-1','webgpu_gbuffer.js?v=sm200-1','backend_runtime.js?v=sm102-1']:
+# Runtime modules must be loaded by the app and included in the offline core.
+for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','webgpu_gbuffer.js?v=sm200-1','backend_runtime.js?v=sm102-1']:
     assert token in web and token in sw, token
+# SM-104's validation module is intentionally test-only: existence and its smoke
+# entrypoint are required, but normal gameplay/offline bootstrap must not load it.
+assert (ROOT/'engine/webgpu_validation.js').is_file()
+assert (ROOT/'webgpu-validation-smoke.html').is_file()
 story=json.loads((ROOT/'game_data/story.json').read_text()); maps=json.loads((ROOT/'game_data/maps.json').read_text())
 assert len(story['rooms'])==9 and len(maps['rooms'])==9 and sum(len(r.get('objects',[])) for r in story['rooms'])==27
 assert dm.get('server_side_runtime_required') is False
 assert dm.get('player_cone_occlusion_rays_quality3')==193 and dm.get('player_omni_occlusion_rays_quality3')==257
-print('WEBAPP V1.2.3 PASS: version/cache closure, 9 rooms/27 objectives, Material-v2 assets, SM-101 transforms, SM-102/103/104 platform modules and SM-200 G-buffer present, 193/257-ray visibility profile declared')
+print('WEBAPP V1.2.3 PASS: version/cache closure, 9 rooms/27 objectives, Material-v2 assets, SM-101 transforms, SM-102/103 runtime platform modules, SM-104 validation assets and SM-200 G-buffer present, 193/257-ray visibility profile declared')
