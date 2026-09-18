@@ -91,7 +91,7 @@ struct VSOut {
 @vertex fn vs_main(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->VSOut{
   let corners=array<vec2f,6>(vec2f(-.5,-.5),vec2f(.5,-.5),vec2f(-.5,.5),vec2f(-.5,.5),vec2f(.5,-.5),vec2f(.5,.5));
   let uvs=array<vec2f,6>(vec2f(0,0),vec2f(1,0),vec2f(0,1),vec2f(0,1),vec2f(1,0),vec2f(1,1));
-  let inst=instances[ii];let c=corners[vi];let co=cos(inst.material.x);let si=sin(inst.material.x);let p=vec2f(c.x*inst.rect.z,c.y*inst.rect.w);p=vec2f(p.x*co-p.y*si,p.x*si+p.y*co)+inst.rect.xy;
+  let inst=instances[ii];let c=corners[vi];let co=cos(inst.material.x);let si=sin(inst.material.x);var p=vec2f(c.x*inst.rect.z,c.y*inst.rect.w);p=vec2f(p.x*co-p.y*si,p.x*si+p.y*co)+inst.rect.xy;
   var q=uvs[vi];if((inst.ids.y&1u)!=0u){q.x=1.0-q.x;}var out:VSOut;out.position=vec4f(p.x/frame.logicalAtlas.x*2.0-1.0,1.0-p.y/frame.logicalAtlas.y*2.0,0.0,1.0);out.uv=mix(inst.uv.xy,inst.uv.zw,q);out.tintAlpha=inst.tintAlpha;out.material=inst.material;out.objectId=inst.ids.x;out.flags=inst.ids.y;return out;
 }
 struct FSOut { @location(0) g0:vec4f,@location(1) g1:vec4f,@location(2) g2:vec4f,@location(3) objectId:u32 };
