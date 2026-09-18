@@ -57,7 +57,7 @@ fn cs_main() {
   const RESOURCE_LAYOUTS=Object.freeze([
     Object.freeze({id:'preferred-render-target',kind:'texture',profile:'core',format:'preferred-canvas',size:[8,8,1],usage:['RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC']}),
     Object.freeze({id:'rgba8-render-target',kind:'texture',profile:'fallback',format:'rgba8unorm',size:[8,8,1],usage:['RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC']}),
-    Object.freeze({id:'atlas-upload-target',kind:'texture',profile:'core',format:'rgba8unorm',size:[2,2,1],usage:['COPY_DST','TEXTURE_BINDING']}),
+    Object.freeze({id:'atlas-upload-target',kind:'texture',profile:'core',format:'rgba8unorm',size:[2,2,1],usage:['COPY_DST','TEXTURE_BINDING','RENDER_ATTACHMENT']}),
     Object.freeze({id:'frame-uniforms',kind:'buffer',profile:'core',size:256,usage:['UNIFORM','COPY_DST']}),
     Object.freeze({id:'instance-storage',kind:'buffer',profile:'core',size:1024,usage:['STORAGE','COPY_DST','COPY_SRC']})
   ]);
@@ -129,7 +129,7 @@ fn cs_main() {
     }
     async validateAtlasUpload(source){
       if(!source)throw new Error('atlas upload validation requires an external image source');if(!this.queue||typeof this.queue.copyExternalImageToTexture!=='function')throw new Error('GPUQueue.copyExternalImageToTexture unavailable');
-      const descriptor={label:this._label('atlas-upload-texture'),size:{width:2,height:2,depthOrArrayLayers:1},format:'rgba8unorm',usage:textureUsage(['COPY_DST','TEXTURE_BINDING'])};const texture=await this._scope('atlas upload texture',()=>this.device.createTexture(descriptor));this.created.push(texture);
+      const descriptor={label:this._label('atlas-upload-texture'),size:{width:2,height:2,depthOrArrayLayers:1},format:'rgba8unorm',usage:textureUsage(['COPY_DST','TEXTURE_BINDING','RENDER_ATTACHMENT'])};const texture=await this._scope('atlas upload texture',()=>this.device.createTexture(descriptor));this.created.push(texture);
       await this._scope('atlas copyExternalImageToTexture',()=>{this.queue.copyExternalImageToTexture({source},{texture,origin:{x:0,y:0,z:0}},{width:2,height:2,depthOrArrayLayers:1})});
       if(typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();return {ok:true,format:descriptor.format,size:[2,2,1],usage:descriptor.usage,sourceType:String(source?.constructor?.name||typeof source)};
     }
