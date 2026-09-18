@@ -16,9 +16,9 @@
   const finite=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-  // SM-201 reference model only. Production depth writes remain owned by SM-202.
-  // Larger visibilityKey means closer/more foreground. WebGPU depth01 reverses that
-  // ordering so a conventional `less` comparison can be used downstream.
+  // SM-201 canonical reference model. SM-202 mechanically adopts these constants
+  // and this projection in engine/webgpu_ownership.js. Larger visibilityKey means
+  // closer/more foreground; WebGPU depth01 reverses that ordering for `less`.
   function worldZFromLocalHeight(localHeight){
     return clamp(finite(localHeight,0),0,1)*MAX_WORLD_Z;
   }
@@ -58,7 +58,7 @@
     return ka>kb?1:-1;
   }
 
-  function diagnostics(){return{schema:SCHEMA,maxWorldZ:MAX_WORLD_Z,zToScreenY:Z_TO_SCREEN_Y,layerStride:LAYER_STRIDE,depthKeyRange:[DEPTH_KEY_MIN,DEPTH_KEY_MAX],categoryLayer:{...CATEGORY_LAYER},alphaCutoff:DEFAULT_ALPHA_CUTOFF,productionDepthWrites:false,productionOwner:'SM-202'};}
+  function diagnostics(){return{schema:SCHEMA,maxWorldZ:MAX_WORLD_Z,zToScreenY:Z_TO_SCREEN_Y,layerStride:LAYER_STRIDE,depthKeyRange:[DEPTH_KEY_MIN,DEPTH_KEY_MAX],categoryLayer:{...CATEGORY_LAYER},alphaCutoff:DEFAULT_ALPHA_CUTOFF,productionDepthWrites:true,productionOwner:'SM-202',productionModule:'engine/webgpu_ownership.js'};}
 
   return{SCHEMA,MAX_WORLD_Z,Z_TO_SCREEN_Y,LAYER_STRIDE,DEPTH_KEY_MIN,DEPTH_KEY_MAX,DEFAULT_ALPHA_CUTOFF,CATEGORY_LAYER,worldZFromLocalHeight,layerFor,sampleU,fragmentScreenPosition,projectFragment,projectSpriteFragment,compare,diagnostics};
 });
