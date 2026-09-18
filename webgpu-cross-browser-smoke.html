@@ -1,0 +1,137 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-405 cross-browser WebGPU probe</title>
+<canvas id="gpuCanvas" width="8" height="8" style="width:64px;height:64px;image-rendering:pixelated"></canvas>
+<canvas id="glCanvas" width="8" height="8" style="display:none"></canvas>
+<pre id="status">Running SM-405 cross-browser WebGPU probe…</pre>
+<script id="webgpuCrossBrowserResult" type="application/json">{"schema":"steelmoth-sm405-browser-probe/v1","ok":false,"status":"pending"}</script>
+<script src="engine/webgpu_device.js?v=sm405-1"></script>
+<script>
+(async()=>{
+  const result={
+    schema:'steelmoth-sm405-browser-probe/v1',
+    ok:false,
+    browser:navigator.userAgent,
+    platform:navigator.platform||null,
+    secureContext:isSecureContext,
+    webgpu:{available:!!navigator.gpu},
+    webgl2:{available:false},
+    autoPolicy:null,
+    checks:[]
+  };
+  const check=(id,ok,details={})=>{result.checks.push({id,ok:!!ok,...details});if(!ok)throw new Error(`SM-405 check failed: ${id}`)};
+  const bounded=async(promise,ms,label)=>{
+    let timer;
+    const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(`${label} timed out after ${ms} ms`)),ms)});
+    try{return await Promise.race([promise,timeout])}finally{clearTimeout(timer)}
+  };
+  const publish=()=>{
+    const json=JSON.stringify(result);
+    document.getElementById('status').textContent=json;
+    document.getElementById('webgpuCrossBrowserResult').textContent=json;
+    document.body.dataset.webgpuCrossBrowserDone='1';
+  };
+  try{
+    const Device=globalThis.SteelMothWebGPUDevice;
+    check('production-device-api-loaded',!!Device);
+    result.autoPolicy=Device.resolveBackendPolicy('auto');
+    check('auto-remains-webgl2-before-sm505',result.autoPolicy.selected==='webgl2'&&Device.AUTO_WEBGPU_ENABLED===false,{selected:result.autoPolicy.selected});
+    result.webgl2.available=!!document.getElementById('glCanvas').getContext('webgl2',{antialias:false});
+    check('webgl2-fallback-context',result.webgl2.available);
+    check('navigator-gpu-present',!!navigator.gpu);
+    const adapter=await bounded(navigator.gpu.requestAdapter({powerPreference:'high-performance'}),10000,'requestAdapter');
+    check('adapter-acquired',!!adapter);
+    const adapterInfo=adapter.info||{};
+    result.webgpu.adapter={
+      vendor:String(adapterInfo.vendor||''),
+      architecture:String(adapterInfo.architecture||''),
+      device:String(adapterInfo.device||''),
+      description:String(adapterInfo.description||''),
+      features:[...adapter.features].sort(),
+      limits:{
+        maxTextureDimension2D:Number(adapter.limits.maxTextureDimension2D||0),
+        maxBindGroups:Number(adapter.limits.maxBindGroups||0),
+        maxBufferSize:Number(adapter.limits.maxBufferSize||0)
+      }
+    };
+    const device=await bounded(adapter.requestDevice(),10000,'requestDevice');
+    check('device-acquired',!!device);
+    result.webgpu.deviceFeatures=[...device.features].sort();
+
+    const shader=device.createShaderModule({label:'SM405 cross-browser compute',code:`
+      @group(0) @binding(0) var<storage, read_write> values: array<u32, 4>;
+      @compute @workgroup_size(1)
+      fn main() {
+        values[0] = values[0] + 40u;
+        values[1] = values[1] + 40u;
+        values[2] = values[2] + 40u;
+        values[3] = values[3] + 40u;
+      }`});
+    const compilation=await shader.getCompilationInfo();
+    const errors=[...compilation.messages].filter(m=>m.type==='error');
+    result.webgpu.compilationMessages=[...compilation.messages].map(m=>({type:m.type,message:m.message,lineNum:m.lineNum,linePos:m.linePos}));
+    check('wgsl-compiles',errors.length===0,{errorCount:errors.length});
+
+    const pipeline=await device.createComputePipelineAsync({
+      label:'SM405 cross-browser compute pipeline',
+      layout:'auto',
+      compute:{module:shader,entryPoint:'main'}
+    });
+    const source=device.createBuffer({label:'SM405 source',size:16,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_DST|GPUBufferUsage.COPY_SRC});
+    const readback=device.createBuffer({label:'SM405 readback',size:16,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+    device.queue.writeBuffer(source,0,new Uint32Array([1,2,3,4]));
+    const bindGroup=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:source}}]});
+    const encoder=device.createCommandEncoder({label:'SM405 compute encoder'});
+    const pass=encoder.beginComputePass({label:'SM405 compute pass'});
+    pass.setPipeline(pipeline);pass.setBindGroup(0,bindGroup);pass.dispatchWorkgroups(1);pass.end();
+    encoder.copyBufferToBuffer(source,0,readback,0,16);
+    device.queue.submit([encoder.finish()]);
+    await bounded(device.queue.onSubmittedWorkDone(),10000,'queue completion');
+    await bounded(readback.mapAsync(GPUMapMode.READ),10000,'readback map');
+    const values=Array.from(new Uint32Array(readback.getMappedRange().slice(0)));
+    readback.unmap();
+    result.webgpu.computeReadback=values;
+    check('compute-readback',JSON.stringify(values)===JSON.stringify([41,42,43,44]),{values});
+
+    const context=document.getElementById('gpuCanvas').getContext('webgpu');
+    check('canvas-webgpu-context',!!context);
+    const format=navigator.gpu.getPreferredCanvasFormat();
+    context.configure({device,format,alphaMode:'opaque'});
+    const renderEncoder=device.createCommandEncoder({label:'SM405 presentation encoder'});
+    const renderPass=renderEncoder.beginRenderPass({
+      label:'SM405 presentation pass',
+      colorAttachments:[{
+        view:context.getCurrentTexture().createView(),
+        clearValue:{r:0.03,g:0.12,b:0.18,a:1},
+        loadOp:'clear',
+        storeOp:'store'
+      }]
+    });
+    renderPass.end();
+    device.queue.submit([renderEncoder.finish()]);
+    await bounded(device.queue.onSubmittedWorkDone(),10000,'presentation completion');
+    result.webgpu.preferredCanvasFormat=format;
+    check('canvas-submit',true,{format});
+
+    device.pushErrorScope('validation');
+    device.createBuffer({label:'SM405 deliberate validation error',size:4,usage:0});
+    const deliberate=await bounded(device.popErrorScope(),10000,'validation error scope');
+    result.webgpu.deliberateValidation=deliberate?{name:deliberate.name,message:String(deliberate.message||deliberate)}:null;
+    check('validation-error-captured',!!deliberate&&String(deliberate.name).includes('Validation'),{name:deliberate?.name||null});
+
+    const manager=new Device.WebGPUDeviceManager({navigatorRef:navigator,failureStage:'adapter'});
+    let failedClosed=false;
+    try{await manager.initialize({canvas:document.createElement('canvas'),width:2,height:2,dpr:1})}
+    catch(error){failedClosed=/deliberate WebGPU adapter failure/.test(String(error?.message||error))}
+    finally{manager.close()}
+    check('production-init-failure-fails-closed',failedClosed);
+
+    source.destroy();readback.destroy();
+    result.webgpu.realWebGPU=true;
+    result.ok=true;
+  }catch(error){
+    result.error=String(error?.stack||error);
+  }
+  publish();
+})();
+</script>
