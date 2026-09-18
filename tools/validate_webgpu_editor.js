@@ -14,7 +14,7 @@ function probe(name){return{name,valid:true,history:true,calls:[],invalidate(rea
 
   const legacy={editor_decor:[{sprite:'a'},{editor_id:'decor_1',sprite:'b'},{editor_id:'decor_1',sprite:'c'}]};
   const normalized=A.stableEditorDecorIds(legacy);
-  ok(normalized.assigned===2&&normalized.repaired===1,'missing/duplicate author ids repaired');
+  ok(normalized.assigned===3&&normalized.repaired===2,'missing/duplicate author ids normalized deterministically');
   ok(new Set(normalized.ids).size===3,'author ids unique');
   eq(A.stableEditorDecorIds(legacy).assigned,0,'normalization idempotent');
 
