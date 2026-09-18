@@ -46,7 +46,7 @@ jobs:
           if-no-files-found: warn
 
   webgpu-api-smoke:
-    name: WebGPU lifecycle + resources + WGSL + G-buffer validation
+    name: WebGPU lifecycle + resources + WGSL + G-buffer + ownership validation
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -72,6 +72,8 @@ jobs:
         run: python tools/validate_webgpu_validation_browser.py --require-webgpu --report artifacts/webgpu-validation-browser.json
       - name: Render and read back production Material-v2 G-buffer fixtures
         run: python tools/validate_webgpu_gbuffer_browser.py --require-webgpu --report artifacts/webgpu-gbuffer-browser.json
+      - name: Resolve and read back production per-pixel depth and object ownership
+        run: python tools/validate_webgpu_ownership_browser.py --require-webgpu --report artifacts/webgpu-ownership-browser.json
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -82,6 +84,7 @@ jobs:
             artifacts/webgpu-resource-browser-smoke.json
             artifacts/webgpu-validation-browser.json
             artifacts/webgpu-gbuffer-browser.json
+            artifacts/webgpu-ownership-browser.json
           if-no-files-found: warn
 
   webgl2-transform-parity:
@@ -165,7 +168,7 @@ jobs:
 # SM-102 provides staged lifecycle/fallback policy. SM-103 adds persistent resource
 # and frame-graph infrastructure. SM-104 requires real hosted WebGPU for the current
 # WGSL/pipeline/resource/failure-path inventory. SM-200 adds real production G-buffer
-# rendering/readback on the same hosted adapter. SM-201 adds deterministic numeric
-# pseudo-depth derivation plus box/bin debug artifacts while leaving production depth
-# writes for SM-202. Hosted success remains API/data correctness evidence only, never
-# target-GPU performance or human visual acceptance.
+# rendering/readback. SM-201 accepts the canonical light-independent pseudo-depth
+# formula; SM-202 now requires real fragment-depth/object-ID ownership readback,
+# eight-angle invariance and perturbation stability. Hosted success remains API/data
+# correctness evidence only, never target-GPU performance or human visual acceptance.
