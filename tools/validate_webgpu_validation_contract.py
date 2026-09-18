@@ -11,7 +11,7 @@ def require(haystack:str,needle:str,where:str)->None:
 
 def main()->int:
     engine=text('engine/webgpu_validation.js');page=text('webgpu-validation-smoke.html');runner=text('tools/validate_webgpu_validation_browser.py');checks=text('tools/run_checks.py');docs=text('docs/WEBGPU_API_VALIDATION.md');clean=text('tools/validate_clean_package.py')
-    for needle in ['steelmoth-webgpu-validation/v1','steelmoth-webgpu-validation-report/v1','infrastructure-render-probe','infrastructure-compute-probe','getCompilationInfo','createRenderPipelineAsync','createComputePipelineAsync','copyExternalImageToTexture','deliberate-invalid-buffer','profile:\'fallback\'','WebGPUValidationSuite']:
+    for needle in ['steelmoth-webgpu-validation/v1','steelmoth-webgpu-validation-report/v1','infrastructure-render-probe','infrastructure-compute-probe','getCompilationInfo','createRenderPipelineAsync','createComputePipelineAsync','copyExternalImageToTexture','deliberate-invalid-buffer','profile:\'fallback\'','WebGPUValidationSuite',"['COPY_DST','TEXTURE_BINDING','RENDER_ATTACHMENT']"]:
         require(engine,needle,'engine/webgpu_validation.js')
     for needle in ['engine/webgpu_validation.js?v=sm104-1','optionalFeatureAbsence','fallback-device-lost','failureStage:\'device\'','getContext(\'webgl2\')','stateUnchanged']:
         require(page,needle,'webgpu-validation-smoke.html')
@@ -29,7 +29,7 @@ def main()->int:
     # valid without manufacturing workflow files that are outside package scope.
     for needle in ['engine/webgpu_validation.js','webgpu-validation-smoke.html','tools/validate_webgpu_validation_contract.py','docs/WEBGPU_API_VALIDATION.md']:
         require(clean,needle,'tools/validate_clean_package.py')
-    for needle in ['Production inventory','Compilation information','Validation scopes','Atlas upload','Optional-feature absence','Device loss','WebGL2 fallback','Evidence boundary','Firefox']:
+    for needle in ['Production inventory','Compilation information','Validation scopes','Atlas upload','Optional-feature absence','Device loss','WebGL2 fallback','Evidence boundary','Firefox','CopyDst and RenderAttachment']:
         require(docs,needle,'docs/WEBGPU_API_VALIDATION.md')
     sample=json.loads(text('render-tests/webgpu-validation-report.sample.json'))
     if sample.get('schema')!='steelmoth-webgpu-validation-browser-report/v1':raise AssertionError('sample validation report schema mismatch')
