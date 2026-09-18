@@ -14,8 +14,9 @@
   const FALLBACK_TEXTURE_USAGE=Object.freeze({COPY_SRC:0x01,COPY_DST:0x02,TEXTURE_BINDING:0x04,RENDER_ATTACHMENT:0x10});
   const MAP_MODE_READ=0x0001;
   const FORMATS=Object.freeze({g0:'rgba8unorm',g1:'rgba16float',g2:'rgba16float',objectId:'r32uint',depth:'depth32float'});
-  const CLEAR=Object.freeze({g0:[0,0,0,0],g1:[.5,.5,1,1],g2:[0,0,1,0],objectId:[0,0,0,0],depth:1});
+  const CLEAR=Object.freeze({g0:[0,0,0,0],g1:[.5,.5,1,.88],g2:[0,0,1,0],objectId:[0,0,0,0],depth:1});
   const CATEGORY_ORDER=Object.freeze({static:0,ground:1,dynamic:2,foreground:3,top:4});
+  const MATERIAL_MODE=Object.freeze({normal:0,flat:1,tint:2});
   const DEBUG_MODES=Object.freeze(['albedo','normals','roughness','height','metalness','ao','emissive','object-id']);
   const usageValue=(group,name,fallback)=>Number(root?.[group]?.[name]??fallback);
   const textureUsage=names=>names.reduce((v,n)=>v|usageValue('GPUTextureUsage',n,FALLBACK_TEXTURE_USAGE[n]||0),0);
@@ -38,15 +39,23 @@
     const u0=(x+.5)/aw,v0=(y+.5)/ah,u1=(x+w-.5)/aw,v1=(y+h-.5)/ah;
     return {x,y,w,h,u0,v0,u1,v1,atlasWidth:aw,atlasHeight:ah};
   }
+  function compatibilityHeightFactor(atlas,spriteId,renderedHeight,subrect=null){
+    const r=atlas?.regions?.[spriteId];if(!Array.isArray(r)||r.length<4)return 1;
+    const meta=atlas?.region_meta?.[spriteId]||{},srcH=Math.max(1,finite(subrect?.sh,r[3])),scaleY=finite(renderedHeight,r[3])/srcH,fullH=r[3]*scaleY,worldScale=Math.max(.0001,finite(atlas?.world_scale,.18)*finite(meta.world_scale,1)),base=Math.max(.001,r[3]*worldScale);
+    return clamp(fullH/base,.18,4.5);
+  }
+  function materialModeValue(mode){return MATERIAL_MODE[mode]??MATERIAL_MODE.normal}
+  function defaultTintStrength(mode){return mode==='flat'?.18:mode==='tint'?1:.07}
   function buildSceneInstances(scene,atlas,options={}){
     const materials=new Map((scene?.materials||[]).map(m=>[m.id,m]));const allowed=new Set(options.categories||['static','dynamic','foreground']);const out=[];
     let seq=0;
     for(const sprite of scene?.sprites||[]){
-      if(sprite?.atlas!=='hd'||sprite?.style?.glow||!allowed.has(sprite?.category))continue;
-      const region=regionRect(atlas,sprite.spriteId,sprite.subrect),material=materials.get(sprite.materialId)||{},t=sprite.transform||{},style=sprite.style||{},w=t.w==null?region.w:finite(t.w,region.w),h=t.h==null?region.h:finite(t.h,region.h);
-      out.push({id:String(sprite.id),objectId:objectIdForStableId(sprite.id),category:String(sprite.category),sequence:seq++,spriteId:String(sprite.spriteId),x:finite(t.x,0),y:finite(t.y,0),w,h,rotation:finite(t.rotation,0),flip:!!t.flip,uv:[region.u0,region.v0,region.u1,region.v1],tint:Array.isArray(style.tint)?style.tint.slice(0,3).map(v=>finite(v,1)):[1,1,1],alpha:finite(style.alpha,1),heightScale:finite(material.heightScale,1),heightBias:finite(material.heightBias,0),materialMode:String(style.materialMode||material.overrides?.mode||'normal')});
+      const style=sprite?.style||{};
+      if(sprite?.atlas!=='hd'||style.glow||finite(style.alpha,1)<.5||!allowed.has(sprite?.category))continue;
+      const region=regionRect(atlas,sprite.spriteId,sprite.subrect),material=materials.get(sprite.materialId)||{},t=sprite.transform||{},w=t.w==null?region.w:finite(t.w,region.w),h=t.h==null?region.h:finite(t.h,region.h),mode=String(style.materialMode||material.overrides?.mode||'normal'),rootY=finite(sprite.root?.y,t.y==null?0:t.y);
+      out.push({id:String(sprite.id),objectId:objectIdForStableId(sprite.id),category:String(sprite.category),sequence:seq++,rootY,spriteId:String(sprite.spriteId),x:finite(t.x,0),y:finite(t.y,0),w,h,rotation:finite(t.rotation,0),flip:!!t.flip,uv:[region.u0,region.v0,region.u1,region.v1],tint:Array.isArray(style.tint)?style.tint.slice(0,3).map(v=>finite(v,1)):[1,1,1],alpha:finite(style.alpha,1),heightFactor:compatibilityHeightFactor(atlas,sprite.spriteId,h,sprite.subrect),tintStrength:style.tintStrength==null?defaultTintStrength(mode):finite(style.tintStrength,defaultTintStrength(mode)),materialMode:mode,materialModeValue:materialModeValue(mode)});
     }
-    out.sort((a,b)=>(CATEGORY_ORDER[a.category]??2)-(CATEGORY_ORDER[b.category]??2)||a.sequence-b.sequence);return out;
+    out.sort((a,b)=>{const ca=CATEGORY_ORDER[a.category]??2,cb=CATEGORY_ORDER[b.category]??2;if(ca!==cb)return ca-cb;if(a.category==='dynamic'||a.category==='foreground')return a.rootY-b.rootY||a.sequence-b.sequence;return a.sequence-b.sequence});return out;
   }
   function packInstances(instances){
     const buffer=new ArrayBuffer(Math.max(INSTANCE_STRIDE,instances.length*INSTANCE_STRIDE)),dv=new DataView(buffer);
@@ -54,7 +63,7 @@
       const s=instances[i],o=i*INSTANCE_STRIDE,t=s.tint||[1,1,1],uv=s.uv||[0,0,1,1];
       const f=(offset,value)=>dv.setFloat32(o+offset,finite(value,0),true),u=(offset,value)=>dv.setUint32(o+offset,Number(value)>>>0,true);
       [s.x,s.y,s.w,s.h].forEach((v,j)=>f(j*4,v));uv.forEach((v,j)=>f(16+j*4,v));[t[0]??1,t[1]??1,t[2]??1,s.alpha??1].forEach((v,j)=>f(32+j*4,v));
-      f(48,s.rotation);f(52,s.heightScale??1);f(56,s.heightBias??0);f(60,0);u(64,s.objectId||objectIdForStableId(s.id));u(68,s.flip?1:0);u(72,CATEGORY_ORDER[s.category]??2);u(76,0);
+      f(48,s.rotation);f(52,s.heightFactor??1);f(56,s.tintStrength??defaultTintStrength(s.materialMode));f(60,s.materialModeValue??materialModeValue(s.materialMode));u(64,s.objectId||objectIdForStableId(s.id));u(68,s.flip?1:0);u(72,CATEGORY_ORDER[s.category]??2);u(76,0);
     }
     return new Uint8Array(buffer,0,Math.max(INSTANCE_STRIDE,instances.length*INSTANCE_STRIDE));
   }
@@ -63,41 +72,34 @@
   }
 
   const MATERIAL_WGSL=`
-struct Instance {
-  rect: vec4f,
-  uv: vec4f,
-  tintAlpha: vec4f,
-  material: vec4f,
-  ids: vec4u,
-};
-struct Frame { logicalAtlas: vec4f, alphaCutoff: f32, _pad0: vec3f };
-@group(0) @binding(0) var nearestSampler: sampler;
-@group(0) @binding(1) var albedoTex: texture_2d<f32>;
-@group(0) @binding(2) var nrTex: texture_2d<f32>;
-@group(0) @binding(3) var hmTex: texture_2d<f32>;
-@group(0) @binding(4) var<storage,read> instances: array<Instance>;
-@group(0) @binding(5) var<uniform> frame: Frame;
+struct Instance { rect:vec4f, uv:vec4f, tintAlpha:vec4f, material:vec4f, ids:vec4u };
+struct Frame { logicalAtlas:vec4f, alphaCutoff:f32, _pad0:vec3f };
+@group(0) @binding(0) var nearestSampler:sampler;
+@group(0) @binding(1) var albedoTex:texture_2d<f32>;
+@group(0) @binding(2) var nrTex:texture_2d<f32>;
+@group(0) @binding(3) var hmTex:texture_2d<f32>;
+@group(0) @binding(4) var<storage,read> instances:array<Instance>;
+@group(0) @binding(5) var<uniform> frame:Frame;
 struct VSOut {
-  @builtin(position) position: vec4f,
-  @location(0) uv: vec2f,
-  @location(1) tintAlpha: vec4f,
-  @location(2) @interpolate(flat) rotation: f32,
-  @location(3) @interpolate(flat) heightScale: f32,
-  @location(4) @interpolate(flat) heightBias: f32,
-  @location(5) @interpolate(flat) objectId: u32,
-  @location(6) @interpolate(flat) flags: u32,
+  @builtin(position) position:vec4f,
+  @location(0) uv:vec2f,
+  @location(1) tintAlpha:vec4f,
+  @location(2) @interpolate(flat) material:vec4f,
+  @location(3) @interpolate(flat) objectId:u32,
+  @location(4) @interpolate(flat) flags:u32,
 };
 @vertex fn vs_main(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->VSOut{
   let corners=array<vec2f,6>(vec2f(-.5,-.5),vec2f(.5,-.5),vec2f(-.5,.5),vec2f(-.5,.5),vec2f(.5,-.5),vec2f(.5,.5));
   let uvs=array<vec2f,6>(vec2f(0,0),vec2f(1,0),vec2f(0,1),vec2f(0,1),vec2f(1,0),vec2f(1,1));
   let inst=instances[ii];let c=corners[vi];let co=cos(inst.material.x);let si=sin(inst.material.x);let p=vec2f(c.x*inst.rect.z,c.y*inst.rect.w);p=vec2f(p.x*co-p.y*si,p.x*si+p.y*co)+inst.rect.xy;
-  var q=uvs[vi];if((inst.ids.y&1u)!=0u){q.x=1.0-q.x;}var out:VSOut;out.position=vec4f(p.x/frame.logicalAtlas.x*2.0-1.0,1.0-p.y/frame.logicalAtlas.y*2.0,0.0,1.0);out.uv=mix(inst.uv.xy,inst.uv.zw,q);out.tintAlpha=inst.tintAlpha;out.rotation=inst.material.x;out.heightScale=inst.material.y;out.heightBias=inst.material.z;out.objectId=inst.ids.x;out.flags=inst.ids.y;return out;
+  var q=uvs[vi];if((inst.ids.y&1u)!=0u){q.x=1.0-q.x;}var out:VSOut;out.position=vec4f(p.x/frame.logicalAtlas.x*2.0-1.0,1.0-p.y/frame.logicalAtlas.y*2.0,0.0,1.0);out.uv=mix(inst.uv.xy,inst.uv.zw,q);out.tintAlpha=inst.tintAlpha;out.material=inst.material;out.objectId=inst.ids.x;out.flags=inst.ids.y;return out;
 }
 struct FSOut { @location(0) g0:vec4f,@location(1) g1:vec4f,@location(2) g2:vec4f,@location(3) objectId:u32 };
 @fragment fn fs_main(in:VSOut)->FSOut{
-  let base=textureSample(albedoTex,nearestSampler,in.uv);let coverage=base.a*in.tintAlpha.a;if(coverage<frame.alphaCutoff){discard;}
-  let nr=textureSample(nrTex,nearestSampler,in.uv);let hm=textureSample(hmTex,nearestSampler,in.uv);var n=nr.xyz*2.0-1.0;if((in.flags&1u)!=0u){n.x=-n.x;}let co=cos(in.rotation);let si=sin(in.rotation);n=normalize(vec3f(n.x*co-n.y*si,n.x*si+n.y*co,n.z));
-  var out:FSOut;out.g0=vec4f(base.rgb*in.tintAlpha.rgb,coverage);out.g1=vec4f(n*.5+.5,nr.a);out.g2=vec4f(clamp(hm.r*in.heightScale+in.heightBias,0.0,1.0),hm.b,hm.g,hm.a);out.objectId=in.objectId;return out;
+  let t=textureSample(albedoTex,nearestSampler,in.uv);if(t.a<frame.alphaCutoff){discard;}
+  let nr=textureSample(nrTex,nearestSampler,in.uv);let hm=textureSample(hmTex,nearestSampler,in.uv);var n=normalize(nr.xyz*2.0-1.0);if((in.flags&1u)!=0u){n.x=-n.x;}let co=cos(in.material.x);let si=sin(in.material.x);n=normalize(vec3f(n.x*co-n.y*si,n.x*si+n.y*co,n.z));
+  let mode=in.material.w;var base:vec3f;if(mode<.5){base=mix(t.rgb,t.rgb*in.tintAlpha.rgb,.07);}else if(mode<1.5){base=mix(t.rgb,in.tintAlpha.rgb,clamp(in.material.z,0.0,1.0));}else{let lum=dot(t.rgb,vec3f(.26,.62,.12));base=in.tintAlpha.rgb*(.28+lum*.98)+pow(max(t.rgb,vec3f(0)),vec3f(2.4))*.12;}
+  var out:FSOut;out.g0=vec4f(base,1.0);out.g1=vec4f(n*.5+.5,nr.a);out.g2=vec4f(clamp(hm.r*in.material.y,0.0,1.0),hm.b,hm.g,hm.a);out.objectId=in.objectId;return out;
 }`;
 
   const DEBUG_WGSL=`
@@ -108,7 +110,7 @@ struct Debug { mode:u32,_pad0:vec3u };
 
   class WebGPUMaterialGBuffer{
     constructor(options={}){
-      if(!options.device)throw new Error('WebGPUMaterialGBuffer requires GPUDevice');this.device=options.device;this.queue=options.queue||options.device.queue;this.width=Math.max(1,Math.round(options.width||640));this.height=Math.max(1,Math.round(options.height||360));this.alphaCutoff=clamp(finite(options.alphaCutoff,.5),0,1);this.maxInstances=Math.max(1,Math.round(options.maxInstances||4096));this.labelPrefix=String(options.labelPrefix||'SteelMothGBuffer');this.ownsRegistry=!options.registry;this.registry=options.registry||new Resources.ResourceRegistry({device:this.device,queue:this.queue,width:this.width,height:this.height,labelPrefix:this.labelPrefix});this.pipelines=options.pipelines||new Resources.PipelineCache(this.device,{labelPrefix:`${this.labelPrefix}:pipeline`});this.atlas=null;this.atlasMeta=null;this.sampler=null;this.materialModule=null;this.debugModule=null;this.materialPipeline=null;this.debugPipelines=new Map();this.bindGroup=null;this.debugUniform=null;this.compilation=[];this.renderCount=0;this.lastInstanceCount=0;this._defineResources();
+      if(!options.device)throw new Error('WebGPUMaterialGBuffer requires GPUDevice');this.device=options.device;this.queue=options.queue||options.device.queue;this.width=Math.max(1,Math.round(options.width||640));this.height=Math.max(1,Math.round(options.height||360));this.alphaCutoff=clamp(finite(options.alphaCutoff,.12),0,1);this.maxInstances=Math.max(1,Math.round(options.maxInstances||4096));this.labelPrefix=String(options.labelPrefix||'SteelMothGBuffer');this.ownsRegistry=!options.registry;this.registry=options.registry||new Resources.ResourceRegistry({device:this.device,queue:this.queue,width:this.width,height:this.height,labelPrefix:this.labelPrefix});this.pipelines=options.pipelines||new Resources.PipelineCache(this.device,{labelPrefix:`${this.labelPrefix}:pipeline`});this.atlas=null;this.atlasMeta=null;this.sampler=null;this.materialModule=null;this.debugModule=null;this.materialPipeline=null;this.debugPipelines=new Map();this.bindGroup=null;this.compilation=[];this.renderCount=0;this.lastInstanceCount=0;this._defineResources();
     }
     _name(n){return `sm200:${n}`}
     _defineResources(){const rt=textureUsage(['RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC']);this.registry.defineTexture(this._name('g0'),{format:FORMATS.g0,usage:rt,size:'surface'});this.registry.defineTexture(this._name('g1'),{format:FORMATS.g1,usage:rt,size:'surface'});this.registry.defineTexture(this._name('g2'),{format:FORMATS.g2,usage:rt,size:'surface'});this.registry.defineTexture(this._name('object'),{format:FORMATS.objectId,usage:rt,size:'surface'});this.registry.defineTexture(this._name('depth'),{format:FORMATS.depth,usage:textureUsage(['RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC']),size:'surface'});this.registry.defineBuffer(this._name('instances'),{size:align(this.maxInstances*INSTANCE_STRIDE,256),usage:bufferUsage(['STORAGE','COPY_DST'])});this.registry.defineBuffer(this._name('frame'),{size:256,usage:bufferUsage(['UNIFORM','COPY_DST'])});this.registry.defineBuffer(this._name('debug'),{size:256,usage:bufferUsage(['UNIFORM','COPY_DST'])});}
@@ -128,9 +130,9 @@ struct Debug { mode:u32,_pad0:vec3u };
     async renderDebug(targetTexture,mode='albedo',targetFormat='rgba8unorm'){const index=DEBUG_MODES.indexOf(mode);if(index<0)throw new Error(`unknown G-buffer debug mode: ${mode}`);const pipeline=await this._debugPipeline(targetFormat),data=new Uint32Array(4);data[0]=index;this.queue.writeBuffer(this._record('debug').handle,0,data);const v=this._views(),bind=this.device.createBindGroup({label:`${this.labelPrefix}:debug-bind`,layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:v.g0},{binding:1,resource:v.g1},{binding:2,resource:v.g2},{binding:3,resource:v.objectId},{binding:4,resource:{buffer:this._record('debug').handle}}]}),encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:debug-encoder`}),pass=encoder.beginRenderPass({colorAttachments:[{view:targetTexture.createView(),clearValue:{r:0,g:0,b:0,a:1},loadOp:'clear',storeOp:'store'}]});pass.setPipeline(pipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);if(typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();return {mode,targetFormat};}
     async _readTexturePixel(record,x,y,kind){const bytesPerPixel=kind==='rgba16float'?8:4,buffer=this.device.createBuffer({label:`${this.labelPrefix}:readback:${kind}`,size:256,usage:bufferUsage(['COPY_DST','MAP_READ'])}),encoder=this.device.createCommandEncoder();encoder.copyTextureToBuffer({texture:record.handle,origin:{x:Math.max(0,Math.min(record.width-1,Math.floor(x))),y:Math.max(0,Math.min(record.height-1,Math.floor(y))),z:0}},{buffer,bytesPerRow:256,rowsPerImage:1},{width:1,height:1,depthOrArrayLayers:1});this.queue.submit([encoder.finish()]);await buffer.mapAsync(Number(root?.GPUMapMode?.READ??MAP_MODE_READ));const raw=new Uint8Array(buffer.getMappedRange()).slice(0,bytesPerPixel);buffer.unmap();buffer.destroy();if(kind==='rgba8')return Array.from(raw);if(kind==='r32uint')return new DataView(raw.buffer,raw.byteOffset,4).getUint32(0,true);const dv=new DataView(raw.buffer,raw.byteOffset,raw.byteLength);return [0,2,4,6].map(o=>halfToFloat(dv.getUint16(o,true)))}
     async readPixel(x,y){return {g0:await this._readTexturePixel(this._record('g0'),x,y,'rgba8'),g1:await this._readTexturePixel(this._record('g1'),x,y,'rgba16float'),g2:await this._readTexturePixel(this._record('g2'),x,y,'rgba16float'),objectId:await this._readTexturePixel(this._record('object'),x,y,'r32uint')};}
-    diagnostics(){return {schema:SCHEMA,formats:{...FORMATS},clear:clone(CLEAR),extent:{width:this.width,height:this.height},alphaCutoff:this.alphaCutoff,maxInstances:this.maxInstances,renderCount:this.renderCount,lastInstanceCount:this.lastInstanceCount,atlas:this.atlas?{width:this.atlas.width,height:this.atlas.height}:null,compilation:clone(this.compilation),debugModes:[...DEBUG_MODES],resourceDiagnostics:this.registry.diagnostics(),pipelineDiagnostics:this.pipelines.diagnostics(),ownershipDepth:'not-implemented-sm201-sm202',depthAttachmentPolicy:'clear-only; depth compare always and writes disabled'};}
+    diagnostics(){return {schema:SCHEMA,formats:{...FORMATS},clear:clone(CLEAR),extent:{width:this.width,height:this.height},alphaCutoff:this.alphaCutoff,maxInstances:this.maxInstances,renderCount:this.renderCount,lastInstanceCount:this.lastInstanceCount,atlas:this.atlas?{width:this.atlas.width,height:this.atlas.height}:null,compilation:clone(this.compilation),debugModes:[...DEBUG_MODES],resourceDiagnostics:this.registry.diagnostics(),pipelineDiagnostics:this.pipelines.diagnostics(),materialCompatibility:{alphaCutoff:.12,normalTintStrength:.07,flatDefaultTintStrength:.18,tintMode:'compatibility-luminance'},ownershipDepth:'not-implemented-sm201-sm202',depthAttachmentPolicy:'clear-only; depth compare always and writes disabled'};}
     close(){this._destroyAtlases();if(this.ownsRegistry)this.registry.close();this.debugPipelines.clear();}
   }
 
-  return {SCHEMA,INSTANCE_STRIDE,FORMATS,CLEAR,CATEGORY_ORDER,DEBUG_MODES,MATERIAL_WGSL,DEBUG_WGSL,objectIdForStableId,regionRect,buildSceneInstances,packInstances,halfToFloat,WebGPUMaterialGBuffer};
+  return {SCHEMA,INSTANCE_STRIDE,FORMATS,CLEAR,CATEGORY_ORDER,MATERIAL_MODE,DEBUG_MODES,MATERIAL_WGSL,DEBUG_WGSL,objectIdForStableId,regionRect,compatibilityHeightFactor,buildSceneInstances,packInstances,halfToFloat,WebGPUMaterialGBuffer};
 });
