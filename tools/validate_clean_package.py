@@ -57,13 +57,13 @@ def main() -> int:
             'index.html','engine/game.js','engine/editor.js','engine/surfacefx.js','engine/foliagefx.js',
             'engine/render_transform.js','engine/render_transform_integration.js','engine/render_scene.js','engine/pseudo_depth.js',
             'engine/render_transform_scene_adapter.js','engine/webgl2_scene_adapter.js',
-            'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/webgpu_gbuffer.js','engine/webgpu_ownership.js','engine/webgpu_depth_hierarchy.js','engine/backend_runtime.js',
-            'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html','webgpu-ownership-smoke.html','webgpu-depth-hierarchy-smoke.html',
+            'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/webgpu_gbuffer.js','engine/webgpu_ownership.js','engine/webgpu_depth_hierarchy.js','engine/webgpu_lighting.js','engine/backend_runtime.js',
+            'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html','webgpu-ownership-smoke.html','webgpu-depth-hierarchy-smoke.html','webgpu-lighting-smoke.html',
             'assets/generated/atlas.json','game_data/maps.json','tools/validate_webapp_v123.py',
             'tools/validate_render_scene_contract.py','tools/validate_render_transform_contract.py','tools/validate_pseudo_depth_contract.py',
-            'tools/validate_webgpu_contract.py','tools/validate_webgpu_resources_contract.py','tools/validate_webgpu_validation_contract.py','tools/validate_webgpu_gbuffer_contract.py','tools/validate_webgpu_ownership_contract.py','tools/validate_webgpu_depth_hierarchy_contract.py',
+            'tools/validate_webgpu_contract.py','tools/validate_webgpu_resources_contract.py','tools/validate_webgpu_validation_contract.py','tools/validate_webgpu_gbuffer_contract.py','tools/validate_webgpu_ownership_contract.py','tools/validate_webgpu_depth_hierarchy_contract.py','tools/validate_webgpu_lighting_contract.py',
             'render-tests/webgpu-validation-report.sample.json',
-            'docs/ROOT_FOOT_CONVENTION.md','docs/PSEUDO_DEPTH_MODEL.md','docs/WEBGPU_DEVICE_LIFECYCLE.md','docs/WEBGPU_RESOURCE_INFRASTRUCTURE.md','docs/WEBGPU_API_VALIDATION.md','docs/WEBGPU_GBUFFER_SM200.md','docs/WEBGPU_OWNERSHIP_SM202.md','docs/WEBGPU_DEPTH_HIERARCHY_SM203.md'
+            'docs/ROOT_FOOT_CONVENTION.md','docs/PSEUDO_DEPTH_MODEL.md','docs/WEBGPU_DEVICE_LIFECYCLE.md','docs/WEBGPU_RESOURCE_INFRASTRUCTURE.md','docs/WEBGPU_API_VALIDATION.md','docs/WEBGPU_GBUFFER_SM200.md','docs/WEBGPU_OWNERSHIP_SM202.md','docs/WEBGPU_DEPTH_HIERARCHY_SM203.md','docs/WEBGPU_LIGHTING_SM204.md'
         ]
         missing=[p for p in required if not (unpack/p).is_file()]
         if missing:
@@ -96,6 +96,7 @@ def main() -> int:
                 [sys.executable,'tools/validate_webgpu_gbuffer_contract.py'],
                 [sys.executable,'tools/validate_webgpu_ownership_contract.py'],
                 [sys.executable,'tools/validate_webgpu_depth_hierarchy_contract.py'],
+                [sys.executable,'tools/validate_webgpu_lighting_contract.py'],
                 [sys.executable,'tools/validate_render_harness.py'],
                 [sys.executable,'tools/validate_render_fixtures.py','--repeat','2'],
             ]
