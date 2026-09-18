@@ -29,8 +29,8 @@
   globalThis.steelMothRenderTransformBaseline = renderTransformBaseline;
 
   // SM-102/103 platform/resource lifecycle plus the Material-v2 representation
-  // chain through SM-207's staged post/final-output path. Auto remains WebGL2
-  // until SM-505; these staged WebGPU modules do not change presentation authority.
+  // chain through SM-207 post and SM-300 bounded occluder/tile preparation. Auto
+  // remains WebGL2 until SM-505; staged WebGPU modules do not change presentation.
   const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
     .then(() => import('./engine/webgpu_resources.js?v=sm103-1'))
     .then(() => import('./engine/pseudo_depth.js?v=sm201-1'))
@@ -41,11 +41,12 @@
     .then(() => import('./engine/webgpu_local_shadows.js?v=sm205-1'))
     .then(() => import('./engine/webgpu_transparent_fx.js?v=sm206-1'))
     .then(() => import('./engine/webgpu_post.js?v=sm207-1'))
+    .then(() => import('./engine/webgpu_occluders.js?v=sm300-1'))
     .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
-      console.warn('WebGPU staged renderer lifecycle through post/final output unavailable; continuing with WebGL2.', err);
+      console.warn('WebGPU staged renderer lifecycle through post/occluder preparation unavailable; continuing with WebGL2.', err);
       return null;
     });
   globalThis.steelMothBackendReady = backendReady;
