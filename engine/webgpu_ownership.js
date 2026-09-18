@@ -13,7 +13,7 @@
   const SCHEMA='steelmoth-webgpu-ownership/v1';
   const DEBUG_MODES=Object.freeze([...G.DEBUG_MODES,'depth']);
   const MAP_MODE_READ=0x0001;
-  const FALLBACK_BUFFER_USAGE=Object.freeze({MAP_READ:0x0001,COPY_DST:0x0008});
+  const FALLBACK_BUFFER_USAGE=Object.freeze({MAP_READ:0x0001,COPY_SRC:0x0004,COPY_DST:0x0008,UNIFORM:0x0040,STORAGE:0x0080});
   const finite=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
   const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
   const bufferUsage=names=>names.reduce((v,n)=>v|Number(root?.GPUBufferUsage?.[n]??FALLBACK_BUFFER_USAGE[n]??0),0);
@@ -102,8 +102,20 @@ struct Debug { mode:u32,_pad0:vec3u };
 @vertex fn vs_main(@builtin(vertex_index) vi:u32)->@builtin(position) vec4f{let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[vi],0,1);}
 @fragment fn fs_main(@builtin(position) p:vec4f)->@location(0) vec4f{let q=vec2i(p.xy);let a=textureLoad(g0,q,0);let n=textureLoad(g1,q,0);let m=textureLoad(g2,q,0);let id=textureLoad(oid,q,0).x;if(debug.mode==0u){return vec4f(a.rgb,1);}if(debug.mode==1u){return vec4f(n.xyz,1);}if(debug.mode==2u){return vec4f(vec3f(n.a),1);}if(debug.mode==3u){return vec4f(vec3f(m.r),1);}if(debug.mode==4u){return vec4f(vec3f(m.g),1);}if(debug.mode==5u){return vec4f(vec3f(m.b),1);}if(debug.mode==6u){return vec4f(vec3f(m.a),1);}if(debug.mode==7u){let h=f32((id^(id>>8u)^(id>>16u))&255u)/255.0;return vec4f(h,fract(h*5.17),fract(h*11.31),1);}let d=textureLoad(depthTex,q,0);return vec4f(vec3f(d),1);}`;
 
+  // Depth-stencil copies are deliberately avoided for diagnostic readback. Chrome/
+  // Dawn can expose implementation-specific depth-copy behaviour even for
+  // depth32float. Reading the production depth texture through WGSL textureLoad()
+  // validates the same shader-visible value downstream passes will actually consume.
+  const DEPTH_READBACK_WGSL=`
+struct Coord { xy:vec2u, _pad:vec2u };
+struct Out { value:f32, _pad0:vec3f };
+@group(0) @binding(0) var depthTex:texture_depth_2d;
+@group(0) @binding(1) var<uniform> coord:Coord;
+@group(0) @binding(2) var<storage,read_write> out:Out;
+@compute @workgroup_size(1) fn cs_main(){out.value=textureLoad(depthTex,vec2i(coord.xy),0);}`;
+
   class WebGPUOwnershipGBuffer extends G.WebGPUMaterialGBuffer{
-    constructor(options={}){super(options);this.ownershipRenderCount=0;this._ownershipInitialized=false;}
+    constructor(options={}){super(options);this.ownershipRenderCount=0;this._ownershipInitialized=false;this.depthReadbackModule=null;this.depthReadbackPipeline=null;}
     async initialize(){
       if(this._ownershipInitialized&&this.materialPipeline)return this;
       this.materialModule=await this._module('sm202-material-ownership',MATERIAL_WGSL);this.debugModule=await this._module('sm202-debug-ownership',DEBUG_WGSL);
@@ -120,12 +132,19 @@ struct Debug { mode:u32,_pad0:vec3u };
     async renderScene(scene,atlasMeta=this.atlasMeta,options={}){return this.renderInstances(buildOwnershipSceneInstances(scene,atlasMeta,options),options)}
     async _debugPipeline(targetFormat){const key=String(targetFormat);if(this.debugPipelines.has(`sm202:${key}`))return this.debugPipelines.get(`sm202:${key}`);const p=await this.pipelines.getRender(`sm202-debug:${key}`,()=>this.device.createRenderPipeline({label:`${this.labelPrefix}:sm202-debug:${key}`,layout:'auto',vertex:{module:this.debugModule,entryPoint:'vs_main'},fragment:{module:this.debugModule,entryPoint:'fs_main',targets:[{format:key}]},primitive:{topology:'triangle-list'}}));this.debugPipelines.set(`sm202:${key}`,p);return p}
     async renderDebug(targetTexture,mode='albedo',targetFormat='rgba8unorm'){const index=DEBUG_MODES.indexOf(mode);if(index<0)throw new Error(`unknown ownership debug mode: ${mode}`);const pipeline=await this._debugPipeline(targetFormat),data=new Uint32Array(4);data[0]=index;this.queue.writeBuffer(this._record('debug').handle,0,data);const v=this._views(),bind=this.device.createBindGroup({label:`${this.labelPrefix}:sm202-debug-bind`,layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:v.g0},{binding:1,resource:v.g1},{binding:2,resource:v.g2},{binding:3,resource:v.objectId},{binding:4,resource:v.depth},{binding:5,resource:{buffer:this._record('debug').handle}}]}),encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:sm202-debug-encoder`}),pass=encoder.beginRenderPass({colorAttachments:[{view:targetTexture.createView(),clearValue:{r:0,g:0,b:0,a:1},loadOp:'clear',storeOp:'store'}]});pass.setPipeline(pipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);if(typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();return{mode,targetFormat};}
-    async _readDepthPixel(x,y){const record=this._record('depth'),buffer=this.device.createBuffer({label:`${this.labelPrefix}:sm202-depth-readback`,size:256,usage:bufferUsage(['COPY_DST','MAP_READ'])}),encoder=this.device.createCommandEncoder();encoder.copyTextureToBuffer({texture:record.handle,aspect:'depth-only',origin:{x:Math.max(0,Math.min(record.width-1,Math.floor(x))),y:Math.max(0,Math.min(record.height-1,Math.floor(y))),z:0}},{buffer,bytesPerRow:256,rowsPerImage:1},{width:1,height:1,depthOrArrayLayers:1});this.queue.submit([encoder.finish()]);await buffer.mapAsync(Number(root?.GPUMapMode?.READ??MAP_MODE_READ));const raw=new Uint8Array(buffer.getMappedRange()).slice(0,4),value=new DataView(raw.buffer,raw.byteOffset,4).getFloat32(0,true);buffer.unmap();buffer.destroy();return value;}
+    async _depthReadbackPipeline(){if(this.depthReadbackPipeline)return this.depthReadbackPipeline;this.depthReadbackModule=await this._module('sm202-depth-readback',DEPTH_READBACK_WGSL);this.depthReadbackPipeline=await this.pipelines.getCompute('sm202-depth-readback',()=>this.device.createComputePipeline({label:`${this.labelPrefix}:sm202-depth-readback`,layout:'auto',compute:{module:this.depthReadbackModule,entryPoint:'cs_main'}}));return this.depthReadbackPipeline;}
+    async _readDepthPixel(x,y){
+      const record=this._record('depth'),pipeline=await this._depthReadbackPipeline(),px=Math.max(0,Math.min(record.width-1,Math.floor(x))),py=Math.max(0,Math.min(record.height-1,Math.floor(y)));
+      const coord=this.device.createBuffer({label:`${this.labelPrefix}:sm202-depth-coord`,size:256,usage:bufferUsage(['UNIFORM','COPY_DST'])}),gpuOut=this.device.createBuffer({label:`${this.labelPrefix}:sm202-depth-probe`,size:256,usage:bufferUsage(['STORAGE','COPY_SRC'])}),map=this.device.createBuffer({label:`${this.labelPrefix}:sm202-depth-map`,size:256,usage:bufferUsage(['COPY_DST','MAP_READ'])});
+      this.queue.writeBuffer(coord,0,new Uint32Array([px,py,0,0]));
+      const bind=this.device.createBindGroup({label:`${this.labelPrefix}:sm202-depth-readback-bind`,layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:record.handle.createView()},{binding:1,resource:{buffer:coord}},{binding:2,resource:{buffer:gpuOut}}]}),encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:sm202-depth-readback-encoder`}),pass=encoder.beginComputePass({label:`${this.labelPrefix}:sm202-depth-readback-pass`});pass.setPipeline(pipeline);pass.setBindGroup(0,bind);pass.dispatchWorkgroups(1);pass.end();encoder.copyBufferToBuffer(gpuOut,0,map,0,4);this.queue.submit([encoder.finish()]);
+      await map.mapAsync(Number(root?.GPUMapMode?.READ??MAP_MODE_READ));const raw=new Uint8Array(map.getMappedRange()).slice(0,4),value=new DataView(raw.buffer,raw.byteOffset,4).getFloat32(0,true);map.unmap();coord.destroy();gpuOut.destroy();map.destroy();return value;
+    }
     async readPixel(x,y){const base=await super.readPixel(x,y);return{...base,depth:await this._readDepthPixel(x,y)};}
-    diagnostics(){const base=super.diagnostics();return{...base,schema:SCHEMA,debugModes:[...DEBUG_MODES],ownershipDepth:'sm202-canonical-per-pixel',depthAttachmentPolicy:'depth32float; fragment depth writes enabled; compare less; transparent fragments discard before ownership',pseudoDepth:{schema:PseudoDepth.SCHEMA,maxWorldZ:PseudoDepth.MAX_WORLD_Z,zToScreenY:PseudoDepth.Z_TO_SCREEN_Y,layerStride:PseudoDepth.LAYER_STRIDE,depthKeyRange:[PseudoDepth.DEPTH_KEY_MIN,PseudoDepth.DEPTH_KEY_MAX],alphaCutoff:PseudoDepth.DEFAULT_ALPHA_CUTOFF},ownershipRenderCount:this.ownershipRenderCount};}
+    diagnostics(){const base=super.diagnostics();return{...base,schema:SCHEMA,debugModes:[...DEBUG_MODES],ownershipDepth:'sm202-canonical-per-pixel',depthAttachmentPolicy:'depth32float; fragment depth writes enabled; compare less; transparent fragments discard before ownership',depthReadback:'compute-textureLoad-to-buffer',pseudoDepth:{schema:PseudoDepth.SCHEMA,maxWorldZ:PseudoDepth.MAX_WORLD_Z,zToScreenY:PseudoDepth.Z_TO_SCREEN_Y,layerStride:PseudoDepth.LAYER_STRIDE,depthKeyRange:[PseudoDepth.DEPTH_KEY_MIN,PseudoDepth.DEPTH_KEY_MAX],alphaCutoff:PseudoDepth.DEFAULT_ALPHA_CUTOFF},ownershipRenderCount:this.ownershipRenderCount};}
   }
 
   function referenceDepthForPixel(fragmentScreenY,localHeight,category='dynamic',depthLayer=null,depthBias=0){return PseudoDepth.projectFragment({fragmentScreenY,rootY:fragmentScreenY,localHeight,alpha:1,category,layer:depthLayer,bias:depthBias});}
 
-  return{SCHEMA,DEBUG_MODES,PSEUDO_DEPTH_WGSL,MATERIAL_WGSL,DEBUG_WGSL,prepareOwnershipInstance,buildOwnershipSceneInstances,packOwnershipInstances,referenceDepthForPixel,WebGPUOwnershipGBuffer};
+  return{SCHEMA,DEBUG_MODES,PSEUDO_DEPTH_WGSL,MATERIAL_WGSL,DEBUG_WGSL,DEPTH_READBACK_WGSL,prepareOwnershipInstance,buildOwnershipSceneInstances,packOwnershipInstances,referenceDepthForPixel,WebGPUOwnershipGBuffer};
 });
