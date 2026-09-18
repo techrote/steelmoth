@@ -5,9 +5,11 @@ import re, sys
 
 ROOT=Path(__file__).resolve().parents[1]
 errors=[]
-def text(path):
+def text(path,required=True):
     p=ROOT/path
-    if not p.is_file(): errors.append(f'missing {path}');return ''
+    if not p.is_file():
+        if required:errors.append(f'missing {path}')
+        return ''
     return p.read_text(encoding='utf-8')
 def need(src,needle,label):
     if needle not in src:errors.append(f'{label}: missing {needle!r}')
@@ -18,7 +20,10 @@ def main()->int:
     smoke=text('webgpu-ownership-smoke.html')
     runner=text('tools/validate_webgpu_ownership_browser.py')
     checks=text('tools/run_checks.py')
-    workflow=text('.github/workflows/verification.yml')
+    # Clean source archives deliberately exclude .github. Verify workflow wiring
+    # in normal checkouts, but do not make extracted-runtime validation depend on
+    # a directory the package contract intentionally omits.
+    workflow=text('.github/workflows/verification.yml',required=False)
     webapp=text('webapp.js')
     sw=text('sw.js')
     package=text('tools/validate_clean_package.py')
@@ -42,8 +47,9 @@ def main()->int:
         need(runner,needle,'browser runner')
     for needle in ['js-webgpu-ownership','webgpu-ownership-contract','webgpu-ownership']:
         need(checks,needle,'run_checks registration')
-    for needle in ['validate_webgpu_ownership_browser.py','webgpu-ownership-browser.json']:
-        need(workflow,needle,'workflow ownership gate')
+    if workflow:
+        for needle in ['validate_webgpu_ownership_browser.py','webgpu-ownership-browser.json']:
+            need(workflow,needle,'workflow ownership gate')
     for needle in ['pseudo_depth.js?v=sm201-1','webgpu_ownership.js?v=sm202-1']:
         need(webapp,needle,'runtime module load')
     for needle in ['pseudo_depth.js?v=sm201-1','webgpu_ownership.js?v=sm202-1']:
