@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>SteelMoth SM-403 editor state smoke</title><style>html,body{margin:0;background:#101518;color:#d9f6ef;font:14px ui-monospace,monospace}main{padding:18px;max-width:900px}canvas{width:640px;height:220px;border:1px solid #49645d;image-rendering:pixelated}.pass{color:#8ff0ba}.fail{color:#ff9b9b}pre{white-space:pre-wrap;font-size:12px}</style></head><body><main><h1>SM-403 editor invalidation</h1><canvas id="diag" width="640" height="220"></canvas><pre id="webgpuEditorResult">running</pre></main>
+<script src="engine/webgpu_resources.js?v=sm103-1"></script>
+<script src="engine/webgpu_depth_hierarchy.js?v=sm203-1"></script>
+<script src="engine/webgpu_editor_state.js?v=sm403-1"></script>
+<script>
+(async()=>{
+ const out=document.getElementById('webgpuEditorResult'),canvas=document.getElementById('diag'),ctx=canvas.getContext('2d');
+ const checks=[],check=(label,ok,detail='')=>checks.push({label,ok:!!ok,detail:String(detail||'')});
+ const report={schema:'steelmoth-webgpu-editor-smoke/v1',ok:false,checks,captures:[],readback:{realWebGPU:false},timing:{gpuTimingClaimed:false},evidenceBoundary:'Hosted Chrome validates editor-to-production invalidation APIs and persistent-resource state transitions. Screenshot is retained for inspection; no human WYSIWYG judgement or target-GPU timing claim is made.'};
+ try{
+   check('navigator.gpu',!!navigator.gpu);if(!navigator.gpu)throw new Error('WebGPU unavailable');
+   const adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});check('adapter',!!adapter);if(!adapter)throw new Error('WebGPU adapter unavailable');
+   const device=await adapter.requestDevice();check('device',!!device);report.readback.realWebGPU=true;
+   const depth=new SteelMothWebGPUDepthHierarchy.WebGPUDepthHierarchy({device,width:32,height:24,labelPrefix:'SM403Depth'});const generation=depth.resourceGeneration;depth.valid=true;
+   const probes={};for(const name of SteelMothWebGPUEditorState.PERSISTENT_STAGES){if(name==='depthHierarchy')continue;probes[name]={valid:true,history:true,calls:[],invalidate(reason,clear){this.calls.push([reason,clear]);this.valid=false;if(clear)this.history=false}}}
+   const room={editor_decor:[{editor_id:'decor_1',sprite:'bin_a',x:12,y:18},{editor_id:'decor_2',sprite:'bin_b',x:18,y:20}]};
+   const game={state:{room:0},maps:{rooms:{bin:room}},room:{key:'bin'},renderScene:{old:true},renderer:{backend:'webgl2',lastRenderScene:{old:true}},renderSceneBridge:{lastScene:{old:true},editorRevision:0}};
+   const editor={game,nextDecorId:3,rebuilds:0,roomKey(){return'bin'},rawRoom(){return game.maps.rooms.bin},rebuildRoom(){this.rebuilds++},pasteDataItem(c,dx,dy,moving=false){const d=structuredClone(c.data);d.x=c.x+dx;d.y=c.y+dy;d.editor_id=`decor_${this.nextDecorId++}`;this.rawRoom().editor_decor.push(d)},applyMove(id,x,y){const a=this.rawRoom().editor_decor,i=a.findIndex(d=>d.editor_id===id),d=structuredClone(a[i]);a.splice(i,1);this.pasteDataItem({type:'decor',kind:'pixel',data:d,x:d.x,y:d.y},x-d.x,y-d.y,true);this.rebuildRoom()},deleteSelection(id){this.saved=structuredClone(this.rawRoom());this.rawRoom().editor_decor=this.rawRoom().editor_decor.filter(d=>d.editor_id!==id);this.rebuildRoom()},undoOne(){const now=structuredClone(this.rawRoom());game.maps.rooms.bin=structuredClone(this.saved);this.saved=now;this.rebuildRoom()},redoOne(){this.undoOne()},async saveProject(){return JSON.stringify(game.maps)},downloadMaps(){return JSON.stringify(game.maps)}};
+   const integration=SteelMothWebGPUEditorState.installEditorIntegration(game,editor),hub=integration.hub,targets={depthHierarchy:depth,...probes};for(const name of SteelMothWebGPUEditorState.FRAME_LOCAL_STAGES)targets[name]={name};hub.registerProductionTargets(targets);
+   check('integration-installed',game.webgpuEditorState===hub);check('gpu-resource-generation',generation>0,generation);
+   const before=SteelMothWebGPUEditorState.captureEditorIdentity(editor.rawRoom(),'bin'),next=editor.nextDecorId;editor.applyMove('decor_2',31,27);
+   check('move-author-id',editor.rawRoom().editor_decor.find(d=>d.sprite==='bin_b')?.editor_id==='decor_2');check('move-id-counter',editor.nextDecorId===next,`${editor.nextDecorId}/${next}`);
+   check('depth-invalidated',depth.valid===false);check('depth-reason',depth.lastInvalidationReason==='sm403:move',depth.lastInvalidationReason);check('depth-generation-stable',depth.resourceGeneration===generation,`${depth.resourceGeneration}/${generation}`);
+   check('all-persistent-invalidated',SteelMothWebGPUEditorState.PERSISTENT_STAGES.every(n=>targets[n].valid===false));check('history-dropped',probes.dominance.history===false&&probes.darkBloomTemporal.history===false);
+   check('scene-cleared',game.renderScene===null&&game.renderer.lastRenderScene===null&&game.renderSceneBridge.lastScene===null);check('bridge-revision',game.renderSceneBridge.editorRevision===1,game.renderSceneBridge.editorRevision);
+   check('frame-object-dirty',hub.diagnostics().dirty.objectId===true);check('frame-contact-dirty',hub.diagnostics().dirty.contact===true);
+   const moved=SteelMothWebGPUEditorState.captureEditorIdentity(editor.rawRoom(),'bin');check('author-identity-survives',before.decor[1].authorId===moved.decor.find(d=>d.sprite==='bin_b').authorId);
+   editor.deleteSelection('decor_2');check('delete-removes',!editor.rawRoom().editor_decor.some(d=>d.editor_id==='decor_2'));check('delete-reason',hub.events.at(-1).reason==='delete');
+   editor.undoOne();check('undo-restores',editor.rawRoom().editor_decor.some(d=>d.editor_id==='decor_2'));check('undo-reason',hub.events.at(-1).reason==='undo');
+   const undoIdentity=SteelMothWebGPUEditorState.captureEditorIdentity(editor.rawRoom(),'bin');editor.redoOne();check('redo-removes',!editor.rawRoom().editor_decor.some(d=>d.editor_id==='decor_2'));check('redo-reason',hub.events.at(-1).reason==='redo');editor.undoOne();check('second-undo-stable',SteelMothWebGPUEditorState.captureEditorIdentity(editor.rawRoom(),'bin').hash===undoIdentity.hash);
+   await editor.saveProject();const saveHash=hub.lastSavedMapHash,reloaded=JSON.parse(JSON.stringify(game.maps));check('save-reload-hash',SteelMothWebGPUEditorState.canonicalHash(reloaded)===saveHash);check('save-reload-render-ids',SteelMothWebGPUEditorState.captureEditorIdentity(reloaded.rooms.bin,'bin').hash===SteelMothWebGPUEditorState.captureEditorIdentity(editor.rawRoom(),'bin').hash);
+   check('no-gpu-state-persisted',!JSON.stringify(reloaded).includes('sm403:'));check('webgl2-fallback',game.renderer.backend==='webgl2');check('no-human-claim',report.evidenceBoundary.includes('no human WYSIWYG judgement'));
+   const diag=hub.diagnostics();report.diagnostics=diag;report.captures=[{id:'before-move',identity:before},{id:'after-move',identity:moved},{id:'after-reload',identity:SteelMothWebGPUEditorState.captureEditorIdentity(reloaded.rooms.bin,'bin')}];report.readback.depth={valid:depth.valid,invalidationCount:depth.invalidationCount,lastInvalidationReason:depth.lastInvalidationReason,resourceGeneration:depth.resourceGeneration};
+   report.ok=checks.every(c=>c.ok);ctx.fillStyle='#0d1113';ctx.fillRect(0,0,640,220);ctx.font='12px ui-monospace,monospace';checks.slice(0,16).forEach((c,i)=>{ctx.fillStyle=c.ok?'#8ff0ba':'#ff9b9b';ctx.fillText(`${c.ok?'PASS':'FAIL'} ${c.label}`,12,18+i*12)});ctx.fillStyle='#d9f6ef';ctx.fillText(`revision ${hub.revision} · depth invalidations ${depth.invalidationCount} · WebGL2 preserved`,12,212);
+   depth.close();
+ }catch(error){report.error=String(error?.stack||error);report.ok=false}
+ out.textContent=JSON.stringify(report);out.className=report.ok?'pass':'fail';document.body.dataset.webgpuEditorDone='1';window.__sm403Report=report;
+})()
+</script></body></html>
