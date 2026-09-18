@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth WebGPU per-pixel ownership validation</title>
+<canvas id="probe" width="8" height="8" style="width:8px;height:8px"></canvas>
+<pre id="status">Running SM-202 WebGPU ownership validation…</pre>
+<script id="webgpuOwnershipResult" type="application/json">{"schema":"steelmoth-webgpu-ownership-browser-smoke/v1","ok":false,"status":"pending"}</script>
+<script src="engine/webgpu_device.js?v=sm102-1"></script>
+<script src="engine/webgpu_resources.js?v=sm103-1"></script>
+<script src="engine/webgpu_gbuffer.js?v=sm200-1"></script>
+<script src="engine/pseudo_depth.js?v=sm201-1"></script>
+<script src="engine/webgpu_ownership.js?v=sm202-1"></script>
+<script>
+(async()=>{
+  const Device=globalThis.SteelMothWebGPUDevice,G=globalThis.SteelMothWebGPUGBuffer,P=globalThis.SteelMothPseudoDepth,O=globalThis.SteelMothWebGPUOwnership;
+  const result={schema:'steelmoth-webgpu-ownership-browser-smoke/v1',ok:false,browser:navigator.userAgent,secureContext:isSecureContext,fixtures:{},checks:[],diagnostics:null};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('webgpuOwnershipResult').textContent=json;document.body.dataset.webgpuOwnershipDone='1'};
+  const check=(condition,message,detail=null)=>{if(!condition)throw new Error(message+(detail?`: ${JSON.stringify(detail)}`:''));result.checks.push(message)};
+  const near=(a,b,e=2e-5)=>Math.abs(Number(a)-Number(b))<=e;
+  let manager=null,gb=null;
+  try{
+    check(!!navigator.gpu,'navigator.gpu available for required SM-202 ownership run');
+    manager=new Device.WebGPUDeviceManager({navigatorRef:navigator});await manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1});check(!!manager.device,'WebGPU device initialized');
+
+    const H=16,holeRow=4;
+    const canvas=(kind)=>{const c=document.createElement('canvas');c.width=3;c.height=H;const ctx=c.getContext('2d'),img=ctx.createImageData(3,H);for(let y=0;y<H;y++)for(let x=0;x<3;x++){const i=(y*3+x)*4;if(kind==='albedo'){const cols=[[210,60,45],[45,190,80],[80,110,220]],q=cols[x];img.data[i]=q[0];img.data[i+1]=q[1];img.data[i+2]=q[2];img.data[i+3]=(x===2&&y===holeRow)?0:255;}else if(kind==='nr'){img.data[i]=128;img.data[i+1]=128;img.data[i+2]=255;img.data[i+3]=220;}else{const worldZ=H-1-y,height=Math.round(worldZ/P.MAX_WORLD_Z*255);img.data[i]=height;img.data[i+1]=255;img.data[i+2]=0;img.data[i+3]=255;}}ctx.putImageData(img,0,0);return c;};
+    const meta={source_size:[3,H],world_scale:1,regions:{front:[0,0,1,H],rear:[1,0,1,H],frontHole:[2,0,1,H]},region_meta:{front:{world_scale:1},rear:{world_scale:1},frontHole:{world_scale:1}}};
+    gb=new O.WebGPUOwnershipGBuffer({device:manager.device,queue:manager.device.queue,width:64,height:64,maxInstances:64,labelPrefix:'SM202'});await gb.setAtlases({albedo:canvas('albedo'),normalRoughness:canvas('nr'),heightMaterial:canvas('hm'),meta});
+    const diag0=gb.diagnostics();check(diag0.ownershipDepth==='sm202-canonical-per-pixel','production ownership diagnostics identify SM-202 canonical per-pixel depth');check(diag0.depthAttachmentPolicy.includes('writes enabled')&&diag0.depthAttachmentPolicy.includes('compare less'),'depth attachment writes and conventional less comparison are enabled');check(diag0.pseudoDepth.schema===P.SCHEMA&&diag0.pseudoDepth.maxWorldZ===P.MAX_WORLD_Z,'GPU ownership shader constants are linked to SM-201 pseudo-depth contract');
+
+    const make=(name,id,rootY,category='dynamic',dy=0,extra={})=>{const r=G.regionRect(meta,name),y=rootY-H/2+dy;return{id,objectId:G.objectIdForStableId(id),category,sequence:0,rootY:rootY+dy,spriteId:name,x:32,y,w:26,h:H,rotation:0,flip:false,uv:[r.u0,r.v0,r.u1,r.v1],tint:[1,1,1],alpha:1,heightFactor:1,tintStrength:.07,materialMode:'normal',materialModeValue:G.MATERIAL_MODE.normal,...extra};};
+    const rear=make('rear','bin-rear',32),front=make('front','bin-front',36),frontHole=make('frontHole','bin-front-hole',36);
+    const overlap={x:32,y:24},rearOnly={x:32,y:17};
+
+    await gb.renderInstances([rear,front]);const a=await gb.readPixel(overlap.x,overlap.y);check(a.objectId===front.objectId,'two-bin overlap: front visible pixel owns front stable object ID',a);const ref=P.projectFragment({fragmentScreenY:overlap.y+.5,localHeight:a.g2[0],alpha:1,category:'dynamic'});check(near(a.depth,ref.depth01,4e-5),'numeric depth readback matches accepted SM-201 formula',{gpu:a.depth,cpu:ref.depth01,height:a.g2[0]});
+    await gb.renderInstances([front,rear]);const reversed=await gb.readPixel(overlap.x,overlap.y);check(reversed.objectId===front.objectId&&near(reversed.depth,a.depth,4e-5),'ownership is independent of whole-quad submission order',{a,reversed});
+    const rearExposed=await gb.readPixel(rearOnly.x,rearOnly.y);check(rearExposed.objectId===rear.objectId,'two-bin overlap: exposed rear pixel owns rear stable object ID',rearExposed);result.fixtures.twoBin={overlap:a,reversed,rearExposed,frontId:front.objectId,rearId:rear.objectId};
+
+    await gb.renderInstances([rear,frontHole]);const hole=await gb.readPixel(overlap.x,overlap.y);check(hole.objectId===rear.objectId,'transparent front texel discards before depth/object ownership and exposes rear object',hole);result.fixtures.alphaHole=hole;
+
+    const parity={};for(const category of ['static','dynamic','foreground']){const inst=make('front',`parity-${category}`,36,category);await gb.renderInstances([inst]);parity[category]=await gb.readPixel(overlap.x,overlap.y)}check(near(parity.static.depth,parity.dynamic.depth,4e-5),'static and dynamic instances share identical ownership depth semantics',parity);check(parity.foreground.depth<parity.dynamic.depth-.1,'foreground lane applies only the documented explicit layer advantage',parity);result.fixtures.categoryParity=parity;
+
+    const fg=make('rear','forced-foreground',32,'foreground');await gb.renderInstances([front,fg]);const forced=await gb.readPixel(overlap.x,overlap.y);check(forced.objectId===fg.objectId,'explicit foreground layer overrides ordinary world ownership without sprite-name hacks',forced);result.fixtures.foregroundBias=forced;
+
+    const biased=make('rear','fine-bias',36,'dynamic',0,{depthBias:.75});await gb.renderInstances([front,biased]);const fine=await gb.readPixel(overlap.x,overlap.y);check(fine.objectId===biased.objectId,'explicit fine depth bias participates in the canonical visibility key',fine);result.fixtures.explicitBias=fine;
+
+    const angles=[];for(const angle of [0,45,90,135,180,225,270,315]){await gb.renderInstances([rear,front],{lightAngle:angle});const q=await gb.readPixel(overlap.x,overlap.y);angles.push({angle,objectId:q.objectId,depth:q.depth})}check(angles.every(q=>q.objectId===angles[0].objectId&&near(q.depth,angles[0].depth,1e-7)),'eight-angle matrix keeps object ID and fragment depth byte-stable while only light metadata changes',angles);result.fixtures.lightAngles=angles;
+
+    const perturb=[];for(const dy of [-1,-.5,-.25,0,.25,.5,1]){const moved=make('front','bin-front',36,'dynamic',dy);await gb.renderInstances([rear,moved]);const q=await gb.readPixel(overlap.x,overlap.y);perturb.push({dy,objectId:q.objectId,depth:q.depth});check(q.objectId===moved.objectId,`front owner remains stable at ${dy}px Y perturbation`,q)}result.fixtures.perturbation=perturb;
+
+    await gb.renderInstances([front]);await gb.renderInstances([]);const cleared=await gb.readPixel(overlap.x,overlap.y);check(cleared.objectId===0&&near(cleared.depth,1,1e-7),'empty/deleted frame clears object ID and depth ownership to deterministic defaults',cleared);result.fixtures.deletion=cleared;
+
+    const debugTarget=manager.device.createTexture({size:{width:64,height:64,depthOrArrayLayers:1},format:'rgba8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});await gb.renderInstances([rear,front]);for(const mode of O.DEBUG_MODES)await gb.renderDebug(debugTarget,mode,'rgba8unorm');debugTarget.destroy();check(O.DEBUG_MODES.includes('object-id')&&O.DEBUG_MODES.includes('depth'),'object-ID and depth debug views compile and execute');
+
+    result.diagnostics=gb.diagnostics();result.ok=true;
+  }catch(error){result.error=String(error?.stack||error);try{result.diagnostics=gb?.diagnostics?.()||null}catch(_e){}}
+  finally{try{gb?.close()}catch(_e){}try{manager?.close()}catch(_e){}}
+  publish();
+})();
+</script>
