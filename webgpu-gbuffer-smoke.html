@@ -22,7 +22,7 @@
   let manager=null,gb=null,images=[];
   try{
     const raw=JSON.parse(new URLSearchParams(location.search).get('expected')||'{}');
-    check(raw?.box?.name==='cargo_crate'&&raw?.barrel?.name==='rust_barrel'&&!!raw?.mixed?.name,'raw PNG fixture expectations supplied by host-side decoder');
+    check(raw?.flat?.name==='floor_plate'&&raw?.box?.name==='cargo_crate'&&raw?.barrel?.name==='rust_barrel'&&!!raw?.mixed?.name,'raw PNG fixture expectations supplied by host-side decoder');
     check(!!navigator.gpu,'navigator.gpu available for required SM-200 readback run');
     manager=new Device.WebGPUDeviceManager({navigatorRef:navigator});await manager.initialize({canvas:document.getElementById('probe'),width:8,height:8,dpr:1});
     check(!!manager.device,'WebGPU device initialized');
@@ -44,11 +44,17 @@
       return{point,readback:got,source:{albedo:ap,normalRoughness:np,heightMaterial:hp},instanceId:inst.objectId,region:r};
     };
 
+    result.fixtures.flat=await verifySourcePixel(raw.flat,'flat plate');
+    check(raw.flat.heightMaterial[0]<=8&&result.fixtures.flat.readback.g1[2]>.85,'flat plate retains near-zero local height and predominantly upward normal',{raw:raw.flat.heightMaterial,g1:result.fixtures.flat.readback.g1});
     result.fixtures.box=await verifySourcePixel(raw.box,'box/crate');
     result.fixtures.barrel=await verifySourcePixel(raw.barrel,'barrel/cylinder');
     result.fixtures.mixed=await verifySourcePixel(raw.mixed,'mixed-material');
 
-    const syn=syntheticAtlases();await gb.setAtlases({albedo:syn.albedo,normalRoughness:syn.normalRoughness,heightMaterial:syn.heightMaterial,meta:syn.meta});gb.resize(48,32);const rr=G.regionRect(syn.meta,'flat'),flat={id:'flat-control',objectId:G.objectIdForStableId('flat-control'),category:'dynamic',sequence:0,rootY:16,spriteId:'flat',x:24,y:16,w:32,h:16,rotation:0,flip:false,uv:[rr.u0,rr.v0,rr.u1,rr.v1],tint:[1,1,1],alpha:1,heightFactor:1,tintStrength:.07,materialMode:'normal',materialModeValue:G.MATERIAL_MODE.normal};await gb.renderInstances([flat]);const flatRead=await gb.readPixel(24,16);check(near4(flatRead.g1,expectedNormal([128,128,255,220]),.025),'flat plate has near-flat normal and source roughness',flatRead.g1);check(near4(flatRead.g2,[0,0,1,0],.01),'flat plate has zero local height, zero metalness, full material AO and zero emissive',flatRead.g2);result.fixtures.flat={readback:flatRead};
+    // The synthetic atlas is deliberately limited to coverage/order/clear/edge
+    // checks. Canvas 2D premultiplies RGB when alpha is zero, while Material-v2
+    // HM alpha stores emissive rather than opacity; production HM semantics above
+    // therefore use raw PNG expectations and ImageBitmap(premultiplyAlpha:none).
+    const syn=syntheticAtlases();await gb.setAtlases({albedo:syn.albedo,normalRoughness:syn.normalRoughness,heightMaterial:syn.heightMaterial,meta:syn.meta});gb.resize(48,32);const rr=G.regionRect(syn.meta,'flat'),flat={id:'flat-control',objectId:G.objectIdForStableId('flat-control'),category:'dynamic',sequence:0,rootY:16,spriteId:'flat',x:24,y:16,w:32,h:16,rotation:0,flip:false,uv:[rr.u0,rr.v0,rr.u1,rr.v1],tint:[1,1,1],alpha:1,heightFactor:1,tintStrength:.07,materialMode:'normal',materialModeValue:G.MATERIAL_MODE.normal};await gb.renderInstances([flat]);const syntheticFlat=await gb.readPixel(24,16);check(syntheticFlat.g0.slice(0,3).every((v,i)=>Math.abs(v-[96,112,128][i])<=1)&&syntheticFlat.g0[3]===255,'synthetic flat control reaches the production pass with binary coverage',syntheticFlat.g0);result.fixtures.syntheticFlat={readback:syntheticFlat};
 
     const parity=[];for(const category of ['static','dynamic','foreground']){const x={...flat,id:'parity-control',objectId:G.objectIdForStableId('parity-control'),category};await gb.renderInstances([x]);parity.push(await gb.readPixel(24,16))}check(parity.slice(1).every(p=>near4(p.g0,parity[0].g0,0)&&near4(p.g1,parity[0].g1,.001)&&near4(p.g2,parity[0].g2,.001)&&p.objectId===parity[0].objectId),'static/dynamic/foreground material values are identical for the same instance');result.fixtures.categoryParity=parity;
 
