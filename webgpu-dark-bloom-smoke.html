@@ -1,0 +1,61 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-305 WebGPU Dark Bloom smoke</title>
+<canvas id="darkBloomDebug" width="512" height="192"></canvas>
+<pre id="webgpuDarkBloomResult"></pre>
+<script type="module">
+const result={schema:'steelmoth-webgpu-dark-bloom-browser-smoke/v1',ok:false,checks:[],captures:[],diagnostics:null,readback:null,timing:{timestampQueryAvailable:false,gpuTimingClaimed:false,submitWallMs:[]},binsup:null,error:null};
+const check=(ok,label)=>{result.checks.push({ok:!!ok,label});if(!ok)throw new Error(label)};
+const publish=()=>{document.getElementById('webgpuDarkBloomResult').textContent=JSON.stringify(result);document.body.dataset.webgpuDarkBloomDone='1'};
+try{
+  if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+  const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw new Error('requestAdapter returned null');
+  result.timing.timestampQueryAvailable=adapter.features?.has?.('timestamp-query')||false;
+  const device=await adapter.requestDevice();
+  await import('./engine/webgpu_resources.js?v=sm103-1');
+  await import('./engine/webgpu_gbuffer.js?v=sm200-1');
+  await import('./engine/webgpu_occluders.js?v=sm300-1');
+  await import('./engine/webgpu_clusters.js?v=sm301-1');
+  await import('./engine/webgpu_lighting.js?v=sm204-1');
+  await import('./engine/webgpu_dominance.js?v=sm302-1');
+  await import('./engine/webgpu_dso.js?v=sm303-1');
+  await import('./engine/webgpu_dso_hierarchy.js?v=sm304-1');
+  await import('./engine/webgpu_dark_bloom.js?v=sm305-1');
+  const H=globalThis.SteelMothWebGPUDSO,S=globalThis.SteelMothWebGPUDSOHierarchy,B=globalThis.SteelMothWebGPUDarkBloom;
+  check(!!B?.WebGPUDarkBloom,'SM-305 Dark Bloom API available');check(B.SCALE===2,'SM-305 residual field runs at fixed half resolution');
+
+  const hardPlan=(()=>{const width=128,height=96,tileSize=32,columns=Math.ceil(width/tileSize),rows=Math.ceil(height/tileSize),count=columns*rows,ownerBounds=[16,36,40,60],shadowDir=[1,0],ownerThrow=70,members=[{objectId:2,flags:0,throwLength:18,strength:1,bounds:[16,8,22,14]},{objectId:3,flags:0,throwLength:22,strength:1,bounds:[16,18,22,24]},{objectId:4,flags:0,throwLength:44,strength:1,bounds:[16,68,26,78]}],tileHeaders=new Uint32Array(count*2);for(let i=0;i<count;i++){tileHeaders[i*2]=0;tileHeaders[i*2+1]=1}return{schema:H.SNAPSHOT_SCHEMA,roomId:'sm305-browser',lightId:'player-light',grid:{width,height,tileSize,columns,rows,count},jobs:[{clusterId:1,ownerObjectId:1,lightId:'player-light',lightIdHash:123,memberOffset:0,memberCount:members.length,flags:1,ownerBounds,shadowDir,ownerThrow,ownerScore:1,sweptBounds:[16,8,110,78],clusterBounds:[16,8,40,78]}],members,tileHeaders,tileRefs:Uint32Array.of(0),diagnostics:{distanceSimplification:false,darkBloom:false,temporalAccumulation:false}}})();
+  const plan=S.buildHierarchyPlan(hardPlan,{quality:'Medium'}),width=128,height=96,hard=S.rasterizeHierarchyReference(plan),depth=new Float32Array(width*height).fill(.8),ranges=new Float32Array(width*height*2);for(let i=0;i<depth.length;i++){ranges[i*2]=depth[i];ranges[i*2+1]=depth[i]}
+  const tier=B.buildTierMap(plan);check(tier.counts[1]>0&&tier.counts[2]>0&&tier.counts[3]>0,'production tier map consumes SM-304 near/mid/far distance semantics');
+  const hardTexture=device.createTexture({label:'SM305 fixture hard core',size:{width,height,depthOrArrayLayers:1},format:'r32float',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});
+  const rangeTexture=device.createTexture({label:'SM305 fixture depth ranges',size:{width,height,depthOrArrayLayers:1},format:'rg32float',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});
+  const writeHard=data=>device.queue.writeTexture({texture:hardTexture},data,{bytesPerRow:width*4,rowsPerImage:height},{width,height,depthOrArrayLayers:1});
+  const writeRanges=data=>device.queue.writeTexture({texture:rangeTexture},data,{bytesPerRow:width*8,rowsPerImage:height},{width,height,depthOrArrayLayers:1});
+  writeHard(hard);writeRanges(ranges);
+  const bloom=new B.WebGPUDarkBloom({device,width,height,quality:'Medium'}),source={hierarchySnapshot:plan,hardMaskView:hardTexture.createView(),depthRangeView:rangeTexture.createView(),width,height,roomId:'sm305-browser'};
+  const canvas=document.getElementById('darkBloomDebug'),ctx=canvas.getContext('2d');
+  const draw=(gpu,quality,index)=>{const img=ctx.createImageData(width,height);for(let i=0;i<gpu.length;i++){const hardV=hard[i]>.5,res=Math.min(1,gpu[i]*3),o=i*4;img.data[o]=hardV?245:Math.round(res*80);img.data[o+1]=hardV?245:Math.round(res*170);img.data[o+2]=hardV?245:Math.round(res*255);img.data[o+3]=255}ctx.putImageData(img,index*width,0);ctx.fillStyle='white';ctx.font='10px monospace';ctx.fillText(quality,index*width+4,12)};
+  const qualityResults={};
+  for(const [index,quality] of ['Low','Medium','High','Ultra'].entries()){
+    const ref=B.buildReference(hard,depth,plan,{quality});const t0=performance.now();await bloom.update(source,{quality});const gpu=await bloom.readback();const elapsed=performance.now()-t0;result.timing.submitWallMs.push({quality,value:elapsed});
+    let maxError=0,peak=0,nonzero=0,coreViolation=0;for(let i=0;i<gpu.length;i++){maxError=Math.max(maxError,Math.abs(gpu[i]-ref.full[i]));peak=Math.max(peak,gpu[i]);if(gpu[i]>1e-7)nonzero++;if(hard[i]>.5&&Math.abs(gpu[i])>1e-7)coreViolation++;}
+    check(maxError<2e-5,`${quality} GPU residual matches CPU bounded reference`);check(peak>0&&peak<1,`${quality} residual is visible and weaker than the unit hard core`);check(peak<=ref.settings.farStrength+2e-5,`${quality} peak stays within configured residual strength`);check(coreViolation===0,`${quality} leaves hard DSO core ownership untouched`);check(nonzero>0,`${quality} produces a non-empty feather around DSO core`);
+    const diag=bloom.diagnostics();check(diag.snapshot?.quality===quality,`${quality} reaches production path`);check(diag.snapshot?.diagnostics?.maxRadiusPixels===ref.settings.farRadius*B.SCALE,`${quality} reports bounded radius`);check(diag.snapshot?.diagnostics?.temporalAccumulation===false,`${quality} remains non-temporal in SM-305`);
+    qualityResults[quality]={gpu,ref};result.captures.push({quality,maxError,peak,nonzero,maxRadiusPixels:ref.diagnostics.maxRadiusPixels,nearStrength:ref.settings.nearStrength,farStrength:ref.settings.farStrength});draw(gpu,quality,index);
+  }
+  check(result.captures[0].maxRadiusPixels<result.captures[3].maxRadiusPixels,'quality controls monotonically expand the bounded radius');check(result.captures[0].farStrength<result.captures[3].farStrength,'quality controls monotonically raise long-throw residual strength');
+
+  // No DSO hard source => no residual, even though the SM-304 distance tier map still exists.
+  const zeroHard=new Float32Array(hard.length);writeHard(zeroHard);await bloom.update(source,{quality:'Ultra'});const zeroGpu=await bloom.readback();check(zeroGpu.every(v=>v===0),'no Dark Bloom is generated when the DSO hard core is absent');
+
+  // Depth discontinuity immediately below the dominant shadow blocks bloom crossing into unrelated foreground.
+  writeHard(hard);const barrierDepth=new Float32Array(width*height),barrierRanges=new Float32Array(width*height*2);for(let y=0;y<height;y++)for(let x=0;x<width;x++){const d=y<60?.8:.3,i=y*width+x;barrierDepth[i]=d;barrierRanges[i*2]=d;barrierRanges[i*2+1]=d}writeRanges(barrierRanges);const barrierSource={...source,depthRangeView:rangeTexture.createView()};await bloom.update(barrierSource,{quality:'Ultra'});const barrierGpu=await bloom.readback();let leak=0,sourceSide=0;for(let y=0;y<height;y++)for(let x=64;x<92;x++){const v=barrierGpu[y*width+x];if(y>=60)leak=Math.max(leak,v);else if(!hard[y*width+x])sourceSide=Math.max(sourceSide,v)}check(sourceSide>0,'depth-barrier fixture retains valid residual on matching-depth receiver side');check(leak===0,'depth-aware expansion and upsample reject residual across unrelated foreground depth');
+
+  // Restore representative Medium result for diagnostics/capture and verify invalidation.
+  writeRanges(ranges);await bloom.update(source,{quality:'Medium'});const restored=await bloom.readback(),medium=qualityResults.Medium.ref;let restoreError=0;for(let i=0;i<restored.length;i++)restoreError=Math.max(restoreError,Math.abs(restored[i]-medium.full[i]));check(restoreError<2e-5,'restored Medium residual remains deterministic after no-core/depth-barrier frames');const overlay=bloom.debugOverlay();check(/weaker than the DSO hard core/.test(overlay.contract)&&/never temporal/.test(overlay.contract),'debug view exposes Dark Bloom scope and strength contract');bloom.invalidate('editor-change');let stale=false;try{bloom.bindings()}catch(_e){stale=true}check(stale,'editor invalidation rejects stale SM-305 bindings');await bloom.update(source,{quality:'Medium'});check(bloom.diagnostics().valid,'SM-305 rebuild restores valid current-room resources');
+
+  // The named binsup fixture's expected feather is represented without claiming human visual review in hosted CI.
+  const binsup=await (await fetch('./render-tests/fixtures/binsup.json')).json();check(binsup.name==='binsup','binsup fixture is in the SM-305 evidence chain');check(binsup.expected_observations.some(s=>/soft feathered residual occlusion/i.test(s)),'binsup target explicitly requires a soft feathered residual');result.binsup={fixture:binsup.name,automatedResidualPixels:result.captures.find(c=>c.quality==='Medium').nonzero,hardOwnershipPreserved:true,humanVisualReviewClaimed:false};
+  result.diagnostics=bloom.diagnostics();result.readback={format:'r32float',pixelCount:width*height,gpuCpuTolerance:2e-5,noCoreZero:true,depthBarrierLeak:leak,hardOwnershipPreserved:true};result.ok=true;bloom.close();hardTexture.destroy();rangeTexture.destroy();
+}catch(error){result.error=String(error?.stack||error)}finally{publish()}
+</script>
