@@ -17,6 +17,7 @@
   const requestedAngle = num('lightAngle', 0, -3600, 3600);
   const normalizedAngle = ((requestedAngle % 360) + 360) % 360;
   const quality = String(params.get('quality') || 'high').toLowerCase();
+  const benchmark = truthy(params.get('benchmark'));
   const config = Object.freeze({
     schema: 'steelmoth-render-test-config/v1',
     fixture: cleanId(params.get('fixture')),
@@ -28,7 +29,11 @@
     lightAngle: normalizedAngle,
     seed: (Math.round(num('seed', 1397572098, 1, 4294967295)) >>> 0) || 1,
     fixedTimeMs: num('fixedTimeMs', 12000, 0, 3600000),
-    settleFrames: Math.round(num('settleFrames', 4, 2, 20))
+    settleFrames: Math.round(num('settleFrames', 4, 2, 20)),
+    benchmark,
+    benchmarkProfile: cleanId(params.get('benchmarkProfile'), 'representative'),
+    warmupFrames: Math.round(num('warmupFrames', 300, 1, 5000)),
+    sampleFrames: Math.round(num('sampleFrames', 600, 1, 5000))
   });
 
   let readyResolve;
@@ -103,6 +108,114 @@
     };
     return table[name] || table.high;
   }
+  function nextAnimationFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+  }
+  function sampleStats(values) {
+    const samples=values.filter(Number.isFinite),sorted=samples.slice().sort((a,b)=>a-b),n=sorted.length;
+    const quantile=p=>n?sorted[Math.max(0,Math.min(n-1,Math.ceil(p*n)-1))]:null;
+    return {count:n,mean:n?samples.reduce((a,b)=>a+b,0)/n:null,median:quantile(.5),p90:quantile(.90),p95:quantile(.95),p99:quantile(.99),max:n?sorted[n-1]:null};
+  }
+  function series(values,unit='ms') {
+    return {unit,samples:values.slice(),statistics:sampleStats(values)};
+  }
+  function addBenchmarkFollowers(game,count) {
+    if(!game.followers?.makeUnit)return;
+    game.followers.units=[];
+    const variants=['maintenance','teal','amber','neutral'];
+    for(let i=0;i<count;i++){
+      const col=i%8,row=Math.floor(i/8),x=180+col*48+(row%2)*12,y=90+row*48;
+      const u=game.followers.makeUnit({id:'benchmark-robot-'+i,variant:variants[i%variants.length],name:'Benchmark robot '+i},x,y);
+      u.phase=i*.37;u.facing=i%2?1:-1;game.followers.units.push(u);
+    }
+  }
+  function expandDenseStatic(game) {
+    const sprites=['dumpster','cargo_crate','rust_barrel','server_cabinet','pipe_cluster'];
+    const dense=[];
+    for(let i=0;i<45;i++)dense.push({editor_id:'benchmark-static-'+i,sprite:sprites[i%sprites.length],x:92+(i%9)*58,y:82+Math.floor(i/9)*43,scale:.58+(i%4)*.08,flip:!!(i&1)});
+    game.room.editorDecor=dense;
+  }
+  function applyBenchmarkProfile(game) {
+    if(!config.benchmark)return;
+    const profile=config.benchmarkProfile;
+    if(profile==='dense-static')expandDenseStatic(game);
+    if(profile==='representative')addBenchmarkFollowers(game,4);
+    if(profile==='dynamic-robot')addBenchmarkFollowers(game,32);
+    if(profile==='diagnostic-light'){
+      addBenchmarkFollowers(game,3);game.pulseLight=1;
+      Object.assign(game.graphics,{companionLightIntensity:.22,orbiterLightIntensity:.15,ambientLifeLightIntensity:.09,fireflyLightIntensity:.05,objectiveLightIntensity:.075});
+    }
+    if(profile==='mixed')addBenchmarkFollowers(game,12);
+  }
+  function webglEnvironment(renderer) {
+    const g=renderer.gl,debug=g.getExtension('WEBGL_debug_renderer_info');
+    return {
+      contextVersion:g.getParameter(g.VERSION),
+      shadingLanguageVersion:g.getParameter(g.SHADING_LANGUAGE_VERSION),
+      vendor:g.getParameter(g.VENDOR),
+      renderer:g.getParameter(g.RENDERER),
+      unmaskedVendor:debug?g.getParameter(debug.UNMASKED_VENDOR_WEBGL):null,
+      unmaskedRenderer:debug?g.getParameter(debug.UNMASKED_RENDERER_WEBGL):null,
+      timerExtension:'EXT_disjoint_timer_query_webgl2',
+      timerExtensionAvailable:!!renderer.extTimer
+    };
+  }
+  function rendererMemory(renderer,diagnostics) {
+    const size=t=>t?Number(t.w||0)*Number(t.h||0)*4:0,targets=[
+      {name:'scene',bytes:size(renderer.scene)},
+      {name:'light',bytes:size(renderer.light)},
+      {name:'shadowMask',bytes:size(renderer.shadowMask)},
+      {name:'contactMask',bytes:size(renderer.contactMask)},
+      {name:'deferredCopy',bytes:size(renderer.deferredCopy)},
+      {name:'gbuffer',bytes:Number(renderer.gbuffer?.bytes||0)},
+      {name:'bloomA',bytes:size(renderer.bloomA)},
+      {name:'bloomB',bytes:size(renderer.bloomB)}
+    ];
+    const buffers=[
+      {name:'surfaceWaterField',bytes:Number(diagnostics.surfaceFX?.water?.fieldBytes||0)},
+      {name:'surfaceGrassInstances',bytes:Number(diagnostics.surfaceFX?.grass?.instanceBytes||0)},
+      {name:'foliageInstances',bytes:Number(diagnostics.foliageFX?.instanceBytes||0)}
+    ];
+    return {estimateOnly:true,targets,targetBytes:targets.reduce((n,x)=>n+x.bytes,0),auxiliaryBuffers:buffers,auxiliaryBufferBytes:buffers.reduce((n,x)=>n+x.bytes,0),historyBytes:0,historyNote:'The WebGL2 compatibility renderer owns no temporal history targets.'};
+  }
+  async function runBenchmark(game) {
+    const renderer=game.renderer,renderOnce=game.__smHarnessRenderOnce;
+    if(typeof renderOnce!=='function')throw new Error('benchmark render entrypoint unavailable');
+    const cpu=[],intervals=[],gpuExtension=renderer.extTimer,gl=renderer.gl;
+    let phase='warmup',mode='warmup',lastRaf=null;
+    game.render=()=>{};
+    game.__smBenchmarkHooks={onFrame:record=>{if(phase==='measure')cpu.push({...record,mode})}};
+    renderer.extTimer=null;
+    for(let i=0;i<config.warmupFrames;i++){await nextAnimationFrame();renderOnce()}
+    gl.finish();renderer.extTimer=gpuExtension;renderer.drainGpuTimerResults?.();
+    phase='measure';
+    for(let i=0;i<config.sampleFrames*2;i++){
+      const rafAt=await nextAnimationFrame();
+      if(lastRaf!==null)intervals.push(rafAt-lastRaf);
+      lastRaf=rafAt;mode=(i&1)?'pass':'total';
+      const totalTimer=mode==='total'?renderer.beginGpuTimer('rendererTotal',renderer.gpuTimerFrameSerial+1):null;
+      renderOnce();if(totalTimer)renderer.endGpuTimer(totalTimer);
+    }
+    gl.finish();
+    for(let i=0;i<200&&renderer.gpuTimerPending.length;i++){renderer.pollGpuTimers();if(renderer.gpuTimerPending.length)await new Promise(resolve=>setTimeout(resolve,5))}
+    const timerResults=renderer.drainGpuTimerResults();
+    game.__smBenchmarkHooks=null;
+    const gpuLabels=['rendererTotal','gbuffer','contactShadow','directLighting'],gpuSeries={};
+    for(const label of gpuLabels)gpuSeries[label]=series(timerResults.filter(x=>x.label===label&&Number.isFinite(x.ms)).map(x=>x.ms));
+    const disjoint=timerResults.filter(x=>x.disjoint).length,diag=game.diagnostics(),last=cpu[cpu.length-1]||{};
+    return {
+      schema:'steelmoth-webgl2-benchmark-run/v1',
+      methodology:{warmupFrames:config.warmupFrames,measurementFrames:config.sampleFrames*2,totalGpuSampleTarget:config.sampleFrames,passGpuSampleTarget:config.sampleFrames,alternatingGpuQueries:true,percentileMethod:'nearest-rank',fixedRendererTimeMs:config.fixedTimeMs},
+      gpuTimingAvailable:!!gpuExtension,
+      gpu:gpuExtension?{extension:'EXT_disjoint_timer_query_webgl2',disjointSamples:disjoint,series:gpuSeries,notes:['rendererTotal is measured on alternating frames because WebGL2 elapsed queries cannot be nested.','G-buffer, contact-shadow, and direct-lighting pass queries are measured on the other alternating frames.']}:{extension:'EXT_disjoint_timer_query_webgl2',unavailableReason:'EXT_disjoint_timer_query_webgl2 was not exposed by the measured WebGL2 context.',series:null},
+      cpu:{scenePrep:series(cpu.map(x=>x.cpuScenePrepMs)),submit:series(cpu.map(x=>x.cpuSubmitMs)),total:series(cpu.map(x=>x.cpuTotalMs))},
+      frame:{interval:series(intervals),fps:series(intervals.map(ms=>1000/ms),'fps')},
+      counts:{objects:{gBuffer:{...(diag.renderer?.gBuffer?.counts||{})},total:Object.values(diag.renderer?.gBuffer?.counts||{}).reduce((a,b)=>a+Number(b||0),0),authoredStatic:game.room?.editorDecor?.length||0,dynamicRobots:game.followers?.units?.length||0,foliageInstances:diag.renderer?.foliageFX?.instances||0},lights:{active:last.lightCount??game.collectLights().length,selfShadowed:diag.renderer?.selfShadow?.lights||0},samples:{selfShadow:diag.renderer?.selfShadow?.samples||0,contactShadow:diag.renderer?.contactShadow?.samples||0},occluders:{webgl2Casters:last.casterCount??game.collectCasters().length,terrain:diag.lightingPerception?.terrainOccluders||0,hard:diag.lightingPerception?.hardLightOccluders||0},clusters:null,dso:null,unsupportedNote:'WebGL2 baseline has no DSO cluster/tile/pixel representation; null is recorded rather than inferred.'},
+      memory:rendererMemory(renderer,diag.renderer||{}),
+      environment:{userAgent:navigator.userAgent,platform:navigator.platform||null,devicePixelRatio:Number(window.devicePixelRatio||1),webgl:webglEnvironment(renderer)},
+      rawGpuQueryResults:timerResults
+    };
+  }
   async function loadFixture() {
     const r = await fetch(`render-tests/fixtures/${config.fixture}.json`, {cache:'no-store'});
     if (!r.ok) throw new Error(`fixture ${config.fixture}: HTTP ${r.status}`);
@@ -153,13 +266,14 @@
     const a=config.lightAngle*Math.PI/180, origin=game.playerLightOrigin(), radius=240;
     game.mouseAimActive=true; game.mouseAimX=origin.x+Math.cos(a)*radius; game.mouseAimY=origin.y+Math.sin(a)*radius;
     game.playerFacing=Math.cos(a)<0?-1:1;
-    clearDynamic(game,f);
+    clearDynamic(game,f);applyBenchmarkProfile(game);
     game.bgKey=''; game.ensureBackground(true); game.updateUI();
     document.querySelectorAll('.modal,.floating').forEach(e=>e.classList.add('hidden'));
     const originalRender=game.render.bind(game);
+    game.__smHarnessRenderOnce=()=>originalRender(config.fixedTimeMs);
     game.render = () => originalRender(config.fixedTimeMs);
   }
-  async function buildResult(game) {
+  async function buildResult(game,performanceOverride=null) {
     // Force one deterministic presentation after all asynchronous renderer modules
     // have settled. The browser-parity runner may request the exact PNG bytes used
     // for this hash so it never has to race a later animation-frame redraw.
@@ -170,7 +284,8 @@
     const stable={config:metadata.config,scene:metadata.scene,viewport:{requestedNative:metadata.viewport.requestedNative,actualNative:metadata.viewport.actualNative,dprRequested:metadata.viewport.dprRequested,dprActual:metadata.viewport.dprActual},renderer:{materialPipeline:metadata.renderer?.materialPipeline||null,gBuffer:metadata.renderer?.gBuffer?{size:metadata.renderer.gBuffer.size,float:metadata.renderer.gBuffer.float}:null}};
     const canvasPng={bytes:blob.size,sha256:canvasHash};
     if(includeCanvasData)canvasPng.dataUrl=await blobDataUrl(blob);
-    const result={ok:true,metadata,sceneFingerprint:fnv1a(stableStringify(stable)),canvasPng,performance:{gpuTimingAvailable:!!diag.renderer?.gpuTimerQueries,gpuTimesMs:diag.renderer?.gpuTimesMs||null,note:'Values are evidence only for the actual browser/adapter used. Headless or software rendering is not hardware performance evidence.'}};
+    const performanceResult=performanceOverride||{gpuTimingAvailable:!!diag.renderer?.gpuTimerQueries,gpuTimesMs:diag.renderer?.gpuTimesMs||null,note:'Values are evidence only for the actual browser/adapter used. Headless or software rendering is not hardware performance evidence.'};
+    const result={ok:true,metadata,sceneFingerprint:fnv1a(stableStringify(stable)),canvasPng,performance:performanceResult};
     // Freeze presentation after the accepted frame. requestAnimationFrame continues,
     // but cannot replace the pixels between hash acceptance and CDP screenshot.
     game.render=()=>{};
@@ -197,7 +312,8 @@
       if(!globalThis.steelMothRenderTransformBaseline&&!window.game.renderTransform)throw new Error('SM-101 shared transform authority did not attach before capture');
       applyState(window.game,fixture);
       for(let i=0;i<config.settleFrames;i++) await new Promise(r=>requestAnimationFrame(r));
-      const result=await buildResult(window.game); readyResolve(result);
+      const performanceResult=config.benchmark?await runBenchmark(window.game):null;
+      const result=await buildResult(window.game,performanceResult); readyResolve(result);
     } catch (error) {
       const result={ok:false,error:String(error?.stack||error),config}; writeResult(result); document.body.dataset.renderTestError='1'; readyResolve(result);
     }
