@@ -1,0 +1,65 @@
+name: SM-302 WebGPU dominant occluder
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_dominance.js'
+      - 'engine/webgpu_clusters.js'
+      - 'engine/webgpu_occluders.js'
+      - 'engine/webgpu_lighting.js'
+      - 'webgpu-dominance-smoke.html'
+      - 'tools/validate_webgpu_dominance*'
+      - 'tools/run_checks.py'
+      - 'tools/validate_clean_package.py'
+      - 'docs/WEBGPU_DOMINANCE_SM302.md'
+      - 'webapp.js'
+      - 'sw.js'
+      - '.github/workflows/sm302-dominance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sm302-dominance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dominance:
+    name: cardinal owners + hysteresis + GPU readback
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser validation dependency
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Validate source, cardinal owners, hysteresis and contract
+        run: |
+          node --check engine/webgpu_dominance.js
+          node tools/validate_webgpu_dominance.js
+          python tools/validate_webgpu_dominance_contract.py
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-302 WebGPU validation' >&2; exit 1; fi
+      - name: Validate owner buffer, moving-light timeline, hysteresis, debug evidence and invalidation
+        run: python tools/validate_webgpu_dominance_browser.py --require-webgpu --report artifacts/webgpu-dominance-browser.json
+      - name: Upload SM-302 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm302-webgpu-dominance-${{ github.run_id }}
+          path: |
+            artifacts/webgpu-dominance-browser.json
+            artifacts/webgpu-dominance-browser.png
+          if-no-files-found: warn
