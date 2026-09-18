@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-300 WebGPU occluder bins smoke</title>
+<canvas id="occluderDebug" width="192" height="128"></canvas>
+<pre id="webgpuOccluderResult"></pre>
+<script type="module">
+const result={schema:'steelmoth-webgpu-occluders-browser-smoke/v1',ok:false,checks:[],diagnostics:null,readback:null,error:null};
+const check=(ok,label)=>{result.checks.push({ok:!!ok,label});if(!ok)throw new Error(label)};
+const publish=()=>{document.getElementById('webgpuOccluderResult').textContent=JSON.stringify(result);document.body.dataset.webgpuOccluderDone='1'};
+try{
+  if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+  const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw new Error('requestAdapter returned null');
+  const device=await adapter.requestDevice();
+  await import('./engine/webgpu_resources.js?v=sm103-1');
+  await import('./engine/webgpu_gbuffer.js?v=sm200-1');
+  await import('./engine/webgpu_occluders.js?v=sm300-1');
+  const O=globalThis.SteelMothWebGPUOccluders;
+  check(!!O?.WebGPUOccluderBins,'SM-300 API available');
+  check(O.RECORD_STRIDE===64&&O.TILE_HEADER_STRIDE===8,'packed ABI pinned');
+  const scene={frame:{roomId:'sm300-a',logicalSize:[96,64]},occluders:[
+    {id:'wall:b',rect:[30,4,70,20],kind:'terrain',source:'wall:b',sections:[{z:18}]},
+    {id:'tiny:1',rect:[5,5,8,8],kind:'decor',source:'decor',receiverOnly:true},
+    {id:'robot:2',rect:[50,28,70,40],kind:'robot',source:'robot',dynamic:true,sections:[{z:12}]},
+    {id:'wall:a',rect:[1,1,20,18],kind:'terrain',source:'wall:a',sections:[{z:16}]}
+  ]};
+  const cpu=O.buildOccluderSnapshot(scene,{tileSize:32,maxOccluders:8,maxPerTile:4,maxTileRefs:32});
+  const reverse=O.buildOccluderSnapshot({...scene,occluders:[...scene.occluders].reverse()},{tileSize:32,maxOccluders:8,maxPerTile:4,maxTileRefs:32});
+  check(cpu.records.length===4&&cpu.diagnostics.substantialCount===3&&cpu.diagnostics.receiverOnlyCount===1,'substantial/receiver-only classification bounded');
+  check(JSON.stringify([...cpu.packed])===JSON.stringify([...reverse.packed]),'record packing deterministic under source reorder');
+  check(JSON.stringify([...cpu.tileHeaders])===JSON.stringify([...reverse.tileHeaders])&&JSON.stringify([...cpu.tileRefs])===JSON.stringify([...reverse.tileRefs]),'tile membership deterministic under source reorder');
+  const path=new O.WebGPUOccluderBins({device,width:96,height:64,tileSize:32,maxOccluders:8,maxPerTile:4,maxTileRefs:32});
+  await path.update(scene);let diag=path.diagnostics();check(diag.valid&&diag.snapshot.recordCount===4,'GPU path accepted first scene');
+  check(diag.snapshot.nonEmptyTiles>0&&diag.snapshot.tileRefCount>0,'GPU tile occupancy inspectable');
+  const gpu=await path.readback(),dv=new DataView(gpu.records.buffer,gpu.records.byteOffset,gpu.records.byteLength),hd=new DataView(gpu.tileHeaders.buffer,gpu.tileHeaders.byteOffset,gpu.tileHeaders.byteLength);
+  check(dv.getUint32(0,true)===cpu.records[0].objectId&&dv.getUint32(4,true)===cpu.records[0].flags,'GPU record readback matches CPU object identity/flags');
+  check(hd.getUint32(0,true)===cpu.tileHeaders[0]&&hd.getUint32(4,true)===cpu.tileHeaders[1],'GPU tile-header readback matches CPU reference');
+  const tinyId=O.objectIdForOccluder(scene.occluders[1]),overlay=path.debugOverlay();check(!overlay.some(t=>t.objectIds.includes(tinyId)),'receiver-only tiny decor cannot connect major bins');
+  const beforeStatic=diag.uploads.static,beforeDynamic=diag.uploads.dynamic,moved=structuredClone(scene);moved.occluders.find(o=>o.kind==='robot').rect=[70,28,90,40];moved.frame.roomId='sm300-a';
+  await path.update(moved);diag=path.diagnostics();check(diag.uploads.static===beforeStatic&&diag.uploads.dynamic===beforeDynamic+1,'dynamic-only change avoids static re-upload');
+  path.invalidate('editor-change');let staleRejected=false;try{path.bindings()}catch(_e){staleRejected=true}check(staleRejected,'editor invalidation rejects stale bindings');
+  const edited=structuredClone(moved);edited.occluders=edited.occluders.filter(o=>o.id!=='wall:b');await path.update(edited);check(path.diagnostics().snapshot.recordCount===3,'editor rebuild removes stale occluder record');
+  const room=structuredClone(scene);room.frame.roomId='sm300-b';room.occluders=[{id:'new-room-wall',rect:[0,0,64,12],kind:'terrain',majorOccluder:true}];await path.update(room);diag=path.diagnostics();check(diag.roomId==='sm300-b'&&diag.snapshot.recordCount===1,'room change rebuilds without stale records');
+  const dense={frame:{roomId:'dense',logicalSize:[64,64]},occluders:Array.from({length:20},(_,i)=>({id:`dense:${i}`,rect:[0,0,40,40],kind:'terrain',majorOccluder:true}))};
+  const cap=O.buildOccluderSnapshot(dense,{tileSize:32,maxOccluders:10,maxPerTile:3,maxTileRefs:8});check(cap.records.length===10&&cap.diagnostics.occluderOverflow===10,'global occluder cap is deterministic');
+  check(cap.tileRefs.length<=8&&cap.diagnostics.tileRefOverflow>0&&cap.diagnostics.overflowTileCount>0,'tile-reference caps report overflow without unbounded growth');
+  check(path.diagnostics().depthHierarchyContract.includes('SM-203'),'shared hierarchy boundary explicit');
+  const ctx=document.getElementById('occluderDebug').getContext('2d');ctx.clearRect(0,0,192,128);ctx.strokeStyle='#fff';for(const t of O.debugTileOverlay(cpu)){const [l,top,r,b]=t.rect;ctx.strokeRect(l*2,top*2,(r-l)*2,(b-top)*2);ctx.fillText(String(t.count),l*2+2,top*2+10)}
+  check(O.debugTileOverlay(cpu).length>0,'debug tile overlay produces inspectable rectangles');
+  result.diagnostics=diag;result.readback={firstObjectId:dv.getUint32(0,true),firstFlags:dv.getUint32(4,true),firstTileCount:hd.getUint32(4,true),dense:cap.diagnostics};result.ok=true;path.close();
+}catch(error){result.error=String(error?.stack||error)}finally{publish()}
+</script>
