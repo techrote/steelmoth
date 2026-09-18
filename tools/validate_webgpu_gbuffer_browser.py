@@ -43,6 +43,11 @@ def raw_fixture_expectations()->dict:
     def record(name,item):
         r=region(name);x,y,a,n,h=item
         return {'name':name,'x':x,'y':y,'region':list(r),'albedo':a,'normalRoughness':n,'heightMaterial':h}
+    r,items=candidates('floor_plate')
+    # Prefer the minimum local-height visible texel, then the most upward-facing
+    # normal. This is a direct raw-PNG flat-material control, not a browser 2D
+    # compositing result (material alpha stores emissive, not opacity).
+    flat=min(items,key=lambda p:(p[4][0],abs(p[3][0]-128)+abs(p[3][1]-128)+abs(p[3][2]-255)))
     r,items=candidates('cargo_crate')
     box=max(items,key=lambda p:p[4][0]-((p[0]-(r[2]-1)/2)**2+(p[1]-(r[3]-1)/2)**2)**.5*.01)
     r,items=candidates('rust_barrel')
@@ -55,7 +60,7 @@ def raw_fixture_expectations()->dict:
         score=abs(item[4][2]-128)
         if mixed is None or score>mixed[0]:mixed=(score,name,item)
     if mixed is None:raise RuntimeError('no mixed-material fixture region found')
-    return {'box':record('cargo_crate',box),'barrel':record('rust_barrel',barrel),'mixed':record(mixed[1],mixed[2])}
+    return {'flat':record('floor_plate',flat),'box':record('cargo_crate',box),'barrel':record('rust_barrel',barrel),'mixed':record(mixed[1],mixed[2])}
 
 class CDP:
     def __init__(self,url:str,timeout=40):self.ws=websocket.create_connection(url,timeout=timeout,origin='http://127.0.0.1');self.seq=0
