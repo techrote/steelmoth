@@ -14,7 +14,7 @@ Define the target renderer architecture and invariants that implementation issue
 - static, dynamic, and foreground Material-v2 descriptors are painter/foot ordered rather than resolved by per-pixel object ownership;
 - SurfaceFX grass/water and FoliageFX coherently sample the lit WebGL2 scene/current main-light direction, but they do not yet consume the canonical future light/depth/visibility buffers defined below.
 
-SM-100/101 subsequently established the backend-neutral scene and shared root authority, and SM-200 ported Material-v2 representation without changing ownership semantics. SM-201 now defines the canonical ownership projection; SM-202 remains responsible for enabling real per-pixel hardware depth/object ownership.
+SM-100/101 subsequently established the backend-neutral scene and shared root authority, SM-200 ported Material-v2 representation, SM-201 defined the canonical ownership projection, and SM-202 enabled real per-pixel depth/object ownership. SM-203 now derives the one reusable min/max pseudo-depth hierarchy consumed by later visibility and screen-space passes.
 
 ## Backend model
 
@@ -100,7 +100,7 @@ visibilityKey = layer * 1024 + projectedGroundY + bias
 depth01 = clamp((3072 - visibilityKey) / 5120, 0, 1)
 ```
 
-Larger visibility keys are nearer; the inverse 0..1 mapping is intended for a conventional `less` depth comparison when SM-202 enables production ownership writes. Static and dynamic share layer 0; ground/foreground/top use explicit -1/+1/+2 lanes. The model is deterministic, light-independent, alpha-cutout aware, stable under subpixel movement, and defined from the same shared transform for static/dynamic/foreground/editor paths. Rotation changes actual raster fragment position but not the SM-101 root; horizontal flip changes UV/height sampling without introducing a second geometry convention.
+Larger visibility keys are nearer; the inverse 0..1 mapping uses a conventional `less` depth comparison in the SM-202 ownership pass. Static and dynamic share layer 0; ground/foreground/top use explicit -1/+1/+2 lanes. The model is deterministic, light-independent, alpha-cutout aware, stable under subpixel movement, and defined from the same shared transform for static/dynamic/foreground/editor paths. Rotation changes actual raster fragment position but not the SM-101 root; horizontal flip changes UV/height sampling without introducing a second geometry convention.
 
 No subsystem may independently invent a competing convention. G2.R remains local Material-v2 height, not final visibility depth.
 
@@ -122,7 +122,7 @@ Start explicit and debuggable. Production staging layout:
 - **G1 `rgba16float`** — pseudo-world normal XYZ + roughness;
 - **G2 `rgba16float`** — Material-v2 local height plus metalness + material AO + emissive/aux;
 - **Object ID `r32uint`** — stable visible instance/object ID;
-- **Depth `depth32float`** — allocated and deterministically cleared by SM-200; SM-202 will apply the accepted SM-201 ownership projection and depth test.
+- **Depth `depth32float`** — canonical SM-201 projection written per fragment by SM-202 using `less` ownership testing.
 
 Do not pack normals/material channels until correctness/performance data justifies it. Do not relabel local G2 height as ownership depth.
 
@@ -151,7 +151,9 @@ Reserved later insertion points:
 
 ## Pseudo-depth hierarchy
 
-One shared hierarchy should serve:
+SM-203 implements the shared hierarchy in `engine/webgpu_depth_hierarchy.js`; the complete representation and invalidation contract is `WEBGPU_DEPTH_HIERARCHY_SM203.md`.
+
+One hierarchy serves:
 
 - self-shadow acceleration;
 - DSO traversal/culling;
@@ -159,7 +161,11 @@ One shared hierarchy should serve:
 - SSGI;
 - volumetric occlusion.
 
-Do not build independent depth pyramids per effect.
+Each level is an unfiltered `rg32float` texture storing the nearest and farthest **occupied** canonical ownership depth. Level 0 derives occupancy from the SM-202 `r32uint` object-ID target so the depth clear value `1.0` is never mistaken for geometry. Empty hierarchy cells are the invalid range `(1,0)`. Higher levels reduce valid children with `min(nearest)` / `max(farthest)`.
+
+Level dimensions use ceiling division by two until `1x1`; odd edges reduce only existing children. Level textures are persistent across normal frame rebuilds and are recreated only on extent/device changes. Room/history/resize/device invalidation marks the hierarchy stale, and its public sampling API rejects stale views until a complete rebuild succeeds.
+
+`rg32float` is deliberately sampled with `textureLoad`; SM-203 does not require float filtering, blending, or optional texture-format tiers. Do not build independent depth pyramids per effect.
 
 ## Occluder clustering
 

@@ -46,7 +46,7 @@ jobs:
           if-no-files-found: warn
 
   webgpu-api-smoke:
-    name: WebGPU lifecycle + resources + WGSL + G-buffer + ownership validation
+    name: WebGPU lifecycle + resources + WGSL + G-buffer + ownership + depth hierarchy validation
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -74,6 +74,8 @@ jobs:
         run: python tools/validate_webgpu_gbuffer_browser.py --require-webgpu --report artifacts/webgpu-gbuffer-browser.json
       - name: Resolve and read back production per-pixel depth and object ownership
         run: python tools/validate_webgpu_ownership_browser.py --require-webgpu --report artifacts/webgpu-ownership-browser.json
+      - name: Build and read back the reusable pseudo-depth min/max hierarchy
+        run: python tools/validate_webgpu_depth_hierarchy_browser.py --require-webgpu --report artifacts/webgpu-depth-hierarchy-browser.json
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,6 +87,7 @@ jobs:
             artifacts/webgpu-validation-browser.json
             artifacts/webgpu-gbuffer-browser.json
             artifacts/webgpu-ownership-browser.json
+            artifacts/webgpu-depth-hierarchy-browser.json
           if-no-files-found: warn
 
   webgl2-transform-parity:
@@ -169,6 +172,7 @@ jobs:
 # and frame-graph infrastructure. SM-104 requires real hosted WebGPU for the current
 # WGSL/pipeline/resource/failure-path inventory. SM-200 adds real production G-buffer
 # rendering/readback. SM-201 accepts the canonical light-independent pseudo-depth
-# formula; SM-202 now requires real fragment-depth/object-ID ownership readback,
-# eight-angle invariance and perturbation stability. Hosted success remains API/data
-# correctness evidence only, never target-GPU performance or human visual acceptance.
+# formula; SM-202 requires real fragment-depth/object-ID ownership readback and
+# SM-203 requires the shared min/max hierarchy over that canonical ownership depth.
+# Hosted success remains API/data correctness evidence only, never target-GPU
+# performance or human visual acceptance.

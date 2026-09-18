@@ -29,6 +29,7 @@ Do not silently promote a historical suggestion into a requirement.
 - [`WEBGPU_GBUFFER_SM200.md`](WEBGPU_GBUFFER_SM200.md) — SM-200 production Material-v2 G-buffer formats, atlas semantics, deterministic clears/readbacks and material/object-ID debug contract; its depth-disabled class is retained as a compatibility/control path.
 - [`PSEUDO_DEPTH_MODEL.md`](PSEUDO_DEPTH_MODEL.md) — SM-201 accepted light-independent fragment ownership projection, units/ranges/layers, numeric vectors and rejected alternatives, now mechanically adopted by SM-202.
 - [`WEBGPU_OWNERSHIP_SM202.md`](WEBGPU_OWNERSHIP_SM202.md) — SM-202 production per-pixel fragment-depth/object-ID ownership, alpha cutout, layer/bias, readback/debug and eight-angle/perturbation validation contract.
+- [`WEBGPU_DEPTH_HIERARCHY_SM203.md`](WEBGPU_DEPTH_HIERARCHY_SM203.md) — SM-203 single reusable `rg32float` occupied min/max pseudo-depth hierarchy, odd-edge reduction, lifecycle/invalidation, sampling and debug/readback contract.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
@@ -41,7 +42,7 @@ Do not silently promote a historical suggestion into a requirement.
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
-- `.github/workflows/verification.yml` — hosted source/regression, required real-WebGPU WGSL/pipeline/resource/G-buffer/ownership validation, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
+- `.github/workflows/verification.yml` — hosted source/regression, required real-WebGPU WGSL/pipeline/resource/G-buffer/ownership/depth-hierarchy validation, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
 - `tools/run_checks.py` — stable cross-platform verification runner and failure-report contract.
 - `tools/validate_clean_package.py` — fresh ZIP/extraction/integrity validation.
 - `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented implementation PR contract.
@@ -81,6 +82,8 @@ SM-201 resolves the ownership-depth research question. The accepted `steelmoth-p
 
 SM-202 mechanically adopts that model in the staged production WebGPU ownership pass. Covered Material-v2 fragments now write canonical `depth32float` plus the stable object ID under `depthCompare: less`; alpha-cutout pixels own neither. Static and dynamic share one depth lane, foreground retains its explicit lane, and explicit fine bias is data-driven. Real-WebGPU CI reads depth/object-ID buffers for two-bin overlap, reversed submission order, transparent holes, the eight light angles and ±0.25/0.5/1-pixel perturbations. Object-ID and depth debug views are executable. Normal game presentation still remains WebGL2 pending later full-frame/backend-promotion gates.
 
-The root/foot authority and per-pixel ownership representation are therefore implemented prerequisites for the shared depth hierarchy and later clustering/DSO work. Downstream systems must consume the resolved SM-202 ownership field rather than treating G2.R local height as ownership depth.
+SM-203 derives the sole reusable pseudo-depth hierarchy from those SM-202 depth/object-ID targets. Native level 0 maps occupied pixels to `(depth,depth)` and empty pixels to `(1,0)`; successive `rg32float` levels conservatively reduce occupied nearest/farthest depth with ceil-halved dimensions through 1x1. Persistent levels expose shared sampling/debug/readback APIs and reject stale use after room, resize or device invalidation. Later self-shadow, DSO, GTAO, SSGI and volumetric work must reuse this hierarchy rather than create competing pyramids.
+
+The root/foot authority, per-pixel ownership representation and shared depth hierarchy are therefore implemented prerequisites for later lighting and clustering/DSO work. Downstream systems must consume the resolved ownership/depth contracts rather than treating G2.R local height as ownership depth.
 
 Historical context in `RAG_REFERENCE_STEELMOTH.md` remains useful for intent and provenance, but source-level implementation claims should defer to the imported code, its validation records, the SM-004 audit, implemented subsystem contracts, and current verification reports.
