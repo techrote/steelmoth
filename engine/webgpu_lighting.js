@@ -33,7 +33,6 @@
   const bufferUsage=names=>names.reduce((v,n)=>v|Number(root?.GPUBufferUsage?.[n]??FALLBACK_BUFFER_USAGE[n]??0),0);
   const textureUsage=names=>names.reduce((v,n)=>v|Number(root?.GPUTextureUsage?.[n]??FALLBACK_TEXTURE_USAGE[n]??0),0);
   const vadd=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
-  const vsub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
   const vmul=(a,b)=>Array.isArray(b)?[a[0]*b[0],a[1]*b[1],a[2]*b[2]]:[a[0]*b,a[1]*b,a[2]*b];
   const vdiv=(a,b)=>[a[0]/b[0],a[1]/b[1],a[2]/b[2]];
   const vdot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
@@ -44,7 +43,8 @@
   const smoothstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
 
   function lightElevation(light){
-    if(Number.isFinite(Number(light?.z)))return Number(light.z);
+    if(light?.z!=null&&Number.isFinite(Number(light.z)))return Number(light.z);
+    if(isCone(light))return 22;
     return DEFAULT_Z[String(light?.group||'')]??12;
   }
   function isCone(light){return String(light?.type||'').toLowerCase()==='cone'||String(light?.id||'')==='light:player-cone:0'||('innerCos'in(light||{})&&'outerCos'in(light||{}));}
