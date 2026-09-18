@@ -34,9 +34,10 @@
   // SM-303 tile-local DSO hard macro occlusion, SM-304 projected-throw
   // near/mid/far silhouette hierarchy, SM-305 reduced-resolution bounded
   // depth-aware Dark Bloom, SM-306 low-frequency soft-history stabilization,
-  // SM-307 bounded DSO/self/contact/Bloom/AO visibility composition, and SM-400
-  // canonical-light/depth/visibility water staging. Auto remains WebGL2 until
-  // SM-505; staged WebGPU modules do not change presentation.
+  // SM-307 bounded DSO/self/contact/Bloom/AO visibility composition, SM-400
+  // canonical-light/depth/visibility water staging, and SM-401 rooted foliage /
+  // Fine Grass staging. Auto remains WebGL2 until SM-505; staged WebGPU modules
+  // do not change presentation.
   const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
     .then(() => import('./engine/webgpu_resources.js?v=sm103-1'))
     .then(() => import('./engine/pseudo_depth.js?v=sm201-1'))
@@ -56,11 +57,12 @@
     .then(() => import('./engine/webgpu_dark_bloom_temporal.js?v=sm306-1'))
     .then(() => import('./engine/webgpu_visibility.js?v=sm307-1'))
     .then(() => import('./engine/webgpu_water.js?v=sm400-1'))
+    .then(() => import('./engine/webgpu_foliage.js?v=sm401-1'))
     .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
-      console.warn('WebGPU staged renderer lifecycle through post/occluder/cluster/dominance/DSO hierarchy/Dark Bloom/temporal/bounded visibility/canonical water preparation unavailable; continuing with WebGL2.', err);
+      console.warn('WebGPU staged renderer lifecycle through post/occluder/cluster/dominance/DSO hierarchy/Dark Bloom/temporal/bounded visibility/canonical water/foliage preparation unavailable; continuing with WebGL2.', err);
       return null;
     });
   globalThis.steelMothBackendReady = backendReady;
