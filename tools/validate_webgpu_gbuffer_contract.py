@@ -11,7 +11,8 @@ src=text('engine/webgpu_gbuffer.js')
 webapp=text('webapp.js')
 sw=text('sw.js')
 workflow=text('.github/workflows/verification.yml')
-doc=text('GBUFFER_LAYOUT.md')
+doc=text('docs/WEBGPU_GBUFFER_SM200.md')
+baseline=text('GBUFFER_LAYOUT.md')
 
 for token in ["g0:'rgba8unorm'","g1:'rgba16float'","g2:'rgba16float'","objectId:'r32uint'","depth:'depth32float'","depthWriteEnabled:false","depthCompare:'always'","copyTextureToBuffer","getCompilationInfo","textureSample","alphaCutoff","DEBUG_MODES","buildSceneInstances"]:
     require(token in src,f'production G-buffer contract missing {token}')
@@ -22,5 +23,7 @@ require("engine/webgpu_gbuffer.js?v=sm200-1" in sw,'offline core does not includ
 require('validate_webgpu_gbuffer_browser.py --require-webgpu' in workflow,'required real-WebGPU G-buffer browser gate missing')
 require('webgpu-gbuffer-browser.json' in workflow,'SM-200 browser evidence is not uploaded')
 for token in ['WebGPU Material-v2 G-buffer','rgba8unorm','rgba16float','r32uint','depth32float','SM-201','SM-202','object ID','deterministic clear']:
-    require(token in doc,f'GBUFFER_LAYOUT.md missing SM-200 contract phrase: {token}')
+    require(token in doc,f'WEBGPU_GBUFFER_SM200.md missing contract phrase: {token}')
+for token in ['G2.R is not final visibility depth','R = normalized local pseudo-height','G = metalness','B = material AO']:
+    require(token in baseline,f'inherited G-buffer semantic missing: {token}')
 print('SM-200 WebGPU G-buffer source contract: PASS')
