@@ -14,7 +14,7 @@ smoke=read('webgpu-dark-bloom-temporal-smoke.html')
 workflow=read('.github/workflows/sm306-dark-bloom-temporal.yml') if (ROOT/'.github/workflows/sm306-dark-bloom-temporal.yml').exists() else ''
 
 require('steelmoth-webgpu-dark-bloom-temporal/v1' in src and 'steelmoth-webgpu-dark-bloom-temporal-snapshot/v1' in src,'stable temporal schemas missing')
-require('history0' in src and 'history1' in src and 'depth0' in src and 'object0' in src,'persistent ping-pong residual/depth/object history missing')
+require('for(const i of [0,1])' in src and 'history${i}' in src and 'depth${i}' in src and 'object${i}' in src,'persistent ping-pong residual/depth/object history missing')
 require('r32float' in src and 'rg32float' in src and 'r32uint' in src,'history formats do not preserve residual/depth/object semantics')
 require('hardCoreUnsmooth:true' in src and 'softHistoryOnly:true' in src,'hard-core/soft-only scope diagnostics missing')
 require('current_bounds' in src and 'neighborhoodClamp:true' in src,'current-neighborhood anti-trail clamp missing')
