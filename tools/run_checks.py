@@ -50,6 +50,7 @@ CHECKS = [
     ("webgpu-depth-hierarchy", "regression", ["node", "tools/validate_webgpu_depth_hierarchy.js"]),
     ("webgpu-depth-hierarchy-contract", "regression", [PY, "tools/validate_webgpu_depth_hierarchy_contract.py"]),
     ("webgpu-lighting", "regression", ["node", "tools/validate_webgpu_lighting.js"]),
+    ("webgpu-lighting-contract", "regression", [PY, "tools/validate_webgpu_lighting_contract.py"]),
     ("render-harness", "regression", [PY, "tools/validate_render_harness.py"]),
     ("render-fixtures", "regression", [PY, "tools/validate_render_fixtures.py", "--repeat", "3"]),
     ("webapp-v123", "regression", [PY, "tools/validate_webapp_v123.py"]),
