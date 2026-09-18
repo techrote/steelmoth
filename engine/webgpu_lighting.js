@@ -143,7 +143,7 @@ fn fres(F0:vec3f,VoH:f32)->vec3f{return F0+(vec3f(1)-F0)*pow(1.0-VoH,5.0);}
     let NoV=max(dot(n,V),.02);if(NoL<=0.0){continue;}let H=normalize(V+L);let NoH=max(dot(n,H),0.0);let VoH=max(dot(V,H),0.0);let a=max(.045,rough*rough);let D=D_GGX(NoH,a);let k=(rough+1.0)*(rough+1.0)/8.0;let G=G1(NoV,k)*G1(NoL,k);let F=fres(F0,VoH);let specularTerm=(D*G*F)/max(4.0*NoV*NoL,.04);let kd=(vec3f(1)-F)*(1.0-metal);diffSum+=kd*al.rgb*(NoL*.86+.14)*radiance;specSum+=specularTerm*radiance*pbrSpecular;
   }
   if(frame.counts.y==1u){return vec4f(diffSum,1);}if(frame.counts.y==2u){return vec4f(specSum,1);}if(frame.counts.y==3u){let c=f32(frame.counts.x)/f32(MAX_LIGHTS);return vec4f(vec3f(c),1);}
-  let ambient=al.rgb*(frame.p0.z*(.72+.28*mao))*mix(vec3f(1),vec3f(.96,1.0,1.03),metal*.15);let directLight=max(vec3f(0),diffSum+specSum);directLight=directLight/(vec3f(1)+directLight*.22);let finalColor=max(vec3f(0),ambient+directLight+al.rgb*em*.8);return vec4f(finalColor,al.a);
+  let ambient=al.rgb*(frame.p0.z*(.72+.28*mao))*mix(vec3f(1),vec3f(.96,1.0,1.03),metal*.15);var directLight=max(vec3f(0),diffSum+specSum);directLight=directLight/(vec3f(1)+directLight*.22);let finalColor=max(vec3f(0),ambient+directLight+al.rgb*em*.8);return vec4f(finalColor,al.a);
 }`;
 
   function halfToFloat(h){h=Number(h)&0xffff;const s=(h>>15)&1,e=(h>>10)&31,f=h&1023;if(e===0)return(s?-1:1)*Math.pow(2,-14)*(f/1024);if(e===31)return f?NaN:(s?-Infinity:Infinity);return(s?-1:1)*Math.pow(2,e-15)*(1+f/1024)}
