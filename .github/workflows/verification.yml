@@ -40,7 +40,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: core-verification-${{ github.run_id }}
-          path: artifacts/*.json
+          path: |
+            artifacts/*.json
+            artifacts/*.svg
           if-no-files-found: warn
 
   webgpu-api-smoke:
@@ -163,5 +165,7 @@ jobs:
 # SM-102 provides staged lifecycle/fallback policy. SM-103 adds persistent resource
 # and frame-graph infrastructure. SM-104 requires real hosted WebGPU for the current
 # WGSL/pipeline/resource/failure-path inventory. SM-200 adds real production G-buffer
-# rendering/readback on the same hosted adapter. Hosted success remains API/data
-# correctness evidence only, never target-GPU performance or human visual acceptance.
+# rendering/readback on the same hosted adapter. SM-201 adds deterministic numeric
+# pseudo-depth derivation plus box/bin debug artifacts while leaving production depth
+# writes for SM-202. Hosted success remains API/data correctness evidence only, never
+# target-GPU performance or human visual acceptance.
