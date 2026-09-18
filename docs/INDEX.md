@@ -24,6 +24,7 @@ Do not silently promote a historical suggestion into a requirement.
 - [`RENDER_SCENE_DESCRIPTION.md`](RENDER_SCENE_DESCRIPTION.md) — implemented SM-100 RenderScene schemas and WebGL2 compatibility boundary, reconciled to SM-101 root authority.
 - [`ROOT_FOOT_CONVENTION.md`](ROOT_FOOT_CONVENTION.md) — SM-101 canonical sprite root/foot/placement API, compatibility rules, editor/shadow/backend integration and downstream contract.
 - [`WEBGPU_DEVICE_LIFECYCLE.md`](WEBGPU_DEVICE_LIFECYCLE.md) — SM-102 adapter/device/context lifecycle, staged backend selection, diagnostics, loss/error handling and WebGL2 fallback contract.
+- [`WEBGPU_RESOURCE_INFRASTRUCTURE.md`](WEBGPU_RESOURCE_INFRASTRUCTURE.md) — SM-103 persistent resource registry, bounded upload arenas, explicit frame graph, pipeline cache, invalidation and diagnostics contract.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
@@ -36,7 +37,7 @@ Do not silently promote a historical suggestion into a requirement.
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
-- `.github/workflows/verification.yml` — hosted source/regression, WebGPU lifecycle smoke, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
+- `.github/workflows/verification.yml` — hosted source/regression, WebGPU lifecycle/resource smoke, WebGL2 pixel parity, GLSL/MRT software, and clean-package verification.
 - `tools/run_checks.py` — stable cross-platform verification runner and failure-report contract.
 - `tools/validate_clean_package.py` — fresh ZIP/extraction/integrity validation.
 - `.github/PULL_REQUEST_TEMPLATE.md` — evidence-oriented implementation PR contract.
@@ -65,6 +66,8 @@ The SM-004 reconciliation remains important: WebGL2 G2.R is local Material-v2 he
 SM-100 introduced the first backend-neutral renderer boundary through typed RenderScene records and WebGL2 compatibility replay. SM-101 supplies the shared `steelmoth-render-transform/v1` authority consumed by active Material-v2 roots, editor placement/hit geometry, shadow profile helpers and RenderScene roots while preserving accepted v1.2.3 placement.
 
 SM-102 adds the production WebGPU platform lifecycle boundary without claiming a WebGPU game renderer already exists. Explicit migration selection can acquire/inventory an adapter and device, negotiate exposed optional features, configure/reconfigure a dedicated WebGPU context, collect asynchronous errors/loss diagnostics, and fall back safely. Normal `Auto` remains WebGL2 and does not request an adapter until SM-505 authorizes promotion. During this device-only stage a successful explicit WebGPU selection still presents the game through the accepted WebGL2 compatibility renderer.
+
+SM-103 layers deterministic persistent GPU ownership on that lifecycle: named texture/buffer definitions survive ordinary frames, only surface-dependent resources rebuild on resize, backend reset rebuilds definitions on the replacement device, static uploads and bounded dynamic arenas are separate, pass order is explicit, and pipeline/resource diagnostics are inspectable. This remains infrastructure only; production WGSL and G-buffer/material passes begin in SM-104/SM-200.
 
 The root/foot problem is therefore separated from the still-open ownership-depth problem. SM-201 remains responsible for deriving light-independent fragment depth from the shared root plus local material height/layer semantics, and SM-202 remains responsible for per-pixel depth/object ownership.
 
