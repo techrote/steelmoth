@@ -36,8 +36,6 @@
     check('production-device-api-loaded',!!Device);
     result.autoPolicy=Device.resolveBackendPolicy('auto');
     check('auto-remains-webgl2-before-sm505',result.autoPolicy.selected==='webgl2'&&Device.AUTO_WEBGPU_ENABLED===false,{selected:result.autoPolicy.selected});
-    result.webgl2.available=!!document.getElementById('glCanvas').getContext('webgl2',{antialias:false});
-    check('webgl2-fallback-context',result.webgl2.available);
     check('navigator-gpu-present',!!navigator.gpu);
     const adapter=await bounded(navigator.gpu.requestAdapter({powerPreference:'high-performance'}),10000,'requestAdapter');
     check('adapter-acquired',!!adapter);
@@ -127,6 +125,11 @@
     check('production-init-failure-fails-closed',failedClosed);
 
     source.destroy();readback.destroy();
+    // Create the fallback context only after WebGPU work is complete. Some hosted
+    // software stacks expose WebGPU and WebGL2 through competing graphics instances;
+    // opening WebGL2 first can invalidate an otherwise healthy WebGPU presentation path.
+    result.webgl2.available=!!document.getElementById('glCanvas').getContext('webgl2',{antialias:false});
+    check('webgl2-fallback-context',result.webgl2.available);
     result.webgpu.realWebGPU=true;
     result.ok=true;
   }catch(error){
