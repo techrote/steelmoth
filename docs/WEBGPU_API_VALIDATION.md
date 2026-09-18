@@ -40,7 +40,9 @@ A deliberate invalid buffer descriptor (`usage: 0`) is also created inside a lab
 
 ## Atlas upload
 
-The browser harness builds a deterministic 2×2 canvas and uploads it with `GPUQueue.copyExternalImageToTexture()` into the registered `rgba8unorm` atlas destination (`COPY_DST | TEXTURE_BINDING`). The exact destination descriptor is retained in the machine-readable report. Failure or absence of this path fails a required WebGPU run rather than being inferred from unrelated texture creation.
+The browser harness builds a deterministic 2×2 canvas and uploads it with `GPUQueue.copyExternalImageToTexture()` into the registered `rgba8unorm` atlas destination. Its usage is `COPY_DST | TEXTURE_BINDING | RENDER_ATTACHMENT`: `TEXTURE_BINDING` preserves the intended sampled-atlas role, while the hosted Chrome/Dawn validation run demonstrated that an external-image copy destination also requires `RENDER_ATTACHMENT` in addition to `COPY_DST`. The exact destination descriptor is retained in the machine-readable report so this constraint remains executable rather than merely documented.
+
+The first SM-104 browser run intentionally failed with Dawn's actionable validation error — “Destination texture needs to have CopyDst and RenderAttachment usage” — when the descriptor contained only `COPY_DST | TEXTURE_BINDING`. The descriptor was corrected rather than suppressing the error or weakening the gate.
 
 Future Material-v2 atlas/resource work must extend this check with its exact production descriptors rather than creating a parallel untracked upload convention.
 
