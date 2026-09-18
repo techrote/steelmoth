@@ -10,9 +10,8 @@ SKIP_NAMES={'__pycache__','.pytest_cache','.mypy_cache','.DS_Store'}
 # SHA256SUMS.txt belongs to the imported v1.2.3 distribution. Repository runtime
 # code is now intentionally evolving through the migration programme, so the old
 # archive checksums remain immutable provenance for content/assets and a small
-# set of launcher/static-host files only. Current engine/webapp behaviour is
-# verified by the active source/regression/GLSL/package tests instead of being
-# incorrectly required to remain byte-identical to the imported renderer forever.
+# set of launcher/static-host files only. Current engine/webapp/backend modules,
+# including WebGPU representation passes, are verified by active gates.
 BASELINE_RUNTIME_PREFIXES=('assets/generated/','game_data/','icons/')
 BASELINE_RUNTIME_ROOT={'.nojekyll','0Play-Webapp-v1.2.3.bat','_headers'}
 
@@ -58,13 +57,13 @@ def main() -> int:
             'index.html','engine/game.js','engine/editor.js','engine/surfacefx.js','engine/foliagefx.js',
             'engine/render_transform.js','engine/render_transform_integration.js','engine/render_scene.js',
             'engine/render_transform_scene_adapter.js','engine/webgl2_scene_adapter.js',
-            'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/backend_runtime.js',
-            'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html',
+            'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/webgpu_gbuffer.js','engine/backend_runtime.js',
+            'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html',
             'assets/generated/atlas.json','game_data/maps.json','tools/validate_webapp_v123.py',
             'tools/validate_render_scene_contract.py','tools/validate_render_transform_contract.py',
-            'tools/validate_webgpu_contract.py','tools/validate_webgpu_resources_contract.py','tools/validate_webgpu_validation_contract.py',
+            'tools/validate_webgpu_contract.py','tools/validate_webgpu_resources_contract.py','tools/validate_webgpu_validation_contract.py','tools/validate_webgpu_gbuffer_contract.py',
             'render-tests/webgpu-validation-report.sample.json',
-            'docs/ROOT_FOOT_CONVENTION.md','docs/WEBGPU_DEVICE_LIFECYCLE.md','docs/WEBGPU_RESOURCE_INFRASTRUCTURE.md','docs/WEBGPU_API_VALIDATION.md'
+            'docs/ROOT_FOOT_CONVENTION.md','docs/WEBGPU_DEVICE_LIFECYCLE.md','docs/WEBGPU_RESOURCE_INFRASTRUCTURE.md','docs/WEBGPU_API_VALIDATION.md','docs/WEBGPU_GBUFFER_SM200.md'
         ]
         missing=[p for p in required if not (unpack/p).is_file()]
         if missing:
@@ -93,6 +92,7 @@ def main() -> int:
                 [sys.executable,'tools/validate_webgpu_contract.py'],
                 [sys.executable,'tools/validate_webgpu_resources_contract.py'],
                 [sys.executable,'tools/validate_webgpu_validation_contract.py'],
+                [sys.executable,'tools/validate_webgpu_gbuffer_contract.py'],
                 [sys.executable,'tools/validate_render_harness.py'],
                 [sys.executable,'tools/validate_render_fixtures.py','--repeat','2'],
             ]
