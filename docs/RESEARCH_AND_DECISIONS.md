@@ -42,6 +42,16 @@ This document separates sourced WebGPU facts from Steel Moth decisions and from 
 
 **Implementation consequence:** atlas-upload tests must validate real production descriptors rather than assuming browser image uploads will work for arbitrary material formats.
 
+### R-005 — WebGPU normalized device depth is application-oriented 0..1
+
+**Finding:** WebGPU normalized device Z is 0..1. Which end is treated as near is determined by the application's projection, depth clear and comparison configuration. WGSL can write fragment depth explicitly through `@builtin(frag_depth)`.
+
+**Sources:**
+- https://gpuweb.github.io/gpuweb/#coordinate-systems
+- https://gpuweb.github.io/gpuweb/wgsl/#frag-depth-builtin
+
+**Implementation consequence:** Steel Moth can define a monotonic pseudo-depth key first, then map nearer/larger ownership keys to smaller 0..1 depth for a conventional `less` test without importing an OpenGL-style -1..1 assumption.
+
 ## Accepted architecture decisions
 
 ### ADR-001 — WebGPU is the primary future renderer
@@ -90,11 +100,28 @@ Water, foliage, grass, dynamic sprites, static scenery, editor rendering and sha
 
 GTX 1650 Super 4 GB at 1920×1080/60 is the primary reference. Programme targets are ≤12 ms mean renderer GPU and ≤14.5 ms p95. These values must be revisited only through a documented decision supported by measurements.
 
+### ADR-008 — canonical pseudo-depth projection
+
+**Status:** accepted by SM-201; production adoption is owned by SM-202.
+
+Steel Moth reconstructs a light-independent pseudo-ground depth from the actual fragment raster Y and Material-v2 pseudo-world Z:
+
+```text
+projectedGroundY = fragmentScreenY + worldZ
+visibilityKey = layer * 1024 + projectedGroundY + bias
+```
+
+Material-v2 normalized local height maps to `worldZ = clamp(localHeight,0,1) * 64`, matching the generator's global `MAX_WORLD_Z`. Static and dynamic sprites share layer 0; explicit ground/foreground/top contracts use -1/+1/+2 lanes respectively. Larger visibility keys are nearer. For WebGPU ownership, the accepted reference mapping is `depth01 = clamp((3072 - visibilityKey) / 5120, 0, 1)`, so conventional `less` testing selects the nearer fragment.
+
+The equivalent shared-root form is `projectedGroundY = rootY + (fragmentScreenY-rootY) + worldZ`. This makes the SM-101 root the common placement authority without incorrectly using root Y alone as per-fragment depth. Rotation affects the actual raster position; horizontal flip affects UV/height sampling but not the root. Alpha-cutout fragments below the compatibility threshold produce no ownership depth.
+
+**Consequence:** SM-202 must mechanically implement this model and its constants rather than inventing a backend-specific formula. Material-v2 G2.R remains local pseudo-height and must not be relabelled as ownership depth. Full derivation, ranges, edge cases, rejected alternatives and fixture prototypes are in `PSEUDO_DEPTH_MODEL.md`.
+
 ## Open research/decision questions
 
-### Q-001 — exact pseudo-depth projection
+### Q-001 — exact pseudo-depth projection — resolved
 
-Need a derivation that maps root position, local sprite position, Material-v2 height and explicit layer bias into a stable fragment depth shared by all sprite classes. It must be light-independent, editor-stable and compatible with alpha cutouts. Do not bake a guessed formula into multiple systems before the derivation issue is closed.
+Resolved by SM-201 / ADR-008. The accepted model is `fragmentScreenY + worldZ`, expressed from the shared root where needed, plus explicit layer/bias packing. Numeric vectors and box/bin fixture prototypes pin light-angle independence, vertical-face cancellation, subpixel monotonicity, alpha cutout, rotation/flip behavior and static/dynamic/foreground semantics. Production hardware depth/object ownership remains SM-202 scope.
 
 ### Q-002 — authoritative screenshot artifacts
 
