@@ -1,0 +1,42 @@
+{
+  "schema": "steelmoth-pseudo-depth-vectors/v1",
+  "model": "steelmoth-pseudo-depth/v1",
+  "units": "logical screen/world pixels; localHeight is normalized G2.R",
+  "vectors": [
+    {
+      "id": "root-contact",
+      "input": {"rootY": 180, "fragmentScreenY": 180, "localHeight": 0, "category": "dynamic"},
+      "expected": {"projectedGroundY": 180, "visibilityKey": 180}
+    },
+    {
+      "id": "vertical-mid-cancellation",
+      "input": {"rootY": 180, "fragmentScreenY": 160, "localHeight": 0.3125, "category": "dynamic"},
+      "expected": {"projectedGroundY": 180, "visibilityKey": 180}
+    },
+    {
+      "id": "vertical-top-cancellation",
+      "input": {"rootY": 180, "fragmentScreenY": 120, "localHeight": 0.9375, "category": "dynamic"},
+      "expected": {"projectedGroundY": 180, "visibilityKey": 180}
+    },
+    {
+      "id": "front-root-monotonic",
+      "input": {"rootY": 181, "fragmentScreenY": 181, "localHeight": 0, "category": "dynamic"},
+      "expected": {"projectedGroundY": 181, "visibilityKey": 181}
+    },
+    {
+      "id": "subpixel-stability",
+      "input": {"rootY": 180.25, "fragmentScreenY": 160.25, "localHeight": 0.3125, "category": "dynamic"},
+      "expected": {"projectedGroundY": 180.25, "visibilityKey": 180.25}
+    },
+    {
+      "id": "foreground-lane",
+      "input": {"rootY": 40, "fragmentScreenY": 40, "localHeight": 0, "category": "foreground"},
+      "expected": {"projectedGroundY": 40, "visibilityKey": 1064}
+    },
+    {
+      "id": "alpha-cutout",
+      "input": {"rootY": 180, "fragmentScreenY": 180, "localHeight": 0.5, "category": "dynamic", "alpha": 0.05},
+      "expected": {"covered": false}
+    }
+  ]
+}
