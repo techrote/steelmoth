@@ -5,7 +5,7 @@ const CORE = [
   './engine/game.js?v=1.2.3', './engine/editor.js?v=1.2.3', './engine/foliagefx.js?v=1.2.3', './engine/surfacefx.js?v=1.2.3',
   './engine/render_transform.js?v=sm101-1', './engine/render_transform_integration.js?v=sm101-1',
   './engine/render_scene.js?v=sm100-1', './engine/render_transform_scene_adapter.js?v=sm101-1', './engine/webgl2_scene_adapter.js?v=sm100-1',
-  './engine/webgpu_device.js?v=sm102-1', './engine/backend_runtime.js?v=sm102-1',
+  './engine/webgpu_device.js?v=sm102-1', './engine/webgpu_resources.js?v=sm103-1', './engine/backend_runtime.js?v=sm102-1',
   './game_data/maps.json', './game_data/story.json', './game_data/sprites.json',
   './game_data/luts.json', './game_data/effects.json', './assets/generated/atlas.json'
 ];
