@@ -82,7 +82,7 @@ When Chrome/Chromium is available, run the browser smoke:
 python tools/validate_webgpu_browser.py --report artifacts/webgpu-browser-smoke.json
 ```
 
-The smoke loads the actual browser API entrypoint, asserts the staged `Auto → WebGL2` policy, exercises deliberate failure handling and, when `navigator.gpu` plus a usable adapter are exposed, performs real device/context configure + resize/reconfigure. Hosted Linux may legitimately expose no usable WebGPU adapter; that absence is recorded rather than converted into a fabricated success. Fallback correctness still must pass.
+The smoke loads the actual browser API entrypoint, asserts the staged `Auto → WebGL2` policy, exercises deliberate failure handling and, when `navigator.gpu` plus a usable adapter are exposed, performs real device/context configure + resize/reconfigure. A non-required local run may legitimately expose no usable WebGPU adapter; that absence is recorded rather than converted into a fabricated hardware claim.
 
 ### SM-103 WebGPU resource/frame infrastructure gate
 
@@ -102,7 +102,46 @@ python tools/validate_webgpu_resources_browser.py \
   --report artifacts/webgpu-resource-browser-smoke.json
 ```
 
-If the hosted browser exposes a usable WebGPU adapter, this smoke creates actual GPU textures/buffers, performs queue uploads, submits command buffers through scoped frame-graph passes, executes three frames, and performs two manager/registry resizes while asserting selective resource rebuilding. If the hosted browser does not expose a usable adapter, that fact is recorded and deterministic unit coverage remains authoritative for resource lifecycle semantics; no fake hardware claim is made.
+If the browser exposes a usable WebGPU adapter, this smoke creates actual GPU textures/buffers, performs queue uploads, submits command buffers through scoped frame-graph passes, executes three frames, and performs two manager/registry resizes while asserting selective resource rebuilding. A non-required environment may record unavailable WebGPU explicitly.
+
+### SM-104 WGSL/pipeline/resource/failure-path gate
+
+The normal source/regression runner includes the deterministic validation-suite tests:
+
+```text
+node tools/validate_webgpu_validation.js
+python tools/validate_webgpu_validation_contract.py
+```
+
+The Node test uses a fake device to prove the inventory/report contract, compiler-warning retention, core/fallback resource registration, atlas-copy path, pipeline submission path and deliberate validation capture. It then injects a WGSL compilation error and a pipeline validation error and requires both to fail with the registered shader/pipeline label in the exception/report context.
+
+The real browser gate is:
+
+```text
+python tools/validate_webgpu_validation_browser.py \
+  --require-webgpu \
+  --report artifacts/webgpu-validation-browser.json
+```
+
+Unlike the earlier lifecycle/resource smoke commands, CI runs this with `--require-webgpu`. The hosted Chrome lane had already demonstrated a usable SwiftShader adapter in SM-103, so losing real WebGPU execution now fails the API-validation job rather than silently reducing it to fake-device coverage.
+
+The SM-104 browser gate:
+
+- compiles every currently registered production-infrastructure WGSL module;
+- collects `GPUShaderModule.getCompilationInfo()` and fails compilation errors;
+- creates actual async render/compute pipelines under validation scopes;
+- records one real render draw and one compute dispatch and submits them;
+- creates the registered preferred/core/fallback texture and buffer descriptors;
+- exercises resize-dependent versus fixed resources through `ResourceRegistry`;
+- performs a real `GPUQueue.copyExternalImageToTexture()` atlas upload;
+- requests a second real device with no optional features to prove the core path does not require `timestamp-query`;
+- deliberately creates an invalid buffer descriptor and requires a scoped validation failure with a diagnostic label;
+- injects WebGPU initialization failure and requires a usable WebGL2 compatibility context plus unchanged gameplay-authoritative sentinel state;
+- destroys a separate live WebGPU device and requires `device.lost` to transition the backend runtime to WebGL2 with the sentinel state unchanged.
+
+The report schema and precise evidence boundary are documented in `WEBGPU_API_VALIDATION.md`; `render-tests/webgpu-validation-report.sample.json` is explicitly a non-measured schema example.
+
+The browser page is standards-based rather than Chromium-specific, but the current hosted collector uses Chromium DevTools Protocol. Firefox is therefore recorded as not executed in SM-104 CI instead of being falsely inferred from Chromium success. Target Firefox execution remains part of the SM-405 cross-browser gate.
 
 SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxiliary harness fixture. The SM-001 corpus manifest remains authority for its 16 regression fixtures.
 
@@ -110,11 +149,11 @@ SM-002's `render-tests/fixtures/harness-smoke.json` remains an intentional auxil
 
 `.github/workflows/verification.yml` runs on pull requests, pushes to `main`, and manual dispatch. It has five independent jobs:
 
-1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform, SM-102 WebGPU lifecycle and SM-103 resource/frame infrastructure contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
-2. **WebGPU lifecycle + resource browser smoke** — real headless Chrome/Chromium lifecycle/fallback smoke plus, when a usable adapter exists, persistent-resource/resize/scoped-frame execution with structured evidence;
-3. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for the representative SM-101 fixtures, with screenshot artifacts retained;
-4. **GLSL + MRT software validation** — production GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
-5. **clean source package + extraction** — fresh-archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle/resource contracts.
+1. **source + deterministic regression** — Python compile, Node syntax, planning, SM-100 Render Scene, SM-101 RenderTransform, SM-102 lifecycle, SM-103 resource/frame infrastructure and SM-104 validation contracts, fixture/harness, webapp, renderer, Material-v2, ghost-material, visual-material and inherited coherence regressions;
+2. **WebGPU lifecycle + resource + WGSL validation** — real headless Chrome lifecycle/fallback and resource smoke plus a required-real-WebGPU SM-104 WGSL/pipeline/resource/atlas/deliberate-error/device-loss gate with structured browser/adapter evidence;
+3. **WebGL2 root-transform browser pixel parity** — real headless Chrome/Chromium before/after captures for representative SM-101 fixtures, with screenshot artifacts retained;
+4. **GLSL + MRT software validation** — production WebGL2 GLSL compile/link plus float-MRT and RGBA8 fallback framebuffer validation under Mesa/EGL software rendering;
+5. **clean source package + extraction** — fresh archive/extraction and path/integrity validation including current RenderScene/RenderTransform/WebGPU lifecycle/resource/API-validation contracts.
 
 Each job writes structured evidence under `artifacts/` and uploads it even when an earlier validation step fails where possible.
 
@@ -136,13 +175,13 @@ Hosted CI must not be used as evidence for:
 - 1080p/60 target-hardware performance acceptance;
 - human final screenshot/art-direction approval;
 - Chrome/Firefox hardware WebGPU support on the target machine;
-- device-loss behaviour on a real target adapter;
+- spontaneous device-loss behaviour on a physical target adapter;
 - authoritative moving-light visual quality.
 
-Those require the browser/hardware gates specified by SM-003, SM-405, SM-501, and SM-505. The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. The SM-102 browser job proves staged lifecycle/fallback behavior in its hosted browser only; deterministic fake-device tests provide controlled coverage of loss and failure states. The SM-103 hosted smoke proves only API/resource lifecycle correctness on the exposed hosted adapter, while its byte estimates are accounting estimates rather than measured VRAM residency.
+The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 image equality only. SM-102 proves staged lifecycle/fallback behavior. SM-103 proves resource/frame infrastructure on the exposed hosted adapter. SM-104 proves the current registered WGSL/pipeline/resource/failure paths on the exact reported hosted Chrome/adapter and deliberately induced loss/failure states. None of those software/hosted results are target-GPU performance or Firefox evidence.
 
-SM-103 provides persistent resource/frame-graph/pipeline scaffolding but still no WebGPU game-frame renderer or production WGSL. SM-104 must extend verification with real production descriptors, WGSL modules, compilation information and validation-scope evidence.
+The current SM-104 WGSL inventory is infrastructure-only because SM-200 has not yet added the Material-v2 WebGPU G-buffer. Every later issue that adds production WGSL, formats, layouts, atlas classes or passes must extend the SM-104 inventory/tests in the same change. Gate A is therefore a growing release gate, not a one-time checkbox frozen at SM-104.
 
 ## Extending the gate
 
-Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness, as SM-101 through SM-103 do.
+Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness.
