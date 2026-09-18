@@ -54,7 +54,7 @@ const held=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(probe.deg)],fir
 assert.strictEqual(heldRecord.ownerObjectId,firstOwner,'small challenger advantage must be held by hysteresis');
 assert(heldRecord.flags&D.FLAGS.HYSTERESIS_HELD,'hysteresis hold flag must be explicit');
 assert(heldRecord.challengerDelta>0&&heldRecord.challengerDelta<=heldRecord.hysteresisThreshold,'held challenger delta must remain below the explicit threshold');
-const farDeg=probe.deg<270?0:180,switched=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(farDeg)],held.history),switchedRecord=switched.records[0];
+const farDeg=probe.deg<270?180:0,switched=D.buildDominanceSnapshot(tieClusters,tieOcc,[tieLight(farDeg)],held.history),switchedRecord=switched.records[0];
 assert.notStrictEqual(switchedRecord.ownerObjectId,firstOwner,'clear directional advantage must eventually switch owner');
 assert(switchedRecord.flags&D.FLAGS.SWITCHED,'clear owner switch must be explicit');
 assert(switchedRecord.challengerDelta>switchedRecord.hysteresisThreshold,'switch occurs only after challenger clearly exceeds hysteresis');
