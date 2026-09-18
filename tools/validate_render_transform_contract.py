@@ -46,7 +46,10 @@ def main():
     require('renderTransformBaseline' in webapp and "params.get('renderTest')" in webapp,'test-only before/after browser parity mode is missing or insufficiently gated')
     for item in order:
         require(item in sw,f'offline CORE missing {item}')
-    require("small-machine-web-v1.2.3-r3" in sw,'service-worker cache identity was not advanced for SM-102 runtime modules')
+    # Later migration stages may advance the offline cache revision when they add
+    # runtime modules. Pin the current SM-200 revision so the offline core cannot
+    # change without an intentional cache-identity reconciliation.
+    require("small-machine-web-v1.2.3-r4" in sw,'service-worker cache identity was not advanced for the SM-200 runtime module')
 
     # The accepted baseline source is deliberately retained; the integration layer
     # owns active interpretation rather than silently rewriting accepted placement.
