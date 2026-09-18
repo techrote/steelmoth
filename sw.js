@@ -1,12 +1,12 @@
 'use strict';
-const CACHE = 'small-machine-web-v1.2.3-r7';
+const CACHE = 'small-machine-web-v1.2.3-r8';
 const CORE = [
   './index.html', './style.css?v=1.2.3', './webapp.js?v=1.2.3', './manifest.webmanifest',
   './engine/game.js?v=1.2.3', './engine/editor.js?v=1.2.3', './engine/foliagefx.js?v=1.2.3', './engine/surfacefx.js?v=1.2.3',
   './engine/render_transform.js?v=sm101-1', './engine/render_transform_integration.js?v=sm101-1',
   './engine/render_scene.js?v=sm100-1', './engine/render_transform_scene_adapter.js?v=sm101-1', './engine/webgl2_scene_adapter.js?v=sm100-1',
   './engine/webgpu_device.js?v=sm102-1', './engine/webgpu_resources.js?v=sm103-1', './engine/pseudo_depth.js?v=sm201-1',
-  './engine/webgpu_gbuffer.js?v=sm200-1', './engine/webgpu_ownership.js?v=sm202-1', './engine/webgpu_depth_hierarchy.js?v=sm203-1', './engine/webgpu_lighting.js?v=sm204-1', './engine/backend_runtime.js?v=sm102-1',
+  './engine/webgpu_gbuffer.js?v=sm200-1', './engine/webgpu_ownership.js?v=sm202-1', './engine/webgpu_depth_hierarchy.js?v=sm203-1', './engine/webgpu_lighting.js?v=sm204-1', './engine/webgpu_local_shadows.js?v=sm205-1', './engine/backend_runtime.js?v=sm102-1',
   './game_data/maps.json', './game_data/story.json', './game_data/sprites.json',
   './game_data/luts.json', './game_data/effects.json', './assets/generated/atlas.json'
 ];
