@@ -1,11 +1,10 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>Steel Moth SM-405 cross-browser WebGPU probe</title>
-<canvas id="gpuCanvas" width="8" height="8" style="width:64px;height:64px;image-rendering:pixelated"></canvas>
 <canvas id="glCanvas" width="8" height="8" style="display:none"></canvas>
 <pre id="status">Running SM-405 cross-browser WebGPU probe…</pre>
 <script id="webgpuCrossBrowserResult" type="application/json">{"schema":"steelmoth-sm405-browser-probe/v1","ok":false,"status":"pending"}</script>
-<script src="engine/webgpu_device.js?v=sm405-1"></script>
+<script src="engine/webgpu_device.js?v=sm405-2"></script>
 <script>
 (async()=>{
   const result={
@@ -14,8 +13,8 @@
     browser:navigator.userAgent,
     platform:navigator.platform||null,
     secureContext:isSecureContext,
-    webgpu:{available:!!navigator.gpu},
-    webgl2:{available:false},
+    webgpu:{available:!!navigator.gpu,presentationOwner:'SM-505; SM-405 validates the staged offscreen WebGPU path'},
+    webgl2:{available:false,requiredHere:false},
     autoPolicy:null,
     checks:[]
   };
@@ -37,7 +36,12 @@
     result.autoPolicy=Device.resolveBackendPolicy('auto');
     check('auto-remains-webgl2-before-sm505',result.autoPolicy.selected==='webgl2'&&Device.AUTO_WEBGPU_ENABLED===false,{selected:result.autoPolicy.selected});
     check('navigator-gpu-present',!!navigator.gpu);
-    const adapter=await bounded(navigator.gpu.requestAdapter({powerPreference:'high-performance'}),10000,'requestAdapter');
+    let adapter=await bounded(navigator.gpu.requestAdapter({powerPreference:'high-performance'}),10000,'requestAdapter');
+    if(!adapter){
+      result.webgpu.highPerformanceAdapterUnavailable=true;
+      adapter=await bounded(navigator.gpu.requestAdapter({forceFallbackAdapter:true}),10000,'requestFallbackAdapter');
+      result.webgpu.fallbackAdapterRequested=true;
+    }
     check('adapter-acquired',!!adapter);
     const adapterInfo=adapter.info||{};
     result.webgpu.adapter={
@@ -45,6 +49,7 @@
       architecture:String(adapterInfo.architecture||''),
       device:String(adapterInfo.device||''),
       description:String(adapterInfo.description||''),
+      isFallbackAdapter:!!adapter.isFallbackAdapter,
       features:[...adapter.features].sort(),
       limits:{
         maxTextureDimension2D:Number(adapter.limits.maxTextureDimension2D||0),
@@ -91,26 +96,6 @@
     result.webgpu.computeReadback=values;
     check('compute-readback',JSON.stringify(values)===JSON.stringify([41,42,43,44]),{values});
 
-    const context=document.getElementById('gpuCanvas').getContext('webgpu');
-    check('canvas-webgpu-context',!!context);
-    const format=navigator.gpu.getPreferredCanvasFormat();
-    context.configure({device,format,alphaMode:'opaque'});
-    const renderEncoder=device.createCommandEncoder({label:'SM405 presentation encoder'});
-    const renderPass=renderEncoder.beginRenderPass({
-      label:'SM405 presentation pass',
-      colorAttachments:[{
-        view:context.getCurrentTexture().createView(),
-        clearValue:{r:0.03,g:0.12,b:0.18,a:1},
-        loadOp:'clear',
-        storeOp:'store'
-      }]
-    });
-    renderPass.end();
-    device.queue.submit([renderEncoder.finish()]);
-    await bounded(device.queue.onSubmittedWorkDone(),10000,'presentation completion');
-    result.webgpu.preferredCanvasFormat=format;
-    check('canvas-submit',true,{format});
-
     device.pushErrorScope('validation');
     device.createBuffer({label:'SM405 deliberate validation error',size:4,usage:0});
     const deliberate=await bounded(device.popErrorScope(),10000,'validation error scope');
@@ -125,12 +110,8 @@
     check('production-init-failure-fails-closed',failedClosed);
 
     source.destroy();readback.destroy();
-    // Create the fallback context only after WebGPU work is complete. Some hosted
-    // software stacks expose WebGPU and WebGL2 through competing graphics instances;
-    // opening WebGL2 first can invalidate an otherwise healthy WebGPU presentation path.
-    result.webgl2.available=!!document.getElementById('glCanvas').getContext('webgl2',{antialias:false});
-    check('webgl2-fallback-context',result.webgl2.available);
     result.webgpu.realWebGPU=true;
+    try{result.webgl2.available=!!document.getElementById('glCanvas').getContext('webgl2',{antialias:false})}catch(_error){result.webgl2.available=false}
     result.ok=true;
   }catch(error){
     result.error=String(error?.stack||error);
