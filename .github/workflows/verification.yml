@@ -44,9 +44,9 @@ jobs:
           if-no-files-found: warn
 
   webgpu-api-smoke:
-    name: WebGPU lifecycle + resource browser smoke
+    name: WebGPU lifecycle + resource + WGSL validation
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,11 +61,13 @@ jobs:
           if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
           elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
           elif command -v chromium >/dev/null 2>&1; then chromium --version; \
-          else echo 'Chrome/Chromium required for WebGPU browser smoke' >&2; exit 1; fi
+          else echo 'Chrome/Chromium required for WebGPU browser validation' >&2; exit 1; fi
       - name: Exercise staged Auto policy, browser capability detection and deliberate fallback
         run: python tools/validate_webgpu_browser.py --report artifacts/webgpu-browser-smoke.json
       - name: Exercise persistent resources, bounded uploads, scoped passes and repeated resize
         run: python tools/validate_webgpu_resources_browser.py --report artifacts/webgpu-resource-browser-smoke.json
+      - name: Compile production WGSL, create and execute pipelines, validate resources and failure paths
+        run: python tools/validate_webgpu_validation_browser.py --require-webgpu --report artifacts/webgpu-validation-browser.json
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -74,6 +76,7 @@ jobs:
           path: |
             artifacts/webgpu-browser-smoke.json
             artifacts/webgpu-resource-browser-smoke.json
+            artifacts/webgpu-validation-browser.json
           if-no-files-found: warn
 
   webgl2-transform-parity:
@@ -154,7 +157,7 @@ jobs:
           path: artifacts/clean-package.json
           if-no-files-found: warn
 
-# SM-102 provides staged lifecycle/fallback policy. SM-103 extends that browser
-# surface with real persistent-resource/resize/frame-graph execution whenever a
-# hosted adapter is usable. Hosted success remains API correctness evidence only,
-# never target-GPU performance. SM-104 adds production WGSL/pipeline validation.
+# SM-102 provides staged lifecycle/fallback policy. SM-103 adds persistent resource
+# and frame-graph infrastructure. SM-104 requires real hosted WebGPU for the current
+# WGSL/pipeline/resource/failure-path inventory and retains machine-readable evidence.
+# Hosted success remains API correctness evidence only, never target-GPU performance.
