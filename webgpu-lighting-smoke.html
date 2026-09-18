@@ -1,0 +1,33 @@
+<!doctype html><meta charset="utf-8"><title>Steel Moth SM-204 lighting smoke</title>
+<body><pre id="status">SM-204 WebGPU lighting validation running…</pre><script src="engine/webgpu_resources.js"></script><script src="engine/webgpu_lighting.js"></script><script>
+(async()=>{
+  const result={schema:'steelmoth-webgpu-lighting-smoke/v1',ok:false,checks:[],angles:[],axis:{},debug:{}};
+  const check=(name,ok,details=null)=>{result.checks.push({name,ok:!!ok,details});if(!ok)throw new Error(`${name}${details?`: ${JSON.stringify(details)}`:''}`)};
+  function f16(v){const f32=new Float32Array(1),u32=new Uint32Array(f32.buffer);f32[0]=v;const x=u32[0],s=(x>>>16)&0x8000,e=((x>>>23)&255)-127+15;let m=x&0x7fffff;if(e<=0){if(e<-10)return s;m=(m|0x800000)>>(1-e);return s|((m+0x1000)>>13)}if(e>=31)return s|0x7c00;return s|(e<<10)|((m+0x1000)>>13)}
+  const fill16=(w,h,rgba)=>{const a=new Uint16Array(w*h*4),q=rgba.map(f16);for(let i=0;i<w*h;i++)a.set(q,i*4);return a};
+  const fill8=(w,h,rgba)=>{const a=new Uint8Array(w*h*4),q=rgba.map(v=>Math.max(0,Math.min(255,Math.round(v*255))));for(let i=0;i<w*h;i++)a.set(q,i*4);return a};
+  const near=(a,b,eps=.018)=>Math.abs(a-b)<=eps;
+  try{
+    check('navigator.gpu',!!navigator.gpu);const adapter=await navigator.gpu.requestAdapter();check('adapter',!!adapter);const device=await adapter.requestDevice();check('device',!!device);
+    const W=64,H=8,usage=GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST,make=(format,label)=>device.createTexture({label,size:[W,H,1],format,usage});
+    const g0=make('rgba8unorm','sm204-smoke-g0'),g1=make('rgba16float','sm204-smoke-g1'),g2=make('rgba16float','sm204-smoke-g2');
+    const write8=(tex,rgba)=>device.queue.writeTexture({texture:tex},fill8(W,H,rgba),{bytesPerRow:W*4,rowsPerImage:H},[W,H,1]);
+    const write16=(tex,rgba)=>device.queue.writeTexture({texture:tex},fill16(W,H,rgba),{bytesPerRow:W*8,rowsPerImage:H},[W,H,1]);
+    const al=115/255;write8(g0,[al,al,al,1]);write16(g1,[.5,.5,1,.55]);write16(g2,[.1,0,1,0]);
+    const records={g0:{handle:g0,width:W,height:H},g1:{handle:g1,width:W,height:H},g2:{handle:g2,width:W,height:H}},gbuffer={width:W,height:H,_record:n=>records[n]};
+    const L=globalThis.SteelMothWebGPULighting,lighting=new L.WebGPUDeferredLighting({device,gbuffer,width:W,height:H,labelPrefix:'SM204Smoke'}),settings={lighting:true,ambient:0,emissive:1,lightRadius:1,normalStrength:1,heightStrength:1,roughnessScale:1,metalnessScale:1,materialAOStrength:.62,pbrSpecularStrength:.70};
+    const pixel={x:32.5,y:3.5},material={albedo:[al,al,al],normal:[0,0,1],roughness:.55,metalness:0,ao:1,emissive:0,height:.1};
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4,raw={id:`angle:${i}`,type:'point',independent:true,x:pixel.x+Math.cos(a)*30,y:pixel.y+Math.sin(a)*30,z:24,radius:90,intensity:.8,color:[1,1,1]},scene={lights:[raw]},canonical=L.buildCanonicalLights(scene,settings),ref=L.shadeReferencePixel(material,pixel,canonical,settings);await lighting.render(scene,settings);const gpu=await lighting.readPixel(32,4);check(`angle-${i}-finite`,gpu.slice(0,3).every(Number.isFinite),gpu);check(`angle-${i}-cpu-parity`,gpu.slice(0,3).every((v,c)=>near(v,ref.final[c])),{gpu,ref:ref.final});check(`angle-${i}-neutral`,Math.max(...gpu.slice(0,3))-Math.min(...gpu.slice(0,3))<.006,gpu);result.angles.push({index:i,gpu,reference:ref.final});
+    }
+    const one=(x,y,z=8)=>({id:`p:${x}:${y}`,type:'point',independent:true,x,y,z,radius:90,intensity:1,color:[1,1,1]});
+    write16(g1,[.9,.5,.8,.55]);await lighting.render({lights:[one(62,pixel.y)]},settings);const right=await lighting.readPixel(32,4);await lighting.render({lights:[one(2,pixel.y)]},settings);const left=await lighting.readPixel(32,4);check('normal-axis-x',right[0]>left[0]+.02,{dark:left[0],lit:right[0]});result.axis.x={positive:right,negative:left};
+    write16(g1,[.5,.9,.8,.55]);await lighting.render({lights:[one(pixel.x,-26.5)]},settings);const up=await lighting.readPixel(32,4);await lighting.render({lights:[one(pixel.x,33.5)]},settings);const down=await lighting.readPixel(32,4);check('normal-axis-y',up[0]>down[0]+.02,{up:up[0],down:down[0]});result.axis.y={positive:up,negative:down};
+    write16(g1,[.5,.5,1,.55]);const scene={lights:[one(42,pixel.y,24)]},canonical=L.buildCanonicalLights(scene,settings),ref=L.shadeReferencePixel(material,pixel,canonical,settings);
+    for(const mode of ['diffuse','specular','final','light-count']){await lighting.render(scene,settings,{debugMode:mode});const gpu=await lighting.readPixel(32,4);result.debug[mode]=gpu;if(mode==='diffuse')check('debug-diffuse',gpu.slice(0,3).every((v,c)=>near(v,ref.diffuse[c])),{gpu,ref:ref.diffuse});if(mode==='specular')check('debug-specular',gpu.slice(0,3).every((v,c)=>near(v,ref.specular[c],.025)),{gpu,ref:ref.specular});if(mode==='light-count')check('debug-light-count',near(gpu[0],1/L.MAX_LIGHTS,.002),gpu)}
+    const mixed={lights:[{id:'omni',type:'playerOmni',independent:true,x:20,y:4,z:22,radius:60,intensity:.16,color:[1,1,1]},{id:'point',type:'pulse',x:40,y:4,z:19,radius:50,intensity:.5,color:[1,1,1]},{id:'cone',type:'cone',x:10,y:4,z:22,range:80,intensity:2,color:[1,1,1],dx:1,dy:0,innerCos:.9,outerCos:.7,enabled:true}]};await lighting.render(mixed,{...settings,emissive:2});const diag=lighting.diagnostics();result.diagnostics=diag;check('single-canonical-light-buffer',diag.lightBufferBytes===L.MAX_LIGHTS*L.LIGHT_STRIDE&&diag.lightCount===3,diag);check('light-types',diag.lightTypes.omni===1&&diag.lightTypes.point===1&&diag.lightTypes.cone===1,diag.lightTypes);check('debug-modes',L.DEBUG_MODES.every(m=>diag.debugModes.includes(m)),diag.debugModes);check('diagnostic-preset',diag.diagnosticPreset.playerOmniIntensity===1.6&&diag.diagnosticPreset.playerConeOuterAngle===60,diag.diagnosticPreset);
+    result.ok=true;lighting.close();g0.destroy();g1.destroy();g2.destroy();
+  }catch(error){result.error=String(error?.stack||error)}
+  document.getElementById('status').textContent=JSON.stringify(result,null,2);const out=document.createElement('script');out.id='webgpuLightingResult';out.type='application/json';out.textContent=JSON.stringify(result);document.body.appendChild(out);document.body.dataset.webgpuLightingDone='1';
+})();
+</script></body>
