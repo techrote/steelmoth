@@ -3,11 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def text(p):return (ROOT/p).read_text(encoding='utf-8')
+def optional_text(p):
+    q=ROOT/p
+    return q.read_text(encoding='utf-8') if q.is_file() else None
 def need(src,needle,label,errors):
     if needle not in src:errors.append(f'{label}: missing {needle!r}')
 def main():
     errors=[]
-    engine=text('engine/webgpu_lighting.js');runner=text('tools/run_checks.py');workflow=text('.github/workflows/verification.yml');webapp=text('webapp.js');sw=text('sw.js');docs=text('docs/WEBGPU_LIGHTING_SM204.md');index=text('docs/INDEX.md');package=text('tools/validate_clean_package.py')
+    engine=text('engine/webgpu_lighting.js');runner=text('tools/run_checks.py');workflow=optional_text('.github/workflows/verification.yml');webapp=text('webapp.js');sw=text('sw.js');docs=text('docs/WEBGPU_LIGHTING_SM204.md');index=text('docs/INDEX.md');package=text('tools/validate_clean_package.py')
     for needle in ["SCHEMA='steelmoth-webgpu-lighting/v1'","const LIGHT_STRIDE=64","const MAX_LIGHTS=16","buildCanonicalLights","packLights","WebGPUDeferredLighting","D_GGX","G1(","fres(","'light-count'"]:
         need(engine,needle,'engine/webgpu_lighting.js',errors)
     for needle in ['positionRadius:vec4f','colorIntensity:vec4f','directionInnerOuter:vec4f','meta:vec4u','@group(0) @binding(3) var<storage,read> lights:array<Light>']:
@@ -17,7 +20,11 @@ def main():
         need(engine,needle,'diagnostic preset',errors)
     for needle in ['js-webgpu-lighting','webgpu-lighting','validate_webgpu_lighting.js','validate_webgpu_lighting_contract.py']:
         need(runner,needle,'tools/run_checks.py',errors)
-    need(workflow,'validate_webgpu_lighting_browser.py --require-webgpu','workflow browser gate',errors);need(workflow,'webgpu-lighting-browser.json','workflow artifact',errors)
+    # .github is intentionally excluded from clean source packages. Validate the
+    # workflow when present in a checkout, but do not make package extraction
+    # depend on metadata the package contract deliberately omits.
+    if workflow is not None:
+        need(workflow,'validate_webgpu_lighting_browser.py --require-webgpu','workflow browser gate',errors);need(workflow,'webgpu-lighting-browser.json','workflow artifact',errors)
     need(webapp,"webgpu_lighting.js?v=sm204-1",'webapp staged load',errors);need(sw,"webgpu_lighting.js?v=sm204-1",'service-worker core',errors)
     for needle in ['engine/webgpu_lighting.js','webgpu-lighting-smoke.html','validate_webgpu_lighting_contract.py','WEBGPU_LIGHTING_SM204.md']:
         need(package,needle,'clean package',errors)
