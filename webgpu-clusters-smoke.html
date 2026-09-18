@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-301 WebGPU stable cluster smoke</title>
+<canvas id="clusterDebug" width="256" height="160"></canvas>
+<pre id="webgpuClusterResult"></pre>
+<script type="module">
+const result={schema:'steelmoth-webgpu-clusters-browser-smoke/v1',ok:false,checks:[],diagnostics:null,readback:null,error:null};
+const check=(ok,label)=>{result.checks.push({ok:!!ok,label});if(!ok)throw new Error(label)};
+const publish=()=>{document.getElementById('webgpuClusterResult').textContent=JSON.stringify(result);document.body.dataset.webgpuClusterDone='1'};
+try{
+  if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+  const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw new Error('requestAdapter returned null');
+  const device=await adapter.requestDevice();
+  await import('./engine/webgpu_resources.js?v=sm103-1');
+  await import('./engine/webgpu_gbuffer.js?v=sm200-1');
+  await import('./engine/webgpu_occluders.js?v=sm300-1');
+  await import('./engine/webgpu_clusters.js?v=sm301-1');
+  const O=globalThis.SteelMothWebGPUOccluders,C=globalThis.SteelMothWebGPUClusters;
+  check(!!C?.WebGPUOccluderClusters,'SM-301 API available');
+  check(C.CLUSTER_RECORD_STRIDE===64&&C.MEMBERSHIP_STRIDE===8,'cluster/member ABI pinned');
+  const opts={tileSize:32,maxOccluders:32,maxPerTile:16,maxTileRefs:128};
+  const scene={frame:{roomId:'sm301-a',logicalSize:[128,80]},occluders:[
+    {id:'bin:a',rect:[10,10,30,40],root:{x:20,y:40},kind:'machine',source:'bin',sections:[{z:18}]},
+    {id:'bin:b',rect:[30,12,50,40],root:{x:40,y:40},kind:'machine',source:'bin',sections:[{z:20}]},
+    {id:'bin:c',rect:[60,10,80,40],root:{x:70,y:40},kind:'machine',source:'bin',sections:[{z:19}]},
+    {id:'tiny:receiver',rect:[50,37,53,40],root:{x:51.5,y:40},kind:'decor',receiverOnly:true}
+  ]};
+  const occ=O.buildOccluderSnapshot(scene,opts),cpu=C.buildClusterSnapshot(occ),reversed=C.buildClusterSnapshot(O.buildOccluderSnapshot({...scene,occluders:[...scene.occluders].reverse()},opts));
+  check(cpu.diagnostics.clusterCount===2&&cpu.diagnostics.memberCount===3,'touching pair clusters and separated bin stays independent');
+  check(JSON.stringify(C.canonicalMembership(cpu))===JSON.stringify(C.canonicalMembership(reversed)),'cluster IDs/member sets deterministic under source reorder');
+  check(cpu.diagnostics.lightIndependent===true&&cpu.diagnostics.dominantOwnerDeferred===true,'membership is geometry-only and dominance remains deferred');
+  const ids=Object.fromEntries(scene.occluders.map(o=>[o.id,O.objectIdForOccluder(o)])),clusterOf=(snap,id)=>snap.clusters.find(c=>c.memberIds.includes(id));
+  check(clusterOf(cpu,ids['bin:a']).clusterId===clusterOf(cpu,ids['bin:b']).clusterId,'touching bins share cluster');
+  check(clusterOf(cpu,ids['bin:c']).clusterId!==clusterOf(cpu,ids['bin:a']).clusterId,'separated bin does not merge');
+  check(!clusterOf(cpu,ids['tiny:receiver']),'receiver-only tiny decor cannot chain-connect a major cluster');
+  for(const delta of [-1,-0.5,-0.25,0.25,0.5,1]){
+    const moved=structuredClone(scene),b=moved.occluders.find(o=>o.id==='bin:b');b.rect=b.rect.map((v,i)=>i%2===0?v+delta:v);b.root.x+=delta;
+    const next=C.buildClusterSnapshot(O.buildOccluderSnapshot(moved,opts));check(C.compareMembership(cpu,next).stable,`membership stable at ${delta}px perturbation`);
+  }
+  const chain={frame:{roomId:'chain',logicalSize:[128,80]},occluders:[
+    {id:'left',rect:[10,10,50,40],root:{x:30,y:40},kind:'machine',sections:[{z:18}]},
+    {id:'bridge',rect:[49,36,61,40],root:{x:55,y:40},kind:'machine',sections:[{z:5}]},
+    {id:'right',rect:[60,10,100,40],root:{x:80,y:40},kind:'machine',sections:[{z:18}]}
+  ]};
+  const chainSnap=C.buildClusterSnapshot(O.buildOccluderSnapshot(chain,opts)),left=O.objectIdForOccluder(chain.occluders[0]),bridge=O.objectIdForOccluder(chain.occluders[1]),right=O.objectIdForOccluder(chain.occluders[2]);
+  check(clusterOf(chainSnap,left).clusterId!==clusterOf(chainSnap,right).clusterId,'small connector cannot merge separated major props');
+  check(clusterOf(chainSnap,bridge).memberCount===1,'small low-overlap connector remains isolated');
+  const gpuPath=new C.WebGPUOccluderClusters({device,width:128,height:80,maxClusters:32,maxMembers:32,maxCandidatePairs:128,maxCandidatePerTile:16});
+  await gpuPath.update(occ);let diag=gpuPath.diagnostics();check(diag.valid&&diag.snapshot.clusterCount===2&&diag.snapshot.memberCount===3,'persistent GPU cluster path accepted SM-300 snapshot');
+  const gpu=await gpuPath.readback(),cdv=new DataView(gpu.clusters.buffer,gpu.clusters.byteOffset,gpu.clusters.byteLength),mdv=new DataView(gpu.members.buffer,gpu.members.byteOffset,gpu.members.byteLength),mapdv=new DataView(gpu.membership.buffer,gpu.membership.byteOffset,gpu.membership.byteLength);
+  check(cdv.getUint32(0,true)===cpu.clusters[0].clusterId&&cdv.getUint32(8,true)===cpu.clusters[0].memberCount,'GPU cluster record readback matches CPU reference');
+  check(cdv.getUint32(48,true)===0,'GPU dominant-object field remains reserved zero for SM-302');
+  check(mdv.getUint32(0,true)===cpu.memberIds[0],'GPU member buffer readback matches deterministic order');
+  check(mapdv.getUint32(0,true)===cpu.memberIds[0]&&mapdv.getUint32(4,true)===clusterOf(cpu,cpu.memberIds[0]).clusterId,'GPU object-to-cluster membership readback matches CPU reference');
+  const uploads=diag.uploadCount;await gpuPath.update(occ);diag=gpuPath.diagnostics();check(diag.uploadCount===uploads,'identical cluster topology avoids redundant GPU upload');
+  gpuPath.invalidate('editor-change');let stale=false;try{gpuPath.bindings()}catch(_e){stale=true}check(stale,'editor invalidation rejects stale cluster bindings');
+  const edited=structuredClone(scene);edited.occluders=edited.occluders.filter(o=>o.id!=='bin:b');const editedOcc=O.buildOccluderSnapshot(edited,opts);await gpuPath.update(editedOcc);check(gpuPath.diagnostics().snapshot.memberCount===2,'rebuild removes deleted member without ghost membership');
+  const newRoom={frame:{roomId:'sm301-b',logicalSize:[128,80]},occluders:[{id:'room:b:one',rect:[5,5,35,35],root:{x:20,y:35},kind:'machine',majorOccluder:true,sections:[{z:12}]}]},newOcc=O.buildOccluderSnapshot(newRoom,opts);await gpuPath.update(newOcc);diag=gpuPath.diagnostics();check(diag.roomId==='sm301-b'&&diag.snapshot.clusterCount===1&&diag.snapshot.memberCount===1,'room change rebuilds without stale clusters');
+  const dense={frame:{roomId:'dense',logicalSize:[64,64]},occluders:Array.from({length:20},(_,i)=>({id:`dense:${i}`,rect:[0,0,40,40],root:{x:20,y:40},kind:'machine',majorOccluder:true,sections:[{z:12}]}))},denseOcc=O.buildOccluderSnapshot(dense,{tileSize:32,maxOccluders:20,maxPerTile:20,maxTileRefs:80}),denseClusters=C.buildClusterSnapshot(denseOcc,{maxCandidatePerTile:4,maxCandidatePairs:4,maxMembers:20,maxClusters:20});
+  check(denseClusters.diagnostics.candidatePairCount<=4&&(denseClusters.diagnostics.candidatePairOverflow>0||denseClusters.diagnostics.candidateTileOverflow>0),'dense candidate work is capped with explicit overflow diagnostics');
+  check(diag.clusteringContract.toLowerCase().includes('geometry-only')&&diag.dominanceContract.toLowerCase().includes('reserved as zero'),'diagnostics pin SM-301/SM-302 semantic boundary');
+  const overlay=C.debugClusterOverlay(cpu),ctx=document.getElementById('clusterDebug').getContext('2d');ctx.clearRect(0,0,256,160);ctx.strokeStyle='#fff';ctx.fillStyle='#fff';for(const c of overlay){const [l,t,r,b]=c.rect;ctx.strokeRect(l*2,t*2,(r-l)*2,(b-t)*2);ctx.fillText(`${c.clusterId}:${c.memberCount}`,l*2+2,t*2+10)}
+  check(overlay.length===2&&overlay.every(c=>c.memberIds.length===c.memberCount),'debug cluster overlay exposes bounds and members');
+  result.diagnostics=diag;result.readback={firstClusterId:cdv.getUint32(0,true),firstClusterMembers:cdv.getUint32(8,true),firstMember:mdv.getUint32(0,true),dense:denseClusters.diagnostics,base:cpu.diagnostics};result.ok=true;gpuPath.close();
+}catch(error){result.error=String(error?.stack||error)}finally{publish()}
+</script>
