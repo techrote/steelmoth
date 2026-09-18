@@ -65,9 +65,12 @@ require("SM-505" in doc and "Auto" in doc, "document must preserve SM-505 Auto p
 require("AUTO_WEBGPU_ENABLED = false" in device or "AUTO_WEBGPU_ENABLED=false" in device, "SM-405 must not promote Auto to WebGPU")
 require("computeReadback" in probe and "[41,42,43,44]" in probe.replace(" ", ""), "cross-browser probe must retain deterministic compute readback")
 require("validation-error-captured" in probe, "cross-browser probe must capture a deliberate WebGPU validation error")
-require("webgl2-fallback-context" in probe, "cross-browser probe must prove WebGL2 fallback context availability")
+require("production-init-failure-fails-closed" in probe, "cross-browser probe must exercise production initialization failure")
+require("presentationOwner:'SM-505" in probe, "SM-405 probe must not claim ownership of final WebGPU presentation")
 require('set(args.browsers) == {"chrome", "firefox"}' in runner, "aggregate pass must require both Chrome and Firefox")
-require("firefoxBlocklistIgnoredForHostedFunctionalCI" in runner, "Firefox hosted-CI override must be explicit in evidence")
+require("firefoxBlocklistIgnoredForHostedFunctionalCI" in runner, "Firefox hosted-CI blocklist override must be explicit in evidence")
+require("firefoxWebGPUAllowedInParentForHostedHeadlessCI" in runner, "Firefox hosted-CI parent-process override must be explicit in evidence")
+require('"dom.webgpu.allow-in-parent", True' in runner, "Firefox hosted runner must explicitly try parent-process WebGPU when the GPU process is unavailable")
 
 if errors:
     print("SM-405 CONTRACT FAIL")
