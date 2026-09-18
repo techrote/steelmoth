@@ -11,8 +11,9 @@
   if(!GBuffer)throw new Error('SteelMothWebGPUGBuffer is required before webgpu_lighting');
 
   const SCHEMA='steelmoth-webgpu-lighting/v1';
-  const MAX_LIGHTS=17; // v1.2.3 allows 16 point lights plus the player cone.
+  const MAX_LIGHTS=17; // v1.2.3 permits sixteen ordinary lights plus the player cone.
   const LIGHT_STRIDE=64;
+  const LIGHT_BUFFER_NAME='sm204:lights';
   const OUTPUT_FORMAT='rgba16float';
   const DEBUG_MODES=Object.freeze(['final','diffuse','specular','light-count']);
   const LIGHT_TYPE=Object.freeze({point:0,cone:1});
@@ -40,14 +41,14 @@
   const vnorm=a=>{const d=vlen(a)||1;return[a[0]/d,a[1]/d,a[2]/d]};
   const vmix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
   const vmax=(a,x=0)=>[Math.max(x,a[0]),Math.max(x,a[1]),Math.max(x,a[2])];
-  const smoothstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+  const smoothstep=(a,b,x)=>{const d=b-a;if(Math.abs(d)<1e-12)return x>=b?1:0;const t=clamp((x-a)/d,0,1);return t*t*(3-2*t)};
 
+  function isCone(light){return String(light?.type||'').toLowerCase()==='cone'||String(light?.id||'')==='light:player-cone:0'||('innerCos'in(light||{})&&'outerCos'in(light||{}));}
   function lightElevation(light){
     if(light?.z!=null&&Number.isFinite(Number(light.z)))return Number(light.z);
     if(isCone(light))return 22;
     return DEFAULT_Z[String(light?.group||'')]??12;
   }
-  function isCone(light){return String(light?.type||'').toLowerCase()==='cone'||String(light?.id||'')==='light:player-cone:0'||('innerCos'in(light||{})&&'outerCos'in(light||{}));}
   function normalizedColor(value){return Array.isArray(value)?[finite(value[0],1),finite(value[1],1),finite(value[2],1)]:[1,1,1]}
   function buildCanonicalLights(scene={},settings={}){
     if(settings.lighting===false)return[];
@@ -113,13 +114,13 @@
       diff=vadd(diff,vmul(vmul(vmul(kd,al),(NoL*.86+.14)),radiance));spec=vadd(spec,vmul(vmul(sp,radiance),clamp(finite(settings.pbrSpecularStrength,.70),0,2)));
     }
     if(debug==='diffuse')return[...diff,1];if(debug==='specular')return[...spec,1];if(debug==='light-count')return[clamp((lights?.length||0)/MAX_LIGHTS,0,1),clamp((lights?.length||0)/MAX_LIGHTS,0,1),clamp((lights?.length||0)/MAX_LIGHTS,0,1),1];
-    const ambient=vmul(vmul(al,(settings.lighting===false?1:clamp(finite(settings.ambient,.3),0,2))*(.72+.28*mao)),vmix([1,1,1],[.96,1,1.03],metal*.15)),direct=vadd(diff,spec),bounded=vdiv(direct,direct.map(v=>1+v*.22)),final=vadd(vadd(ambient,bounded),vmul(al,em*.8));return[...vmax(final,0),al[3]??1];
+    const ambient=vmul(vmul(al,(settings.lighting===false?1:clamp(finite(settings.ambient,.3),0,2))*(.72+.28*mao)),vmix([1,1,1],[.96,1,1.03],metal*.15)),direct=vadd(diff,spec),bounded=vdiv(direct,direct.map(v=>1+v*.22)),finalColor=vadd(vadd(ambient,bounded),vmul(al,em*.8));return[...vmax(finalColor,0),al[3]??1];
   }
 
   const DEFERRED_WGSL=`
 const PI:f32=3.141592653589793;
 const MAX_LIGHTS:u32=${MAX_LIGHTS}u;
-struct Light { posRadius:vec4f,colorIntensity:vec4f,directionCone:vec4f,meta:vec4f };
+struct Light { posRadius:vec4f,colorIntensity:vec4f,directionCone:vec4f,kindFlags:vec4f };
 struct Frame { p0:vec4f,p1:vec4f,p2:vec4f,counts:vec4u };
 @group(0) @binding(0) var g0:texture_2d<f32>;
 @group(0) @binding(1) var g1:texture_2d<f32>;
@@ -136,40 +137,56 @@ fn fres(F0:vec3f,VoH:f32)->vec3f{return F0+(vec3f(1)-F0)*pow(1.0-VoH,5.0);}
   let n=normalize(vec3f((nr.rg*2.0-1.0)*normalStrength,nr.b*2.0-1.0));let rough=clamp(nr.a*roughnessScale,.06,1.0);let metal=clamp(hm.g*metalnessScale,0.0,1.0);let mao=mix(1.0,hm.b,materialAO);let em=hm.a;let z=hm.r*64.0*heightStrength;let Pxy=p.xy;
   let V=normalize(vec3f(0.0,-.12,1.0));let F0=mix(vec3f(.04),al.rgb,metal);var diffSum=vec3f(0);var specSum=vec3f(0);
   for(var i:u32=0u;i<MAX_LIGHTS;i++){
-    if(i>=frame.counts.x){break;}let light=lights[i];let cone=light.meta.x>.5;var L:vec3f;var radiance=vec3f(0);var NoL:f32;
+    if(i>=frame.counts.x){break;}let light=lights[i];let cone=light.kindFlags.x>.5;var L:vec3f;var radiance=vec3f(0);var NoL:f32;
     if(cone){let xy=Pxy-light.posRadius.xy;let d=length(xy);if(d>=light.posRadius.w||d<=.5){continue;}let dn=xy/d;let co=dot(dn,light.directionCone.xy);let edge=smoothstep(light.directionCone.w,light.directionCone.z,co);let fade=pow(max(0.0,1.0-d/light.posRadius.w),.42);if(edge<=0.0||fade<=0.0){continue;}let Ld=light.posRadius.xyz-vec3f(Pxy,z);L=normalize(vec3f(Ld.x,-Ld.y,Ld.z));NoL=max(dot(n,L),0.0);radiance=light.colorIntensity.rgb*light.colorIntensity.a*edge*fade;
     }else{let Ld=light.posRadius.xyz-vec3f(Pxy,z);let d=length(Ld);if(d>light.posRadius.w||d<.5){continue;}L=normalize(vec3f(Ld.x,-Ld.y,Ld.z));NoL=max(dot(n,L),0.0);let att=exp(-2.3*(d/light.posRadius.w)*(d/light.posRadius.w))*light.colorIntensity.a;radiance=light.colorIntensity.rgb*att;}
-    let NoV=max(dot(n,V),.02);if(NoL<=0.0){continue;}let H=normalize(V+L);let NoH=max(dot(n,H),0.0);let VoH=max(dot(V,H),0.0);let a=max(.045,rough*rough);let D=D_GGX(NoH,a);let k=(rough+1.0)*(rough+1.0)/8.0;let G=G1(NoV,k)*G1(NoL,k);let F=fres(F0,VoH);let spec=(D*G*F)/max(4.0*NoV*NoL,.04);let kd=(vec3f(1)-F)*(1.0-metal);diffSum+=kd*al.rgb*(NoL*.86+.14)*radiance;specSum+=spec*radiance*pbrSpecular;
+    let NoV=max(dot(n,V),.02);if(NoL<=0.0){continue;}let H=normalize(V+L);let NoH=max(dot(n,H),0.0);let VoH=max(dot(V,H),0.0);let a=max(.045,rough*rough);let D=D_GGX(NoH,a);let k=(rough+1.0)*(rough+1.0)/8.0;let G=G1(NoV,k)*G1(NoL,k);let F=fres(F0,VoH);let specularTerm=(D*G*F)/max(4.0*NoV*NoL,.04);let kd=(vec3f(1)-F)*(1.0-metal);diffSum+=kd*al.rgb*(NoL*.86+.14)*radiance;specSum+=specularTerm*radiance*pbrSpecular;
   }
   if(frame.counts.y==1u){return vec4f(diffSum,1);}if(frame.counts.y==2u){return vec4f(specSum,1);}if(frame.counts.y==3u){let c=f32(frame.counts.x)/f32(MAX_LIGHTS);return vec4f(vec3f(c),1);}
-  let ambient=al.rgb*(frame.p0.z*(.72+.28*mao))*mix(vec3f(1),vec3f(.96,1.0,1.03),metal*.15);let direct=max(vec3f(0),diffSum+specSum);direct=direct/(vec3f(1)+direct*.22);let final=max(vec3f(0),ambient+direct+al.rgb*em*.8);return vec4f(final,al.a);
+  let ambient=al.rgb*(frame.p0.z*(.72+.28*mao))*mix(vec3f(1),vec3f(.96,1.0,1.03),metal*.15);let directLight=max(vec3f(0),diffSum+specSum);directLight=directLight/(vec3f(1)+directLight*.22);let finalColor=max(vec3f(0),ambient+directLight+al.rgb*em*.8);return vec4f(finalColor,al.a);
 }`;
 
   function halfToFloat(h){h=Number(h)&0xffff;const s=(h>>15)&1,e=(h>>10)&31,f=h&1023;if(e===0)return(s?-1:1)*Math.pow(2,-14)*(f/1024);if(e===31)return f?NaN:(s?-Infinity:Infinity);return(s?-1:1)*Math.pow(2,e-15)*(1+f/1024)}
 
   class WebGPUDeferredLighting{
     constructor(options={}){
-      if(!options.device)throw new Error('WebGPUDeferredLighting requires GPUDevice');this.device=options.device;this.queue=options.queue||options.device.queue;this.width=Math.max(1,Math.round(options.width||640));this.height=Math.max(1,Math.round(options.height||360));this.labelPrefix=String(options.labelPrefix||'SteelMothLighting');this.ownsRegistry=!options.registry;this.registry=options.registry||new Resources.ResourceRegistry({device:this.device,queue:this.queue,width:this.width,height:this.height,labelPrefix:this.labelPrefix});this.pipelines=options.pipelines||new Resources.PipelineCache(this.device,{labelPrefix:`${this.labelPrefix}:pipeline`});this.pipeline=null;this.module=null;this.compilation=[];this.renderCount=0;this.activeLightCount=0;this.lastLights=[];this.lastDebugMode='final';this._defineResources();
+      if(!options.device)throw new Error('WebGPUDeferredLighting requires GPUDevice');
+      this.device=options.device;this.queue=options.queue||options.device.queue;this.width=Math.max(1,Math.round(options.width||640));this.height=Math.max(1,Math.round(options.height||360));this.labelPrefix=String(options.labelPrefix||'SteelMothLighting');
+      this.ownsRegistry=!options.registry;this.registry=options.registry||new Resources.ResourceRegistry({device:this.device,queue:this.queue,width:this.width,height:this.height,labelPrefix:this.labelPrefix});this.pipelines=options.pipelines||new Resources.PipelineCache(this.device,{labelPrefix:`${this.labelPrefix}:pipeline`});
+      this.pipeline=null;this.module=null;this.compilation=[];this.renderCount=0;this.activeLightCount=0;this.lastLights=[];this.lastDebugMode='final';this._defineResources();
     }
     _name(n){return `sm204:${n}`}
     _defineResources(){
-      const ensureBuffer=(name,size,usage)=>{if(!this.registry.get(this._name(name)))this.registry.defineBuffer(this._name(name),{size,usage})};const ensureTexture=(name,format,usage)=>{if(!this.registry.get(this._name(name)))this.registry.defineTexture(this._name(name),{format,usage,size:'surface'})};
-      ensureBuffer('lights',MAX_LIGHTS*LIGHT_STRIDE,bufferUsage(['STORAGE','COPY_DST']));ensureBuffer('frame',64,bufferUsage(['UNIFORM','COPY_DST']));ensureTexture('lit',OUTPUT_FORMAT,textureUsage(['RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC']));
+      const ensureBuffer=(name,size,usage)=>{if(!this.registry.get(name))this.registry.defineBuffer(name,{size,usage})};const ensureTexture=(name,format,usage)=>{if(!this.registry.get(name))this.registry.defineTexture(name,{format,usage,size:'surface'})};
+      ensureBuffer(LIGHT_BUFFER_NAME,MAX_LIGHTS*LIGHT_STRIDE,bufferUsage(['STORAGE','COPY_DST']));ensureBuffer(this._name('frame'),64,bufferUsage(['UNIFORM','COPY_DST']));ensureTexture(this._name('lit'),OUTPUT_FORMAT,textureUsage(['RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC']));
     }
-    async _module(label,code){const module=this.device.createShaderModule({label:`${this.labelPrefix}:${label}`,code});let messages=[];if(typeof module.getCompilationInfo==='function')messages=Array.from((await module.getCompilationInfo()).messages||[]).map(m=>({type:m.type,message:m.message,lineNum:m.lineNum,linePos:m.linePos}));const errors=messages.filter(m=>m.type==='error');this.compilation.push({label,messages});if(errors.length)throw new Error(`${label} WGSL compilation failed: ${errors.map(e=>e.message).join(' | ')}`);return module}
+    async _module(label,code){
+      const module=this.device.createShaderModule({label:`${this.labelPrefix}:${label}`,code});let messages=[];
+      if(typeof module.getCompilationInfo==='function')messages=Array.from((await module.getCompilationInfo()).messages||[]).map(m=>({type:m.type,message:m.message,lineNum:m.lineNum,linePos:m.linePos}));
+      const errors=messages.filter(m=>m.type==='error');this.compilation.push({label,messages});if(errors.length)throw new Error(`${label} WGSL compilation failed: ${errors.map(e=>e.message).join(' | ')}`);return module;
+    }
     async initialize(){if(this.pipeline)return this;this.module=await this._module('sm204-deferred-lighting',DEFERRED_WGSL);this.pipeline=await this.pipelines.getRender('sm204-deferred-lighting',()=>this.device.createRenderPipeline({label:`${this.labelPrefix}:sm204-deferred`,layout:'auto',vertex:{module:this.module,entryPoint:'vs_main'},fragment:{module:this.module,entryPoint:'fs_main',targets:[{format:OUTPUT_FORMAT}]},primitive:{topology:'triangle-list'}}));return this}
     _gRecord(gbuffer,name){return gbuffer?.registry?.require?.(`sm200:${name}`)||this.registry.require(`sm200:${name}`)}
     async render(gbuffer,scene={},settings={},options={}){
-      await this.initialize();if(!gbuffer?.registry)throw new Error('SM-204 lighting requires the SM-200/202 G-buffer registry');const lights=buildCanonicalLights(scene,settings),debug=String(options.debug||'final'),debugMode=DEBUG_MODES.indexOf(debug);if(debugMode<0)throw new Error(`unknown SM-204 debug mode: ${debug}`);
-      this.queue.writeBuffer(this.registry.require(this._name('lights')).handle,0,packLights(lights));this.queue.writeBuffer(this.registry.require(this._name('frame')).handle,0,frameBytes(this.width,this.height,settings,lights.length,debugMode));
-      const output=this.registry.require(this._name('lit')),bind=this.device.createBindGroup({label:`${this.labelPrefix}:sm204-bind`,layout:this.pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:this._gRecord(gbuffer,'g0').handle.createView()},{binding:1,resource:this._gRecord(gbuffer,'g1').handle.createView()},{binding:2,resource:this._gRecord(gbuffer,'g2').handle.createView()},{binding:3,resource:{buffer:this.registry.require(this._name('lights')).handle}},{binding:4,resource:{buffer:this.registry.require(this._name('frame')).handle}}]}),encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:sm204-frame`}),pass=encoder.beginRenderPass({label:`${this.labelPrefix}:sm204-deferred-pass`,colorAttachments:[{view:output.handle.createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}]});pass.setPipeline(this.pipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);if(options.wait!==false&&typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();this.renderCount++;this.activeLightCount=lights.length;this.lastLights=lights.map(clone);this.lastDebugMode=debug;return{schema:SCHEMA,activeLightCount:lights.length,debugMode:debug,outputFormat:OUTPUT_FORMAT,lightBuffer:this._name('lights')};
+      await this.initialize();if(!gbuffer?.registry)throw new Error('SM-204 lighting requires the SM-200/202 G-buffer registry');
+      const lights=buildCanonicalLights(scene,settings),debug=String(options.debug||'final'),debugMode=DEBUG_MODES.indexOf(debug);if(debugMode<0)throw new Error(`unknown SM-204 debug mode: ${debug}`);
+      this.queue.writeBuffer(this.registry.require(LIGHT_BUFFER_NAME).handle,0,packLights(lights));this.queue.writeBuffer(this.registry.require(this._name('frame')).handle,0,frameBytes(this.width,this.height,settings,lights.length,debugMode));
+      const output=this.registry.require(this._name('lit'));
+      const bind=this.device.createBindGroup({label:`${this.labelPrefix}:sm204-bind`,layout:this.pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:this._gRecord(gbuffer,'g0').handle.createView()},{binding:1,resource:this._gRecord(gbuffer,'g1').handle.createView()},{binding:2,resource:this._gRecord(gbuffer,'g2').handle.createView()},{binding:3,resource:{buffer:this.registry.require(LIGHT_BUFFER_NAME).handle}},{binding:4,resource:{buffer:this.registry.require(this._name('frame')).handle}}]});
+      const encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:sm204-frame`}),pass=encoder.beginRenderPass({label:`${this.labelPrefix}:sm204-deferred-pass`,colorAttachments:[{view:output.handle.createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}]});
+      pass.setPipeline(this.pipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);if(options.wait!==false&&typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();
+      this.renderCount++;this.activeLightCount=lights.length;this.lastLights=lights.map(clone);this.lastDebugMode=debug;return{schema:SCHEMA,activeLightCount:lights.length,debugMode:debug,outputFormat:OUTPUT_FORMAT,lightBuffer:LIGHT_BUFFER_NAME};
     }
     resize(width,height){width=Math.max(1,Math.round(width));height=Math.max(1,Math.round(height));const changed=this.registry.resize(width,height);this.width=width;this.height=height;return changed}
     outputTexture(){return this.registry.require(this._name('lit')).handle}
-    async readPixel(x,y){const record=this.registry.require(this._name('lit')),buffer=this.device.createBuffer({label:`${this.labelPrefix}:sm204-readback`,size:256,usage:bufferUsage(['COPY_DST','MAP_READ'])}),encoder=this.device.createCommandEncoder();encoder.copyTextureToBuffer({texture:record.handle,origin:{x:Math.max(0,Math.min(record.width-1,Math.floor(x))),y:Math.max(0,Math.min(record.height-1,Math.floor(y))),z:0}},{buffer,bytesPerRow:256,rowsPerImage:1},{width:1,height:1,depthOrArrayLayers:1});this.queue.submit([encoder.finish()]);await buffer.mapAsync(Number(root?.GPUMapMode?.READ??MAP_MODE_READ));const raw=new Uint8Array(buffer.getMappedRange()).slice(0,8);buffer.unmap();buffer.destroy();const dv=new DataView(raw.buffer,raw.byteOffset,8);return[0,2,4,6].map(o=>halfToFloat(dv.getUint16(o,true)))}
-    diagnostics(){return{schema:SCHEMA,extent:{width:this.width,height:this.height},maxLights:MAX_LIGHTS,lightStride:LIGHT_STRIDE,oneCanonicalLightBuffer:this._name('lights'),activeLightCount:this.activeLightCount,lastDebugMode:this.lastDebugMode,debugModes:[...DEBUG_MODES],outputFormat:OUTPUT_FORMAT,renderCount:this.renderCount,lights:this.lastLights.map(clone),compilation:clone(this.compilation),pbr:{model:'restrained-ggx-schlick-smith-v123-parity',dielectricF0:.04,directClamp:.22,viewVector:[0,-.12,1],selfShadow:'deferred-sm205',contactShadow:'deferred-sm205'},resourceDiagnostics:this.registry.diagnostics(),pipelineDiagnostics:this.pipelines.diagnostics()}}
+    async readPixel(x,y){
+      const record=this.registry.require(this._name('lit')),buffer=this.device.createBuffer({label:`${this.labelPrefix}:sm204-readback`,size:256,usage:bufferUsage(['COPY_DST','MAP_READ'])}),encoder=this.device.createCommandEncoder();
+      encoder.copyTextureToBuffer({texture:record.handle,origin:{x:Math.max(0,Math.min(record.width-1,Math.floor(x))),y:Math.max(0,Math.min(record.height-1,Math.floor(y))),z:0}},{buffer,bytesPerRow:256,rowsPerImage:1},{width:1,height:1,depthOrArrayLayers:1});this.queue.submit([encoder.finish()]);await buffer.mapAsync(Number(root?.GPUMapMode?.READ??MAP_MODE_READ));
+      const raw=new Uint8Array(buffer.getMappedRange()).slice(0,8);buffer.unmap();buffer.destroy();const dv=new DataView(raw.buffer,raw.byteOffset,8);return[0,2,4,6].map(o=>halfToFloat(dv.getUint16(o,true)));
+    }
+    diagnostics(){return{schema:SCHEMA,extent:{width:this.width,height:this.height},maxLights:MAX_LIGHTS,lightStride:LIGHT_STRIDE,oneCanonicalLightBuffer:LIGHT_BUFFER_NAME,activeLightCount:this.activeLightCount,lastDebugMode:this.lastDebugMode,debugModes:[...DEBUG_MODES],outputFormat:OUTPUT_FORMAT,renderCount:this.renderCount,lights:this.lastLights.map(clone),compilation:clone(this.compilation),pbr:{model:'restrained-ggx-schlick-smith-v123-parity',dielectricF0:.04,directClamp:.22,viewVector:[0,-.12,1],selfShadow:'deferred-sm205',contactShadow:'deferred-sm205'},resourceDiagnostics:this.registry.diagnostics(),pipelineDiagnostics:this.pipelines.diagnostics()}}
     close(){if(this.ownsRegistry)this.registry.close()}
   }
 
-  return{SCHEMA,MAX_LIGHTS,LIGHT_STRIDE,OUTPUT_FORMAT,DEBUG_MODES,LIGHT_TYPE,LIGHT_FLAGS,DEFAULT_Z,DIAGNOSTIC_PRESET,DEFERRED_WGSL,lightElevation,buildCanonicalLights,packLights,shadePixelReference,halfToFloat,WebGPUDeferredLighting};
+  return{SCHEMA,MAX_LIGHTS,LIGHT_STRIDE,LIGHT_BUFFER_NAME,OUTPUT_FORMAT,DEBUG_MODES,LIGHT_TYPE,LIGHT_FLAGS,DEFAULT_Z,DIAGNOSTIC_PRESET,DEFERRED_WGSL,lightElevation,buildCanonicalLights,packLights,shadePixelReference,halfToFloat,WebGPUDeferredLighting};
 });
