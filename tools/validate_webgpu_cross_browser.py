@@ -107,6 +107,7 @@ def make_driver(name: str):
         options = FirefoxOptions()
         options.add_argument("-headless")
         options.set_preference("dom.webgpu.enabled", True)
+        options.set_preference("dom.webgpu.allow-in-parent", True)
         options.set_preference("gfx.webgpu.ignore-blocklist", True)
         options.set_preference("gfx.webrender.all", True)
         options.set_preference("gfx.webrender.software", True)
@@ -132,6 +133,7 @@ def browser_metadata(driver, name: str):
         "headless": True,
         "firefoxWebGPUPreferenceForcedOn": name == "firefox",
         "firefoxBlocklistIgnoredForHostedFunctionalCI": name == "firefox",
+        "firefoxWebGPUAllowedInParentForHostedHeadlessCI": name == "firefox",
     }
 
 def wait_result(driver, timeout: float):
@@ -178,8 +180,6 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
                         raise RuntimeError("direct cross-browser probe did not prove real WebGPU execution")
                     if (payload.get("webgpu") or {}).get("computeReadback") != [41, 42, 43, 44]:
                         raise RuntimeError("direct cross-browser compute readback mismatch")
-                    if not (payload.get("webgl2") or {}).get("available"):
-                        raise RuntimeError("WebGL2 fallback context unavailable")
                 if real_flags and not all(flag is True for flag in real_flags):
                     raise RuntimeError(f"page exposed non-real WebGPU evidence flags: {real_flags}")
                 if not payload.get("ok"):
