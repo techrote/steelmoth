@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SteelMoth SM-307 visibility smoke</title>
+<style>
+body{margin:0;background:#101318;color:#dfe7ef;font:14px ui-monospace,monospace}h1{font-size:16px;margin:12px}canvas{margin:12px;border:1px solid #59636f;image-rendering:pixelated;width:768px;height:256px}pre{white-space:pre-wrap;margin:12px;max-width:1100px}
+</style>
+<h1>SM-307 bounded visibility · combined / direct / ambient</h1>
+<canvas id="view" width="768" height="256"></canvas>
+<pre id="webgpuVisibilityResult">running…</pre>
+<script src="engine/webgpu_resources.js"></script>
+<script src="engine/webgpu_visibility.js"></script>
+<script>
+(async()=>{
+  const result={schema:'steelmoth-webgpu-visibility-smoke/v1',ok:false,checks:[],captures:[],readback:{},timing:{submitWallMs:[],gpuTimingClaimed:false}};
+  const check=(ok,label,extra={})=>{result.checks.push({ok:!!ok,label,...extra});if(!ok)throw new Error(label)};
+  const maxError=(a,b)=>{let m=0;for(let i=0;i<Math.min(a.length,b.length);i++)m=Math.max(m,Math.abs(a[i]-b[i]));return m};
+  const rms=(a,b)=>{let s=0,n=Math.min(a.length,b.length);for(let i=0;i<n;i++){const d=a[i]-b[i];s+=d*d}return n?Math.sqrt(s/n):0};
+  try{
+    check(!!navigator.gpu,'navigator.gpu available');
+    const adapter=await navigator.gpu.requestAdapter();check(!!adapter,'WebGPU adapter acquired');const device=await adapter.requestDevice();
+    const V=globalThis.SteelMothWebGPUVisibility;check(!!V&&V.SCHEMA==='steelmoth-webgpu-visibility/v1','SM-307 module loaded');
+    const width=64,height=32,count=width*height;
+    function fixture(shift=0){
+      const dso=new Float32Array(count),self=new Float32Array(count).fill(1),contact=new Float32Array(count).fill(1),bloom=new Float32Array(count),mao=new Float32Array(count).fill(1),gtao=new Float32Array(count).fill(1);
+      const rects=[[8+shift,7,17+shift,24],[29+shift,5,39+shift,21],[47+shift,10,57+shift,26]];
+      for(const [x0,y0,x1,y1] of rects)for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=y*width+x;dso[i]=1;self[i]=.24;mao[i]=.1;gtao[i]=.2;}
+      for(let y=0;y<height;y++)for(let x=0;x<width;x++){const i=y*width+x;for(const [x0,y0,x1,y1] of rects){const dx=Math.max(x0-x,0,x-(x1-1)),dy=Math.max(y0-y,0,y-(y1-1)),dist=Math.hypot(dx,dy);if(dist>0&&dist<=4)bloom[i]=Math.max(bloom[i],.36*(1-dist/5));if(dist<=2){self[i]=Math.min(self[i],.46);mao[i]=Math.min(mao[i],.35);gtao[i]=Math.min(gtao[i],.42);}}
+        if((y===24||y===25)&&((x>=6+shift&&x<20+shift)||(x>=27+shift&&x<42+shift)||(x>=45+shift&&x<60+shift)))contact[i]=.42;
+        if(dso[i])bloom[i]=0;
+      }
+      return{dsoOcclusion:dso,selfVisibility:self,contactVisibility:contact,darkBloomOcclusion:bloom,materialAO:mao,gtaoVisibility:gtao};
+    }
+    function makeR32(data){const tex=device.createTexture({size:{width,height,depthOrArrayLayers:1},format:'r32float',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});device.queue.writeTexture({texture:tex},data,{bytesPerRow:width*4,rowsPerImage:height},{width,height,depthOrArrayLayers:1});return tex;}
+    function makeMaterial(mao){const data=new Float32Array(count*4);for(let i=0;i<count;i++){data[i*4]=0;data[i*4+1]=0;data[i*4+2]=mao[i];data[i*4+3]=0;}const tex=device.createTexture({size:{width,height,depthOrArrayLayers:1},format:'rgba32float',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});device.queue.writeTexture({texture:tex},data,{bytesPerRow:width*16,rowsPerImage:height},{width,height,depthOrArrayLayers:1});return tex;}
+    function gpuSource(f){const textures={dso:makeR32(f.dsoOcclusion),self:makeR32(f.selfVisibility),contact:makeR32(f.contactVisibility),bloom:makeR32(f.darkBloomOcclusion),material:makeMaterial(f.materialAO),gtao:makeR32(f.gtaoVisibility)};return{textures,source:{width,height,dsoMaskView:textures.dso.createView(),selfVisibilityView:textures.self.createView(),contactVisibilityView:textures.contact.createView(),darkBloomView:textures.bloom.createView(),materialView:textures.material.createView(),gtaoVisibilityView:textures.gtao.createView()}};}
+    const f0=fixture(0),g0=gpuSource(f0),composer=new V.WebGPUVisibilityComposition({device,width,height});
+    const options={gtao:true,debugMode:'combined'};let t0=performance.now();await composer.update(g0.source,options);result.timing.submitWallMs.push(performance.now()-t0);const gpu=await composer.readback(),ref=V.composeFields(f0,options);
+    const channels=[ref.combined,ref.direct,ref.ambient,ref.dso],errors=[];for(let c=0;c<4;c++){const a=new Float32Array(count);for(let i=0;i<count;i++)a[i]=gpu[i*4+c];errors[c]=maxError(a,channels[c]);}
+    check(Math.max(...errors)<.0015,'GPU/CPU visibility channels agree',{errors});
+    const denseMetrics=V.visibilityMetrics(ref.combined);check(denseMetrics.min>=.119,'dense fixture preserves bounded readability',{denseMetrics});check(denseMetrics.belowTenPercent===0,'dense fixture has no near-black combined pixels',{denseMetrics});
+    const naiveProbe=.24*.42*.6*.1*.2;check(ref.combined[12*width+20]>naiveProbe*20,'bounded composition is materially above blind-product collapse',{naiveProbe,probe:ref.combined[12*width+20]});
+    result.captures.push({label:'dense-control',errors,denseMetrics,debugMode:'combined'});
+
+    const toggles=['dso','selfShadow','contactShadow','darkBloom','materialAO','gtao'];const toggleEvidence={};
+    for(const name of toggles){const cfg={...options,[name]:false};t0=performance.now();await composer.update(g0.source,cfg);result.timing.submitWallMs.push(performance.now()-t0);const rb=await composer.readback(),cpu=V.composeFields(f0,cfg);let err=0;for(let i=0;i<count;i++){err=Math.max(err,Math.abs(rb[i*4]-cpu.combined[i]),Math.abs(rb[i*4+1]-cpu.direct[i]),Math.abs(rb[i*4+2]-cpu.ambient[i]));}check(err<.0015,`toggle ${name} GPU/CPU agreement`,{err});toggleEvidence[name]={err,combinedMean:V.visibilityMetrics(cpu.combined).mean};}
+    result.captures.push({label:'toggle-matrix',terms:toggleEvidence});
+
+    const debugErrors={};for(const mode of V.DEBUG_MODES){const cfg={...options,debugMode:mode};await composer.update(g0.source,cfg);const rb=await composer.readbackDebug(),cpu=V.composeFields(f0,cfg),map={'combined':'combined','direct':'direct','ambient':'ambient','dso':'dso','self-shadow':'selfShadow','contact-shadow':'contactShadow','dark-bloom':'darkBloom','material-ao':'materialAO','gtao':'gtao','macro':'macro','local':'local'},err=maxError(rb,cpu[map[mode]]);debugErrors[mode]=err;check(err<2e-5,`debug ${mode} GPU/CPU agreement`,{err});}
+    result.captures.push({label:'debug-matrix',debugErrors});
+
+    const f1=fixture(1),g1=gpuSource(f1);await composer.update(g0.source,options);const a0=await composer.readback();await composer.update(g1.source,options);const a1=await composer.readback(),c0=new Float32Array(count),c1=new Float32Array(count);for(let i=0;i<count;i++){c0[i]=a0[i*4];c1[i]=a1[i*4];}const motionRms=rms(c0,c1);check(motionRms>.005,'shifted moving-light-style input changes current composition',{motionRms});const ref1=V.composeFields(f1,options);check(maxError(c1,ref1.combined)<.0015,'shifted current frame has no hidden history',{error:maxError(c1,ref1.combined)});result.captures.push({label:'moving-light-a',mean:V.visibilityMetrics(ref.combined).mean});result.captures.push({label:'moving-light-b',mean:V.visibilityMetrics(ref1.combined).mean,motionRms});
+
+    let missingRejected=false;try{await composer.update({...g0.source,gtaoVisibilityView:null},{...options,gtao:true});}catch(e){missingRejected=/gtaoVisibilityView/.test(String(e));}check(missingRejected,'reserved GTAO enabled-without-view is rejected');await composer.update({...g0.source,gtaoVisibilityView:null},{...options,gtao:false});check(true,'reserved GTAO disabled accepts no producer');await composer.update(g0.source,options);check(composer.bindings().gtaoInterface.ownership.includes('reserved input only'),'bindings expose GTAO consumer contract');result.captures.push({label:'gtao-reserved',missingRejected,interface:composer.bindings().gtaoInterface});
+
+    const diag=composer.diagnostics();check(diag.debugModes.length===V.DEBUG_MODES.length,'diagnostics expose all debug modes');check(diag.snapshot.composition.includes('no independent term multiplication'),'composition rationale visible in diagnostics');
+    result.diagnostics=diag;result.readback={format:V.OUTPUT_FORMAT,debugFormat:V.DEBUG_FORMAT,pixelCount:count,gpuCpuTolerance:.0015,denseReadable:denseMetrics.min>=.119,termToggleMatrix:true,debugMatrix:true,movingInputCurrentFrame:true,gtaoReserved:true};
+
+    const canvas=document.getElementById('view'),ctx=canvas.getContext('2d');ctx.fillStyle='#11151a';ctx.fillRect(0,0,canvas.width,canvas.height);const panels=[['COMBINED',ref.combined],['DIRECT',ref.direct],['AMBIENT',ref.ambient]];for(let p=0;p<panels.length;p++){const ox=p*256,img=ctx.createImageData(256,128);for(let yy=0;yy<128;yy++)for(let xx=0;xx<256;xx++){const sx=Math.floor(xx/4),sy=Math.floor(yy/4),v=Math.max(0,Math.min(1,panels[p][1][sy*width+sx])),j=(yy*256+xx)*4,c=Math.round(v*255);img.data[j]=c;img.data[j+1]=c;img.data[j+2]=c;img.data[j+3]=255;}ctx.putImageData(img,ox,32);ctx.fillStyle='#dfe7ef';ctx.font='16px monospace';ctx.fillText(panels[p][0],ox+8,22);}ctx.fillStyle='#dfe7ef';ctx.font='13px monospace';ctx.fillText(`dense min=${denseMetrics.min.toFixed(3)} mean=${denseMetrics.mean.toFixed(3)} · modes=${V.DEBUG_MODES.length} · GTAO reserved`,12,188);ctx.fillText('White = visible · strongest overlapping evidence wins · no blind term multiplication',12,212);
+    result.ok=true;
+  }catch(error){result.error=String(error?.stack||error);}
+  document.getElementById('webgpuVisibilityResult').textContent=JSON.stringify(result);document.body.dataset.webgpuVisibilityDone='1';
+})();
+</script>
