@@ -1,7 +1,7 @@
 <!doctype html><meta charset="utf-8"><title>Steel Moth SM-204 lighting smoke</title>
 <body><pre id="status">SM-204 WebGPU lighting validation running…</pre><script src="engine/webgpu_resources.js"></script><script src="engine/webgpu_lighting.js"></script><script>
 (async()=>{
-  const result={schema:'steelmoth-webgpu-lighting-smoke/v1',ok:false,checks:[],angles:[],axis:{},debug:{}};
+  const result={schema:'steelmoth-webgpu-lighting-smoke/v1',ok:false,checks:[],angles:[],axis:{},debug:{},materialControls:{}};
   const check=(name,ok,details=null)=>{result.checks.push({name,ok:!!ok,details});if(!ok)throw new Error(`${name}${details?`: ${JSON.stringify(details)}`:''}`)};
   function f16(v){const f32=new Float32Array(1),u32=new Uint32Array(f32.buffer);f32[0]=v;const x=u32[0],s=(x>>>16)&0x8000,e=((x>>>23)&255)-127+15;let m=x&0x7fffff;if(e<=0){if(e<-10)return s;m=(m|0x800000)>>(1-e);return s|((m+0x1000)>>13)}if(e>=31)return s|0x7c00;return s|(e<<10)|((m+0x1000)>>13)}
   const fill16=(w,h,rgba)=>{const a=new Uint16Array(w*h*4),q=rgba.map(f16);for(let i=0;i<w*h;i++)a.set(q,i*4);return a};
@@ -23,7 +23,14 @@
     const one=(x,y,z=8)=>({id:`p:${x}:${y}`,type:'point',independent:true,x,y,z,radius:90,intensity:1,color:[1,1,1]});
     write16(g1,[.9,.5,.8,.55]);await lighting.render({lights:[one(62,pixel.y)]},settings);const right=await lighting.readPixel(32,4);await lighting.render({lights:[one(2,pixel.y)]},settings);const left=await lighting.readPixel(32,4);check('normal-axis-x',right[0]>left[0]+.02,{dark:left[0],lit:right[0]});result.axis.x={positive:right,negative:left};
     write16(g1,[.5,.9,.8,.55]);await lighting.render({lights:[one(pixel.x,-26.5)]},settings);const up=await lighting.readPixel(32,4);await lighting.render({lights:[one(pixel.x,33.5)]},settings);const down=await lighting.readPixel(32,4);check('normal-axis-y',up[0]>down[0]+.02,{up:up[0],down:down[0]});result.axis.y={positive:up,negative:down};
-    write16(g1,[.5,.5,1,.55]);const scene={lights:[one(42,pixel.y,24)]},canonical=L.buildCanonicalLights(scene,settings),ref=L.shadeReferencePixel(material,pixel,canonical,settings);
+
+    const controls=JSON.parse(new URLSearchParams(location.search).get('controls')||'{}');
+    for(const [name,c] of Object.entries(controls)){
+      const A=c.albedo.map(v=>v/255),N=c.normalRoughness.map(v=>v/255),M=c.heightMaterial.map(v=>v/255);write8(g0,A);write16(g1,N);write16(g2,[M[0],M[2],M[1],M[3]]);
+      const mat={albedo:A.slice(0,3),normal:[N[0]*2-1,N[1]*2-1,N[2]*2-1],roughness:N[3],height:M[0],ao:M[1],metalness:M[2],emissive:M[3]},scene={lights:[one(44,pixel.y,24)]},canonical=L.buildCanonicalLights(scene,settings),ref=L.shadeReferencePixel(mat,pixel,canonical,settings);await lighting.render(scene,settings);const gpu=await lighting.readPixel(32,4);check(`material-${name}-pbr-parity`,gpu.slice(0,3).every((v,i)=>near(v,ref.final[i],.025)),{gpu,ref:ref.final,material:mat});result.materialControls[name]={gpu,reference:ref.final,source:c};
+    }
+
+    write8(g0,[al,al,al,1]);write16(g1,[.5,.5,1,.55]);write16(g2,[.1,0,1,0]);const scene={lights:[one(42,pixel.y,24)]},canonical=L.buildCanonicalLights(scene,settings),ref=L.shadeReferencePixel(material,pixel,canonical,settings);
     for(const mode of ['diffuse','specular','final','light-count']){await lighting.render(scene,settings,{debugMode:mode});const gpu=await lighting.readPixel(32,4);result.debug[mode]=gpu;if(mode==='diffuse')check('debug-diffuse',gpu.slice(0,3).every((v,c)=>near(v,ref.diffuse[c])),{gpu,ref:ref.diffuse});if(mode==='specular')check('debug-specular',gpu.slice(0,3).every((v,c)=>near(v,ref.specular[c],.025)),{gpu,ref:ref.specular});if(mode==='light-count')check('debug-light-count',near(gpu[0],1/L.MAX_LIGHTS,.002),gpu)}
     const mixed={lights:[{id:'omni',type:'playerOmni',independent:true,x:20,y:4,z:22,radius:60,intensity:.16,color:[1,1,1]},{id:'point',type:'pulse',x:40,y:4,z:19,radius:50,intensity:.5,color:[1,1,1]},{id:'cone',type:'cone',x:10,y:4,z:22,range:80,intensity:2,color:[1,1,1],dx:1,dy:0,innerCos:.9,outerCos:.7,enabled:true}]};await lighting.render(mixed,{...settings,emissive:2});const diag=lighting.diagnostics();result.diagnostics=diag;check('single-canonical-light-buffer',diag.lightBufferBytes===L.MAX_LIGHTS*L.LIGHT_STRIDE&&diag.lightCount===3,diag);check('light-types',diag.lightTypes.omni===1&&diag.lightTypes.point===1&&diag.lightTypes.cone===1,diag.lightTypes);check('debug-modes',L.DEBUG_MODES.every(m=>diag.debugModes.includes(m)),diag.debugModes);check('diagnostic-preset',diag.diagnosticPreset.playerOmniIntensity===1.6&&diag.diagnosticPreset.playerConeOuterAngle===60,diag.diagnosticPreset);
     result.ok=true;lighting.close();g0.destroy();g1.destroy();g2.destroy();
