@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8"><title>SM-401 WebGPU foliage smoke</title><style>body{background:#071512;color:#b9ddd2;font:13px monospace;margin:20px}pre{white-space:pre-wrap}</style></head><body data-webgpu-foliage-done="0"><h1>SM-401 canonical foliage smoke</h1><pre id="webgpuFoliageResult">running...</pre>
-<script src="engine/foliagefx.js?v=1.2.3"></script><script src="engine/webgpu_resources.js?v=sm103-1"></script><script src="engine/webgpu_lighting.js?v=sm204-1"></script><script src="engine/webgpu_foliage.js?v=sm401-1"></script>
+<script src="engine/foliagefx.js?v=1.2.3"></script><script src="engine/webgpu_resources.js?v=sm103-1"></script><script src="engine/webgpu_gbuffer.js?v=sm200-1"></script><script src="engine/webgpu_lighting.js?v=sm204-1"></script><script src="engine/webgpu_foliage.js?v=sm401-1"></script>
 <script>
 (async()=>{const out=document.getElementById('webgpuFoliageResult'),checks=[],captures=[],check=(label,ok,detail='')=>checks.push({label,ok:!!ok,detail});try{
  if(!navigator.gpu)throw new Error('navigator.gpu unavailable');const adapter=await navigator.gpu.requestAdapter();if(!adapter)throw new Error('WebGPU adapter unavailable');const device=await adapter.requestDevice();const F=globalThis.SteelMothWebGPUFoliage,L=globalThis.SteelMothWebGPULighting;if(!F||!L)throw new Error('SM-401 modules unavailable');
