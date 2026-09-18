@@ -42,12 +42,19 @@ for(const angle of [0,45,90,135,180,225,270,315]){
   assert.ok(final.slice(0,3).every(v=>v>=0),`non-negative final at ${angle}`);
   angles.push({angle,final,diffuse:diff,specular:spec});
 }
-// A flat +Z normal must respond symmetrically to opposite screen-space X/Y angles;
-// this catches accidental normal/light axis reversals while allowing the baseline view-vector anisotropy in specular.
-for(const [a,b] of [[0,180],[90,270]]){
+// With the compatibility view vector V=(0,-.12,1), X-opposite diffuse terms remain
+// symmetric but Y-opposite terms are intentionally slightly asymmetric via Fresnel/kd.
+// Pin the valid X symmetry and separately prove the +X/-screenY/+Z normal convention.
+for(const [a,b] of [[0,180]]){
   const A=angles.find(q=>q.angle===a).diffuse,B=angles.find(q=>q.angle===b).diffuse;
-  for(let c=0;c<3;c++)close(A[c],B[c],2e-6,`diffuse symmetry ${a}/${b} channel ${c}`);
+  for(let c=0;c<3;c++)close(A[c],B[c],2e-6,`diffuse X symmetry ${a}/${b} channel ${c}`);
 }
+const axisSample={...sample,normalRoughness:[.5,.90,.80,.58]};
+const above=L.buildCanonicalLights({lights:[{id:'light:axis:above',group:'test',x:center[0],y:center[1]-110,z:24,radius:220,intensity:1,color:[1,1,1]}]},settings);
+const below=L.buildCanonicalLights({lights:[{id:'light:axis:below',group:'test',x:center[0],y:center[1]+110,z:24,radius:220,intensity:1,color:[1,1,1]}]},settings);
+const aboveDiffuse=L.shadePixelReference(axisSample,above,settings,center,'diffuse'),belowDiffuse=L.shadePixelReference(axisSample,below,settings,center,'diffuse');
+assert.ok(aboveDiffuse[0]>belowDiffuse[0]+1e-3,'positive pseudo-world Y normal must face a light above it on screen; screen Y is inverted exactly once');
+
 const d=L.shadePixelReference(sample,lights,settings,center,'diffuse'),s=L.shadePixelReference(sample,lights,settings,center,'specular'),f=L.shadePixelReference(sample,lights,settings,center,'final'),lc=L.shadePixelReference(sample,lights,settings,center,'light-count');
 assert.ok(d.some(v=>v>0)&&s.some(v=>v>0)&&f.some(v=>v>0),'diffuse/specular/final debug references must be populated');
 close(lc[0],lights.length/L.MAX_LIGHTS,1e-8,'active light count debug value');
@@ -59,4 +66,4 @@ for(let c=0;c<3;c++)close(dark[c],aoOff[c],2e-6,`AO disabled ambient parity chan
 // The canonical light buffer is representation-only and never owns gameplay state.
 const gameplay={room:3,objective:'relay',player:[12,34]},before=JSON.stringify(gameplay);L.buildCanonicalLights(baseScene,settings);assert.strictEqual(JSON.stringify(gameplay),before);
 
-console.log(`SM-204 lighting semantics PASS: ${lights.length} canonical lights, 8-angle reference matrix, debug/PBR/material roles validated.`);
+console.log(`SM-204 lighting semantics PASS: ${lights.length} canonical lights, 8-angle reference matrix, normal-axis convention, debug/PBR/material roles validated.`);
