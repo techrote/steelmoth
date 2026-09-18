@@ -29,19 +29,20 @@
   globalThis.steelMothRenderTransformBaseline = renderTransformBaseline;
 
   // SM-102/103 platform/resource lifecycle plus the Material-v2 representation
-  // chain through SM-203's single reusable pseudo-depth hierarchy. Auto remains
-  // WebGL2 until SM-505; these staged WebGPU modules do not change presentation.
+  // chain through SM-204 canonical opaque direct lighting. Auto remains WebGL2
+  // until SM-505; these staged WebGPU modules do not change presentation.
   const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
     .then(() => import('./engine/webgpu_resources.js?v=sm103-1'))
     .then(() => import('./engine/pseudo_depth.js?v=sm201-1'))
     .then(() => import('./engine/webgpu_gbuffer.js?v=sm200-1'))
     .then(() => import('./engine/webgpu_ownership.js?v=sm202-1'))
     .then(() => import('./engine/webgpu_depth_hierarchy.js?v=sm203-1'))
+    .then(() => import('./engine/webgpu_lighting.js?v=sm204-1'))
     .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
-      console.warn('WebGPU platform/resource/ownership hierarchy lifecycle unavailable; continuing with WebGL2.', err);
+      console.warn('WebGPU platform/resource/ownership/lighting lifecycle unavailable; continuing with WebGL2.', err);
       return null;
     });
   globalThis.steelMothBackendReady = backendReady;
