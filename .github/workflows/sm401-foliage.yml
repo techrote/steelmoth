@@ -1,0 +1,63 @@
+name: SM-401 WebGPU foliage and Fine Grass
+
+on:
+  pull_request:
+    paths:
+      - 'engine/foliagefx.js'
+      - 'engine/webgpu_foliage.js'
+      - 'engine/webgpu_lighting.js'
+      - 'engine/webgpu_gbuffer.js'
+      - 'engine/webgpu_visibility.js'
+      - 'webgpu-foliage-smoke.html'
+      - 'tools/validate_webgpu_foliage*'
+      - 'tools/run_checks.py'
+      - 'docs/WEBGPU_FOLIAGE_SM401.md'
+      - 'webapp.js'
+      - 'sw.js'
+      - '.github/workflows/sm401-foliage.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sm401-foliage-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  foliage:
+    name: canonical light + depth + visibility + root/classification readback
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser validation dependency
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Validate deterministic foliage model and contracts
+        run: |
+          node --check engine/webgpu_foliage.js
+          node --check tools/validate_webgpu_foliage.js
+          node tools/validate_webgpu_foliage.js
+          python tools/validate_webgpu_foliage_contract.py
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-401 WebGPU validation' >&2; exit 1; fi
+      - name: Validate canonical WebGPU foliage execution and readback
+        run: python tools/validate_webgpu_foliage_browser.py --require-webgpu --report artifacts/webgpu-foliage-browser.json
+      - name: Upload SM-401 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm401-webgpu-foliage-${{ github.run_id }}
+          path: |
+            artifacts/webgpu-foliage-browser.json
+            artifacts/webgpu-foliage-browser.png
+          if-no-files-found: warn
