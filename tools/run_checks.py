@@ -77,6 +77,7 @@ CHECKS = [
     ("webgpu-gtao-contract", "regression", [PY, "tools/validate_webgpu_gtao_contract.py"]),
     ("render-harness", "regression", [PY, "tools/validate_render_harness.py"]),
     ("webgl2-benchmark", "regression", [PY, "tools/validate_webgl2_benchmark.py"]),
+    ("webgpu-target-benchmark-contract", "regression", [PY, "tools/validate_webgpu_target_benchmark_contract.py"]),
     ("render-fixtures", "regression", [PY, "tools/validate_render_fixtures.py", "--repeat", "3"]),
     ("webapp-v123", "regression", [PY, "tools/validate_webapp_v123.py"]),
     ("surface-coherence-v123", "regression", [PY, "tools/validate_v123_surface_coherence.py"]),
