@@ -208,5 +208,5 @@ fn linear_to_srgb(c:vec3f)->vec3f{let x=max(c,vec3f(0));let lo=x*12.92;let hi=1.
     close(){this._destroyTextures();for(const b of [this.brightBuffer,this.blurHBuffer,this.blurVBuffer,this.postBuffer])try{b?.destroy()}catch(_e){}}
   }
   function preferredCanvasFormat(){try{return root?.navigator?.gpu?.getPreferredCanvasFormat?.()||'bgra8unorm'}catch(_e){return'bgra8unorm'}}
-  return{SCHEMA,DEFAULTS,normalizeSettings,bloomPassesForQuality,linearChannelToSrgb,linearToSrgb,applyPostReference,packPostSettings,preferredCanvasFormat,WebGPUPost};
+  return{SCHEMA,DEFAULTS,BRIGHT_WGSL,BLUR_WGSL,POST_WGSL,RAW_WGSL,normalizeSettings,bloomPassesForQuality,linearChannelToSrgb,linearToSrgb,applyPostReference,packPostSettings,preferredCanvasFormat,WebGPUPost};
 });
