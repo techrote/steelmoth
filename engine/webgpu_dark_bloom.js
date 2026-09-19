@@ -386,7 +386,7 @@ fn full_depth(p:vec2<i32>)->f32{
       if(width!==this.width||height!==this.height)this.configure(width,height);
       const roomId=String(source.roomId||plan.roomId||'unknown-room');if(this.lastRoomId!==null&&roomId!==this.lastRoomId)this.invalidate('room-change');
       const quality=qualityName(options.quality||this.options.quality),settings=qualitySettings(quality,options.qualityOverrides||{}),low=lowDimensions(width,height);
-      const tierKey=plan.signature?\`${width}x${height}:${plan.signature}\`:null;
+      const tierKey=plan.signature?`${width}x${height}:${plan.signature}`:null;
       let tier,tierReused=false;
       if(tierKey&&this.tierCache&&this.tierCacheKey===tierKey){tier=this.tierCache;tierReused=true;this.tierReuseCount++;}
       else{tier=buildTierMap(plan,this.tierCache?.data||null);this.tierCache=tier;this.tierCacheKey=tierKey;this.tierBuildCount++;}
