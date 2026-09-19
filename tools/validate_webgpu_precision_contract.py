@@ -15,8 +15,9 @@ require("g1:'rgba16float'" in gbuffer and "g2:'rgba16float'" in gbuffer,'SM-800 
 require("objectId:'r32uint'" in gbuffer and "depth:'depth32float'" in gbuffer,'core object/depth formats must remain unchanged')
 for name in ('baseline','material8','octMaterial8','hdr11','combined'):
     require(name in probe,f'missing SM-800 candidate {name}')
-for term in ('octahedral','rgba8unorm','rg11b10ufloat','target hardware','GTX 1650 SUPER','no production format change'):
+for term in ('octahedral','rgba8unorm','rg11b10ufloat','GTX 1650 SUPER','no production format change'):
     require(term.lower() in doc.lower(),f'SM-800 report missing evidence/policy term: {term}')
+require('target-hardware' in doc.lower() or 'target hardware' in doc.lower(),'SM-800 report must distinguish physical target-hardware evidence')
 require('targetHardwareAcceptance' in (ROOT/'tools/validate_webgpu_precision_browser.py').read_text(encoding='utf-8'),'browser report must explicitly separate target-hardware acceptance')
 require('timestamp-query' in page,'browser probe must use timestamp-query when exposed')
 require('pushErrorScope' in page and 'popErrorScope' in page,'candidate pipeline creation must use validation scopes')
