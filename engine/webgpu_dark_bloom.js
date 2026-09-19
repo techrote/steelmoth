@@ -80,27 +80,63 @@
     return found;
   }
 
-  function buildTierMap(hierarchyInput){
+  function tierForJobAtPoint(plan, job, p){
+    const distance = Hierarchy.sourceDistance(p, job.nearBounds, job.shadowDir);
+    const level = Hierarchy.levelForDistance(distance, job);
+    const tier = level === 'far' ? 2 : level === 'mid' ? 1 : 0;
+    let hit = DSO.sweptContains(p[0], p[1], contourBounds(job, tier), job.shadowDir, job.ownerThrow);
+    if(!hit){
+      for(let m=0; m<job.memberCount && !hit; m++){
+        const member = plan.members[job.memberOffset + m];
+        if(member && member.maxTier >= tier) hit = DSO.sweptContains(p[0], p[1], contourBounds(member, tier), job.shadowDir, member.throwLength);
+      }
+    }
+    return hit ? tier + 1 : 0;
+  }
+
+  function buildTierMap(hierarchyInput, reuseData=null){
     const plan = unwrapHierarchy(hierarchyInput);
     const low = lowDimensions(plan.grid.width, plan.grid.height);
-    const map = new Uint32Array(low.width * low.height);
+    const length = low.width * low.height;
+    const map = reuseData instanceof Uint32Array && reuseData.length === length ? reuseData : new Uint32Array(length);
+    map.fill(0);
     const counts = [0,0,0,0];
-    for(const job of plan.jobs || []){
-      const b = job.sweptBounds || DSO.sweptBounds(job.farBounds, job.shadowDir, job.ownerThrow);
-      if(b[2] <= 0 || b[3] <= 0 || b[0] >= plan.grid.width || b[1] >= plan.grid.height) continue;
-      const x0 = clamp(Math.floor(b[0] / SCALE), 0, low.width - 1);
-      const y0 = clamp(Math.floor(b[1] / SCALE), 0, low.height - 1);
-      const x1 = clamp(Math.floor((b[2] - 1e-6) / SCALE), 0, low.width - 1);
-      const y1 = clamp(Math.floor((b[3] - 1e-6) / SCALE), 0, low.height - 1);
+    const jobs = plan.jobs || [];
+    let candidatePixels = 0;
+    const p = [0,0];
+
+    // Each job rasterizes only its own swept extent. The previous implementation
+    // called tierAtPoint() here, which rescanned every job for every candidate
+    // pixel and turned this stage into O(candidatePixels * jobCount) work.
+    for(const job of jobs){
+      const bounds = job.sweptBounds || DSO.sweptBounds(job.farBounds, job.shadowDir, job.ownerThrow);
+      if(bounds[2] <= 0 || bounds[3] <= 0 || bounds[0] >= plan.grid.width || bounds[1] >= plan.grid.height) continue;
+      const x0 = clamp(Math.floor(bounds[0] / SCALE), 0, low.width - 1);
+      const y0 = clamp(Math.floor(bounds[1] / SCALE), 0, low.height - 1);
+      const x1 = clamp(Math.floor((bounds[2] - 1e-6) / SCALE), 0, low.width - 1);
+      const y1 = clamp(Math.floor((bounds[3] - 1e-6) / SCALE), 0, low.height - 1);
       for(let y=y0; y<=y1; y++) for(let x=x0; x<=x1; x++){
-        const p = [Math.min(plan.grid.width - .5, x*SCALE + SCALE*.5), Math.min(plan.grid.height - .5, y*SCALE + SCALE*.5)];
+        p[0] = Math.min(plan.grid.width - .5, x*SCALE + SCALE*.5);
+        p[1] = Math.min(plan.grid.height - .5, y*SCALE + SCALE*.5);
         const index = y*low.width + x;
-        const tier = tierAtPoint(plan, p);
+        const tier = tierForJobAtPoint(plan, job, p);
+        candidatePixels++;
         if(tier > map[index]) map[index] = tier;
       }
     }
     for(const v of map) counts[v]++;
-    return {width:low.width, height:low.height, data:map, counts};
+    return {
+      width:low.width,
+      height:low.height,
+      data:map,
+      counts,
+      diagnostics:{
+        jobCount:jobs.length,
+        candidatePixels,
+        jobTests:candidatePixels,
+        eliminatedNestedJobRescans:candidatePixels * Math.max(0, jobs.length - 1)
+      }
+    };
   }
 
   function reducedCore(hardMask, width, height){
@@ -297,7 +333,7 @@ fn full_depth(p:vec2<i32>)->f32{
       this.device=options.device;this.queue=options.queue||options.device.queue;this.options={...DEFAULTS,...options};
       this.width=Math.max(1,Math.round(options.width||640));this.height=Math.max(1,Math.round(options.height||360));
       this.registry=null;this.pipelineCache=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.snapshot=null;this.valid=false;this.closed=false;
-      this.generation=0;this.updateCount=0;this.uploadCount=0;this.dispatchCount=0;this.invalidationCount=0;this.lastInvalidationReason='uninitialized';this.lastRoomId=null;
+      this.generation=0;this.updateCount=0;this.uploadCount=0;this.dispatchCount=0;this.invalidationCount=0;this.lastInvalidationReason='uninitialized';this.lastRoomId=null;this.tierCacheKey=null;this.tierCache=null;this.tierBuildCount=0;this.tierReuseCount=0;
       this.configure(this.width,this.height);
     }
     _name(name){return `sm305:${name}`;}
@@ -315,7 +351,7 @@ fn full_depth(p:vec2<i32>)->f32{
       this.registry.defineTexture(this._name('full'),{format:'r32float',usage:textureFlags,size:'surface'});
       this.registry.defineBuffer(this._name('tiers'),{size:Math.max(4,low.width*low.height*4),usage:bufferFlags});
       this.registry.defineBuffer(this._name('params'),{size:64,usage:bufferUsage(['UNIFORM','COPY_DST'])});
-      this.bloomPipeline=null;this.upsamplePipeline=null;this.generation++;this.invalidate('configure');return true;
+      this.bloomPipeline=null;this.upsamplePipeline=null;this.tierCacheKey=null;this.tierCache=null;this.generation++;this.invalidate('configure');return true;
     }
     resize(width,height){return this.configure(width,height);}
     resetDevice(device,queue=device?.queue){
@@ -349,15 +385,19 @@ fn full_depth(p:vec2<i32>)->f32{
       if(!source.hardMaskView||!source.depthRangeView)throw new Error('SM-305 update requires hardMaskView and canonical SM-203 depthRangeView');
       if(width!==this.width||height!==this.height)this.configure(width,height);
       const roomId=String(source.roomId||plan.roomId||'unknown-room');if(this.lastRoomId!==null&&roomId!==this.lastRoomId)this.invalidate('room-change');
-      const quality=qualityName(options.quality||this.options.quality),settings=qualitySettings(quality,options.qualityOverrides||{}),tier=buildTierMap(plan),low=lowDimensions(width,height);
+      const quality=qualityName(options.quality||this.options.quality),settings=qualitySettings(quality,options.qualityOverrides||{}),low=lowDimensions(width,height);
+      const tierKey=plan.signature?\`${width}x${height}:${plan.signature}\`:null;
+      let tier,tierReused=false;
+      if(tierKey&&this.tierCache&&this.tierCacheKey===tierKey){tier=this.tierCache;tierReused=true;this.tierReuseCount++;}
+      else{tier=buildTierMap(plan,this.tierCache?.data||null);this.tierCache=tier;this.tierCacheKey=tierKey;this.tierBuildCount++;}
       const tierBytes=new Uint8Array(tier.data.buffer,tier.data.byteOffset,tier.data.byteLength),tiers=this.registry.require(this._name('tiers')).handle,params=this.registry.require(this._name('params')).handle;
-      this.queue.writeBuffer(tiers,0,tierBytes);
+      if(!tierReused)this.queue.writeBuffer(tiers,0,tierBytes);
       const paramBuffer=new ArrayBuffer(64),u=new Uint32Array(paramBuffer),f=new Float32Array(paramBuffer);
       u[0]=width;u[1]=height;u[2]=low.width;u[3]=low.height;
       f[4]=settings.nearRadius;f[5]=settings.midRadius;f[6]=settings.farRadius;f[7]=settings.farRadius;
       f[8]=settings.nearStrength;f[9]=settings.midStrength;f[10]=settings.farStrength;f[11]=settings.farStrength;
       f[12]=settings.depthThreshold;f[13]=SCALE;
-      this.queue.writeBuffer(params,0,new Uint8Array(paramBuffer));this.uploadCount+=2;
+      this.queue.writeBuffer(params,0,new Uint8Array(paramBuffer));this.uploadCount+=tierReused?1:2;
       await this._pipelines();
       const lowView=this.registry.require(this._name('low')).handle.createView(),fullView=this.registry.require(this._name('full')).handle.createView();
       const reducedBind=this.device.createBindGroup({label:'SteelMothDarkBloom:reduced-bind',layout:this.bloomPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:source.hardMaskView},{binding:1,resource:source.depthRangeView},{binding:2,resource:{buffer:tiers}},{binding:3,resource:{buffer:params}},{binding:4,resource:lowView}]});
@@ -366,7 +406,7 @@ fn full_depth(p:vec2<i32>)->f32{
       {const pass=encoder.beginComputePass({label:'SteelMothDarkBloom:reduced'});pass.setPipeline(this.bloomPipeline);pass.setBindGroup(0,reducedBind);pass.dispatchWorkgroups(Math.ceil(low.width/8),Math.ceil(low.height/8));pass.end();}
       {const pass=encoder.beginComputePass({label:'SteelMothDarkBloom:upsample'});pass.setPipeline(this.upsamplePipeline);pass.setBindGroup(0,upsampleBind);pass.dispatchWorkgroups(Math.ceil(width/8),Math.ceil(height/8));pass.end();}
       this.queue.submit([encoder.finish()]);if(typeof this.queue.onSubmittedWorkDone==='function'&&options.wait!==false)await this.queue.onSubmittedWorkDone();
-      this.snapshot={schema:SNAPSHOT_SCHEMA,roomId,quality,settings,width,height,lowWidth:low.width,lowHeight:low.height,tierCounts:tier.counts,sourceHierarchySignature:plan.signature,diagnostics:{boundedRadius:true,maxRadiusReduced:settings.farRadius,maxRadiusPixels:settings.farRadius*SCALE,peakBound:settings.farStrength,nearContribution:settings.nearStrength,farContribution:settings.farStrength,depthAwareUpsample:true,temporalAccumulation:false}};
+      this.snapshot={schema:SNAPSHOT_SCHEMA,roomId,quality,settings,width,height,lowWidth:low.width,lowHeight:low.height,tierCounts:tier.counts,sourceHierarchySignature:plan.signature,diagnostics:{boundedRadius:true,maxRadiusReduced:settings.farRadius,maxRadiusPixels:settings.farRadius*SCALE,peakBound:settings.farStrength,nearContribution:settings.nearStrength,farContribution:settings.farStrength,depthAwareUpsample:true,temporalAccumulation:false,tierMapReused:tierReused,tierMapBuilds:this.tierBuildCount,tierMapReuses:this.tierReuseCount,tierMap:tier.diagnostics||null}};
       this.valid=true;this.lastRoomId=roomId;this.lastInvalidationReason='';this.updateCount++;this.dispatchCount+=2;return this.diagnostics();
     }
     bindings(){return{residual:this._record('full').handle.createView(),reduced:this._record('low').handle.createView(),format:'r32float',quality:this.snapshot.quality,generation:this.generation};}
@@ -379,9 +419,9 @@ fn full_depth(p:vec2<i32>)->f32{
       map.unmap();map.destroy?.();return out;
     }
     debugOverlay(){if(!this.valid)throw new Error(`Dark Bloom is invalid: ${this.lastInvalidationReason}`);return{schema:SCHEMA,quality:this.snapshot.quality,settings:{...this.snapshot.settings},tierCounts:[...this.snapshot.tierCounts],contract:'Reduced-resolution residual only: weaker than the DSO hard core, bounded by quality/distance, depth-aware on reconstruction, and never temporal in SM-305.',scopeBoundary:'SM-305 does not alter hard DSO ownership and has no temporal accumulation or final visibility composition.'};}
-    diagnostics(){return{schema:SCHEMA,valid:this.valid,generation:this.generation,roomId:this.lastRoomId,updateCount:this.updateCount,uploadCount:this.uploadCount,dispatchCount:this.dispatchCount,invalidationCount:this.invalidationCount,lastInvalidationReason:this.lastInvalidationReason,extent:{width:this.width,height:this.height},snapshot:this.snapshot?JSON.parse(JSON.stringify(this.snapshot)):null,resourceDiagnostics:this.registry?.diagnostics?.()||null,pipelineDiagnostics:this.pipelineCache?.diagnostics?.()||null};}
+    diagnostics(){return{schema:SCHEMA,valid:this.valid,generation:this.generation,roomId:this.lastRoomId,updateCount:this.updateCount,uploadCount:this.uploadCount,dispatchCount:this.dispatchCount,tierBuildCount:this.tierBuildCount,tierReuseCount:this.tierReuseCount,invalidationCount:this.invalidationCount,lastInvalidationReason:this.lastInvalidationReason,extent:{width:this.width,height:this.height},snapshot:this.snapshot?JSON.parse(JSON.stringify(this.snapshot)):null,resourceDiagnostics:this.registry?.diagnostics?.()||null,pipelineDiagnostics:this.pipelineCache?.diagnostics?.()||null};}
     close(){if(this.registry)this.registry.close();if(this.pipelineCache)this.pipelineCache.clear();this.registry=null;this.pipelineCache=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.snapshot=null;this.valid=false;this.closed=true;}
   }
 
-  return{SCHEMA,SNAPSHOT_SCHEMA,SCALE,QUALITY,DEFAULTS,BLOOM_WGSL,UPSAMPLE_WGSL,qualityName,qualitySettings,lowDimensions,tierAtPoint,buildTierMap,reducedCore,depthCompatible,referenceFromTierMap,buildReference,bloomMetrics,WebGPUDarkBloom};
+  return{SCHEMA,SNAPSHOT_SCHEMA,SCALE,QUALITY,DEFAULTS,BLOOM_WGSL,UPSAMPLE_WGSL,qualityName,qualitySettings,lowDimensions,tierAtPoint,tierForJobAtPoint,buildTierMap,reducedCore,depthCompatible,referenceFromTierMap,buildReference,bloomMetrics,WebGPUDarkBloom};
 });
