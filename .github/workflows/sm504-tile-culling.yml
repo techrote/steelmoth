@@ -1,0 +1,57 @@
+name: SM-504 WebGPU shared tile/light culling
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_tile_culling.js'
+      - 'engine/webgpu_occluders.js'
+      - 'engine/webgpu_lighting.js'
+      - 'engine/webgpu_dso.js'
+      - 'webgpu-tile-culling-smoke.html'
+      - 'tools/validate_webgpu_tile_culling.js'
+      - 'tools/validate_webgpu_tile_culling_contract.py'
+      - 'tools/validate_webgpu_tile_culling_browser.py'
+      - 'docs/WEBGPU_TILE_CULLING_SM504.md'
+      - '.github/workflows/sm504-tile-culling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tile-culling:
+    name: deterministic + real-browser shared tile culling
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/requirements-ci.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser validation dependency
+        run: python -m pip install --disable-pip-version-check -r tools/requirements-ci.txt
+      - name: Validate deterministic SM-504 culling contracts
+        run: |
+          node --check engine/webgpu_tile_culling.js
+          node tools/validate_webgpu_tile_culling.js
+          python tools/validate_webgpu_tile_culling_contract.py
+      - name: Verify Chrome/Chromium availability
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
+          elif command -v google-chrome-stable >/dev/null 2>&1; then google-chrome-stable --version; \
+          elif command -v chromium >/dev/null 2>&1; then chromium --version; \
+          else echo 'Chrome/Chromium required for SM-504 browser validation' >&2; exit 1; fi
+      - name: Exercise real WebGPU shared tile buffers
+        run: python tools/validate_webgpu_tile_culling_browser.py --report artifacts/sm504-tile-culling-browser.json
+      - name: Upload SM-504 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm504-tile-culling-${{ github.run_id }}
+          path: artifacts/sm504-tile-culling-browser.json
+          if-no-files-found: warn
