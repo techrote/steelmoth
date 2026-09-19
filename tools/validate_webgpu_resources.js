@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('assert');
 const Infra=require('../engine/webgpu_resources.js');
+require('./validate_webgpu_performance.js');
 
 function makeDevice(options={}){
   const calls={textures:[],buffers:[],writes:[],destroyed:[],push:[],pop:0,renderPipelines:0,computePipelines:0};
