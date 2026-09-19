@@ -24,9 +24,9 @@ require('temporalAccumulation:false' in src,'SM-306 temporal accumulation must r
 require('sourceFromPaths' in src and 'levelView(0)' in src,'canonical SM-203 depth-hierarchy input path missing')
 require('TIER_WGSL' in src and 'hierarchyBindings' in src and "gpu-sm304-active-tiles" in src,'SM-501 GPU tier-map path must consume SM-304 spatial buffers')
 require("tierSource==='gpu-sm304-active-tiles'" in smoke or "tierSource === 'gpu-sm304-active-tiles'" in smoke,'real-browser smoke must exercise the GPU tier-map production path')
-require("webgpu_dark_bloom.js?v=sm305-1" in web,'webapp does not stage SM-305 after the DSO hierarchy')
-require(web.index("webgpu_dso_hierarchy.js?v=sm304-1") < web.index("webgpu_dark_bloom.js?v=sm305-1") < web.index("backend_runtime.js?v=sm102-1"),'SM-305 staging order is not hierarchy -> bloom -> runtime')
-require("small-machine-web-v1.2.3-r" in sw and "webgpu_dark_bloom.js?v=sm305-1" in sw,'revisioned service-worker cache entry missing')
+require("webgpu_dark_bloom.js?v=sm305-2" in web,'webapp does not stage SM-305 after the DSO hierarchy')
+require(web.index("webgpu_dso_hierarchy.js?v=sm304-1") < web.index("webgpu_dark_bloom.js?v=sm305-2") < web.index("backend_runtime.js?v=sm102-1"),'SM-305 staging order is not hierarchy -> bloom -> runtime')
+require("small-machine-web-v1.2.3-r" in sw and "webgpu_dark_bloom.js?v=sm305-2" in sw,'revisioned service-worker cache entry missing')
 require('soft feathered residual occlusion' in fixture,'binsup qualitative Dark Bloom target missing')
 for term in ('half resolution','hard-core pixels','depth compatibility','No temporal history','binsup','Hosted CI'):
     require(term.lower() in doc.lower(),f'documentation missing contract term: {term}')
