@@ -277,6 +277,83 @@
     return {peak:max,mean:result.full?.length?sum/result.full.length:0,nonzeroPixels:nonzero,corePixels:result.diagnostics?.corePixels||0,maxRadiusPixels:result.diagnostics?.maxRadiusPixels||0};
   }
 
+  const TIER_WGSL = `
+struct Job { ids: vec4<u32>, counts: vec4<u32>, nearBounds: vec4<f32>, midBounds: vec4<f32>, farBounds: vec4<f32>, shadow: vec4<f32>, bands: vec4<f32>, };
+struct Member { ident: vec4<u32>, shape: vec4<f32>, nearBounds: vec4<f32>, midBounds: vec4<f32>, farBounds: vec4<f32>, };
+struct Tile { coord: vec2<u32>, span: vec2<u32>, };
+struct Params { full:vec4<u32>, grid:vec4<u32> };
+@group(0) @binding(0) var<storage,read> jobs:array<Job>;
+@group(0) @binding(1) var<storage,read> members:array<Member>;
+@group(0) @binding(2) var<storage,read> tiles:array<Tile>;
+@group(0) @binding(3) var<storage,read> tileRefs:array<u32>;
+@group(0) @binding(4) var<uniform> params:Params;
+@group(0) @binding(5) var<storage,read_write> tiers:array<u32>;
+fn inside_rect(p:vec2<f32>,b:vec4<f32>)->bool{return p.x>=b.x&&p.x<b.z&&p.y>=b.y&&p.y<b.w;}
+fn swept_contains(p:vec2<f32>,b:vec4<f32>,d:vec2<f32>,length:f32)->bool{
+  if(inside_rect(p,b)){return false;}
+  var lo=0.0001;var hi=length;
+  if(abs(d.x)<0.0000001){if(p.x<b.x||p.x>=b.z){return false;}}
+  else{let a=(p.x-b.z)/d.x;let c=(p.x-b.x)/d.x;lo=max(lo,min(a,c));hi=min(hi,max(a,c));if(hi<lo){return false;}}
+  if(abs(d.y)<0.0000001){if(p.y<b.y||p.y>=b.w){return false;}}
+  else{let a=(p.y-b.w)/d.y;let c=(p.y-b.y)/d.y;lo=max(lo,min(a,c));hi=min(hi,max(a,c));if(hi<lo){return false;}}
+  return hi>=lo&&hi>0.0001;
+}
+fn source_distance(p:vec2<f32>,b:vec4<f32>,d:vec2<f32>)->f32{let c=(b.xy+b.zw)*0.5;let h=(b.zw-b.xy)*0.5;return max(0.0,dot(p-c,d)-dot(h,abs(d)));}
+@compute @workgroup_size(8,8,1)
+fn cs_main(@builtin(workgroup_id) wid:vec3<u32>,@builtin(local_invocation_id) lid:vec3<u32>){
+  if(wid.x>=params.grid.y){return;}
+  let tile=tiles[wid.x];
+  let scale=max(1u,params.grid.w);
+  let lowTileSize=max(1u,(params.grid.x+scale-1u)/scale);
+  var oy=lid.y;
+  loop{
+    if(oy>=lowTileSize){break;}
+    var ox=lid.x;
+    loop{
+      if(ox>=lowTileSize){break;}
+      let lowXY=tile.coord*lowTileSize+vec2<u32>(ox,oy);
+      if(lowXY.x<params.full.z&&lowXY.y<params.full.w){
+        let pf=vec2<f32>(lowXY*scale)+vec2<f32>(f32(scale)*0.5);
+        let p=min(pf,vec2<f32>(f32(params.full.x)-0.5,f32(params.full.y)-0.5));
+        var best=0u;
+        var n=0u;
+        loop{
+          if(n>=tile.span.y){break;}
+          let ji=tileRefs[tile.span.x+n];
+          if(ji<params.grid.z){
+            let job=jobs[ji];
+            let dir=job.shadow.xy;
+            let dist=source_distance(p,job.nearBounds,dir);
+            var tier=0u;
+            var bounds=job.nearBounds;
+            if(dist>job.bands.y){tier=2u;bounds=job.farBounds;}
+            else if(dist>job.bands.x){tier=1u;bounds=job.midBounds;}
+            var hit=swept_contains(p,bounds,dir,job.shadow.z);
+            if(!hit){
+              var m=0u;
+              loop{
+                if(m>=job.counts.y||hit){break;}
+                let member=members[job.counts.x+m];
+                if(member.ident.y>=tier){
+                  var mb=member.nearBounds;
+                  if(tier==2u){mb=member.farBounds;}else if(tier==1u){mb=member.midBounds;}
+                  if(swept_contains(p,mb,dir,member.shape.x)){hit=true;}
+                }
+                m=m+1u;
+              }
+            }
+            if(hit){best=max(best,tier+1u);}
+          }
+          n=n+1u;
+        }
+        tiers[lowXY.y*params.full.z+lowXY.x]=best;
+      }
+      ox=ox+8u;
+    }
+    oy=oy+8u;
+  }
+}`;
+
   const BLOOM_WGSL = `
 struct Params { full:vec4<u32>, radii:vec4<f32>, strengths:vec4<f32>, misc:vec4<f32> };
 @group(0) @binding(0) var coreTex:texture_2d<f32>;
@@ -368,7 +445,7 @@ fn full_depth(p:vec2<i32>)->f32{
       if(!options.device) throw new Error('WebGPUDarkBloom requires GPUDevice');
       this.device=options.device;this.queue=options.queue||options.device.queue;this.options={...DEFAULTS,...options};
       this.width=Math.max(1,Math.round(options.width||640));this.height=Math.max(1,Math.round(options.height||360));
-      this.registry=null;this.pipelineCache=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.snapshot=null;this.valid=false;this.closed=false;
+      this.registry=null;this.pipelineCache=null;this.tierPipeline=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.snapshot=null;this.valid=false;this.closed=false;
       this.generation=0;this.updateCount=0;this.uploadCount=0;this.dispatchCount=0;this.invalidationCount=0;this.lastInvalidationReason='uninitialized';this.lastRoomId=null;this.tierCacheKey=null;this.tierCache=null;this.tierBuildCount=0;this.tierReuseCount=0;
       this.configure(this.width,this.height);
     }
@@ -387,18 +464,24 @@ fn full_depth(p:vec2<i32>)->f32{
       this.registry.defineTexture(this._name('full'),{format:'r32float',usage:textureFlags,size:'surface'});
       this.registry.defineBuffer(this._name('tiers'),{size:Math.max(4,low.width*low.height*4),usage:bufferFlags});
       this.registry.defineBuffer(this._name('params'),{size:64,usage:bufferUsage(['UNIFORM','COPY_DST'])});
-      this.bloomPipeline=null;this.upsamplePipeline=null;this.tierCacheKey=null;this.tierCache=null;this.generation++;this.invalidate('configure');return true;
+      this.registry.defineBuffer(this._name('tier-params'),{size:32,usage:bufferUsage(['UNIFORM','COPY_DST'])});
+      this.tierPipeline=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.tierCacheKey=null;this.tierCache=null;this.generation++;this.invalidate('configure');return true;
     }
     resize(width,height){return this.configure(width,height);}
     resetDevice(device,queue=device?.queue){
       if(!device) throw new Error('resetDevice requires GPUDevice');
       this.device=device;this.queue=queue||device.queue;if(this.registry)this.registry.close();this.registry=null;
-      if(this.pipelineCache)this.pipelineCache.resetDevice(device);this.bloomPipeline=null;this.upsamplePipeline=null;this.generation++;
+      if(this.pipelineCache)this.pipelineCache.resetDevice(device);this.tierPipeline=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.generation++;
       this.configure(this.width,this.height);this.invalidate('device-reset');return this.generation;
     }
     invalidate(reason='explicit'){this.valid=false;this.snapshot=null;this.invalidationCount++;this.lastInvalidationReason=String(reason||'explicit');return this.invalidationCount;}
     async _pipelines(){
-      if(this.bloomPipeline&&this.upsamplePipeline)return;
+      if(this.tierPipeline&&this.bloomPipeline&&this.upsamplePipeline)return;
+      this.tierPipeline=await this.pipelineCache.getCompute('dark-bloom-tier-v2',async(device,label)=>{
+        const module=device.createShaderModule({label:`${label}:wgsl`,code:TIER_WGSL});
+        if(typeof module.getCompilationInfo==='function'){const info=await module.getCompilationInfo(),errors=(info.messages||[]).filter(m=>m.type==='error');if(errors.length)throw new Error(`SM-501 Dark Bloom tier WGSL compilation failed: ${errors.map(e=>e.message).join('; ')}`);}
+        return device.createComputePipeline({label,layout:'auto',compute:{module,entryPoint:'cs_main'}});
+      });
       this.bloomPipeline=await this.pipelineCache.getCompute('dark-bloom-v1',async(device,label)=>{
         const module=device.createShaderModule({label:`${label}:wgsl`,code:BLOOM_WGSL});
         if(typeof module.getCompilationInfo==='function'){const info=await module.getCompilationInfo(),errors=(info.messages||[]).filter(m=>m.type==='error');if(errors.length)throw new Error(`SM-305 bloom WGSL compilation failed: ${errors.map(e=>e.message).join('; ')}`);}
@@ -414,7 +497,7 @@ fn full_depth(p:vec2<i32>)->f32{
     sourceFromPaths(dsoHierarchy,depthHierarchy){
       if(!dsoHierarchy?.snapshot||typeof dsoHierarchy.bindings!=='function')throw new Error('sourceFromPaths requires SM-304 WebGPUDSOHierarchy');
       if(typeof depthHierarchy?.levelView!=='function')throw new Error('sourceFromPaths requires SM-203 WebGPUDepthHierarchy');
-      return{hierarchySnapshot:dsoHierarchy.snapshot,hardMaskView:dsoHierarchy.bindings().mask,depthRangeView:depthHierarchy.levelView(0),width:dsoHierarchy.width,height:dsoHierarchy.height,roomId:dsoHierarchy.snapshot.roomId};
+      const hierarchyBindings=dsoHierarchy.bindings();return{hierarchySnapshot:dsoHierarchy.snapshot,hierarchyBindings,hardMaskView:hierarchyBindings.mask,depthRangeView:depthHierarchy.levelView(0),width:dsoHierarchy.width,height:dsoHierarchy.height,roomId:dsoHierarchy.snapshot.roomId};
     }
     async update(source={},options={}){
       const plan=unwrapHierarchy(source.hierarchySnapshot||source.snapshot),width=Math.max(1,Math.round(source.width||plan.grid.width)),height=Math.max(1,Math.round(source.height||plan.grid.height));
@@ -422,28 +505,39 @@ fn full_depth(p:vec2<i32>)->f32{
       if(width!==this.width||height!==this.height)this.configure(width,height);
       const roomId=String(source.roomId||plan.roomId||'unknown-room');if(this.lastRoomId!==null&&roomId!==this.lastRoomId)this.invalidate('room-change');
       const quality=qualityName(options.quality||this.options.quality),settings=qualitySettings(quality,options.qualityOverrides||{}),low=lowDimensions(width,height);
-      const tierKey=plan.signature?`${width}x${height}:${plan.signature}`:null;
-      let tier,tierReused=false;
-      if(tierKey&&this.tierCache&&this.tierCacheKey===tierKey){tier=this.tierCache;tierReused=true;this.tierReuseCount++;}
-      else{tier=buildTierMap(plan,this.tierCache?.data||null);this.tierCache=tier;this.tierCacheKey=tierKey;this.tierBuildCount++;}
-      const tierBytes=new Uint8Array(tier.data.buffer,tier.data.byteOffset,tier.data.byteLength),tiers=this.registry.require(this._name('tiers')).handle,params=this.registry.require(this._name('params')).handle;
-      if(!tierReused)this.queue.writeBuffer(tiers,0,tierBytes);
+      const hierarchyBindings=source.hierarchyBindings||null;
+      const gpuTier=!!(hierarchyBindings?.jobs&&hierarchyBindings?.members&&hierarchyBindings?.tiles&&hierarchyBindings?.tileRefs&&plan.activeTiles?.length);
+      const tiers=this.registry.require(this._name('tiers')).handle,params=this.registry.require(this._name('params')).handle;
+      let tier=null,tierReused=false;
+      if(!gpuTier){
+        const tierKey=plan.signature?`${width}x${height}:${plan.signature}`:null;
+        if(tierKey&&this.tierCache&&this.tierCacheKey===tierKey){tier=this.tierCache;tierReused=true;this.tierReuseCount++;}
+        else{tier=buildTierMap(plan,this.tierCache?.data||null);this.tierCache=tier;this.tierCacheKey=tierKey;this.tierBuildCount++;}
+        if(!tierReused){const tierBytes=new Uint8Array(tier.data.buffer,tier.data.byteOffset,tier.data.byteLength);this.queue.writeBuffer(tiers,0,tierBytes);}
+      }
       const paramBuffer=new ArrayBuffer(64),u=new Uint32Array(paramBuffer),f=new Float32Array(paramBuffer);
       u[0]=width;u[1]=height;u[2]=low.width;u[3]=low.height;
       f[4]=settings.nearRadius;f[5]=settings.midRadius;f[6]=settings.farRadius;f[7]=settings.farRadius;
       f[8]=settings.nearStrength;f[9]=settings.midStrength;f[10]=settings.farStrength;f[11]=settings.farStrength;
       f[12]=settings.depthThreshold;f[13]=SCALE;
-      this.queue.writeBuffer(params,0,new Uint8Array(paramBuffer));this.uploadCount+=tierReused?1:2;
+      this.queue.writeBuffer(params,0,new Uint8Array(paramBuffer));
+      let tierParams=null;
+      if(gpuTier){
+        const tp=new Uint32Array([width,height,low.width,low.height,plan.grid.tileSize,plan.activeTiles.length,plan.jobs.length,SCALE]);
+        tierParams=this.registry.require(this._name('tier-params')).handle;this.queue.writeBuffer(tierParams,0,tp);this.uploadCount+=2;
+      }else this.uploadCount+=tierReused?1:2;
       await this._pipelines();
       const lowView=this.registry.require(this._name('low')).handle.createView(),fullView=this.registry.require(this._name('full')).handle.createView();
+      const tierBind=gpuTier?this.device.createBindGroup({label:'SteelMothDarkBloom:tier-bind',layout:this.tierPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:hierarchyBindings.jobs}},{binding:1,resource:{buffer:hierarchyBindings.members}},{binding:2,resource:{buffer:hierarchyBindings.tiles}},{binding:3,resource:{buffer:hierarchyBindings.tileRefs}},{binding:4,resource:{buffer:tierParams}},{binding:5,resource:{buffer:tiers}}]}):null;
       const reducedBind=this.device.createBindGroup({label:'SteelMothDarkBloom:reduced-bind',layout:this.bloomPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:source.hardMaskView},{binding:1,resource:source.depthRangeView},{binding:2,resource:{buffer:tiers}},{binding:3,resource:{buffer:params}},{binding:4,resource:lowView}]});
       const upsampleBind=this.device.createBindGroup({label:'SteelMothDarkBloom:upsample-bind',layout:this.upsamplePipeline.getBindGroupLayout(0),entries:[{binding:0,resource:lowView},{binding:1,resource:source.hardMaskView},{binding:2,resource:source.depthRangeView},{binding:3,resource:{buffer:params}},{binding:4,resource:fullView}]});
       const encoder=this.device.createCommandEncoder({label:'SteelMothDarkBloom:encoder'});
+      if(gpuTier){const pass=encoder.beginComputePass({label:'SteelMothDarkBloom:tier-map'});pass.setPipeline(this.tierPipeline);pass.setBindGroup(0,tierBind);pass.dispatchWorkgroups(plan.activeTiles.length,1,1);pass.end();}
       {const pass=encoder.beginComputePass({label:'SteelMothDarkBloom:reduced'});pass.setPipeline(this.bloomPipeline);pass.setBindGroup(0,reducedBind);pass.dispatchWorkgroups(Math.ceil(low.width/8),Math.ceil(low.height/8));pass.end();}
       {const pass=encoder.beginComputePass({label:'SteelMothDarkBloom:upsample'});pass.setPipeline(this.upsamplePipeline);pass.setBindGroup(0,upsampleBind);pass.dispatchWorkgroups(Math.ceil(width/8),Math.ceil(height/8));pass.end();}
       this.queue.submit([encoder.finish()]);if(typeof this.queue.onSubmittedWorkDone==='function'&&options.wait!==false)await this.queue.onSubmittedWorkDone();
-      this.snapshot={schema:SNAPSHOT_SCHEMA,roomId,quality,settings,width,height,lowWidth:low.width,lowHeight:low.height,tierCounts:tier.counts,sourceHierarchySignature:plan.signature,diagnostics:{boundedRadius:true,maxRadiusReduced:settings.farRadius,maxRadiusPixels:settings.farRadius*SCALE,peakBound:settings.farStrength,nearContribution:settings.nearStrength,farContribution:settings.farStrength,depthAwareUpsample:true,temporalAccumulation:false,tierMapReused:tierReused,tierMapBuilds:this.tierBuildCount,tierMapReuses:this.tierReuseCount,tierMap:tier.diagnostics||null}};
-      this.valid=true;this.lastRoomId=roomId;this.lastInvalidationReason='';this.updateCount++;this.dispatchCount+=2;return this.diagnostics();
+      this.snapshot={schema:SNAPSHOT_SCHEMA,roomId,quality,settings,width,height,lowWidth:low.width,lowHeight:low.height,tierCounts:tier?.counts||null,sourceHierarchySignature:plan.signature,diagnostics:{boundedRadius:true,maxRadiusReduced:settings.farRadius,maxRadiusPixels:settings.farRadius*SCALE,peakBound:settings.farStrength,nearContribution:settings.nearStrength,farContribution:settings.farStrength,depthAwareUpsample:true,temporalAccumulation:false,tierSource:gpuTier?'gpu-sm304-active-tiles':(tierReused?'cpu-reference-cache':'cpu-reference-fallback'),tierMapReused:tierReused,tierMapBuilds:this.tierBuildCount,tierMapReuses:this.tierReuseCount,tierMap:gpuTier?{jobCount:plan.jobs.length,tileCount:plan.activeTiles.length,spatialIndex:'gpu-sm304-active-tiles'}:(tier?.diagnostics||null)}};
+      this.valid=true;this.lastRoomId=roomId;this.lastInvalidationReason='';this.updateCount++;this.dispatchCount+=gpuTier?3:2;return this.diagnostics();
     }
     bindings(){return{residual:this._record('full').handle.createView(),reduced:this._record('low').handle.createView(),format:'r32float',quality:this.snapshot.quality,generation:this.generation};}
     async readback(){
@@ -454,10 +548,10 @@ fn full_depth(p:vec2<i32>)->f32{
       for(let y=0;y<h;y++){const row=new DataView(raw.buffer,raw.byteOffset+y*bytesPerRow,rowBytes);for(let x=0;x<w;x++)out[y*w+x]=row.getFloat32(x*4,true);}
       map.unmap();map.destroy?.();return out;
     }
-    debugOverlay(){if(!this.valid)throw new Error(`Dark Bloom is invalid: ${this.lastInvalidationReason}`);return{schema:SCHEMA,quality:this.snapshot.quality,settings:{...this.snapshot.settings},tierCounts:[...this.snapshot.tierCounts],contract:'Reduced-resolution residual only: weaker than the DSO hard core, bounded by quality/distance, depth-aware on reconstruction, and never temporal in SM-305.',scopeBoundary:'SM-305 does not alter hard DSO ownership and has no temporal accumulation or final visibility composition.'};}
+    debugOverlay(){if(!this.valid)throw new Error(`Dark Bloom is invalid: ${this.lastInvalidationReason}`);return{schema:SCHEMA,quality:this.snapshot.quality,settings:{...this.snapshot.settings},tierCounts:this.snapshot.tierCounts?[...this.snapshot.tierCounts]:null,contract:'Reduced-resolution residual only: weaker than the DSO hard core, bounded by quality/distance, depth-aware on reconstruction, and never temporal in SM-305.',scopeBoundary:'SM-305 does not alter hard DSO ownership and has no temporal accumulation or final visibility composition.'};}
     diagnostics(){return{schema:SCHEMA,valid:this.valid,generation:this.generation,roomId:this.lastRoomId,updateCount:this.updateCount,uploadCount:this.uploadCount,dispatchCount:this.dispatchCount,tierBuildCount:this.tierBuildCount,tierReuseCount:this.tierReuseCount,invalidationCount:this.invalidationCount,lastInvalidationReason:this.lastInvalidationReason,extent:{width:this.width,height:this.height},snapshot:this.snapshot?JSON.parse(JSON.stringify(this.snapshot)):null,resourceDiagnostics:this.registry?.diagnostics?.()||null,pipelineDiagnostics:this.pipelineCache?.diagnostics?.()||null};}
-    close(){if(this.registry)this.registry.close();if(this.pipelineCache)this.pipelineCache.clear();this.registry=null;this.pipelineCache=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.snapshot=null;this.valid=false;this.closed=true;}
+    close(){if(this.registry)this.registry.close();if(this.pipelineCache)this.pipelineCache.clear();this.registry=null;this.pipelineCache=null;this.tierPipeline=null;this.bloomPipeline=null;this.upsamplePipeline=null;this.snapshot=null;this.valid=false;this.closed=true;}
   }
 
-  return{SCHEMA,SNAPSHOT_SCHEMA,SCALE,QUALITY,DEFAULTS,BLOOM_WGSL,UPSAMPLE_WGSL,qualityName,qualitySettings,lowDimensions,tierAtPoint,tierForJobAtPoint,buildTierMap,reducedCore,depthCompatible,referenceFromTierMap,buildReference,bloomMetrics,WebGPUDarkBloom};
+  return{SCHEMA,SNAPSHOT_SCHEMA,SCALE,QUALITY,DEFAULTS,TIER_WGSL,BLOOM_WGSL,UPSAMPLE_WGSL,qualityName,qualitySettings,lowDimensions,tierAtPoint,tierForJobAtPoint,buildTierMap,reducedCore,depthCompatible,referenceFromTierMap,buildReference,bloomMetrics,WebGPUDarkBloom};
 });
