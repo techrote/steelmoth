@@ -1,0 +1,751 @@
+{
+  "browsers": [
+    {
+      "browser": "chrome",
+      "durationSeconds": 1.978,
+      "environment": {
+        "browser": "chrome",
+        "browserName": "chrome",
+        "browserVersion": "153.0.8010.48",
+        "executionProfile": "hosted-ci",
+        "firefoxBlocklistIgnoredForHostedFunctionalCI": false,
+        "firefoxWebGPUAllowedInParentForHostedHeadlessCI": false,
+        "firefoxWebGPUPreferenceForcedOn": false,
+        "freshTemporaryProfile": true,
+        "headless": true,
+        "navigatorGpuPresentAtAboutBlank": false,
+        "navigatorGpuSecureContextEvidenceComesFromProbe": true,
+        "navigatorPlatform": "Win32",
+        "platformName": "windows",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "failure": null,
+      "ok": true,
+      "result": {
+        "adapter": {
+          "architecture": "turing",
+          "description": "",
+          "device": "",
+          "features": [
+            "bgra8unorm-storage",
+            "chromium-experimental-multi-draw-indirect",
+            "chromium-experimental-sampling-resource-table",
+            "chromium-experimental-timestamp-query-inside-passes",
+            "clip-distances",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-blendable",
+            "float32-filterable",
+            "indirect-first-instance",
+            "primitive-index",
+            "rg11b10ufloat-renderable",
+            "shader-f16",
+            "subgroup-size-control",
+            "subgroups",
+            "texture-component-swizzle",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "texture-compression-unaligned",
+            "texture-formats-tier1",
+            "texture-formats-tier2",
+            "timestamp-query"
+          ],
+          "isFallbackAdapter": false,
+          "requestedFeatures": [
+            "timestamp-query",
+            "rg11b10ufloat-renderable"
+          ],
+          "selection": "preferred",
+          "vendor": "nvidia"
+        },
+        "benchmark": {
+          "evidence": "synthetic render-target format/write microbenchmark; not full renderer timing",
+          "height": 540,
+          "samples": 16,
+          "warmup": 4,
+          "width": 960
+        },
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "checks": [
+          {
+            "id": "probe-module",
+            "ok": true
+          },
+          {
+            "id": "navigator-gpu",
+            "ok": true
+          },
+          {
+            "id": "adapter",
+            "ok": true,
+            "selection": "preferred"
+          },
+          {
+            "id": "oct8-roundtrip",
+            "maxAngleDeg": 0.7177159266231191,
+            "ok": true,
+            "pass": true,
+            "roughnessMaxAbsError": 0.0019607843137254832
+          },
+          {
+            "id": "material8-roundtrip",
+            "maxAbsError": 0.0019607843137254832,
+            "ok": true,
+            "pass": true
+          },
+          {
+            "id": "hdr11-roundtrip",
+            "maxAbsError": 0,
+            "maxRelativeError": 0,
+            "ok": true,
+            "pass": true
+          },
+          {
+            "formatBytesPerPixel": 36,
+            "id": "baseline-layout-supported",
+            "ok": true,
+            "summary": {
+              "count": 16,
+              "maxMs": 0.077824,
+              "meanMs": 0.07591199999999998,
+              "minMs": 0.073888,
+              "p50Ms": 0.075776,
+              "p95Ms": 0.077824
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          {
+            "baseline": true,
+            "combined": true,
+            "hdr11": true,
+            "id": "candidate-layouts-supported",
+            "material8": true,
+            "octMaterial8": true,
+            "ok": true
+          }
+        ],
+        "deterministic": {
+          "coreInvariant": {
+            "depth": "depth32float",
+            "g0": "rgba8unorm",
+            "objectId": "r32uint"
+          },
+          "evidenceBoundary": "Descriptor memory and CPU quantization analysis only. GPU timing and browser format support require the real-WebGPU browser probe; GTX 1650 SUPER adoption requires the physical target run.",
+          "extent": {
+            "height": 1080,
+            "pixels": 2073600,
+            "width": 1920
+          },
+          "layouts": [
+            {
+              "bytes1080p": 74649600,
+              "bytesPerPixel": 36,
+              "bytesSaved1080p": 0,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba16float",
+                "g2": "rgba16float",
+                "hdr": "rgba16float",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0,
+              "layout": "baseline",
+              "mib1080p": 71.19140625,
+              "mibSaved1080p": 0
+            },
+            {
+              "bytes1080p": 66355200,
+              "bytesPerPixel": 32,
+              "bytesSaved1080p": 8294400,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba16float",
+                "g2": "rgba8unorm",
+                "hdr": "rgba16float",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.1111111111111111,
+              "layout": "material8",
+              "mib1080p": 63.28125,
+              "mibSaved1080p": 7.91015625
+            },
+            {
+              "bytes1080p": 58060800,
+              "bytesPerPixel": 28,
+              "bytesSaved1080p": 16588800,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba8unorm",
+                "g2": "rgba8unorm",
+                "hdr": "rgba16float",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.2222222222222222,
+              "layout": "octMaterial8",
+              "mib1080p": 55.37109375,
+              "mibSaved1080p": 15.8203125
+            },
+            {
+              "bytes1080p": 66355200,
+              "bytesPerPixel": 32,
+              "bytesSaved1080p": 8294400,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba16float",
+                "g2": "rgba16float",
+                "hdr": "rg11b10ufloat",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.1111111111111111,
+              "layout": "hdr11",
+              "mib1080p": 63.28125,
+              "mibSaved1080p": 7.91015625
+            },
+            {
+              "bytes1080p": 49766400,
+              "bytesPerPixel": 24,
+              "bytesSaved1080p": 24883200,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba8unorm",
+                "g2": "rgba8unorm",
+                "hdr": "rg11b10ufloat",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.3333333333333333,
+              "layout": "combined",
+              "mib1080p": 47.4609375,
+              "mibSaved1080p": 23.73046875
+            }
+          ],
+          "material8": {
+            "maxAbsError": 0.0019607843137254832,
+            "meanAbsError": 0.0009801528617304864,
+            "pass": true,
+            "samples": 4097,
+            "threshold": 0.00196078531372549
+          },
+          "oct8": {
+            "maxAngleDeg": 0.863894234160343,
+            "meanAngleDeg": 0.3376703484875873,
+            "pass": true,
+            "samples": 4096,
+            "thresholdDeg": 1
+          },
+          "reference": "explicit XYZ/material float G-buffer + rgba16float HDR",
+          "schema": "steelmoth-sm800-precision-study/v1"
+        },
+        "layouts": {
+          "baseline": {
+            "formatBytesPerPixel": 36,
+            "summary": {
+              "count": 16,
+              "maxMs": 0.077824,
+              "meanMs": 0.07591199999999998,
+              "minMs": 0.073888,
+              "p50Ms": 0.075776,
+              "p95Ms": 0.077824
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "combined": {
+            "formatBytesPerPixel": 24,
+            "summary": {
+              "count": 16,
+              "maxMs": 0.039392,
+              "meanMs": 0.03799399999999999,
+              "minMs": 0.036864,
+              "p50Ms": 0.03776,
+              "p95Ms": 0.039392
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "hdr11": {
+            "formatBytesPerPixel": 32,
+            "summary": {
+              "count": 16,
+              "maxMs": 0.065536,
+              "meanMs": 0.063904,
+              "minMs": 0.062304,
+              "p50Ms": 0.063488,
+              "p95Ms": 0.065536
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "material8": {
+            "formatBytesPerPixel": 32,
+            "summary": {
+              "count": 16,
+              "maxMs": 0.06656,
+              "meanMs": 0.06440599999999999,
+              "minMs": 0.061792,
+              "p50Ms": 0.064352,
+              "p95Ms": 0.06656
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "octMaterial8": {
+            "formatBytesPerPixel": 28,
+            "summary": {
+              "count": 16,
+              "maxMs": 0.055296,
+              "meanMs": 0.053248000000000004,
+              "minMs": 0.050944,
+              "p50Ms": 0.05312,
+              "p95Ms": 0.055296
+            },
+            "supported": true,
+            "timestampSamples": 16
+          }
+        },
+        "numeric": {
+          "hdr11": {
+            "maxAbsError": 0,
+            "maxRelativeError": 0,
+            "pass": true
+          },
+          "material8": {
+            "maxAbsError": 0.0019607843137254832,
+            "pass": true
+          },
+          "oct8": {
+            "maxAngleDeg": 0.7177159266231191,
+            "pass": true,
+            "roughnessMaxAbsError": 0.0019607843137254832
+          }
+        },
+        "ok": true,
+        "schema": "steelmoth-sm800-browser/v1",
+        "timestampQuery": true
+      },
+      "screenshot": "benchmarks\\webgpu-gtx1650s\\sm800-2026-09-19\\correctness\\screenshots\\chrome-sm800.png"
+    },
+    {
+      "browser": "firefox",
+      "durationSeconds": 7.536,
+      "environment": {
+        "browser": "firefox",
+        "browserName": "firefox",
+        "browserVersion": "156.0",
+        "executionProfile": "hosted-ci",
+        "firefoxBlocklistIgnoredForHostedFunctionalCI": true,
+        "firefoxWebGPUAllowedInParentForHostedHeadlessCI": true,
+        "firefoxWebGPUPreferenceForcedOn": true,
+        "freshTemporaryProfile": true,
+        "headless": true,
+        "navigatorGpuPresentAtAboutBlank": false,
+        "navigatorGpuSecureContextEvidenceComesFromProbe": true,
+        "navigatorPlatform": "Win32",
+        "platformName": "windows",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:156.0) Gecko/20100101 Firefox/156.0"
+      },
+      "failure": null,
+      "ok": true,
+      "result": {
+        "adapter": {
+          "architecture": "",
+          "description": "",
+          "device": "",
+          "features": [
+            "bgra8unorm-storage",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-filterable",
+            "indirect-first-instance",
+            "rg11b10ufloat-renderable",
+            "shader-f16",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "timestamp-query"
+          ],
+          "isFallbackAdapter": false,
+          "requestedFeatures": [
+            "timestamp-query",
+            "rg11b10ufloat-renderable"
+          ],
+          "selection": "fallback",
+          "vendor": ""
+        },
+        "benchmark": {
+          "evidence": "synthetic render-target format/write microbenchmark; not full renderer timing",
+          "height": 540,
+          "samples": 16,
+          "warmup": 4,
+          "width": 960
+        },
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:156.0) Gecko/20100101 Firefox/156.0",
+        "checks": [
+          {
+            "id": "probe-module",
+            "ok": true
+          },
+          {
+            "id": "navigator-gpu",
+            "ok": true
+          },
+          {
+            "id": "adapter",
+            "ok": true,
+            "selection": "fallback"
+          },
+          {
+            "id": "oct8-roundtrip",
+            "maxAngleDeg": 0.7177159266231191,
+            "ok": true,
+            "pass": true,
+            "roughnessMaxAbsError": 0.0019607843137254832
+          },
+          {
+            "id": "material8-roundtrip",
+            "maxAbsError": 0.0019607843137254832,
+            "ok": true,
+            "pass": true
+          },
+          {
+            "id": "hdr11-roundtrip",
+            "maxAbsError": 0,
+            "maxRelativeError": 0,
+            "ok": true,
+            "pass": true
+          },
+          {
+            "formatBytesPerPixel": 36,
+            "id": "baseline-layout-supported",
+            "ok": true,
+            "summary": {
+              "count": 16,
+              "maxMs": 4.9152,
+              "meanMs": 1.95815625,
+              "minMs": 1.2338,
+              "p50Ms": 1.7161,
+              "p95Ms": 4.9152
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          {
+            "baseline": true,
+            "combined": true,
+            "hdr11": true,
+            "id": "candidate-layouts-supported",
+            "material8": true,
+            "octMaterial8": true,
+            "ok": true
+          }
+        ],
+        "deterministic": {
+          "coreInvariant": {
+            "depth": "depth32float",
+            "g0": "rgba8unorm",
+            "objectId": "r32uint"
+          },
+          "evidenceBoundary": "Descriptor memory and CPU quantization analysis only. GPU timing and browser format support require the real-WebGPU browser probe; GTX 1650 SUPER adoption requires the physical target run.",
+          "extent": {
+            "height": 1080,
+            "pixels": 2073600,
+            "width": 1920
+          },
+          "layouts": [
+            {
+              "bytes1080p": 74649600,
+              "bytesPerPixel": 36,
+              "bytesSaved1080p": 0,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba16float",
+                "g2": "rgba16float",
+                "hdr": "rgba16float",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0,
+              "layout": "baseline",
+              "mib1080p": 71.19140625,
+              "mibSaved1080p": 0
+            },
+            {
+              "bytes1080p": 66355200,
+              "bytesPerPixel": 32,
+              "bytesSaved1080p": 8294400,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba16float",
+                "g2": "rgba8unorm",
+                "hdr": "rgba16float",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.1111111111111111,
+              "layout": "material8",
+              "mib1080p": 63.28125,
+              "mibSaved1080p": 7.91015625
+            },
+            {
+              "bytes1080p": 58060800,
+              "bytesPerPixel": 28,
+              "bytesSaved1080p": 16588800,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba8unorm",
+                "g2": "rgba8unorm",
+                "hdr": "rgba16float",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.2222222222222222,
+              "layout": "octMaterial8",
+              "mib1080p": 55.37109375,
+              "mibSaved1080p": 15.8203125
+            },
+            {
+              "bytes1080p": 66355200,
+              "bytesPerPixel": 32,
+              "bytesSaved1080p": 8294400,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba16float",
+                "g2": "rgba16float",
+                "hdr": "rg11b10ufloat",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.1111111111111111,
+              "layout": "hdr11",
+              "mib1080p": 63.28125,
+              "mibSaved1080p": 7.91015625
+            },
+            {
+              "bytes1080p": 49766400,
+              "bytesPerPixel": 24,
+              "bytesSaved1080p": 24883200,
+              "formats": {
+                "depth": "depth32float",
+                "g0": "rgba8unorm",
+                "g1": "rgba8unorm",
+                "g2": "rgba8unorm",
+                "hdr": "rg11b10ufloat",
+                "objectId": "r32uint"
+              },
+              "fractionSaved": 0.3333333333333333,
+              "layout": "combined",
+              "mib1080p": 47.4609375,
+              "mibSaved1080p": 23.73046875
+            }
+          ],
+          "material8": {
+            "maxAbsError": 0.0019607843137254832,
+            "meanAbsError": 0.0009801528617304864,
+            "pass": true,
+            "samples": 4097,
+            "threshold": 0.00196078531372549
+          },
+          "oct8": {
+            "maxAngleDeg": 0.863894234160343,
+            "meanAngleDeg": 0.3376703484875583,
+            "pass": true,
+            "samples": 4096,
+            "thresholdDeg": 1
+          },
+          "reference": "explicit XYZ/material float G-buffer + rgba16float HDR",
+          "schema": "steelmoth-sm800-precision-study/v1"
+        },
+        "layouts": {
+          "baseline": {
+            "formatBytesPerPixel": 36,
+            "summary": {
+              "count": 16,
+              "maxMs": 4.9152,
+              "meanMs": 1.95815625,
+              "minMs": 1.2338,
+              "p50Ms": 1.7161,
+              "p95Ms": 4.9152
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "combined": {
+            "formatBytesPerPixel": 24,
+            "summary": {
+              "count": 16,
+              "maxMs": 1.3665,
+              "meanMs": 0.9630625,
+              "minMs": 0.8136,
+              "p50Ms": 0.8968,
+              "p95Ms": 1.3665
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "hdr11": {
+            "formatBytesPerPixel": 32,
+            "summary": {
+              "count": 16,
+              "maxMs": 2.565,
+              "meanMs": 1.43624375,
+              "minMs": 1.0233,
+              "p50Ms": 1.3092,
+              "p95Ms": 2.565
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "material8": {
+            "formatBytesPerPixel": 32,
+            "summary": {
+              "count": 16,
+              "maxMs": 2.3845,
+              "meanMs": 1.3456312499999998,
+              "minMs": 1.0431,
+              "p50Ms": 1.2504,
+              "p95Ms": 2.3845
+            },
+            "supported": true,
+            "timestampSamples": 16
+          },
+          "octMaterial8": {
+            "formatBytesPerPixel": 28,
+            "summary": {
+              "count": 16,
+              "maxMs": 1.9511,
+              "meanMs": 1.2545375,
+              "minMs": 1.0932,
+              "p50Ms": 1.1985,
+              "p95Ms": 1.9511
+            },
+            "supported": true,
+            "timestampSamples": 16
+          }
+        },
+        "numeric": {
+          "hdr11": {
+            "maxAbsError": 0,
+            "maxRelativeError": 0,
+            "pass": true
+          },
+          "material8": {
+            "maxAbsError": 0.0019607843137254832,
+            "pass": true
+          },
+          "oct8": {
+            "maxAngleDeg": 0.7177159266231191,
+            "pass": true,
+            "roughnessMaxAbsError": 0.0019607843137254832
+          }
+        },
+        "ok": true,
+        "schema": "steelmoth-sm800-browser/v1",
+        "timestampQuery": true
+      },
+      "screenshot": "benchmarks\\webgpu-gtx1650s\\sm800-2026-09-19\\correctness\\screenshots\\firefox-sm800.png"
+    }
+  ],
+  "candidateSummary": {
+    "combined": {
+      "hostedDecision": "target-hardware-required",
+      "rows": [
+        {
+          "baselineP50Ms": 0.075776,
+          "browser": "chrome",
+          "candidateP50Ms": 0.03776,
+          "p50Ratio": 0.49831081081081086,
+          "supported": true,
+          "timestampQuery": true
+        },
+        {
+          "baselineP50Ms": 1.7161,
+          "browser": "firefox",
+          "candidateP50Ms": 0.8968,
+          "p50Ratio": 0.5225802692150807,
+          "supported": true,
+          "timestampQuery": true
+        }
+      ]
+    },
+    "hdr11": {
+      "hostedDecision": "target-hardware-required",
+      "rows": [
+        {
+          "baselineP50Ms": 0.075776,
+          "browser": "chrome",
+          "candidateP50Ms": 0.063488,
+          "p50Ratio": 0.8378378378378379,
+          "supported": true,
+          "timestampQuery": true
+        },
+        {
+          "baselineP50Ms": 1.7161,
+          "browser": "firefox",
+          "candidateP50Ms": 1.3092,
+          "p50Ratio": 0.7628926053260299,
+          "supported": true,
+          "timestampQuery": true
+        }
+      ]
+    },
+    "material8": {
+      "hostedDecision": "target-hardware-required",
+      "rows": [
+        {
+          "baselineP50Ms": 0.075776,
+          "browser": "chrome",
+          "candidateP50Ms": 0.064352,
+          "p50Ratio": 0.849239864864865,
+          "supported": true,
+          "timestampQuery": true
+        },
+        {
+          "baselineP50Ms": 1.7161,
+          "browser": "firefox",
+          "candidateP50Ms": 1.2504,
+          "p50Ratio": 0.7286288677815979,
+          "supported": true,
+          "timestampQuery": true
+        }
+      ]
+    },
+    "octMaterial8": {
+      "hostedDecision": "target-hardware-required",
+      "rows": [
+        {
+          "baselineP50Ms": 0.075776,
+          "browser": "chrome",
+          "candidateP50Ms": 0.05312,
+          "p50Ratio": 0.7010135135135136,
+          "supported": true,
+          "timestampQuery": true
+        },
+        {
+          "baselineP50Ms": 1.7161,
+          "browser": "firefox",
+          "candidateP50Ms": 1.1985,
+          "p50Ratio": 0.6983858749490123,
+          "supported": true,
+          "timestampQuery": true
+        }
+      ]
+    }
+  },
+  "evidenceBoundary": "Hosted Chrome/Firefox real-WebGPU numeric/readback and format-write microbenchmark evidence only. It is not GTX 1650 SUPER timing and cannot authorize production packing adoption or close SM-800 target-hardware verification.",
+  "host": {
+    "python": "3.14.7",
+    "release": "11",
+    "system": "Windows"
+  },
+  "ok": true,
+  "schema": "steelmoth-sm800-browser-report/v1",
+  "targetHardwareAcceptance": false
+}
