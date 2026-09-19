@@ -1,0 +1,23 @@
+{
+  "schema": "steelmoth-physical-gpu-campaign/v1",
+  "date": "2026-09-19",
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "gpu": "NVIDIA GeForce GTX 1650 SUPER",
+    "driver": "616.92",
+    "chrome": "153.0.8010.48",
+    "firefox": "156.0",
+    "resolution": [1920, 1080],
+    "dpr": 1
+  },
+  "adapterRequirements": {
+    "fallback": false,
+    "timestampQuery": true
+  },
+  "issueOrder": ["SM-501", "SM-601", "SM-800"],
+  "artifacts": {
+    "SM-501": "sm501-2026-09-19/",
+    "SM-601": "sm601-2026-09-19/",
+    "SM-800": "sm800-2026-09-19/"
+  }
+}
