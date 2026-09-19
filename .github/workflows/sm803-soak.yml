@@ -1,0 +1,59 @@
+name: SM-803 WebGPU soak and resource stability
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_soak.js'
+      - 'engine/webgpu_resources.js'
+      - 'engine/webgpu_transition_state.js'
+      - 'engine/webgpu_editor_state.js'
+      - 'engine/backend_runtime.js'
+      - 'tools/validate_webgpu_soak.js'
+      - 'tools/validate_webgpu_soak_contract.py'
+      - 'tools/validate_webgpu_soak_browser.py'
+      - 'webgpu-soak-smoke.html'
+      - 'docs/WEBGPU_SOAK_SM803.md'
+      - '.github/workflows/sm803-soak.yml'
+  workflow_dispatch:
+
+jobs:
+  soak:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser harness
+        run: |
+          python -m pip install -r tools/requirements-ci.txt
+          python -m pip install "selenium>=4.25,<5"
+      - name: Deterministic soak and source contract
+        run: |
+          node --check engine/webgpu_soak.js
+          node --check tools/validate_webgpu_soak.js
+          node tools/validate_webgpu_soak.js
+          python -m py_compile tools/validate_webgpu_soak_browser.py tools/validate_webgpu_soak_contract.py
+          python tools/validate_webgpu_soak_contract.py
+      - name: Record installed browser versions
+        shell: pwsh
+        run: |
+          $chrome = @("$env:ProgramFiles\Google\Chrome\Application\chrome.exe", "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          $firefox = @("$env:ProgramFiles\Mozilla Firefox\firefox.exe", "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if ($chrome) { & $chrome --version } else { Write-Error "Chrome not installed" }
+          if ($firefox) { & $firefox --version } else { Write-Error "Firefox not installed" }
+      - name: Run Chrome long soak and Firefox cross-check
+        env:
+          MOZ_WEBRENDER: '1'
+        run: python tools/validate_webgpu_soak_browser.py --chrome-cycles 1500 --firefox-cycles 400 --timeout 240 --report artifacts/sm803/soak-report.json
+      - name: Upload SM-803 soak evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm803-webgpu-soak-evidence
+          path: artifacts/sm803/
+          if-no-files-found: warn
