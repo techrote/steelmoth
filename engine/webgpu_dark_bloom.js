@@ -102,28 +102,62 @@
     map.fill(0);
     const counts = [0,0,0,0];
     const jobs = plan.jobs || [];
-    let candidatePixels = 0;
     const p = [0,0];
+    let candidatePixels = 0, jobTests = 0, tileCount = 0;
+    const tileSize = Math.max(1, Math.round(finite(plan.grid.tileSize, 0)));
+    const useTiles = Array.isArray(plan.activeTiles) && plan.activeTiles.length > 0 && plan.tileRefs && tileSize % SCALE === 0;
 
-    // Each job rasterizes only its own swept extent. The previous implementation
-    // called tierAtPoint() here, which rescanned every job for every candidate
-    // pixel and turned this stage into O(candidatePixels * jobCount) work.
-    for(const job of jobs){
-      const bounds = job.sweptBounds || DSO.sweptBounds(job.farBounds, job.shadowDir, job.ownerThrow);
-      if(bounds[2] <= 0 || bounds[3] <= 0 || bounds[0] >= plan.grid.width || bounds[1] >= plan.grid.height) continue;
-      const x0 = clamp(Math.floor(bounds[0] / SCALE), 0, low.width - 1);
-      const y0 = clamp(Math.floor(bounds[1] / SCALE), 0, low.height - 1);
-      const x1 = clamp(Math.floor((bounds[2] - 1e-6) / SCALE), 0, low.width - 1);
-      const y1 = clamp(Math.floor((bounds[3] - 1e-6) / SCALE), 0, low.height - 1);
-      for(let y=y0; y<=y1; y++) for(let x=x0; x<=x1; x++){
-        p[0] = Math.min(plan.grid.width - .5, x*SCALE + SCALE*.5);
-        p[1] = Math.min(plan.grid.height - .5, y*SCALE + SCALE*.5);
-        const index = y*low.width + x;
-        const tier = tierForJobAtPoint(plan, job, p);
-        candidatePixels++;
-        if(tier > map[index]) map[index] = tier;
+    if(useTiles){
+      // SM-304 already bins the exact DSO jobs that may affect each active tile.
+      // Reuse that spatial index rather than expanding every job over its swept
+      // rectangle again on the CPU. This also keeps residual-tier ownership
+      // aligned with the same bounded tile refs used to produce the hard mask.
+      for(const tile of plan.activeTiles){
+        const fx0 = tile.x * tileSize, fy0 = tile.y * tileSize;
+        const fx1 = Math.min(plan.grid.width, fx0 + tileSize), fy1 = Math.min(plan.grid.height, fy0 + tileSize);
+        const x0 = clamp(Math.floor(fx0 / SCALE), 0, low.width - 1);
+        const y0 = clamp(Math.floor(fy0 / SCALE), 0, low.height - 1);
+        const x1 = clamp(Math.ceil(fx1 / SCALE) - 1, 0, low.width - 1);
+        const y1 = clamp(Math.ceil(fy1 / SCALE) - 1, 0, low.height - 1);
+        tileCount++;
+        for(let y=y0; y<=y1; y++) for(let x=x0; x<=x1; x++){
+          p[0] = Math.min(plan.grid.width - .5, x*SCALE + SCALE*.5);
+          p[1] = Math.min(plan.grid.height - .5, y*SCALE + SCALE*.5);
+          const index = y*low.width + x;
+          let best = map[index];
+          candidatePixels++;
+          for(let n=0; n<tile.count; n++){
+            const job = jobs[plan.tileRefs[tile.offset + n]];
+            if(!job) continue;
+            const tier = tierForJobAtPoint(plan, job, p);
+            jobTests++;
+            if(tier > best) best = tier;
+          }
+          map[index] = best;
+        }
+      }
+    }else{
+      // Compatibility fallback for synthetic/legacy snapshots that predate
+      // SM-304 active-tile refs. It is still linear in each job's own extent
+      // and never re-enters the all-jobs tierAtPoint() search.
+      for(const job of jobs){
+        const bounds = job.sweptBounds || DSO.sweptBounds(job.farBounds, job.shadowDir, job.ownerThrow);
+        if(bounds[2] <= 0 || bounds[3] <= 0 || bounds[0] >= plan.grid.width || bounds[1] >= plan.grid.height) continue;
+        const x0 = clamp(Math.floor(bounds[0] / SCALE), 0, low.width - 1);
+        const y0 = clamp(Math.floor(bounds[1] / SCALE), 0, low.height - 1);
+        const x1 = clamp(Math.floor((bounds[2] - 1e-6) / SCALE), 0, low.width - 1);
+        const y1 = clamp(Math.floor((bounds[3] - 1e-6) / SCALE), 0, low.height - 1);
+        for(let y=y0; y<=y1; y++) for(let x=x0; x<=x1; x++){
+          p[0] = Math.min(plan.grid.width - .5, x*SCALE + SCALE*.5);
+          p[1] = Math.min(plan.grid.height - .5, y*SCALE + SCALE*.5);
+          const index = y*low.width + x;
+          const tier = tierForJobAtPoint(plan, job, p);
+          candidatePixels++;jobTests++;
+          if(tier > map[index]) map[index] = tier;
+        }
       }
     }
+
     for(const v of map) counts[v]++;
     return {
       width:low.width,
@@ -132,9 +166,11 @@
       counts,
       diagnostics:{
         jobCount:jobs.length,
+        tileCount,
+        spatialIndex:useTiles?'sm304-active-tiles':'job-bounds-fallback',
         candidatePixels,
-        jobTests:candidatePixels,
-        eliminatedNestedJobRescans:candidatePixels * Math.max(0, jobs.length - 1)
+        jobTests,
+        eliminatedAllJobsRescan:true
       }
     };
   }
