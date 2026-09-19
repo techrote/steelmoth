@@ -6,10 +6,11 @@
   if(root)root.SteelMothWebGPUQuality=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   const SCHEMA='steelmoth-webgpu-quality/v1';
+  const STORAGE_KEY='steelmoth-webgpu-quality-preset-v1';
   const NAMES=Object.freeze(['Low','Medium','High','Ultra']);
   const clone=value=>JSON.parse(JSON.stringify(value));
 
-  // Core representation is deliberately invariant across quality levels.  The
+  // Core representation is deliberately invariant across quality levels. The
   // only scalable work in SM-501 is secondary visibility/effect work.
   const CORE=Object.freeze({
     renderScale:1,
@@ -87,5 +88,39 @@
     return {schema:SCHEMA,preset:p.name,core:p.core,localShadows:p.localShadows,dso:p.dso,darkBloom:p.darkBloom,reserved:p.reserved,policy:'Quality scaling is restricted to bounded secondary work; albedo, object-ID and primary ownership depth stay native/full resolution. Reserved effects remain disabled until their owning issues implement and validate them.'};
   }
 
-  return {SCHEMA,NAMES,CORE,PRESETS,normalizeName,resolvePreset,localShadowSettings,dsoOptions,dsoHierarchyOptions,darkBloomOptions,workloadMetadata,diagnostics};
+  function createRuntime(options={}){
+    const target=options.root||null,storage=options.storage||target?.localStorage||null,locationRef=options.location||target?.location||null;
+    let source='default',preset='Medium';
+    try{
+      const q=new URLSearchParams(locationRef?.search||'').get('webgpuQuality');
+      if(q){preset=normalizeName(q);source='query'}
+      else{const stored=storage?.getItem?.(STORAGE_KEY);if(stored){preset=normalizeName(stored);source='storage'}}
+    }catch(_error){}
+    const runtime={
+      schema:`${SCHEMA}/runtime`,source,
+      get preset(){return preset},
+      setPreset(value,{persist=true,source:nextSource='runtime'}={}){preset=normalizeName(value);runtime.source=nextSource;if(persist)try{storage?.setItem?.(STORAGE_KEY,preset)}catch(_error){}runtime.updateControls();return runtime.diagnostics()},
+      settings(){return resolvePreset(preset)},
+      workloadMetadata(){return workloadMetadata(preset)},
+      diagnostics(){return {...diagnostics(preset),selectionSource:runtime.source}},
+      installControls(){
+        const doc=target?.document;if(!doc)return false;const grid=doc.querySelector?.('#graphicsMenu .settingsGrid');if(!grid)return false;
+        let section=doc.querySelector?.('#webgpuQualitySettings');
+        if(!section){section=doc.createElement('section');section.id='webgpuQualitySettings';section.innerHTML='<h3>WEBGPU QUALITY</h3><label>Static preset <select id="webgpuQualitySelect"></select></label><div class="settingsNote" id="webgpuQualityStatus"></div>';const backend=doc.querySelector?.('#backendSettings');if(backend?.parentNode===grid&&backend.nextSibling)grid.insertBefore(section,backend.nextSibling);else grid.insertBefore(section,grid.firstChild);const select=section.querySelector('#webgpuQualitySelect');for(const name of NAMES)select.add(new Option(name,name));select.addEventListener('change',()=>runtime.setPreset(select.value,{persist:true,source:'ui'}));}
+        runtime.updateControls();return true;
+      },
+      updateControls(){const doc=target?.document;if(!doc)return;const select=doc.querySelector?.('#webgpuQualitySelect'),status=doc.querySelector?.('#webgpuQualityStatus');if(select&&select.value!==preset)select.value=preset;if(status){const p=resolvePreset(preset);status.textContent=`${preset}: self ${p.localShadows.selfShadowSamples} taps · contact ${p.localShadows.contactShadowSamples} · DSO ${p.dso.hierarchyQuality} · Dark Bloom ${p.darkBloom.quality}. Core albedo/object/depth stay native.`}},
+    };
+    return runtime;
+  }
+
+  function installRuntimeIntegration(target=typeof globalThis!=='undefined'?globalThis:null,options={}){
+    if(!target)return null;if(target.steelMothWebGPUQualityRuntime?.schema===`${SCHEMA}/runtime`)return target.steelMothWebGPUQualityRuntime;
+    const runtime=createRuntime({...options,root:target});target.steelMothWebGPUQualityRuntime=runtime;
+    const attach=()=>{runtime.installControls();if(target.game?.graphics)target.game.graphics.webgpuQualityPreset=runtime.preset};attach();
+    if(typeof target.setInterval==='function'){let n=0;const timer=target.setInterval(()=>{attach();if(target.document?.querySelector?.('#webgpuQualitySettings')||++n>600)target.clearInterval?.(timer)},16)}
+    return runtime;
+  }
+
+  return {SCHEMA,STORAGE_KEY,NAMES,CORE,PRESETS,normalizeName,resolvePreset,localShadowSettings,dsoOptions,dsoHierarchyOptions,darkBloomOptions,workloadMetadata,diagnostics,createRuntime,installRuntimeIntegration};
 });
