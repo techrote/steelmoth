@@ -14,6 +14,17 @@ SKIP_NAMES={'__pycache__','.pytest_cache','.mypy_cache','.DS_Store'}
 # including WebGPU representation passes, are verified by active gates.
 BASELINE_RUNTIME_PREFIXES=('assets/generated/','game_data/','icons/')
 BASELINE_RUNTIME_ROOT={'.nojekyll','0Play-Webapp-v1.2.3.bat','_headers'}
+# SM-503 deliberately regenerates the canonical Material-v2 representation and its
+# metadata from the unchanged imported albedo. These paths are no longer frozen
+# imported bytes; their determinism/content hashes are owned by the SM-503 generator,
+# report and dedicated real-WebGPU gate. Other generated assets remain provenance-
+# checked against SHA256SUMS.txt.
+BASELINE_EVOLVING_PATHS={
+    'assets/generated/atlas.json',
+    'assets/generated/material_v2_report.json',
+    'assets/generated/sprite_material_height_material.png',
+    'assets/generated/sprite_material_normal_roughness.png',
+}
 
 def sha256(path: Path) -> str:
     h=hashlib.sha256()
@@ -39,6 +50,7 @@ def safe_member(name: str) -> None:
 
 def baseline_runtime_path(name: str) -> bool:
     name=name.replace('\\','/').removeprefix('./')
+    if name in BASELINE_EVOLVING_PATHS: return False
     return name in BASELINE_RUNTIME_ROOT or any(name.startswith(prefix) for prefix in BASELINE_RUNTIME_PREFIXES)
 
 def run(root: Path, cmd: list[str]) -> dict:
@@ -95,6 +107,7 @@ def main() -> int:
             report['baseline_sha256_entries_total']=sum_total
             report['baseline_content_entries_checked']=sum_checked
             report['baseline_evolving_entries_skipped']=sum_skipped
+            report['baseline_sm503_evolving_paths']=sorted(BASELINE_EVOLVING_PATHS)
             report['baseline_crlf_entries_normalized']=sum_normalized
             report['baseline_sha256_errors']=sum_errors
             checks=[
