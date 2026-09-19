@@ -1,0 +1,44 @@
+name: SM-501 WebGPU quality presets
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_quality.js'
+      - 'engine/webgpu_local_shadows.js'
+      - 'engine/webgpu_dso_hierarchy.js'
+      - 'engine/webgpu_dark_bloom.js'
+      - 'tools/validate_webgpu_quality.js'
+      - 'tools/validate_webgpu_quality_contract.py'
+      - 'tools/validate_sm501_target_report.py'
+      - 'docs/WEBGPU_QUALITY_TIERS_SM501.md'
+      - '.github/workflows/sm501-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-contract:
+    name: bounded preset and benchmark-contract validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate SM-501 executable quality policy
+        run: |
+          node --check engine/webgpu_quality.js
+          node tools/validate_webgpu_quality.js
+      - name: Validate SM-501 source/document contract
+        run: |
+          python -m py_compile tools/validate_webgpu_quality_contract.py tools/validate_sm501_target_report.py
+          python tools/validate_webgpu_quality_contract.py
+      - name: State target-hardware evidence boundary
+        run: |
+          echo 'Hosted CI validates the static quality contract only.'
+          echo 'Issue #31 must remain open until tools/validate_sm501_target_report.py passes on a committed physical GTX 1650 SUPER Medium dataset.'
