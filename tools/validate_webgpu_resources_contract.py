@@ -11,7 +11,7 @@ def require(cond:bool,msg:str,errors:list[str]):
 def main()->int:
     errors=[]
     resources=text('engine/webgpu_resources.js');runtime=text('engine/backend_runtime.js');webapp=text('webapp.js');sw=text('sw.js');checks=text('tools/run_checks.py');docs=text('docs/WEBGPU_RESOURCE_INFRASTRUCTURE.md') if (ROOT/'docs/WEBGPU_RESOURCE_INFRASTRUCTURE.md').exists() else ''
-    performance=text('engine/webgpu_performance.js');performance_test=text('tools/validate_webgpu_performance.js');performance_docs=text('docs/WEBGPU_PERFORMANCE_INSTRUMENTATION_SM500.md');resource_smoke=text('webgpu-resources-smoke.html');workflow=text('.github/workflows/sm500-performance-instrumentation.yml')
+    performance=text('engine/webgpu_performance.js');performance_test=text('tools/validate_webgpu_performance.js');performance_docs=text('docs/WEBGPU_PERFORMANCE_INSTRUMENTATION_SM500.md');resource_smoke=text('webgpu-resources-smoke.html');workflow_path=ROOT/'.github/workflows/sm500-performance-instrumentation.yml';workflow=workflow_path.read_text(encoding='utf-8') if workflow_path.exists() else None
     for token in ['class ResourceRegistry','class PipelineCache','class FrameGraph','class WebGPUInfrastructure','defineTexture','defineBuffer','uploadStatic','ensureDynamicArena','uploadDynamic','resetDevice','estimatedBytes','rebuildCount','pushErrorScope','popErrorScope','dependency cycle','missing pass']:
         require(token in resources,f'missing resource infrastructure contract token: {token}',errors)
     require('createRenderBundle' not in resources and 'executeBundles' not in resources,'SM-103 must not add speculative render bundles',errors)
@@ -40,8 +40,12 @@ def main()->int:
         require(heading in performance_docs,f'SM-500 documentation missing heading: {heading}',errors)
     require('300 warmup frames' in performance_docs and '600 measured frames' in performance_docs and 'three runs' in performance_docs,'SM-500 docs must preserve canonical benchmark sampling protocol',errors)
     require('GTX 1650 SUPER' in performance_docs and 'timestamp-query' in performance_docs and 'SM-501' in performance_docs,'SM-500 docs must record target capability evidence without claiming performance acceptance',errors)
-    for token in ['node tools/validate_webgpu_performance.js','validate_webgpu_resources_browser.py','sm500-performance-browser.json']:
-        require(token in workflow,f'SM-500 dedicated workflow missing token: {token}',errors)
+    # Repository workflows are intentionally omitted from the clean source package. Validate
+    # the dedicated workflow whenever repository metadata is present, but do not make an
+    # extracted source package depend on .github/ files it deliberately does not ship.
+    if workflow is not None:
+        for token in ['node tools/validate_webgpu_performance.js','validate_webgpu_resources_browser.py','sm500-performance-browser.json']:
+            require(token in workflow,f'SM-500 dedicated workflow missing token: {token}',errors)
     require("require('./validate_webgpu_performance.js')" in text('tools/validate_webgpu_resources.js'),'normal deterministic resource gate must execute SM-500 validator',errors)
 
     if errors:
