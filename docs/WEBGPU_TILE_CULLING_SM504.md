@@ -29,7 +29,7 @@ This does not change DSO silhouettes, dominance, hard-core geometry, hierarchy, 
 
 ## Debugging and future consumers
 
-`debugTileOverlay()` exposes tile rectangles, flags, occluder counts, relevant light counts and DSO relevance. The snapshot also reserves interface names for **GTAO**, **SSGI** and **volumetrics**. Those effects are not implemented or enabled by SM-504; the reservation prevents later passes from inventing incompatible spatial grids.
+`debugTileOverlay()` exposes tile rectangles, flags, occluder counts, relevant light counts and DSO relevance. The snapshot also exposes **reserved** interface names for **GTAO**, **SSGI** and **volumetrics**. Those effects are not implemented or enabled by SM-504; the reservation prevents later passes from inventing incompatible spatial grids.
 
 Overflow is a correctness failure for the staged consumer path. Callers must increase the bounded light-ref capacity rather than silently dropping influence. Room/grid mismatch, stale light ordering and DSO relevance drift also fail closed.
 
