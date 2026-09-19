@@ -42,7 +42,8 @@ def validate(smoke):
     if not gpu.get('realWebGPU'):raise RuntimeError('SM-504 did not execute real WebGPU buffer consumer')
     if float(gpu.get('lightWorkReduction') or 0)<=.45:raise RuntimeError('SM-504 light work reduction below fixture threshold')
     if float(gpu.get('dsoWorkReduction') or 0)<=.5:raise RuntimeError('SM-504 DSO work reduction below fixture threshold')
-    if float(gpu.get('maxDirectError') or 1)>=2e-6:raise RuntimeError('SM-504 direct-light parity tolerance exceeded')
+    direct_error=gpu.get('maxDirectError')
+    if direct_error is None or float(direct_error)>=2e-6:raise RuntimeError('SM-504 direct-light parity tolerance exceeded')
     if diag.get('schema')!='steelmoth-webgpu-tile-culling/v1':raise RuntimeError('SM-504 diagnostics schema missing')
 def main():
     ap=argparse.ArgumentParser(description='Real-browser WebGPU shared tile/light-culling validation for SM-504.');ap.add_argument('--report',type=Path,default=Path('artifacts/sm504-tile-culling-browser.json'));ap.add_argument('--timeout',type=float,default=190);args=ap.parse_args();exe=browser();path=args.report if args.report.is_absolute() else ROOT/args.report;path.parent.mkdir(parents=True,exist_ok=True);report={'schema':'steelmoth-sm504-browser-report/v1','ok':False,'browserExecutable':exe,'evidenceBoundary':'Hosted WebGPU validates the shared SM-300-grid tile ABI, GPU upload/consumer readback, conservative direct-light parity, and DSO compact-work accounting. It is not GTX 1650 SUPER timing evidence.'}
