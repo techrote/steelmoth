@@ -6,8 +6,10 @@ on:
       - 'tools/sm801_static_submission_probe.js'
       - 'tools/validate_webgpu_static_submission.js'
       - 'tools/validate_webgpu_static_submission_browser.py'
+      - 'tools/validate_webgpu_static_submission_cpu_browser.py'
       - 'tools/validate_webgpu_static_submission_contract.py'
       - 'webgpu-static-submission-smoke.html'
+      - 'webgpu-static-submission-cpu-smoke.html'
       - 'docs/WEBGPU_STATIC_SUBMISSION_SM801.md'
       - '.github/workflows/sm801-static-submission.yml'
   workflow_dispatch:
@@ -33,12 +35,16 @@ jobs:
           node --check tools/sm801_static_submission_probe.js
           node --check tools/validate_webgpu_static_submission.js
           node tools/validate_webgpu_static_submission.js
-          python -m py_compile tools/validate_webgpu_static_submission_browser.py tools/validate_webgpu_static_submission_contract.py
+          python -m py_compile tools/validate_webgpu_static_submission_browser.py tools/validate_webgpu_static_submission_cpu_browser.py tools/validate_webgpu_static_submission_contract.py
           python tools/validate_webgpu_static_submission_contract.py
       - name: Run Chrome and Firefox render-bundle A/B
         env:
           MOZ_WEBRENDER: '1'
         run: python tools/validate_webgpu_static_submission_browser.py --timeout 180 --report artifacts/sm801/static-submission-report.json
+      - name: Run high-resolution Chrome and Firefox CPU encode A/B
+        env:
+          MOZ_WEBRENDER: '1'
+        run: python tools/validate_webgpu_static_submission_cpu_browser.py --timeout 180 --report artifacts/sm801/cpu-encode-report.json
       - name: Upload SM-801 evidence
         if: always()
         uses: actions/upload-artifact@v4
