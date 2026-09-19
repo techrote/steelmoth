@@ -1,0 +1,355 @@
+{
+  "browserCommand": [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-background-networking",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-sync",
+    "--metrics-recording-only",
+    "--no-first-run",
+    "--enable-webgl",
+    "--enable-unsafe-webgpu",
+    "--remote-allow-origins=*",
+    "--remote-debugging-port=53831",
+    "--user-data-dir=C:\\Users\\-\\AppData\\Local\\Temp\\steelmoth-sm600-chrome-plugejh5",
+    "<local-sm600-url>"
+  ],
+  "browserExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserVersion": {
+    "jsVersion": "15.3.76.12",
+    "product": "Chrome/153.0.8010.48",
+    "protocolVersion": "1.3",
+    "revision": "@199a3a541d76237379e353b348e64045584db057",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+  },
+  "error": "[WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\-\\\\AppData\\\\Local\\\\Temp\\\\steelmoth-sm600-chrome-plugejh5\\\\Default\\\\Cache\\\\No_Vary_Search\\\\journal.baj'",
+  "evidenceBoundary": "Hosted WebGPU validates GTAO WGSL/pipeline execution, canonical SM-203 depth consumption, Material-v2 normal consumption, depth-aware reconstruction, debug/disable semantics and SM-307 integration. It is correctness evidence, not GTX 1650 SUPER timing or human visual sign-off.",
+  "ok": true,
+  "schema": "steelmoth-sm600-browser-report/v1",
+  "smoke": {
+    "captures": [
+      {
+        "label": "dense-machinery",
+        "metrics": {
+          "max": 1,
+          "mean": 0.7834404206834733,
+          "min": 0.2666015326976776,
+          "occludedPixels": 1899
+        }
+      },
+      {
+        "label": "disabled",
+        "mean": 1
+      },
+      {
+        "ambientMean": 0.7574468612670898,
+        "label": "sm307-integration"
+      }
+    ],
+    "checks": [
+      {
+        "label": "navigator.gpu available",
+        "ok": true
+      },
+      {
+        "label": "WebGPU adapter acquired",
+        "ok": true
+      },
+      {
+        "label": "SM-203 production hierarchy loaded",
+        "ok": true
+      },
+      {
+        "label": "SM-600 module loaded",
+        "ok": true
+      },
+      {
+        "label": "SM-307 consumer loaded",
+        "ok": true
+      },
+      {
+        "label": "source fixture WGSL compiles",
+        "messages": [],
+        "ok": true
+      },
+      {
+        "label": "canonical SM-203 hierarchy built",
+        "ok": true
+      },
+      {
+        "label": "full-resolution GTAO readback available",
+        "ok": true
+      },
+      {
+        "label": "GTAO visibility is finite and bounded",
+        "ok": true
+      },
+      {
+        "label": "scene produces non-trivial inter-surface AO",
+        "metrics": {
+          "max": 1,
+          "mean": 0.7834404206834733,
+          "min": 0.2666015326976776,
+          "occludedPixels": 1899
+        },
+        "ok": true
+      },
+      {
+        "label": "GTAO remains bounded away from black",
+        "metrics": {
+          "max": 1,
+          "mean": 0.7834404206834733,
+          "min": 0.2666015326976776,
+          "occludedPixels": 1899
+        },
+        "ok": true
+      },
+      {
+        "label": "GPU GTAO agrees with deterministic reference",
+        "maxError": 0.0008738934993743896,
+        "ok": true
+      },
+      {
+        "debugError": 2.9802322387695312e-08,
+        "label": "occlusion debug view is exact inverse visibility",
+        "ok": true
+      },
+      {
+        "label": "disabled GTAO restores neutral visibility",
+        "ok": true
+      },
+      {
+        "ambientMean": 0.7574468612670898,
+        "label": "SM-307 consumes GTAO without multiplicative blackening",
+        "materialAOStrength": 0.5,
+        "ok": true
+      },
+      {
+        "label": "GTAO binding exposes reduced material-AO recommendation",
+        "ok": true
+      },
+      {
+        "label": "stale canonical depth hierarchy is rejected",
+        "ok": true
+      }
+    ],
+    "diagnostics": {
+      "debugModes": [
+        "visibility",
+        "occlusion",
+        "raw-half",
+        "upsample-confidence"
+      ],
+      "extent": {
+        "halfHeight": 20,
+        "halfWidth": 32,
+        "height": 40,
+        "width": 64
+      },
+      "generation": 1,
+      "invalidationCount": 1,
+      "lastInvalidationReason": "",
+      "limits": {
+        "depthSigma": [
+          16,
+          512
+        ],
+        "directions": [
+          4,
+          8
+        ],
+        "intensity": [
+          0,
+          2
+        ],
+        "normalPower": [
+          1,
+          12
+        ],
+        "radius": [
+          4,
+          24
+        ],
+        "steps": [
+          2,
+          6
+        ]
+      },
+      "materialAOPolicy": {
+        "composition": "SM-307 combines material AO and GTAO with strongest-occluder/min semantics rather than multiplication.",
+        "gtaoStrength": 1,
+        "recommendedMaterialAOStrength": 0.5,
+        "semantic": "Material AO remains intra-object; GTAO is inter-surface/world occlusion."
+      },
+      "pipelineDiagnostics": {
+        "clearCount": 0,
+        "count": 2,
+        "generation": 1,
+        "hits": 0,
+        "keys": [
+          "compute:gtao-raw-v1",
+          "compute:gtao-upsample-v1"
+        ],
+        "misses": 2,
+        "schema": "steelmoth-webgpu-pipeline-cache/v1"
+      },
+      "resourceDiagnostics": {
+        "createCount": 4,
+        "definitionCount": 4,
+        "destroyCount": 0,
+        "dynamicArenas": [],
+        "estimatedBytes": 25664,
+        "extent": {
+          "height": 40,
+          "width": 64
+        },
+        "frameIndex": 0,
+        "generation": 1,
+        "rebuildCount": 0,
+        "resizeCount": 0,
+        "resourceCount": 4,
+        "resources": [
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 10240,
+            "format": "r32float",
+            "generation": 1,
+            "height": 40,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm600:debug",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 64,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm600:params",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 64,
+            "usage": 72,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 5120,
+            "format": "rgba16float",
+            "generation": 1,
+            "height": 20,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm600:raw",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": null,
+            "usage": 13,
+            "width": 32
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 10240,
+            "format": "r32float",
+            "generation": 1,
+            "height": 40,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm600:visibility",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 64
+          }
+        ],
+        "schema": "steelmoth-webgpu-resources/v1",
+        "uploads": {
+          "dynamic": {
+            "bytes": 0,
+            "count": 0
+          },
+          "static": {
+            "bytes": 0,
+            "count": 0
+          }
+        }
+      },
+      "schema": "steelmoth-webgpu-gtao/v1",
+      "snapshot": {
+        "consumer": "SM-307 gtaoVisibilityView",
+        "halfHeight": 20,
+        "halfWidth": 32,
+        "height": 40,
+        "materialAO": {
+          "composition": "SM-307 combines material AO and GTAO with strongest-occluder/min semantics rather than multiplication.",
+          "gtaoStrength": 1,
+          "recommendedMaterialAOStrength": 0.5,
+          "semantic": "Material AO remains intra-object; GTAO is inter-surface/world occlusion."
+        },
+        "options": {
+          "bias": 0.0015,
+          "debugMode": "visibility",
+          "depthScale": 34,
+          "depthSigma": 180,
+          "directions": 6,
+          "enabled": true,
+          "intensity": 1.1,
+          "normalPower": 4,
+          "radius": 12,
+          "steps": 4
+        },
+        "producer": "half-resolution pseudo-depth + Material-v2 normal horizon search",
+        "schema": "steelmoth-webgpu-gtao-snapshot/v1",
+        "temporalHistory": false,
+        "upscale": "full-resolution bilateral depth/normal-aware reconstruction",
+        "width": 64
+      },
+      "updateCount": 4,
+      "valid": true
+    },
+    "gpu": {
+      "adapter": {
+        "info": {},
+        "isFallbackAdapter": false
+      },
+      "ambientMean": 0.7574468612670898,
+      "debugError": 2.9802322387695312e-08,
+      "fullResolution": [
+        64,
+        40
+      ],
+      "halfResolution": [
+        32,
+        20
+      ],
+      "maxReferenceError": 0.0008738934993743896,
+      "realWebGPU": true,
+      "visibilityMetrics": {
+        "max": 1,
+        "mean": 0.7834404206834733,
+        "min": 0.2666015326976776,
+        "occludedPixels": 1899
+      }
+    },
+    "ok": true,
+    "schema": "steelmoth-webgpu-gtao-smoke/v1",
+    "timing": {
+      "gpuTimingClaimed": false
+    }
+  }
+}
