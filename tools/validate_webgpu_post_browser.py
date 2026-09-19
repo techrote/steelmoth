@@ -44,7 +44,8 @@ def validate(smoke,require_webgpu):
     if diag.get('intermediateFormat')!='rgba16float':raise RuntimeError('HDR/intermediate format drifted')
     if diag.get('compatibilityBloomQuality')!=1:raise RuntimeError('compatibility bloom tier drifted')
     if diag.get('qualityPasses')!=[0,1,2,3]:raise RuntimeError('bloom quality scale drifted')
-    if 'SM-502' not in str(diag.get('colorSpaceBoundary')):raise RuntimeError('SM-502 colour-space deferral missing')
+    boundary=str(diag.get('colorSpaceBoundary'))
+    if 'linear/HDR' not in boundary or 'sRGB' not in boundary or 'exactly once' not in boundary:raise RuntimeError('completed SM-502 linear/HDR to sRGB boundary missing')
     if 'SM-204' not in str(diag.get('lightingBoundary')):raise RuntimeError('SM-204 lighting boundary missing')
     samples=smoke.get('samples') or {}
     if not samples.get('raw') or not samples.get('bloom') or not samples.get('exposure'):raise RuntimeError('required numeric before/after samples missing')
@@ -53,7 +54,7 @@ def main():
     ap=argparse.ArgumentParser(description='Real-browser WebGPU bloom/post/final-output validation for SM-207.')
     ap.add_argument('--report',type=Path,default=Path('artifacts/webgpu-post-browser.json'));ap.add_argument('--timeout',type=float,default=190);ap.add_argument('--require-webgpu',action='store_true');args=ap.parse_args()
     exe=browser();path=args.report if args.report.is_absolute() else ROOT/args.report;path.parent.mkdir(parents=True,exist_ok=True)
-    report={'schema':'steelmoth-webgpu-post-browser-report/v1','ok':False,'browserExecutable':exe,'requireWebGPU':args.require_webgpu,'evidenceBoundary':'Real hosted WebGPU validates compatibility bloom, bounded quality tiers, numeric grading-control sweeps, raw/debug bypass and a real preferred-format GPUCanvasContext. It does not claim SM-502 colour-space redesign, SM-505 backend promotion, target-GPU performance, or subjective visual approval.'}
+    report={'schema':'steelmoth-webgpu-post-browser-report/v1','ok':False,'browserExecutable':exe,'requireWebGPU':args.require_webgpu,'evidenceBoundary':'Real hosted WebGPU validates compatibility bloom, bounded quality tiers, numeric grading-control sweeps, the completed SM-502 linear-to-sRGB post/display boundary, raw/debug presentation and a real preferred-format GPUCanvasContext. It does not claim SM-505 backend promotion, target-GPU performance, or subjective visual approval.'}
     if not exe:report['error']='Chrome/Chromium executable not found';path.write_text(json.dumps(report,indent=2)+'\n');return 1
     handler=lambda *a,**k:Quiet(*a,directory=str(ROOT),**k);srv=Server(('127.0.0.1',0),handler);threading.Thread(target=srv.serve_forever,daemon=True).start();port=srv.server_address[1];proc=None;cdp=None
     try:
