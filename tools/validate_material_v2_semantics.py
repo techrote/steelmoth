@@ -91,7 +91,7 @@ require(re.search(r'const MAX_WORLD_Z=64\b',pseudo) is not None,'pseudo-depth MA
 require('worldZFromMaterialHeight' in pseudo,'pseudo-depth must expose explicit Material-v2 world-height decode')
 require('textureLoad(g2,q,0).r*64.0' in local,'self/contact shadow path must consume canonical G2.R × 64')
 require('SM_MAX_WORLD_Z' in ownership and 'PseudoDepth.MAX_WORLD_Z' in ownership,'ownership depth must inherit pseudo-depth max world Z')
-require('material AO' in doc.lower(),'semantics document must name material AO')
+require('material ao' in doc.lower(),'semantics document must name material AO')
 
 if errors:
     print('SM-503 MATERIAL SEMANTICS FAIL')
