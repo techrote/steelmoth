@@ -74,6 +74,22 @@ Because that physical target benchmark is not available to the current hosted ag
 
 ## Current acceptance record
 
-The deterministic model establishes the bounded descriptor footprint above and keeps object/depth correctness invariant. The dedicated browser workflow is the authority for actual Chrome/Firefox format support, readback tolerance and hosted timestamp-query A/B values for the PR head.
+The deterministic model establishes the bounded descriptor footprint above and keeps object/depth correctness invariant. It reports 0.8639° maximum octahedral-normal error over 4096 CPU directions and 0.001961 maximum normalized material-channel quantization error, both inside their stated thresholds.
 
-No GTX 1650 SUPER performance result is claimed here. No candidate is adopted into `engine/webgpu_gbuffer.js` or the HDR production chain in this non-hardware stage.
+Dedicated hosted run `35431687071` completed the Chrome 152 / Firefox 155 real-WebGPU matrix on PR #99 after one real capability-negotiation defect was repaired. The first run found that both adapters advertised `rg11b10ufloat-renderable`, but the probe had not requested that optional feature when creating the `GPUDevice`; both browsers therefore correctly rejected the packed-HDR render pipeline. The final probe explicitly negotiates the feature before testing that candidate rather than weakening validation or marking the failure unsupported.
+
+Final GPU readback parity was identical across both browsers: octahedral `rgba8unorm` reconstruction had 0.7177° maximum angular error, roughness and material-8 maximum normalized error were 0.001961, and the tested `rg11b10ufloat` positive-HDR values round-tripped with zero observed error in the deterministic fixture.
+
+The hosted timestamp-query microbenchmark is deliberately not target-GPU evidence. Its p50 values were:
+
+| Candidate | Chrome hosted p50 | Firefox hosted p50 | Hosted interpretation |
+| --- | ---: | ---: | --- |
+| reference | 32.4565 ms | 2.3464 ms | reference only |
+| material8 | 25.0692 ms | 2.0656 ms | provisionally viable; target hardware required |
+| octMaterial8 | 13.6114 ms | 2.2459 ms | provisionally viable; target hardware required |
+| hdr11 | 24.9050 ms | 2.4825 ms | reject isolated HDR candidate: Firefox regressed 5.8%, beyond the 5% study ceiling |
+| combined upper bound | 5.9134 ms | 2.0150 ms | not independently adoptable; mixed-variable sensitivity result, target hardware required |
+
+Chrome's hosted adapter was SwiftShader and Firefox used the hosted fallback-adapter path, so the large absolute and relative differences must not be generalized to the GTX 1650 SUPER. In particular, the `combined` row is only an upper-bound sensitivity measurement because it changes more than one precision variable; it cannot override the isolated-candidate decision rule.
+
+No GTX 1650 SUPER performance result is claimed here. No candidate is adopted into `engine/webgpu_gbuffer.js` or the HDR production chain in this non-hardware stage. The remaining SM-800 acceptance blocker is the physical GTX 1650 SUPER full-renderer A/B across the canonical fixed scenes with SM-500 timestamp-query evidence and downstream parity checks.
