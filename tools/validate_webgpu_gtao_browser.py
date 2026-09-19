@@ -11,7 +11,19 @@ def browser():
     for name in BROWSERS:
         p=shutil.which(name)
         if p:return p
+    if os.name=='nt':
+        for p in (Path(os.environ.get('PROGRAMFILES',''))/'Google/Chrome/Application/chrome.exe',Path(os.environ.get('PROGRAMFILES(X86)',''))/'Google/Chrome/Application/chrome.exe'):
+            if p.is_file():return str(p)
     return None
+def stop_process(proc):
+    if not proc or proc.poll() is not None:return
+    try:
+        if os.name=='nt':subprocess.run(['taskkill','/PID',str(proc.pid),'/T','/F'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10,check=False)
+        else:os.killpg(proc.pid,signal.SIGTERM)
+        proc.wait(timeout=4)
+    except Exception:
+        try:proc.kill();proc.wait(timeout=4)
+        except Exception:pass
 def free_port():
     with socket.socket() as s:s.bind(('127.0.0.1',0));return s.getsockname()[1]
 def json_get(url,timeout=2):
@@ -70,11 +82,7 @@ def main():
     except Exception as exc:report['error']=str(exc)
     finally:
         if cdp:cdp.close()
-        if proc and proc.poll() is None:
-            try:os.killpg(proc.pid,signal.SIGTERM);proc.wait(timeout=4)
-            except Exception:
-                try:os.killpg(proc.pid,signal.SIGKILL)
-                except Exception:pass
+        stop_process(proc)
         if proc and proc.stderr:
             try:
                 tail=proc.stderr.read()[-6000:]

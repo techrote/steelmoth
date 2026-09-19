@@ -1,0 +1,237 @@
+{
+  "schema": "steelmoth-pseudo-depth-debug/v1",
+  "model": {
+    "schema": "steelmoth-pseudo-depth/v1",
+    "maxWorldZ": 64,
+    "zToScreenY": 1,
+    "layerStride": 1024,
+    "depthKeyRange": [
+      -2048,
+      3072
+    ],
+    "categoryLayer": {
+      "ground": -1,
+      "static": 0,
+      "dynamic": 0,
+      "foreground": 1,
+      "top": 2
+    },
+    "alphaCutoff": 0.12,
+    "materialHeightEncoding": "G2.R * MAX_WORLD_Z after uniform render-scale compatibility",
+    "materialHeightSemantics": "SM-503/v1",
+    "productionDepthWrites": true,
+    "productionOwner": "SM-202",
+    "productionModule": "engine/webgpu_ownership.js"
+  },
+  "note": "Geometric prototype probes use fixture-declared editor roots and vertical-face cancellation. They are model/debug evidence, not production depth writes or human screenshot parity.",
+  "fixtures": [
+    {
+      "name": "binsright",
+      "lightAngle": 0,
+      "objects": [
+        {
+          "id": "bin-rear",
+          "sprite": "dumpster",
+          "x": 303,
+          "y": 166,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 166,
+          "verticalKey": 166,
+          "depth01": 0.567578125
+        },
+        {
+          "id": "bin-front",
+          "sprite": "dumpster",
+          "x": 326,
+          "y": 181,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 181,
+          "verticalKey": 181,
+          "depth01": 0.5646484375
+        },
+        {
+          "id": "bin-side",
+          "sprite": "dumpster",
+          "x": 345,
+          "y": 154,
+          "scale": 0.98,
+          "flip": false,
+          "rootKey": 154,
+          "verticalKey": 154,
+          "depth01": 0.569921875
+        }
+      ],
+      "frontToBack": [
+        "bin-front",
+        "bin-rear",
+        "bin-side"
+      ]
+    },
+    {
+      "name": "binsleft",
+      "lightAngle": 180,
+      "objects": [
+        {
+          "id": "bin-rear",
+          "sprite": "dumpster",
+          "x": 303,
+          "y": 166,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 166,
+          "verticalKey": 166,
+          "depth01": 0.567578125
+        },
+        {
+          "id": "bin-front",
+          "sprite": "dumpster",
+          "x": 326,
+          "y": 181,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 181,
+          "verticalKey": 181,
+          "depth01": 0.5646484375
+        },
+        {
+          "id": "bin-side",
+          "sprite": "dumpster",
+          "x": 345,
+          "y": 154,
+          "scale": 0.98,
+          "flip": false,
+          "rootKey": 154,
+          "verticalKey": 154,
+          "depth01": 0.569921875
+        }
+      ],
+      "frontToBack": [
+        "bin-front",
+        "bin-rear",
+        "bin-side"
+      ]
+    },
+    {
+      "name": "binsup",
+      "lightAngle": 270,
+      "objects": [
+        {
+          "id": "bin-rear",
+          "sprite": "dumpster",
+          "x": 303,
+          "y": 166,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 166,
+          "verticalKey": 166,
+          "depth01": 0.567578125
+        },
+        {
+          "id": "bin-front",
+          "sprite": "dumpster",
+          "x": 326,
+          "y": 181,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 181,
+          "verticalKey": 181,
+          "depth01": 0.5646484375
+        },
+        {
+          "id": "bin-side",
+          "sprite": "dumpster",
+          "x": 345,
+          "y": 154,
+          "scale": 0.98,
+          "flip": false,
+          "rootKey": 154,
+          "verticalKey": 154,
+          "depth01": 0.569921875
+        }
+      ],
+      "frontToBack": [
+        "bin-front",
+        "bin-rear",
+        "bin-side"
+      ]
+    },
+    {
+      "name": "binsupleft",
+      "lightAngle": 225,
+      "objects": [
+        {
+          "id": "bin-rear",
+          "sprite": "dumpster",
+          "x": 303,
+          "y": 166,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 166,
+          "verticalKey": 166,
+          "depth01": 0.567578125
+        },
+        {
+          "id": "bin-front",
+          "sprite": "dumpster",
+          "x": 326,
+          "y": 181,
+          "scale": 1.08,
+          "flip": false,
+          "rootKey": 181,
+          "verticalKey": 181,
+          "depth01": 0.5646484375
+        },
+        {
+          "id": "bin-side",
+          "sprite": "dumpster",
+          "x": 345,
+          "y": 154,
+          "scale": 0.98,
+          "flip": false,
+          "rootKey": 154,
+          "verticalKey": 154,
+          "depth01": 0.569921875
+        }
+      ],
+      "frontToBack": [
+        "bin-front",
+        "bin-rear",
+        "bin-side"
+      ]
+    },
+    {
+      "name": "box-pair",
+      "lightAngle": 0,
+      "objects": [
+        {
+          "id": "box-a",
+          "sprite": "cargo_crate",
+          "x": 304,
+          "y": 166,
+          "scale": 1,
+          "flip": false,
+          "rootKey": 166,
+          "verticalKey": 166,
+          "depth01": 0.567578125
+        },
+        {
+          "id": "box-b",
+          "sprite": "cargo_crate",
+          "x": 326,
+          "y": 157,
+          "scale": 1,
+          "flip": false,
+          "rootKey": 157,
+          "verticalKey": 157,
+          "depth01": 0.5693359375
+        }
+      ],
+      "frontToBack": [
+        "box-a",
+        "box-b"
+      ]
+    }
+  ]
+}

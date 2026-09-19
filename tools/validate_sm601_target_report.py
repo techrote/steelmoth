@@ -14,6 +14,7 @@ def main():
     data=json.loads(args.report.read_text(encoding='utf-8'))
     try:
         need(data.get('schema')=='steelmoth-sm601-target-report/v1','wrong schema')
+        source=data.get('source') or {};commit=str(source.get('commit',''));need(len(commit)==40 and all(c in '0123456789abcdef' for c in commit.lower()),'measured source commit is required');need(source.get('cleanTrackedState') is True,'measured source must have a clean tracked state')
         env=data.get('environment') or {}; adapter=env.get('adapter') or {}; display=env.get('display') or {}
         text=' '.join(str(adapter.get(k,'')) for k in ('vendor','architecture','device','description','name')).lower()
         need('1650' in text and ('super' in text or 'gtx 1650' in text),'adapter must identify the physical GTX 1650 SUPER target')
