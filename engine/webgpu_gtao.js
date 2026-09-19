@@ -15,7 +15,7 @@
   const DEBUG_FORMAT='r32float';
   const DEBUG_MODES=Object.freeze(['visibility','occlusion','raw-half','upsample-confidence']);
   const DEFAULTS=Object.freeze({enabled:true,directions:6,steps:4,radius:12,bias:.0015,depthScale:34,intensity:1.1,depthSigma:180,normalPower:4,debugMode:'visibility'});
-  const LIMITS=Object.freeze({directions:[4,8],steps:[2,6],radius:[4,24],intensity:[0,.0+2],depthSigma:[16,512],normalPower:[1,12]});
+  const LIMITS=Object.freeze({directions:[4,8],steps:[2,6],radius:[4,24],intensity:[0,2],depthSigma:[16,512],normalPower:[1,12]});
   const MATERIAL_AO_POLICY=Object.freeze({semantic:'Material AO remains intra-object; GTAO is inter-surface/world occlusion.',composition:'SM-307 combines material AO and GTAO with strongest-occluder/min semantics rather than multiplication.',recommendedMaterialAOStrength:.50,gtaoStrength:1.0});
   const FALLBACK_TEXTURE_USAGE=Object.freeze({COPY_SRC:0x01,TEXTURE_BINDING:0x04,STORAGE_BINDING:0x08});
   const FALLBACK_BUFFER_USAGE=Object.freeze({MAP_READ:0x0001,COPY_SRC:0x0004,COPY_DST:0x0008,UNIFORM:0x0040});
@@ -25,6 +25,7 @@
   const align=(v,m=256)=>Math.ceil(Math.max(0,Number(v)||0)/m)*m;
   const textureUsage=names=>names.reduce((v,n)=>v|Number(root?.GPUTextureUsage?.[n]??FALLBACK_TEXTURE_USAGE[n]??0),0);
   const bufferUsage=names=>names.reduce((v,n)=>v|Number(root?.GPUBufferUsage?.[n]??FALLBACK_BUFFER_USAGE[n]??0),0);
+  const roundOffset=v=>Math.sign(v)*Math.floor(Math.abs(v)+.5001);
 
   function normalizeOptions(overrides={}){
     const o={...DEFAULTS,...overrides},debugMode=DEBUG_MODES.includes(String(o.debugMode))?String(o.debugMode):DEFAULTS.debugMode;
@@ -43,7 +44,7 @@
       for(let d=0;d<o.directions;d++){
         const a=Math.PI*2*(d+.5)/o.directions,dx=Math.cos(a),dy=Math.sin(a);let horizon=0;
         for(let s=0;s<o.steps;s++){
-          const dist=o.radius*(s+1)/o.steps,sx=clamp(Math.round(px+dx*dist),0,width-1),sy=clamp(Math.round(py+dy*dist),0,height-1),si=(sy*width+sx)*2,sr=[depthRanges[si],depthRanges[si+1]];if(!occupied(sr))continue;
+          const dist=o.radius*(s+1)/o.steps,sx=clamp(px+roundOffset(dx*dist),0,width-1),sy=clamp(py+roundOffset(dy*dist),0,height-1),si=(sy*width+sx)*2,sr=[depthRanges[si],depthRanges[si+1]];if(!occupied(sr))continue;
           const near=Math.max(0,cd-sr[0]-o.bias),slope=near*o.depthScale/Math.max(1,dist),directionWeight=clamp(1-Math.abs(n[0]*dx+n[1]*dy)*.35,.65,1);horizon=Math.max(horizon,clamp(slope*directionWeight,0,1));
         }
         sum+=horizon;
@@ -73,12 +74,13 @@ struct Params{extent:vec4u,quality:vec4u,s0:vec4f,s1:vec4f};
 @group(0) @binding(3) var rawOut:texture_storage_2d<rgba16float,write>;
 fn occupied(r:vec2f)->bool{return r.x<=r.y;}
 fn normalAt(p:vec2i)->vec3f{return normalize(textureLoad(normalTex,p,0).xyz*2.0-1.0);}
+fn roundedOffset(v:vec2f)->vec2i{return vec2i(sign(v)*floor(abs(v)+vec2f(0.5001)));}
 @compute @workgroup_size(8,8) fn cs_main(@builtin(global_invocation_id) gid:vec3u){
   if(gid.x>=params.extent.z||gid.y>=params.extent.w){return;}let fullSize=vec2i(params.extent.xy);let p=min(vec2i(gid.xy)*2+vec2i(1),fullSize-vec2i(1));let c=textureLoad(depthRange,p,0).rg;
   if(params.quality.x==0u||!occupied(c)){textureStore(rawOut,vec2i(gid.xy),vec4f(1.0,select(1.0,c.x,occupied(c)),select(0.0,1.0,occupied(c)),0.0));return;}
   let n=normalAt(p);var sum=0.0;let dirs=max(1u,params.quality.y);let steps=max(1u,params.quality.z);
   for(var d:u32=0u;d<8u;d++){if(d>=dirs){continue;}let angle=6.28318530718*(f32(d)+0.5)/f32(dirs);let dir=vec2f(cos(angle),sin(angle));var horizon=0.0;
-    for(var s:u32=0u;s<6u;s++){if(s>=steps){continue;}let dist=params.s0.x*(f32(s)+1.0)/f32(steps);let q=clamp(p+vec2i(round(dir*dist)),vec2i(0),fullSize-vec2i(1));let r=textureLoad(depthRange,q,0).rg;if(!occupied(r)){continue;}let near=max(0.0,c.x-r.x-params.s0.y);let slope=near*params.s0.z/max(1.0,dist);let dw=clamp(1.0-abs(dot(n.xy,dir))*0.35,0.65,1.0);horizon=max(horizon,clamp(slope*dw,0.0,1.0));}
+    for(var s:u32=0u;s<6u;s++){if(s>=steps){continue;}let dist=params.s0.x*(f32(s)+1.0)/f32(steps);let q=clamp(p+roundedOffset(dir*dist),vec2i(0),fullSize-vec2i(1));let r=textureLoad(depthRange,q,0).rg;if(!occupied(r)){continue;}let near=max(0.0,c.x-r.x-params.s0.y);let slope=near*params.s0.z/max(1.0,dist);let dw=clamp(1.0-abs(dot(n.xy,dir))*0.35,0.65,1.0);horizon=max(horizon,clamp(slope*dw,0.0,1.0));}
     sum+=horizon;
   }
   let occ=clamp(sum/f32(dirs)*params.s0.w,0.0,0.85);textureStore(rawOut,vec2i(gid.xy),vec4f(1.0-occ,c.x,1.0,occ));
