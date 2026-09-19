@@ -70,7 +70,7 @@
       this._fail('configure');
       const w=Math.max(1,Math.round(Number(width)||this.canvas.width||1)),h=Math.max(1,Math.round(Number(height)||this.canvas.height||1)),scale=Math.max(.1,Number(dpr)||1);
       this.canvas.width=Math.max(1,Math.round(w*scale));this.canvas.height=Math.max(1,Math.round(h*scale));
-      const descriptor={device:this.device,format:this.format,alphaMode:'premultiplied'};
+      const descriptor={device:this.device,format:this.format,alphaMode:'premultiplied',colorSpace:'srgb'};
       let thrown=null,scoped=null;
       if(typeof this.device.pushErrorScope==='function')this.device.pushErrorScope('validation');
       try{this.context.configure(descriptor)}catch(error){thrown=error}
@@ -79,7 +79,7 @@
       }
       if(thrown)throw thrown;
       if(scoped)throw new Error(`WebGPU validation error during canvas configure: ${scoped.message||scoped}`);
-      this.configuration={format:this.format,alphaMode:'premultiplied',width:this.canvas.width,height:this.canvas.height,dpr:scale};this.configureCount++;
+      this.configuration={format:this.format,alphaMode:'premultiplied',colorSpace:'srgb',width:this.canvas.width,height:this.canvas.height,dpr:scale};this.configureCount++;
       return this.configuration;
     }
     _bindDeviceEvents(device,generation){
