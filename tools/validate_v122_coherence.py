@@ -32,14 +32,21 @@ assert "group:'companion'" in js and "color:this.luts.rgb('fx_creature',214)" in
 assert 'direct=direct/(vec3(1.0)+direct*.22)' in js
 # Macro shadow mask still gets supersampling for secondary-light shadows.
 assert 'const shadowScale=2.0' in js
-# Material report floor response should be rough/non-metallic relative to boxes.
+# SM-503 preserves the old coherence goal (rough, non-mirror floors) while replacing
+# colour-derived metallic guesses with documented semantic material priors. Painted
+# steel remains broadly dielectric; rust is not metalness=1; galvanized hardware owns
+# the distinctly metallic class.
 r=json.load(open(ROOT/'assets/generated/material_v2_report.json'))['regions']
 for n in ['floor_cracked','floor_plate','floor_hazard']:
-    assert r[n]['roughness_mean']>.68,(n,r[n])
+    assert r[n]['roughness_mean']>.55,(n,r[n])
     assert r[n]['metalness_mean']<.32,(n,r[n])
-assert r['cargo_crate']['metalness_mean']>.45
+    assert r[n]['material_prior']=='painted_steel',(n,r[n])
+assert r['cargo_crate']['material_prior']=='painted_steel' and r['cargo_crate']['metalness_mean']<.45
+assert r['rust_barrel']['material_prior']=='rusted_steel' and r['rust_barrel']['metalness_mean']<.45
+for n in ['street_lamp','pipe_cluster','scaffold']:
+    assert r[n]['material_prior']=='galvanized' and r[n]['metalness_mean']>.50,(n,r[n])
 # Active manifests identify the current release while preserving the v1.2.2 coherence fixes.
 gm=json.load(open(ROOT/'game_manifest.json')); dm=json.load(open(ROOT/'DEPLOYMENT_MANIFEST.json'))
 assert gm['version']=='1.2.3' and dm['game_version']=='1.2.3'
 assert gm['graphics_namespace']=='signalOrchardGraphicsV123'
-print('V1.2.2 COHERENCE FIXES RETAINED: world-normal convention, bounded water, cool companion light, pseudo-depth flashlight shadows, rough floor response')
+print('V1.2.2 COHERENCE FIXES RETAINED: world-normal convention, bounded water, cool companion light, pseudo-depth flashlight shadows, semantic rough-floor/material response')
