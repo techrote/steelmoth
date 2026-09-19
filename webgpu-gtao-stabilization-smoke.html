@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-601 GTAO stabilization smoke</title>
+<pre id="webgpuGtaoStabilizationResult">running</pre>
+<script src="engine/webgpu_resources.js"></script>
+<script src="engine/webgpu_gtao_stabilization.js"></script>
+<script>
+(async()=>{
+  const out=document.getElementById('webgpuGtaoStabilizationResult');
+  const checks=[]; const check=(ok,name,detail={})=>{checks.push({ok:!!ok,name,...detail});if(!ok)throw new Error(name);};
+  const report={schema:'steelmoth-sm601-browser-smoke/v1',ok:false,checks,gpu:{realWebGPU:false}};
+  const publish=()=>{out.textContent=JSON.stringify(report,null,2);document.body.dataset.webgpuGtaoStabilizationDone='1';};
+  try{
+    if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+    let adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});
+    if(!adapter)adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:true});
+    if(!adapter)throw new Error('no WebGPU adapter');
+    const device=await adapter.requestDevice(); report.gpu.realWebGPU=true;
+    report.gpu.adapterInfo=adapter.info?{vendor:adapter.info.vendor,architecture:adapter.info.architecture,device:adapter.info.device,description:adapter.info.description}:{};
+    const W=8,H=8,N=W*H,U=GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST;
+    const tex=(format)=>device.createTexture({size:[W,H,1],format,usage:U});
+    const vis=tex('r32float'), depth=tex('rg32float'), object=tex('r32uint'), normal=tex('rgba32float');
+    function write(texture,array,bpp){
+      const bpr=Math.ceil(W*bpp/256)*256, bytes=new Uint8Array(bpr*H), src=new Uint8Array(array.buffer,array.byteOffset,array.byteLength);
+      for(let y=0;y<H;y++)bytes.set(src.subarray(y*W*bpp,(y+1)*W*bpp),y*bpr);
+      device.queue.writeTexture({texture},bytes,{bytesPerRow:bpr,rowsPerImage:H},{width:W,height:H,depthOrArrayLayers:1});
+    }
+    const depths=new Float32Array(N*2), objects=new Uint32Array(N).fill(7), normals=new Float32Array(N*4);
+    for(let i=0;i<N;i++){depths[i*2]=.4;depths[i*2+1]=.5;normals.set([.5,.5,1,1],i*4);}
+    const frame=(value)=>new Float32Array(N).fill(value);
+    write(depth,depths,8);write(object,objects,4);write(normal,normals,16);write(vis,frame(.55),4);
+    const T=new SteelMothWebGPUGTAOStabilization.WebGPUGTAOTemporal({device,width:W,height:H,quality:'Medium'});
+    const source={width:W,height:H,currentVisibilityView:vis.createView(),currentDepthView:depth.createView(),currentObjectView:object.createView(),currentNormalView:normal.createView()};
+    const meta={roomId:'room-a',deviceGeneration:1,backendGeneration:1};
+    let d=await T.update(source,{quality:'Medium',meta}); let values=await T.readback();
+    check(d.lastStats.globalRejected===N,'first frame rejects uninitialized history',{stats:d.lastStats});
+    check(values.every(v=>Math.abs(v-.55)<1e-5),'first frame is current-frame exact');
+    write(vis,frame(.75),4); d=await T.update(source,{quality:'Medium',meta}); values=await T.readback();
+    check(d.lastStats.accepted===N,'stable frame accepts history',{stats:d.lastStats});
+    check(values.every(v=>v>=.609&&v<=.751),'stable temporal result remains bounded');
+    objects[2]=8;write(object,objects,4);write(vis,frame(.72),4); d=await T.update(source,{quality:'Medium',meta}); values=await T.readback();
+    check(d.lastStats.objectRejected>=1,'object ownership discontinuity rejects history',{stats:d.lastStats});
+    check(Math.abs(values[2]-.72)<1e-5,'rejected object pixel uses current frame');
+    objects[2]=7;write(object,objects,4);write(vis,frame(.70),4); d=await T.update(source,{quality:'Medium',meta:{...meta,roomId:'room-b'}}); values=await T.readback();
+    check(d.lastStats.globalRejected===N,'room transition rejects complete history',{stats:d.lastStats});
+    check(values.every(v=>Math.abs(v-.70)<1e-5),'room transition produces current frame without ghosting');
+    T.invalidate('explicit-test'); write(vis,frame(.68),4); d=await T.update(source,{quality:'Medium',meta:{...meta,roomId:'room-b'}}); values=await T.readback();
+    check(d.lastStats.globalRejected===N,'explicit lifecycle invalidation rejects history');
+    check(T.diagnostics().historyPolicy.includes('Depth/object/normal/room/device/backend'),'diagnostics publish rejection policy');
+    const medium=SteelMothWebGPUGTAOStabilization.resolveQuality('Medium');
+    check(medium.gtao.directions===6&&medium.gtao.steps===4&&medium.temporal.historyWeight===.55,'Medium production profile is explicit');
+    const low=SteelMothWebGPUGTAOStabilization.resolveQuality('Low');
+    check(low.gtao.enabled===false&&low.temporal.enabled===false,'Low tier explicitly disables GTAO history');
+    T.close();vis.destroy();depth.destroy();object.destroy();normal.destroy();device.destroy?.();
+    report.ok=true;report.diagnostics=d;report.quality={medium,low};
+  }catch(e){report.error=String(e&&e.stack||e);}
+  publish();
+})();
+</script>
