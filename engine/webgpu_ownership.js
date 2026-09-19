@@ -95,6 +95,7 @@ struct FSOut { @location(0) g0:vec4f,@location(1) g1:vec4f,@location(2) g2:vec4f
   let localHeight=clamp(hm.r*in.material.y,0.0,1.0);
   var out:FSOut;out.g0=vec4f(base,1.0);out.g1=vec4f(n*.5+.5,nr.a);out.g2=vec4f(localHeight,hm.b,hm.g,hm.a);out.objectId=in.objectId;out.depth=smOwnershipDepth(in.position.y,localHeight,in.depthMeta.x,in.depthMeta.y);return out;
 }`;
+  function ownershipMaterialWgsl(normalEncoding='xyz'){if(normalEncoding!=='oct8')return MATERIAL_WGSL;return MATERIAL_WGSL.replace('struct FSOut {','fn smOctEncode(n0:vec3f)->vec2f{var n=n0/(abs(n0.x)+abs(n0.y)+abs(n0.z));if(n.z<0.0){let old=n.xy;n.x=(1.0-abs(old.y))*select(-1.0,1.0,old.x>=0.0);n.y=(1.0-abs(old.x))*select(-1.0,1.0,old.y>=0.0);}return n.xy*.5+.5;}\nstruct FSOut {').replace('out.g1=vec4f(n*.5+.5,nr.a);','out.g1=vec4f(smOctEncode(n),0.0,nr.a);')}
 
   const DEBUG_WGSL=`
 struct Debug { mode:u32,_pad0:vec3u };
@@ -118,8 +119,8 @@ struct Out { value:f32, _pad0:vec3f };
     constructor(options={}){super(options);this.ownershipRenderCount=0;this._ownershipInitialized=false;this.depthReadbackModule=null;this.depthReadbackPipeline=null;}
     async initialize(){
       if(this._ownershipInitialized&&this.materialPipeline)return this;
-      this.materialModule=await this._module('sm202-material-ownership',MATERIAL_WGSL);this.debugModule=await this._module('sm202-debug-ownership',DEBUG_WGSL);
-      this.materialPipeline=await this.pipelines.getRender('sm202-material-ownership',()=>this.device.createRenderPipeline({label:`${this.labelPrefix}:sm202-material`,layout:'auto',vertex:{module:this.materialModule,entryPoint:'vs_main'},fragment:{module:this.materialModule,entryPoint:'fs_main',targets:[{format:G.FORMATS.g0},{format:G.FORMATS.g1},{format:G.FORMATS.g2},{format:G.FORMATS.objectId}]},primitive:{topology:'triangle-list',cullMode:'none'},depthStencil:{format:G.FORMATS.depth,depthWriteEnabled:true,depthCompare:'less'}}));
+      this.materialModule=await this._module('sm202-material-ownership',ownershipMaterialWgsl(this.normalEncoding));this.debugModule=await this._module('sm202-debug-ownership',DEBUG_WGSL);const f=this.formats,key=`sm202-material-ownership:${f.g1}:${f.g2}:${this.normalEncoding}`;
+      this.materialPipeline=await this.pipelines.getRender(key,()=>this.device.createRenderPipeline({label:`${this.labelPrefix}:sm202-material`,layout:'auto',vertex:{module:this.materialModule,entryPoint:'vs_main'},fragment:{module:this.materialModule,entryPoint:'fs_main',targets:[{format:f.g0},{format:f.g1},{format:f.g2},{format:f.objectId}]},primitive:{topology:'triangle-list',cullMode:'none'},depthStencil:{format:f.depth,depthWriteEnabled:true,depthCompare:'less'}}));
       this._ownershipInitialized=true;if(this.atlas)this._refreshBindGroup();return this;
     }
     async renderInstances(instances,options={}){
@@ -146,5 +147,5 @@ struct Out { value:f32, _pad0:vec3f };
 
   function referenceDepthForPixel(fragmentScreenY,localHeight,category='dynamic',depthLayer=null,depthBias=0){return PseudoDepth.projectFragment({fragmentScreenY,rootY:fragmentScreenY,localHeight,alpha:1,category,layer:depthLayer,bias:depthBias});}
 
-  return{SCHEMA,DEBUG_MODES,PSEUDO_DEPTH_WGSL,MATERIAL_WGSL,DEBUG_WGSL,DEPTH_READBACK_WGSL,prepareOwnershipInstance,buildOwnershipSceneInstances,packOwnershipInstances,referenceDepthForPixel,WebGPUOwnershipGBuffer};
+  return{SCHEMA,DEBUG_MODES,PSEUDO_DEPTH_WGSL,MATERIAL_WGSL,DEBUG_WGSL,DEPTH_READBACK_WGSL,ownershipMaterialWgsl,prepareOwnershipInstance,buildOwnershipSceneInstances,packOwnershipInstances,referenceDepthForPixel,WebGPUOwnershipGBuffer};
 });

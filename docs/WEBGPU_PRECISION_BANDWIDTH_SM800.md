@@ -72,6 +72,18 @@ A candidate that passes hosted validation is still only **provisionally viable**
 
 Because that physical target benchmark is not available to the current hosted agent, this PR must not be treated as completing issue #42. The correct state is: cross-browser/numeric evidence may become green; production formats remain unchanged; target-hardware adoption/closure remains blocked.
 
+## Physical target execution entry point
+
+The repository-native GTX 1650 SUPER full-renderer sweep is:
+
+```text
+python tools/run_webgpu_target_campaign.py --phase sm800-sweep --warmup 100 --samples 200
+```
+
+The sweep recreates resources for every canonical scene and runs `reference`, `material8`, and `octMaterial8` in separate fresh Chrome processes at Medium, 1920×1080, DPR 1, GTAO off. It retains raw whole-renderer timestamp samples, screenshots, production G-buffer/final-lighting readbacks, clean source identity, and the three required attributions (`reference -> material8`, `material8 -> octMaterial8`, and `reference -> octMaterial8`). `tools/validate_sm800_target_report.py` validates the resulting report.
+
+The candidate formats are opt-in benchmark options. The default G-buffer and lighting constructors continue to use explicit XYZ `rgba16float` G1 and `rgba16float` G2, so running or merging the study does not adopt a production format.
+
 ## Current acceptance record
 
 The deterministic model establishes the bounded descriptor footprint above and keeps object/depth correctness invariant. It reports 0.8639° maximum octahedral-normal error over 4096 CPU directions and 0.001961 maximum normalized material-channel quantization error, both inside their stated thresholds.
