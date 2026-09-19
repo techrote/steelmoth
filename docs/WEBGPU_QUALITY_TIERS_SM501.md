@@ -26,11 +26,11 @@ The local-shadow sample values are the production SM-205 tables, not invented SM
 
 **Medium is the design target**, not an emergency fallback: it retains 12-tap local height self-shadow, two selected self-shadow lights, 8-tap contact, Medium DSO hierarchy and Medium Dark Bloom. It does not reduce any core representation.
 
-GTAO, SSGI and volumetrics have reserved policy slots so later issues can join the same static ladder, but SM-501 does not pretend those effects exist. Their `implemented` and `enabled` fields remain false in every current preset. Adaptive/p95-driven switching remains exclusively SM-802.
+GTAO is implemented and owned by SM-600/601, but it is deliberately outside the SM-501 initial WebGPU release scope. Every SM-501 preset therefore reports GTAO as `implemented: true`, `enabled: false`, `quality: off`, owned by `SM-601`, and excluded from the SM-501 acceptance total. SSGI and volumetrics remain unimplemented and disabled reserved slots. Adaptive/p95-driven switching remains exclusively SM-802.
 
 ## Benchmark protocol
 
-The acceptance environment is the physical NVIDIA GeForce GTX 1650 SUPER 4 GB, Windows desktop browser, native 1920×1080, DPR 1. Chrome is the primary performance browser; Firefox requires at least a target-machine correctness/performance spot-check. The adapter must expose `timestamp-query`; CPU encoding or requestAnimationFrame duration must never substitute for GPU time.
+The acceptance environment is the physical NVIDIA GeForce GTX 1650 SUPER 4 GB, Windows desktop browser, native 1920×1080, DPR 1. Chrome is the primary performance browser; Firefox requires at least a target-machine correctness/performance spot-check. The adapter must expose `timestamp-query`; CPU encoding or requestAnimationFrame duration must never substitute for GPU time. Every acceptance run must set **GTAO OFF** and identify the `sm501-initial-webgpu-release` scope. GTAO work must not be included in the renderer-total samples used to close SM-501.
 
 Each canonical scenario uses:
 

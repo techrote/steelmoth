@@ -33,8 +33,10 @@ for name in ('Low','Medium','High','Ultra'):
 require('selfShadowSamples:12' in quality and 'contactShadowSamples:8' in quality, 'Medium must retain representative 12/8 local-shadow sampling')
 require("hierarchyQuality:'Medium'" in quality and "quality:'Medium'" in quality, 'Medium must consume Medium DSO/Dark-Bloom policy')
 require("hardCore:'full'" in quality, 'quality policy must preserve full hard DSO ownership')
-require(quality.count('implemented:false') >= 12, 'reserved future effects must not be reported implemented by SM-501')
-require(quality.count('enabled:false') >= 12, 'reserved future effects must remain disabled until owning issues land')
+require(quality.count('implemented:true') >= 4 and quality.count("owner:'SM-601'") >= 4, 'GTAO must be acknowledged as implemented under SM-601 ownership')
+require(quality.count('implemented:false') >= 8, 'SSGI and volumetrics must not be reported implemented by SM-501')
+require(quality.count('enabled:false') >= 12, 'GTAO, SSGI and volumetrics must remain disabled in SM-501')
+require(quality.count("acceptanceScope:'excluded-from-sm501-initial-release'") >= 4, 'GTAO must be explicitly excluded from the SM-501 initial-release benchmark')
 require("STORAGE_KEY='steelmoth-webgpu-quality-preset-v1'" in quality, 'static preset selection must have a dedicated persistent key')
 require('webgpuQualitySelect' in quality and 'webgpuQualityStatus' in quality, 'graphics panel quality selector/diagnostics are missing')
 require('webgpuQuality' in quality and 'URLSearchParams' in quality, 'target/diagnostic runs must be able to select an explicit preset by query')
@@ -58,6 +60,7 @@ for phrase in (
 
 require('Auto' in doc and 'SM-505' in doc, 'SM-501 must preserve SM-505 default-backend ownership')
 require('SM-802' in doc, 'SM-501 must not absorb adaptive quality ownership')
+require('GTAO OFF' in doc and 'SM-601' in doc, 'SM-501 docs must acknowledge implemented GTAO while keeping it outside the release benchmark')
 
 if errors:
     print('SM-501 QUALITY CONTRACT FAIL')

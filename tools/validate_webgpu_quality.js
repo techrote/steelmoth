@@ -38,7 +38,10 @@ for(const name of Quality.NAMES){
   assert(p.localShadows.selfShadowSamples>=prevSelf,'self-shadow work must be monotonic by tier');
   assert(p.localShadows.contactShadowSamples>=prevContact,'contact work must be monotonic by tier');
   prevSelf=p.localShadows.selfShadowSamples;prevContact=p.localShadows.contactShadowSamples;
-  assert.equal(p.reserved.gtao.implemented,false);
+  assert.equal(p.reserved.gtao.implemented,true);
+  assert.equal(p.reserved.gtao.owner,'SM-601');
+  assert.equal(p.reserved.gtao.acceptanceScope,'excluded-from-sm501-initial-release');
+  assert.equal(p.reserved.gtao.quality,'off');
   assert.equal(p.reserved.ssgi.implemented,false);
   assert.equal(p.reserved.volumetrics.implemented,false);
   assert.equal(p.reserved.gtao.enabled,false);

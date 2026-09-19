@@ -26,25 +26,25 @@
       localShadows:Object.freeze({selfShadowQuality:1,selfShadowSamples:8,selfShadowLightCount:1,selfShadowMaxDistance:112,contactShadowQuality:1,contactShadowSamples:4,contactShadowDistance:16}),
       dso:Object.freeze({hardCore:'full',hierarchyQuality:'Low',maxJobs:512,maxMembers:512,maxPerTile:32,maxTileRefs:16384}),
       darkBloom:Object.freeze({enabled:true,quality:'Low'}),
-      reserved:Object.freeze({gtao:Object.freeze({implemented:false,enabled:false,quality:'off'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'off'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'off'})})
+      reserved:Object.freeze({gtao:Object.freeze({implemented:true,enabled:false,quality:'off',owner:'SM-601',acceptanceScope:'excluded-from-sm501-initial-release'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'off'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'off'})})
     }),
     Medium:Object.freeze({
       localShadows:Object.freeze({selfShadowQuality:2,selfShadowSamples:12,selfShadowLightCount:2,selfShadowMaxDistance:144,contactShadowQuality:2,contactShadowSamples:8,contactShadowDistance:20}),
       dso:Object.freeze({hardCore:'full',hierarchyQuality:'Medium',maxJobs:512,maxMembers:512,maxPerTile:32,maxTileRefs:16384}),
       darkBloom:Object.freeze({enabled:true,quality:'Medium'}),
-      reserved:Object.freeze({gtao:Object.freeze({implemented:false,enabled:false,quality:'medium'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'optional-low'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'low'})})
+      reserved:Object.freeze({gtao:Object.freeze({implemented:true,enabled:false,quality:'off',owner:'SM-601',acceptanceScope:'excluded-from-sm501-initial-release'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'optional-low'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'low'})})
     }),
     High:Object.freeze({
       localShadows:Object.freeze({selfShadowQuality:3,selfShadowSamples:16,selfShadowLightCount:3,selfShadowMaxDistance:176,contactShadowQuality:3,contactShadowSamples:12,contactShadowDistance:28}),
       dso:Object.freeze({hardCore:'full',hierarchyQuality:'High',maxJobs:512,maxMembers:512,maxPerTile:32,maxTileRefs:16384}),
       darkBloom:Object.freeze({enabled:true,quality:'High'}),
-      reserved:Object.freeze({gtao:Object.freeze({implemented:false,enabled:false,quality:'high'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'medium'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'medium'})})
+      reserved:Object.freeze({gtao:Object.freeze({implemented:true,enabled:false,quality:'off',owner:'SM-601',acceptanceScope:'excluded-from-sm501-initial-release'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'medium'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'medium'})})
     }),
     Ultra:Object.freeze({
       localShadows:Object.freeze({selfShadowQuality:4,selfShadowSamples:28,selfShadowLightCount:4,selfShadowMaxDistance:176,contactShadowQuality:3,contactShadowSamples:12,contactShadowDistance:36}),
       dso:Object.freeze({hardCore:'full',hierarchyQuality:'Ultra',maxJobs:512,maxMembers:512,maxPerTile:32,maxTileRefs:16384}),
       darkBloom:Object.freeze({enabled:true,quality:'Ultra'}),
-      reserved:Object.freeze({gtao:Object.freeze({implemented:false,enabled:false,quality:'high'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'high'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'high'})})
+      reserved:Object.freeze({gtao:Object.freeze({implemented:true,enabled:false,quality:'off',owner:'SM-601',acceptanceScope:'excluded-from-sm501-initial-release'}),ssgi:Object.freeze({implemented:false,enabled:false,quality:'high'}),volumetrics:Object.freeze({implemented:false,enabled:false,quality:'high'})})
     })
   });
 
@@ -85,7 +85,7 @@
 
   function diagnostics(value='Medium'){
     const p=resolvePreset(value);
-    return {schema:SCHEMA,preset:p.name,core:p.core,localShadows:p.localShadows,dso:p.dso,darkBloom:p.darkBloom,reserved:p.reserved,policy:'Quality scaling is restricted to bounded secondary work; albedo, object-ID and primary ownership depth stay native/full resolution. Reserved effects remain disabled until their owning issues implement and validate them.'};
+    return {schema:SCHEMA,preset:p.name,core:p.core,localShadows:p.localShadows,dso:p.dso,darkBloom:p.darkBloom,reserved:p.reserved,policy:'Quality scaling is restricted to bounded secondary work; albedo, object-ID and primary ownership depth stay native/full resolution. GTAO is implemented by SM-600/601 but remains disabled and excluded from the SM-501 initial-release benchmark; later effects remain disabled until their owning issues implement and validate them.'};
   }
 
   function createRuntime(options={}){

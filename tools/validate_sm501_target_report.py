@@ -31,6 +31,13 @@ def main() -> int:
 
     require(payload.get('schema')=='steelmoth-sm501-gtx1650s/v1','schema must be steelmoth-sm501-gtx1650s/v1')
     require(payload.get('qualityPreset')=='Medium','acceptance report must benchmark Medium')
+    require(payload.get('releaseScope')=='sm501-initial-webgpu-release','acceptance report must identify the SM-501 initial WebGPU release scope')
+    effects=payload.get('effects') or {}
+    gtao=effects.get('gtao') or {}
+    require(gtao.get('implemented') is True,'report must acknowledge GTAO is implemented by SM-600/601')
+    require(gtao.get('enabled') is False,'SM-501 acceptance requires GTAO explicitly disabled')
+    require(gtao.get('includedInRendererTotal') is False,'SM-501 renderer total must exclude GTAO')
+    require(gtao.get('owner')=='SM-601','report must preserve SM-601 ownership of GTAO')
     require(payload.get('resolution')==[1920,1080],'acceptance report must be native 1920x1080')
     require(float(payload.get('dpr',0) or 0)==1.0,'acceptance report must use DPR 1')
     require(payload.get('timestampQuery') is True,'timestamp-query must be available; CPU time cannot substitute')
