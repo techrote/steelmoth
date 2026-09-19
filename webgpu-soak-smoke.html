@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-803 WebGPU soak</title>
+<canvas id="probe" width="64" height="64" style="display:none"></canvas>
+<canvas id="fallbackProbe" width="8" height="8" style="display:none"></canvas>
+<pre id="status">Running SM-803 soak…</pre>
+<script id="webgpuSoakResult" type="application/json">{"schema":"steelmoth-sm803-browser-soak/v1","ok":false,"status":"pending"}</script>
+<script src="engine/webgpu_device.js?v=sm803-1"></script>
+<script src="engine/webgpu_resources.js?v=sm803-1"></script>
+<script src="engine/webgpu_transition_state.js?v=sm803-1"></script>
+<script src="engine/webgpu_editor_state.js?v=sm803-1"></script>
+<script src="engine/webgpu_soak.js?v=sm803-1"></script>
+<script src="engine/backend_runtime.js?v=sm803-1"></script>
+<script>
+(async()=>{
+  const D=globalThis.SteelMothWebGPUDevice,R=globalThis.SteelMothWebGPUResources,T=globalThis.SteelMothWebGPUTransitionState,E=globalThis.SteelMothWebGPUEditorState,S=globalThis.SteelMothWebGPUSoak,B=globalThis.SteelMothBackendRuntime;
+  const params=new URLSearchParams(location.search),cycles=Math.max(64,Math.min(4000,Number(params.get('cycles'))||600));
+  const result={schema:'steelmoth-sm803-browser-soak/v1',ok:false,browser:navigator.userAgent,platform:navigator.platform||null,cycles,checks:[],timeline:[],adapter:null,resourceSummary:null,transition:null,editor:null,fallback:null,recovery:null,manager:null};
+  const check=(id,ok,details={})=>{const row={id,ok:!!ok,...details};result.checks.push(row);if(!ok)throw new Error(`SM-803 check failed: ${id} ${JSON.stringify(details)}`);return row};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('webgpuSoakResult').textContent=json;document.body.dataset.webgpuSoakDone='1'};
+  const invalidator=()=>({calls:[],invalidate(reason,clearHistory=false){this.calls.push({reason,clearHistory})}});
+  let manager=null,registry=null,recoveryRuntime=null;
+  try{
+    check('apis-loaded',!!(D&&R&&T&&E&&S&&B));check('secure-context',isSecureContext);check('navigator-gpu',!!navigator.gpu);
+    manager=new D.WebGPUDeviceManager({navigatorRef:navigator});await manager.initialize({canvas:document.getElementById('probe'),width:64,height:64,dpr:1,allowFallbackAdapter:true});
+    check('real-device-ready',manager.status==='ready'&&!!manager.device,{status:manager.status});
+    result.adapter={selection:manager.adapterSelection,fallbackRequested:manager.fallbackAdapterRequested,info:manager.info,features:[...manager.features].sort()};
+    registry=new R.ResourceRegistry({device:manager.device,queue:manager.device.queue,width:64,height:64,dynamicUploadBytes:16384,labelPrefix:'SM803Browser'});
+    registry.defineTexture('hdr',{format:'rgba16float',usage:R.TEXTURE_USAGE.RENDER_ATTACHMENT|R.TEXTURE_USAGE.TEXTURE_BINDING,size:'surface',resizeDependent:true});
+    registry.defineTexture('objectId',{format:'r32uint',usage:R.TEXTURE_USAGE.RENDER_ATTACHMENT|R.TEXTURE_USAGE.TEXTURE_BINDING,size:'surface',resizeDependent:true});
+    registry.defineBuffer('staticScene',{size:4096,usage:R.BUFFER_USAGE.STORAGE|R.BUFFER_USAGE.COPY_DST});
+    registry.ensureDynamicArena('frame',{capacity:16384,usage:R.BUFFER_USAGE.STORAGE});
+    const transition=new T.RenderTransitionInvalidationGraph({roomId:'room-0',backend:'webgpu',extent:{width:64,height:64,dpr:1},maxEvents:48});
+    const temporal=invalidator();transition.register('darkBloomTemporal',temporal,{history:true});transition.register('depthHierarchy',invalidator());
+    const editor=new E.EditorRenderInvalidationHub({maxEvents:32});editor.register('depthHierarchy',invalidator(),{persistent:true});
+    const monitor=new S.SoakMonitor({warmupSamples:16,maxSamples:256,resourceCountSlack:0,byteSlack:0});
+    const extents=[[64,64],[96,64],[64,96],[80,80]],started=performance.now();let staleRejects=0,managerResizes=0,deviceRebuilds=0;
+    for(let i=0;i<cycles;i++){
+      const [w,h]=extents[i%extents.length];registry.beginFrame();registry.uploadDynamic('frame',new Uint32Array([i,i+1,i+2,i+3]),{capacity:16384,usage:R.BUFFER_USAGE.STORAGE});registry.resize(w,h);
+      if(i%3===0){transition.recordDerived('objectId',{cycle:i});transition.invalidate('room-change',{fromRoomId:`room-${i}`,toRoomId:`room-${i+1}`});if(transition.readDerived('objectId')===null)staleRejects++}
+      else if(i%7===0)transition.invalidate('resize',{extent:{width:w,height:h,dpr:1}});
+      if(i%5===0){const reasons=['place','move','delete','undo','redo'];editor.invalidate(reasons[(i/5)%reasons.length|0],{roomId:`room-${i%11}`,room:{editor_decor:[{editor_id:'decor_1',x:i,y:i+1}]}});editor.markRebuilt()}
+      if(i>0&&i%101===0){registry.resetDevice(manager.device,manager.device.queue);transition.invalidate('device-rebuild',{fromBackend:'webgpu',toBackend:'webgpu',extent:{width:w,height:h,dpr:1}});deviceRebuilds++}
+      if(i>0&&i%32===0){await manager.resize(w,h,1);managerResizes++}
+      const resources=registry.diagnostics(),managerDiag=manager.diagnostics();
+      check(`live-balance-${i}`,resources.createCount-resources.destroyCount===resources.resourceCount,{createCount:resources.createCount,destroyCount:resources.destroyCount,resourceCount:resources.resourceCount});
+      monitor.sample(`cycle-${i}`,{resources,pipelines:{schema:'steelmoth-webgpu-pipeline-cache/v1',generation:1,count:0}}, {transition:transition.diagnostics(),transitionMaxEvents:48,editor:editor.diagnostics(),editorMaxEvents:32,uncapturedErrors:(managerDiag.uncapturedErrors||[]).length,backendStatus:managerDiag.status});
+      if(i%50===0||i===cycles-1)result.timeline.push({cycle:i,elapsedMs:performance.now()-started,resourceCount:resources.resourceCount,estimatedBytes:resources.estimatedBytes,createCount:resources.createCount,destroyCount:resources.destroyCount,resizeCount:resources.resizeCount,generation:resources.generation,transitionRevision:transition.revision,editorRevision:editor.revision});
+    }
+    const summary=monitor.summary(),resourceDiag=registry.diagnostics(),managerDiag=manager.diagnostics();result.resourceSummary=summary;result.transition=transition.diagnostics();result.editor=editor.diagnostics();result.manager=managerDiag;
+    check('soak-monitor-bounded',summary.ok,{errors:summary.errors.slice(0,3)});check('stale-state-rejected',staleRejects>=Math.floor(cycles/4),{staleRejects});check('transition-log-bounded',result.transition.events.length<=48,{events:result.transition.events.length});check('editor-log-bounded',result.editor.events.length<=32,{events:result.editor.events.length});check('temporal-history-cleared',temporal.calls.some(x=>x.clearHistory===true));check('resize-exercised',managerResizes>=1,{managerResizes});check('device-rebuild-exercised',deviceRebuilds>=1||cycles<102,{deviceRebuilds});check('no-uncaptured-errors',(managerDiag.uncapturedErrors||[]).length===0,{errors:managerDiag.uncapturedErrors});check('owned-resource-balance',resourceDiag.createCount-resourceDiag.destroyCount===resourceDiag.resourceCount,resourceDiag);
+
+    const fakeFailureRuntime=new B.BackendRuntime({root:{},documentRef:document,locationRef:{search:'',hostname:'localhost'},storage:null,navigatorRef:navigator,canvasFactory:()=>document.createElement('canvas'),managerFactory:()=>({status:'idle',configuration:null,async initialize(){throw new Error('SM803 deliberate init failure')},close(){},diagnostics(){return{status:this.status}}}),infrastructureFactory:()=>{throw new Error('must not create infrastructure after deliberate failure')}});
+    const fallback=await fakeFailureRuntime.select(D.BACKENDS.WEBGPU,{persist:false});const gl=document.getElementById('fallbackProbe').getContext('webgl2',{antialias:false});result.fallback={diagnostics:fallback,webgl2Context:!!gl};check('init-failure-falls-back',fallback.activeBackend===D.BACKENDS.WEBGL2&&fallback.presentationBackend===D.BACKENDS.WEBGL2&&fallback.status==='fallback',fallback);check('fallback-webgl2-playable',!!gl);
+
+    recoveryRuntime=new B.BackendRuntime({root:window,documentRef:document,locationRef:{search:'',hostname:'localhost'},storage:null,navigatorRef:navigator,canvasFactory:()=>document.createElement('canvas')});
+    const recovered=await recoveryRuntime.select(D.BACKENDS.WEBGPU,{persist:false});result.recovery={selected:recovered};check('backend-recovery-webgpu',recovered.activeBackend===D.BACKENDS.WEBGPU&&recovered.status==='ready-platform',{activeBackend:recovered.activeBackend,status:recovered.status});
+    recoveryRuntime._deviceLost(recoveryRuntime.manager,{reason:'destroyed',message:'SM803 synthetic loss callback'});const lost=recoveryRuntime.diagnostics();result.recovery.afterLoss=lost;check('device-loss-fallback',lost.activeBackend===D.BACKENDS.WEBGL2&&lost.status==='fallback-device-lost',{activeBackend:lost.activeBackend,status:lost.status});
+    const restarted=await recoveryRuntime.select(D.BACKENDS.WEBGPU,{persist:false});result.recovery.afterRestart=restarted;check('backend-restart-webgpu',restarted.activeBackend===D.BACKENDS.WEBGPU&&restarted.status==='ready-platform',{activeBackend:restarted.activeBackend,status:restarted.status});
+
+    const beforeClose=registry.diagnostics();registry.close();const afterClose=registry.diagnostics();result.close={before:beforeClose,after:afterClose};check('close-releases-owned-resources',afterClose.resourceCount===0&&afterClose.createCount-afterClose.destroyCount===0,{resourceCount:afterClose.resourceCount,createCount:afterClose.createCount,destroyCount:afterClose.destroyCount});
+    result.elapsedMs=performance.now()-started;result.ok=true;
+  }catch(error){result.error=String(error?.stack||error)}
+  finally{try{registry?.close?.()}catch(_e){}try{manager?.close?.()}catch(_e){}try{recoveryRuntime?.close?.()}catch(_e){}publish()}
+})();
+</script>
