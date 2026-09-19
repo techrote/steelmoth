@@ -20,7 +20,7 @@ try{
   await import('./engine/webgpu_dominance.js?v=sm302-1');
   await import('./engine/webgpu_dso.js?v=sm303-1');
   await import('./engine/webgpu_dso_hierarchy.js?v=sm304-1');
-  await import('./engine/webgpu_dark_bloom.js?v=sm305-1');
+  await import('./engine/webgpu_dark_bloom.js?v=sm305-2');
   const H=globalThis.SteelMothWebGPUDSO,S=globalThis.SteelMothWebGPUDSOHierarchy,B=globalThis.SteelMothWebGPUDarkBloom;
   check(!!B?.WebGPUDarkBloom,'SM-305 Dark Bloom API available');check(B.SCALE===2,'SM-305 residual field runs at fixed half resolution');
 
