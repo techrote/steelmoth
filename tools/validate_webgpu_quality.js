@@ -63,4 +63,10 @@ const workload=Quality.workloadMetadata('Medium');assert.equal(workload.qualityP
 
 const diag=Quality.diagnostics('Ultra');assert.equal(diag.preset,'Ultra');assert(/albedo, object-ID and primary ownership depth stay native\/full resolution/.test(diag.policy));
 
-console.log('SM-501 QUALITY PRESETS PASS: Low/Medium/High/Ultra are bounded, core representation is invariant, Medium is representative, and current subsystem sample/quality contracts agree');
+const stored=new Map([[Quality.STORAGE_KEY,'High']]);
+const storage={getItem:key=>stored.get(key)||null,setItem:(key,value)=>stored.set(key,value)};
+const persisted=Quality.createRuntime({storage,location:{search:''}});assert.equal(persisted.preset,'High');assert.equal(persisted.source,'storage');persisted.setPreset('Low',{persist:true,source:'test'});assert.equal(stored.get(Quality.STORAGE_KEY),'Low');assert.equal(persisted.diagnostics().selectionSource,'test');
+const query=Quality.createRuntime({storage,location:{search:'?webgpuQuality=Ultra'}});assert.equal(query.preset,'Ultra');assert.equal(query.source,'query');assert.equal(query.workloadMetadata().selfShadowSamples,28);
+const badQuery=Quality.createRuntime({storage:{getItem:()=>null,setItem(){}},location:{search:'?webgpuQuality=bogus'}});assert.equal(badQuery.preset,'Medium');
+
+console.log('SM-501 QUALITY PRESETS PASS: Low/Medium/High/Ultra are bounded, core representation is invariant, Medium is representative, production subsystem mappings agree, and static selection is query/storage/UI-ready');
