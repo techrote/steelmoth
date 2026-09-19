@@ -1,0 +1,49 @@
+name: SM-800 precision and bandwidth study
+
+on:
+  pull_request:
+    paths:
+      - 'tools/sm800_precision_probe.js'
+      - 'tools/validate_webgpu_precision.js'
+      - 'tools/validate_webgpu_precision_browser.py'
+      - 'tools/validate_webgpu_precision_contract.py'
+      - 'webgpu-precision-smoke.html'
+      - 'docs/WEBGPU_PRECISION_BANDWIDTH_SM800.md'
+      - 'docs/RESEARCH_AND_DECISIONS.md'
+      - '.github/workflows/sm800-precision-bandwidth.yml'
+  workflow_dispatch:
+
+jobs:
+  precision-bandwidth-study:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser harness
+        run: |
+          python -m pip install -r tools/requirements-ci.txt
+          python -m pip install "selenium>=4.25,<5"
+      - name: Deterministic precision model and source contract
+        run: |
+          node --check tools/sm800_precision_probe.js
+          node --check tools/validate_webgpu_precision.js
+          node tools/validate_webgpu_precision.js
+          python -m py_compile tools/validate_webgpu_precision_browser.py tools/validate_webgpu_precision_contract.py
+          python tools/validate_webgpu_precision_contract.py
+      - name: Run Chrome and Firefox WebGPU precision A/B
+        env:
+          MOZ_WEBRENDER: '1'
+        run: python tools/validate_webgpu_precision_browser.py --timeout 180 --report artifacts/sm800/precision-bandwidth-report.json
+      - name: Upload SM-800 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm800-precision-bandwidth-evidence
+          path: artifacts/sm800/
+          if-no-files-found: warn

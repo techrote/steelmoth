@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-800 precision/bandwidth study</title>
+<pre id="status">Running SM-800 precision/bandwidth study…</pre>
+<script id="webgpuPrecisionResult" type="application/json">{"schema":"steelmoth-sm800-browser/v1","ok":false,"status":"pending"}</script>
+<script src="tools/sm800_precision_probe.js"></script>
+<script>
+(async()=>{
+  const P=globalThis.SteelMothSM800;
+  const result={schema:'steelmoth-sm800-browser/v1',ok:false,browser:navigator.userAgent,checks:[],adapter:null,timestampQuery:false,numeric:{},layouts:{},deterministic:P?.deterministicReport?.()||null};
+  const check=(id,ok,details={})=>{result.checks.push({id,ok:!!ok,...details});if(!ok)throw new Error(`SM-800 check failed: ${id}`)};
+  const publish=()=>{const s=JSON.stringify(result);document.getElementById('status').textContent=s;document.getElementById('webgpuPrecisionResult').textContent=s;document.body.dataset.webgpuPrecisionDone='1'};
+  const align=(n,m=256)=>Math.ceil(n/m)*m;
+  const halfToFloat=h=>{h=Number(h)&0xffff;const s=(h>>15)&1,e=(h>>10)&31,f=h&1023;if(e===0)return (s?-1:1)*Math.pow(2,-14)*(f/1024);if(e===31)return f?NaN:(s?-Infinity:Infinity);return (s?-1:1)*Math.pow(2,e-15)*(1+f/1024)};
+  const decodeUFloat=(bits,mant)=>{const exp=(bits>>mant)&31,frac=bits&((1<<mant)-1);if(exp===0)return frac*Math.pow(2,1-15-mant);if(exp===31)return frac?NaN:Infinity;return (1+frac/Math.pow(2,mant))*Math.pow(2,exp-15)};
+  const decodeRG11B10=u=>[decodeUFloat(u&0x7ff,6),decodeUFloat((u>>>11)&0x7ff,6),decodeUFloat((u>>>22)&0x3ff,5)];
+  const fullscreenVS=`@vertex fn vs(@builtin(vertex_index) i:u32)->@builtin(position) vec4f{let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[i],0,1);}`;
+  async function module(device,label,code){const m=device.createShaderModule({label,code});if(m.getCompilationInfo){const info=await m.getCompilationInfo(),errors=[...info.messages].filter(x=>x.type==='error');if(errors.length)throw new Error(`${label}: ${errors.map(x=>x.message).join(' | ')}`)}return m}
+  async function scopedPipeline(device,label,descriptor){device.pushErrorScope?.('validation');let pipeline=null,thrown=null,scoped=null;try{pipeline=await device.createRenderPipelineAsync({...descriptor,label})}catch(e){thrown=e}if(device.popErrorScope)scoped=await device.popErrorScope();if(thrown)throw thrown;if(scoped)throw new Error(scoped.message||String(scoped));return pipeline}
+  async function renderRead(device,format,fragment,width=16,height=16){
+    const shader=await module(device,`SM800 ${format}`,fullscreenVS+fragment),pipeline=await scopedPipeline(device,`SM800 ${format} pipeline`,{layout:'auto',vertex:{module:shader,entryPoint:'vs'},fragment:{module:shader,entryPoint:'fs',targets:[{format}]},primitive:{topology:'triangle-list'}});
+    const texture=device.createTexture({size:{width,height,depthOrArrayLayers:1},format,usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC}),bytesPerPixel=format==='rgba16float'?8:4,row=align(width*bytesPerPixel,256),buffer=device.createBuffer({size:row*height,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+    const enc=device.createCommandEncoder(),pass=enc.beginRenderPass({colorAttachments:[{view:texture.createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}]});pass.setPipeline(pipeline);pass.draw(3);pass.end();enc.copyTextureToBuffer({texture},{buffer,bytesPerRow:row,rowsPerImage:height},{width,height,depthOrArrayLayers:1});device.queue.submit([enc.finish()]);await buffer.mapAsync(GPUMapMode.READ);const copy=new Uint8Array(buffer.getMappedRange()).slice();buffer.unmap();buffer.destroy();texture.destroy();return {bytes:copy,row,bytesPerPixel};
+  }
+  function expectedNormal(x,y,w=16,h=16){const u=(x+.5)/w,v=(y+.5)/h,phi=u*Math.PI*2,z=v*2-1,r=Math.sqrt(Math.max(0,1-z*z));return [r*Math.cos(phi),r*Math.sin(phi),z]}
+  async function numericTests(device){
+    const normalFrag=`fn oct(n0:vec3f)->vec2f{var n=n0/(abs(n0.x)+abs(n0.y)+abs(n0.z));if(n.z<0.0){let old=n.xy;n.x=(1.0-abs(old.y))*select(-1.0,1.0,old.x>=0.0);n.y=(1.0-abs(old.x))*select(-1.0,1.0,old.y>=0.0);}return n.xy*.5+.5;} @fragment fn fs(@builtin(position) p:vec4f)->@location(0) vec4f{let u=p.xy/vec2f(16,16);let phi=u.x*6.28318530718;let z=u.y*2.0-1.0;let r=sqrt(max(0.0,1.0-z*z));let n=vec3f(r*cos(phi),r*sin(phi),z);let e=oct(n);return vec4f(e,(u.x+u.y)*.5,1);}`;
+    const nr=await renderRead(device,'rgba8unorm',normalFrag);let maxAngle=0,roughMax=0;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const o=y*nr.row+x*4,e=[nr.bytes[o]/255,nr.bytes[o+1]/255],decoded=P.octDecode(e),angle=P.angularErrorDeg(expectedNormal(x,y),decoded);maxAngle=Math.max(maxAngle,angle);const expected=((x+.5)/16+(y+.5)/16)*.5;roughMax=Math.max(roughMax,Math.abs(nr.bytes[o+2]/255-expected))}result.numeric.oct8={maxAngleDeg:maxAngle,roughnessMaxAbsError:roughMax,pass:maxAngle<=1.0&&roughMax<=1/510+1e-6};check('oct8-roundtrip',result.numeric.oct8.pass,result.numeric.oct8);
+    const matFrag=`@fragment fn fs(@builtin(position) p:vec4f)->@location(0) vec4f{let x=i32(p.x-.5);let y=i32(p.y-.5);let h=(p.x)/16.0;let m=(p.y)/16.0;let ao=f32((x*3+y*5)%17)/16.0;let em=f32((x+y)%5)/4.0;return vec4f(h,m,ao,em);}`;
+    const mr=await renderRead(device,'rgba8unorm',matFrag);let matMax=0;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const o=y*mr.row+x*4,src=[(x+.5)/16,(y+.5)/16,((x*3+y*5)%17)/16,((x+y)%5)/4];for(let c=0;c<4;c++)matMax=Math.max(matMax,Math.abs(mr.bytes[o+c]/255-src[c]))}result.numeric.material8={maxAbsError:matMax,pass:matMax<=1/510+1e-6};check('material8-roundtrip',result.numeric.material8.pass,result.numeric.material8);
+    const hdrFrag=`@fragment fn fs(@builtin(position) p:vec4f)->@location(0) vec4f{let r=p.x/16.0*8.0;let g=p.y/16.0*4.0;let b=(p.x+p.y)/32.0*2.0;return vec4f(r,g,b,1);}`;
+    const hr=await renderRead(device,'rg11b10ufloat',hdrFrag);let maxRel=0,maxAbs=0;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const o=y*hr.row+x*4,u=new DataView(hr.bytes.buffer,hr.bytes.byteOffset+o,4).getUint32(0,true),got=decodeRG11B10(u),src=[(x+.5)/16*8,(y+.5)/16*4,((x+.5)+(y+.5))/32*2];for(let c=0;c<3;c++){const e=Math.abs(got[c]-src[c]);maxAbs=Math.max(maxAbs,e);maxRel=Math.max(maxRel,e/Math.max(.125,Math.abs(src[c])))}}result.numeric.hdr11={maxAbsError:maxAbs,maxRelativeError:maxRel,pass:maxRel<=.02};check('hdr11-roundtrip',result.numeric.hdr11.pass,result.numeric.hdr11);
+  }
+  async function benchmarkLayout(device,name,layout,width,height,warmup,samples,timestamp){
+    const g1Oct=layout.g1==='rgba8unorm';
+    const frag=`struct Out{@location(0) g1:vec4f,@location(1) g2:vec4f,@location(2) hdr:vec4f};fn oct(n0:vec3f)->vec2f{var n=n0/(abs(n0.x)+abs(n0.y)+abs(n0.z));if(n.z<0.0){let old=n.xy;n.x=(1.0-abs(old.y))*select(-1.0,1.0,old.x>=0.0);n.y=(1.0-abs(old.x))*select(-1.0,1.0,old.y>=0.0);}return n.xy*.5+.5;} @fragment fn fs(@builtin(position) p:vec4f)->Out{let uv=p.xy/vec2f(${width},${height});let n=normalize(vec3f(uv*2.0-1.0,1.0));var o:Out;${g1Oct?'let e=oct(n);o.g1=vec4f(e,.55,1);':'o.g1=vec4f(n*.5+.5,.55);'}o.g2=vec4f(fract(uv.x*3.1),.72,.81,.13);o.hdr=vec4f(uv.x*6.0+.1,uv.y*3.0+.1,(uv.x+uv.y)*1.5+.1,1);return o;}`;
+    const shader=await module(device,`SM800 ${name}`,fullscreenVS+frag);let pipeline;try{pipeline=await scopedPipeline(device,`SM800 ${name} pipeline`,{layout:'auto',vertex:{module:shader,entryPoint:'vs'},fragment:{module:shader,entryPoint:'fs',targets:[{format:layout.g1},{format:layout.g2},{format:layout.hdr}]},primitive:{topology:'triangle-list'}})}catch(error){return {supported:false,error:String(error)}}
+    const formats=[layout.g1,layout.g2,layout.hdr],textures=formats.map((format,i)=>device.createTexture({label:`SM800 ${name} ${i}`,size:{width,height,depthOrArrayLayers:1},format,usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.TEXTURE_BINDING}));
+    const total=warmup+samples,querySet=timestamp?device.createQuerySet({type:'timestamp',count:total*2}):null,queryBytes=total*16,resolve=timestamp?device.createBuffer({size:queryBytes,usage:GPUBufferUsage.QUERY_RESOLVE|GPUBufferUsage.COPY_SRC}):null,readback=timestamp?device.createBuffer({size:queryBytes,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ}):null,enc=device.createCommandEncoder();
+    for(let i=0;i<total;i++){const desc={colorAttachments:textures.map(t=>({view:t.createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}))};if(timestamp)desc.timestampWrites={querySet,beginningOfPassWriteIndex:i*2,endOfPassWriteIndex:i*2+1};const pass=enc.beginRenderPass(desc);pass.setPipeline(pipeline);pass.draw(3);pass.end()}
+    if(timestamp){enc.resolveQuerySet(querySet,0,total*2,resolve,0);enc.copyBufferToBuffer(resolve,0,readback,0,queryBytes)}device.queue.submit([enc.finish()]);await device.queue.onSubmittedWorkDone();let times=[];if(timestamp){await readback.mapAsync(GPUMapMode.READ);const vals=new BigUint64Array(readback.getMappedRange().slice(0));readback.unmap();for(let i=warmup;i<total;i++){const a=vals[i*2],b=vals[i*2+1];if(b>=a)times.push(Number(b-a)/1e6)}}for(const t of textures)t.destroy();querySet?.destroy?.();resolve?.destroy();readback?.destroy();return {supported:true,summary:P.summarize(times),timestampSamples:times.length,formatBytesPerPixel:P.layoutBytes(name).bytesPerPixel};
+  }
+  try{
+    check('probe-module',!!P);
+    check('navigator-gpu',!!navigator.gpu);
+    let adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});let selection='preferred';if(!adapter){adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:true});selection='fallback'}check('adapter',!!adapter,{selection});
+    const features=[];if(adapter.features?.has?.('timestamp-query'))features.push('timestamp-query');if(adapter.features?.has?.('rg11b10ufloat-renderable'))features.push('rg11b10ufloat-renderable');const device=await adapter.requestDevice({requiredFeatures:features});result.timestampQuery=features.includes('timestamp-query');const info=adapter.info||{};result.adapter={selection,isFallbackAdapter:!!adapter.isFallbackAdapter,vendor:String(info.vendor||''),architecture:String(info.architecture||''),device:String(info.device||''),description:String(info.description||''),features:[...adapter.features].sort(),requestedFeatures:[...features]};
+    await numericTests(device);
+    const q=new URLSearchParams(location.search),width=Math.max(64,Number(q.get('width'))||960),height=Math.max(64,Number(q.get('height'))||540),warmup=Math.max(1,Number(q.get('warmup'))||4),samples=Math.max(4,Number(q.get('samples'))||16);result.benchmark={width,height,warmup,samples,evidence:'synthetic render-target format/write microbenchmark; not full renderer timing'};
+    for(const [name,layout] of Object.entries(P.LAYOUTS))result.layouts[name]=await benchmarkLayout(device,name,layout,width,height,warmup,samples,result.timestampQuery);
+    check('baseline-layout-supported',result.layouts.baseline.supported,result.layouts.baseline);
+    check('candidate-layouts-supported',Object.entries(result.layouts).filter(([k])=>k!=='baseline').every(([,v])=>v.supported),Object.fromEntries(Object.entries(result.layouts).map(([k,v])=>[k,v.supported])));
+    result.ok=result.checks.every(x=>x.ok);
+  }catch(error){result.error=String(error?.stack||error)}publish();
+})();
+</script>
