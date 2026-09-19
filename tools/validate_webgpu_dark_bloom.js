@@ -24,7 +24,7 @@ function assertCoreUntouched(hard,residual){for(let i=0;i<hard.length;i++)if(har
 
 
 function legacyTierMap(plan){
-  const low=B.lowDimensions(plan.grid.width,plan.grid.height),map=new Uint32Array(low.width*low.height),counts=[0,0,0,0];
+  const low=B.lowDimensions(plan.grid.width,plan.grid.height),map=new Uint32Array(low.width*low.height),counts=[0,0,0,0];let candidateVisits=0;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   for(const job of plan.jobs||[]){
     const bounds=job.sweptBounds||H.sweptBounds(job.farBounds,job.shadowDir,job.ownerThrow);
@@ -33,12 +33,12 @@ function legacyTierMap(plan){
     const x1=clamp(Math.floor((bounds[2]-1e-6)/B.SCALE),0,low.width-1),y1=clamp(Math.floor((bounds[3]-1e-6)/B.SCALE),0,low.height-1);
     for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
       const p=[Math.min(plan.grid.width-.5,x*B.SCALE+B.SCALE*.5),Math.min(plan.grid.height-.5,y*B.SCALE+B.SCALE*.5)];
-      const index=y*low.width+x,tier=B.tierAtPoint(plan,p);
+      const index=y*low.width+x,tier=B.tierAtPoint(plan,p);candidateVisits++;
       if(tier>map[index])map[index]=tier;
     }
   }
   for(const value of map)counts[value]++;
-  return{width:low.width,height:low.height,data:map,counts};
+  return{width:low.width,height:low.height,data:map,counts,candidateVisits};
 }
 
 const hardPlan=syntheticHardPlan();
@@ -48,8 +48,9 @@ const depth=new Float32Array(plan.grid.width*plan.grid.height).fill(.8);
 const tier=B.buildTierMap(plan);
 assert.strictEqual(tier.width,64);assert.strictEqual(tier.height,48);
 assert(tier.counts[1]>0&&tier.counts[2]>0&&tier.counts[3]>0,'SM-304 distance semantics must expose near/mid/far bloom source tiers');
-assert.strictEqual(tier.diagnostics.jobTests,tier.diagnostics.candidatePixels,'optimized tier raster must test only the owning job for each candidate visit');
-assert.strictEqual(tier.diagnostics.eliminatedNestedJobRescans,0,'single-job fixture has no nested job rescans to eliminate');
+assert.strictEqual(tier.diagnostics.spatialIndex,'sm304-active-tiles','production tier raster must reuse SM-304 active-tile bins');
+assert.strictEqual(tier.diagnostics.jobTests,tier.diagnostics.candidatePixels,'single-job fixture should perform one binned job test per active low-resolution pixel');
+assert.strictEqual(tier.diagnostics.eliminatedAllJobsRescan,true,'tier raster must never re-enter the all-jobs search');
 const reusedBacking=new Uint32Array(tier.data.length).fill(99);
 const rebuilt=B.buildTierMap(plan,reusedBacking);
 assert.strictEqual(rebuilt.data,reusedBacking,'tier raster may reuse its backing store to avoid frame-by-frame allocation');
@@ -68,12 +69,14 @@ assert.deepStrictEqual(Array.from(rebuilt.data),Array.from(tier.data),'backing-s
     }
     jobs.push({...baseJob,clusterId:i+1,ownerObjectId:100+i,memberOffset,nearBounds:[...baseJob.nearBounds],midBounds:[...baseJob.midBounds],farBounds:[...baseJob.farBounds],shadowDir:[...baseJob.shadowDir],sweptBounds:[...baseJob.sweptBounds]});
   }
-  const densePlan={...plan,jobs,members,signature:'sm501-dense-overlap-regression'};
+  const tileRefs=[],activeTiles=plan.activeTiles.map(tile=>{const offset=tileRefs.length;for(let i=0;i<copies;i++)tileRefs.push(i);return{...tile,offset,count:copies};});
+  const densePlan={...plan,jobs,members,activeTiles,tileRefs:Uint32Array.from(tileRefs),signature:'sm501-dense-overlap-regression'};
   const legacy=legacyTierMap(densePlan),optimized=B.buildTierMap(densePlan);
   assert.deepStrictEqual(Array.from(optimized.data),Array.from(legacy.data),'optimized dense tier raster must be bit-identical to the pre-SM-501 algorithm');
   assert.deepStrictEqual(optimized.counts,legacy.counts,'optimized dense tier counts must match the pre-SM-501 algorithm');
-  assert.strictEqual(optimized.diagnostics.jobTests,optimized.diagnostics.candidatePixels,'dense raster must not re-enter the all-jobs search');
-  assert(optimized.diagnostics.eliminatedNestedJobRescans>=optimized.diagnostics.jobTests*(copies-1),'dense regression must prove the eliminated nested rescans scale with job count');
+  assert.strictEqual(optimized.diagnostics.spatialIndex,'sm304-active-tiles','dense raster must stay on the SM-304 spatial index');
+  assert(optimized.diagnostics.jobTests<legacy.candidateVisits*copies,'binned dense raster must perform fewer job tests than the legacy nested all-jobs traversal');
+  assert.strictEqual(optimized.diagnostics.eliminatedAllJobsRescan,true,'dense raster must not re-enter tierAtPoint for every candidate pixel');
 }
 
 const medium=B.buildReference(hard,depth,plan,{quality:'Medium'});
