@@ -173,11 +173,11 @@ def sm501_report(rows: list[dict], firefox: dict, source: dict, gpu: dict, warmu
     }
 
 
-def sm601_report(rows: list[dict], gpu: dict, warmup: int, samples: int) -> dict:
+def sm601_report(rows: list[dict], source: dict, gpu: dict, warmup: int, samples: int) -> dict:
     first = rows[0]
     validations = [r.get("validation") or {} for r in rows]
     return {
-        "schema": "steelmoth-sm601-target-report/v1", "environment": {"adapter": {**first["adapter"], "name": gpu["name"], "fallback": first["adapter"]["isFallbackAdapter"]}, "display": {"width": 1920, "height": 1080, "devicePixelRatio": 1}, "os": platform.platform(), "driver": gpu["driver"]},
+        "schema": "steelmoth-sm601-target-report/v1", "source": source, "environment": {"adapter": {**first["adapter"], "name": gpu["name"], "fallback": first["adapter"]["isFallbackAdapter"]}, "display": {"width": 1920, "height": 1080, "devicePixelRatio": 1}, "os": platform.platform(), "driver": gpu["driver"]},
         "quality": "Medium", "methodology": {"warmupFrames": warmup, "measuredFrames": samples, "timestampQuery": True, "movingActor": True, "freshRuns": True},
         "runs": [{"measuredFrames": samples, "gtaoGpuMs": {"mean": stats(r["gpuRendererMs"])["mean"], "p50": stats(r["gpuRendererMs"])["p50"], "p95": stats(r["gpuRendererMs"])["p95"]}, "rawGpuMs": r["gpuRendererMs"], "validation": r["validation"], "browser": r["run"], "adapter": r["adapter"]} for r in rows],
         "validation": {"movingSceneStable": all(v.get("movingSceneStable") is True for v in validations), "historyRejection": all(v.get("historyRejection") is True for v in validations), "noDoubleDarkening": all(v.get("noDoubleDarkening") is True for v in validations)},
@@ -233,7 +233,7 @@ def main() -> int:
         if args.phase in ("sm501-localization", "all"):
             root = out / "sm501-2026-09-19" / "localization"; rows = chrome_sessions(base, "sm501-breakdown", ("representative", "dense-static"), 1, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); report = sm501_localization_report(rows, source, gpu, args.warmup, args.samples); (root / "pass-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         if args.phase in ("sm601", "all"):
-            root = out / "sm601-2026-09-19"; rows = chrome_sessions(base, "sm601", ("dynamic-robot",), args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); report = sm601_report(rows, gpu, args.warmup, args.samples); (root / "target-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"); rc |= write_validator_log([sys.executable, "tools/validate_sm601_target_report.py", str(root / "target-report.json")], root / "validator.log")
+            root = out / "sm601-2026-09-19"; rows = chrome_sessions(base, "sm601", ("dynamic-robot",), args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); report = sm601_report(rows, source, gpu, args.warmup, args.samples); (root / "target-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"); rc |= write_validator_log([sys.executable, "tools/validate_sm601_target_report.py", str(root / "target-report.json")], root / "validator.log")
     finally:
         server.shutdown(); server.server_close()
     return 1 if rc else 0
