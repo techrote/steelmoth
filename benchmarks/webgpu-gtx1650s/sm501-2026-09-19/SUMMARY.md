@@ -34,4 +34,10 @@ Firefox 156.0 completed 600 retained representative GPU samples on the same non-
 
 The localization is decisive: Dark Bloom accounts for 157.650 ms mean / 183.718 ms p95 in representative and 612.779 ms / 678.683 ms in dense-static. The next-largest mean is Dark Bloom Temporal at 10.674 ms in dense-static and 10.647 ms in representative; the other individual stage means are below 8 ms. Bounded tuning should therefore begin in the Dark Bloom production path rather than weakening the SM-501 thresholds.
 
-No merge or issue closure is justified by this result.
+## Post-campaign pathology finding
+
+Follow-up analysis of the retained raw measurements found that the apparent Dark Bloom explosion was dominated by CPU work inside the timed queue span, not by an unbounded Dark Bloom shader. In Chrome session 01, representative measured 197.154 ms mean renderer queue span alongside 197.056 ms mean CPU encoding; dense-static measured 672.760 ms alongside 672.732 ms. The original SM-305 `buildTierMap()` had an accidental nested scene-density traversal: it iterated each job's swept reduced-pixel region and called `tierAtPoint()`, which searched every job again for each candidate pixel.
+
+The repair keeps the historical report unchanged as evidence and changes the production algorithm instead: Dark Bloom tier generation consumes SM-304's existing active-tile/job buffers on the GPU, followed by the existing bounded residual and depth-aware upsample passes. The CPU reference path remains available for deterministic parity testing. Existing physical acceptance is **not** retroactively converted into a pass; a source-matched target-hardware rerun is still required.
+
+No merge or issue closure is justified by the original result alone.
