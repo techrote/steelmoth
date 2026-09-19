@@ -1,0 +1,72 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-801 static submission A/B</title>
+<pre id="status">Running SM-801 static submission study…</pre>
+<script id="sm801Result" type="application/json">{"schema":"steelmoth-sm801-browser/v1","ok":false,"status":"pending"}</script>
+<script src="tools/sm801_static_submission_probe.js?v=sm801-1"></script>
+<script>
+(async()=>{
+  const SM=globalThis.SteelMothSM801;
+  const result={schema:'steelmoth-sm801-browser/v1',ok:false,browser:navigator.userAgent,platform:navigator.platform||null,webgpu:{available:!!navigator.gpu},policy:{runs:3,cpuWarmupBlocks:4,cpuMeasureBlocks:12,framesPerBlock:16,gpuSamples:24,rebuildSamples:160},workloads:{},checks:[],errors:[]};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('sm801Result').textContent=json;document.body.dataset.sm801Done='1'};
+  const check=(condition,id,details={})=>{result.checks.push({id,ok:!!condition,...details});if(!condition)throw new Error(`SM-801 check failed: ${id}`)};
+  const params=new URLSearchParams(location.search);for(const key of ['runs','cpuWarmupBlocks','cpuMeasureBlocks','framesPerBlock','gpuSamples','rebuildSamples'])if(params.has(key))result.policy[key]=Math.max(1,Number(params.get(key))||result.policy[key]);
+  let device=null,target=null,pipeline=null,bindGroup=null,uniform=null,querySet=null,resolveBuffer=null,readBuffer=null;
+  const BU={COPY_SRC:GPUBufferUsage.COPY_SRC,COPY_DST:GPUBufferUsage.COPY_DST,UNIFORM:GPUBufferUsage.UNIFORM,QUERY_RESOLVE:GPUBufferUsage.QUERY_RESOLVE,MAP_READ:GPUBufferUsage.MAP_READ};
+  function makeBundle(plan){
+    const enc=device.createRenderBundleEncoder({label:'SM801 static bundle',colorFormats:['rgba8unorm']});enc.setPipeline(pipeline);enc.setBindGroup(0,bindGroup);for(const b of plan.stable)enc.draw(6,b.instanceCount,0,b.firstInstance);return enc.finish({label:`SM801 ${plan.fingerprint}`});
+  }
+  function recordFrame(mode,plan,bundle,timestamps=false){
+    const encoder=device.createCommandEncoder({label:`SM801 ${mode} frame`});
+    const desc={label:`SM801 ${mode} pass`,colorAttachments:[{view:target.createView(),clearValue:{r:.02,g:.03,b:.04,a:1},loadOp:'clear',storeOp:'store'}]};
+    if(timestamps)desc.timestampWrites={querySet,beginningOfPassWriteIndex:0,endOfPassWriteIndex:1};
+    const pass=encoder.beginRenderPass(desc);
+    if(mode==='baseline'){
+      pass.setPipeline(pipeline);pass.setBindGroup(0,bindGroup);for(const b of plan.batches)pass.draw(6,b.instanceCount,0,b.firstInstance);
+    }else{
+      pass.executeBundles([bundle]);
+      if(plan.dynamic.length){pass.setPipeline(pipeline);pass.setBindGroup(0,bindGroup);for(const b of plan.dynamic)pass.draw(6,b.instanceCount,0,b.firstInstance);}
+    }
+    pass.end();
+    if(timestamps){encoder.resolveQuerySet(querySet,0,2,resolveBuffer,0);encoder.copyBufferToBuffer(resolveBuffer,0,readBuffer,0,16);}
+    return encoder.finish();
+  }
+  async function readPixel(){
+    const row=256,buf=device.createBuffer({size:row,usage:BU.COPY_DST|BU.MAP_READ}),encoder=device.createCommandEncoder();encoder.copyTextureToBuffer({texture:target,origin:{x:8,y:8,z:0}},{buffer:buf,bytesPerRow:row,rowsPerImage:1},{width:1,height:1,depthOrArrayLayers:1});device.queue.submit([encoder.finish()]);await buf.mapAsync(GPUMapMode.READ);const px=Array.from(new Uint8Array(buf.getMappedRange()).slice(0,4));buf.unmap();buf.destroy();return px;
+  }
+  async function cpuRun(mode,plan,bundle){
+    for(let w=0;w<result.policy.cpuWarmupBlocks;w++){const cmd=[];for(let i=0;i<result.policy.framesPerBlock;i++)cmd.push(recordFrame(mode,plan,bundle,false));device.queue.submit(cmd);await device.queue.onSubmittedWorkDone();}
+    const samples=[];for(let b=0;b<result.policy.cpuMeasureBlocks;b++){const cmd=[],t0=performance.now();for(let i=0;i<result.policy.framesPerBlock;i++)cmd.push(recordFrame(mode,plan,bundle,false));const t1=performance.now();samples.push((t1-t0)/result.policy.framesPerBlock);device.queue.submit(cmd);await device.queue.onSubmittedWorkDone();}return SM.summarize(samples);
+  }
+  async function gpuRun(mode,plan,bundle){
+    if(!querySet)return {supported:false,reason:'timestamp-query-unavailable',summary:SM.summarize([])};const samples=[];
+    for(let i=0;i<result.policy.gpuSamples;i++){device.queue.submit([recordFrame(mode,plan,bundle,true)]);await device.queue.onSubmittedWorkDone();await readBuffer.mapAsync(GPUMapMode.READ,0,16);const values=new BigUint64Array(readBuffer.getMappedRange(0,16).slice(0));readBuffer.unmap();if(values[1]>=values[0])samples.push(Number(values[1]-values[0])/1e6);}return {supported:true,summary:SM.summarize(samples)};
+  }
+  function rebuildRun(plan){const values=[];for(let i=0;i<result.policy.rebuildSamples;i++){const t0=performance.now();const bundle=makeBundle(plan);const t1=performance.now();if(bundle)values.push(t1-t0);}return SM.summarize(values);}
+  try{
+    check(!!SM,'study-helper-loaded');check(!!navigator.gpu,'navigator-gpu-present');
+    let adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});if(!adapter){result.webgpu.fallbackAdapterRequested=true;adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:true});}check(!!adapter,'adapter-acquired');
+    const timestamp=adapter.features?.has?.('timestamp-query');device=await adapter.requestDevice(timestamp?{requiredFeatures:['timestamp-query']}:{});check(!!device,'device-acquired');result.webgpu.timestampQuery=!!device.features?.has?.('timestamp-query');result.webgpu.adapter={vendor:String(adapter.info?.vendor||''),architecture:String(adapter.info?.architecture||''),device:String(adapter.info?.device||''),description:String(adapter.info?.description||''),isFallbackAdapter:!!adapter.isFallbackAdapter};
+    device.pushErrorScope('validation');
+    target=device.createTexture({label:'SM801 target',size:{width:512,height:512,depthOrArrayLayers:1},format:'rgba8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});
+    uniform=device.createBuffer({label:'SM801 params',size:16,usage:BU.UNIFORM|BU.COPY_DST});
+    const module=device.createShaderModule({label:'SM801 study shader',code:`struct Params{grid:vec4f};@group(0) @binding(0) var<uniform> params:Params;struct O{@builtin(position) p:vec4f};@vertex fn vs(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->O{let c=array<vec2f,6>(vec2f(-.5,-.5),vec2f(.5,-.5),vec2f(-.5,.5),vec2f(-.5,.5),vec2f(.5,-.5),vec2f(.5,.5));let cols=max(1u,u32(params.grid.x));let rows=max(1u,u32(params.grid.y));let cell=vec2f(2.0/f32(cols),2.0/f32(rows));let col=ii%cols;let row=ii/cols;let center=vec2f(-1.0+cell.x*(f32(col)+.5),-1.0+cell.y*(f32(row)+.5));var o:O;o.p=vec4f(center+c[vi]*cell*.86,0,1);return o;}@fragment fn fs()->@location(0) vec4f{return vec4f(.31,.57,.79,1);}`});
+    const info=await module.getCompilationInfo();check(!Array.from(info.messages||[]).some(m=>m.type==='error'),'wgsl-compiles',{messages:Array.from(info.messages||[]).map(m=>({type:m.type,message:m.message}))});
+    pipeline=await device.createRenderPipelineAsync({label:'SM801 pipeline',layout:'auto',vertex:{module,entryPoint:'vs'},fragment:{module,entryPoint:'fs',targets:[{format:'rgba8unorm'}]},primitive:{topology:'triangle-list'}});bindGroup=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:uniform}}]});
+    if(result.webgpu.timestampQuery){querySet=device.createQuerySet({type:'timestamp',count:2});resolveBuffer=device.createBuffer({size:16,usage:BU.QUERY_RESOLVE|BU.COPY_SRC});readBuffer=device.createBuffer({size:16,usage:BU.COPY_DST|BU.MAP_READ});}
+    for(const [workloadName,counts] of Object.entries(SM.DEFAULT_WORKLOADS)){
+      const plan=SM.buildBatchPlan(counts),rows=Math.ceil(plan.totalInstances/32);device.queue.writeBuffer(uniform,0,new Float32Array([32,rows,0,0]));const bundle=makeBundle(plan),runs=[];
+      device.queue.submit([recordFrame('baseline',plan,bundle,false)]);await device.queue.onSubmittedWorkDone();const baselinePixel=await readPixel();device.queue.submit([recordFrame('bundle',plan,bundle,false)]);await device.queue.onSubmittedWorkDone();const bundlePixel=await readPixel();check(JSON.stringify(baselinePixel)===JSON.stringify(bundlePixel),`${workloadName}-pixel-parity`,{baselinePixel,bundlePixel});
+      for(let run=0;run<result.policy.runs;run++){
+        const order=run%2?['bundle','baseline']:['baseline','bundle'],cpu={};for(const mode of order)cpu[mode]=await cpuRun(mode,plan,bundle);
+        const gpu={baseline:await gpuRun('baseline',plan,bundle),bundle:await gpuRun('bundle',plan,bundle)};runs.push({run:run+1,order,cpu,gpu});
+      }
+      const cpuBase=runs.map(x=>x.cpu.baseline.p50Ms),cpuBundle=runs.map(x=>x.cpu.bundle.p50Ms),gpuBase=runs.map(x=>x.gpu.baseline.summary.p50Ms).filter(Number.isFinite),gpuBundle=runs.map(x=>x.gpu.bundle.summary.p50Ms).filter(Number.isFinite);
+      result.workloads[workloadName]={plan,runs,aggregate:{cpu:{baseline:SM.summarize(cpuBase),bundle:SM.summarize(cpuBundle)},gpu:{baseline:SM.summarize(gpuBase),bundle:SM.summarize(gpuBundle)},bundleRebuildCpu:rebuildRun(plan)}};
+    }
+    const prototype=new SM.StaticBundlePrototype(),plan=SM.buildBatchPlan(SM.DEFAULT_WORKLOADS.representative);prototype.ensure(plan,()=>makeBundle(plan));prototype.ensure(plan,()=>makeBundle(plan));check(prototype.diagnostics().buildCount===1,'bundle-reused-before-invalidation');prototype.invalidate('editor-static-change');prototype.ensure(plan,()=>makeBundle(plan));prototype.invalidate('room-change');prototype.ensure(plan,()=>makeBundle(plan));const d=prototype.diagnostics();check(d.buildCount===3&&d.editorRevision===1&&d.roomEpoch===1,'editor-room-rebuild-contract',d);result.invalidation=d;
+    await device.queue.onSubmittedWorkDone();const validation=await device.popErrorScope();check(!validation,'no-webgpu-validation-errors',{message:validation?String(validation.message||validation):null});result.ok=true;
+  }catch(error){result.error=String(error?.stack||error);result.errors.push(result.error);try{if(device){const scoped=await device.popErrorScope();if(scoped)result.errors.push(String(scoped.message||scoped));}}catch(_e){}}
+  finally{try{querySet?.destroy?.()}catch(_e){}try{resolveBuffer?.destroy?.()}catch(_e){}try{readBuffer?.destroy?.()}catch(_e){}try{uniform?.destroy?.()}catch(_e){}try{target?.destroy?.()}catch(_e){}try{device?.destroy?.()}catch(_e){}publish();}
+})();
+</script>
