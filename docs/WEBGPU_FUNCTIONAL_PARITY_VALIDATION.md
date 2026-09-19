@@ -12,6 +12,16 @@ Hosted screenshots are retained for inspection, but no automated run is describe
 
 The authoritative machine-readable artifact is `artifacts/sm405/cross-browser-functional.json`; per-page screenshots are stored under `artifacts/sm405/screenshots/<browser>/`.
 
+## Target-hardware execution
+
+The default runner profile remains the hosted-CI path described below. A physical Windows acceptance run must instead use fresh temporary headed-browser profiles and must not enable the hosted Firefox blocklist, parent-process, software-WebRender, or fallback-adapter accommodations:
+
+```text
+python tools/validate_webgpu_cross_browser.py --execution-profile target-hardware --browsers chrome firefox --timeout 90 --report artifacts/sm405/cross-browser-functional.json
+```
+
+The target-hardware profile records `Win32_VideoController` name, driver, adapter memory and video processor metadata. It fails if the direct probe cannot acquire the preferred high-performance adapter or reports a fallback adapter. Its captures remain review evidence rather than an automated claim of human visual approval. Record the reviewer and disposition separately after inspecting all retained captures.
+
 ## Gate mapping
 
 | Release-plan gate | SM-405 evidence |

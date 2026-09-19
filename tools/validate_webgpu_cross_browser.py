@@ -7,6 +7,7 @@ import http.server
 import json
 import platform
 import socketserver
+import subprocess
 import threading
 import time
 import urllib.parse
@@ -129,6 +130,10 @@ def find_key(value: Any, key: str):
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *args, inject_hosted_firefox_fallback: bool = True, **kwargs):
+        self.inject_hosted_firefox_fallback = inject_hosted_firefox_fallback
+        super().__init__(*args, **kwargs)
+
     def log_message(self, *_args):
         pass
 
@@ -137,6 +142,8 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
         query = urllib.parse.parse_qs(parsed.query)
         page = Path(urllib.parse.unquote(parsed.path)).name
         if (
+            self.inject_hosted_firefox_fallback
+            and
             query.get("browser") == ["firefox"]
             and page.endswith(".html")
             and page not in FIREFOX_NATIVE_ADAPTER_PAGES
@@ -166,11 +173,11 @@ class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
     daemon_threads = True
 
 
-def make_driver(name: str):
+def make_driver(name: str, execution_profile: str):
+    hosted_ci = execution_profile == "hosted-ci"
     if name == "chrome":
         options = ChromeOptions()
         for arg in [
-            "--headless=new",
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--disable-background-networking",
@@ -185,16 +192,20 @@ def make_driver(name: str):
             "--window-size=1280,900",
         ]:
             options.add_argument(arg)
+        if hosted_ci:
+            options.add_argument("--headless=new")
         options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
         return webdriver.Chrome(options=options)
     if name == "firefox":
         options = FirefoxOptions()
-        options.add_argument("-headless")
+        if hosted_ci:
+            options.add_argument("-headless")
         options.set_preference("dom.webgpu.enabled", True)
-        options.set_preference("dom.webgpu.allow-in-parent", True)
-        options.set_preference("gfx.webgpu.ignore-blocklist", True)
         options.set_preference("gfx.webrender.all", True)
-        options.set_preference("gfx.webrender.software", True)
+        if hosted_ci:
+            options.set_preference("dom.webgpu.allow-in-parent", True)
+            options.set_preference("gfx.webgpu.ignore-blocklist", True)
+            options.set_preference("gfx.webrender.software", True)
         options.set_preference("webgl.force-enabled", True)
         options.set_preference("webgl.disabled", False)
         options.set_preference("browser.cache.disk.enable", False)
@@ -204,8 +215,9 @@ def make_driver(name: str):
     raise ValueError(name)
 
 
-def browser_metadata(driver, name: str):
+def browser_metadata(driver, name: str, execution_profile: str):
     caps = dict(driver.capabilities or {})
+    hosted_ci = execution_profile == "hosted-ci"
     return {
         "browser": name,
         "browserName": caps.get("browserName"),
@@ -215,10 +227,12 @@ def browser_metadata(driver, name: str):
         "navigatorPlatform": driver.execute_script("return navigator.platform"),
         "navigatorGpuPresentAtAboutBlank": bool(driver.execute_script("return !!navigator.gpu")),
         "navigatorGpuSecureContextEvidenceComesFromProbe": True,
-        "headless": True,
+        "executionProfile": execution_profile,
+        "headless": hosted_ci,
+        "freshTemporaryProfile": True,
         "firefoxWebGPUPreferenceForcedOn": name == "firefox",
-        "firefoxBlocklistIgnoredForHostedFunctionalCI": name == "firefox",
-        "firefoxWebGPUAllowedInParentForHostedHeadlessCI": name == "firefox",
+        "firefoxBlocklistIgnoredForHostedFunctionalCI": name == "firefox" and hosted_ci,
+        "firefoxWebGPUAllowedInParentForHostedHeadlessCI": name == "firefox" and hosted_ci,
     }
 
 
@@ -236,20 +250,20 @@ def wait_result(driver, timeout: float):
     raise TimeoutError(f"page did not publish a completed structured result in {timeout:.0f}s; last={last!r}")
 
 
-def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
+def run_browser(name: str, base_url: str, out_dir: Path, timeout: float, execution_profile: str):
     report = {"browser": name, "ok": False, "environment": None, "pages": [], "failures": []}
     driver = None
     try:
-        driver = make_driver(name)
+        driver = make_driver(name, execution_profile)
         driver.set_page_load_timeout(max(30, timeout))
         driver.set_script_timeout(max(30, timeout))
-        report["environment"] = browser_metadata(driver, name)
+        report["environment"] = browser_metadata(driver, name, execution_profile)
         gbuffer_expected = json.dumps(raw_fixture_expectations(), separators=(",", ":"))
         for index, (label, page, gates) in enumerate(MATRIX, start=1):
             record = {"label": label, "page": page, "gates": gates, "ok": False}
             started = time.monotonic()
             try:
-                query = {"sm405": "1", "browser": name, "run": str(index)}
+                query = {"sm405": "1", "browser": name, "run": str(index), "executionProfile": execution_profile}
                 if label == "gbuffer-material-controls":
                     query["expected"] = gbuffer_expected
                 driver.get(f"{base_url}/{page}?{urllib.parse.urlencode(query)}")
@@ -262,7 +276,7 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
                 record["ok"] = bool(payload.get("ok"))
                 real_flags = list(find_key(payload, "realWebGPU"))
                 record["realWebGPUFlags"] = real_flags
-                if name == "firefox" and page not in FIREFOX_NATIVE_ADAPTER_PAGES:
+                if execution_profile == "hosted-ci" and name == "firefox" and page not in FIREFOX_NATIVE_ADAPTER_PAGES:
                     shim = driver.execute_script("return {installed:!!window.__sm405HostedFallbackAdapterShimInstalled, uses:Number(window.__sm405HostedFallbackAdapterUses||0)}")
                     record["hostedFirefoxAdapterShim"] = shim
                     if not shim.get("installed"):
@@ -272,6 +286,13 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
                         raise RuntimeError("direct cross-browser probe did not prove real WebGPU execution")
                     if (payload.get("webgpu") or {}).get("computeReadback") != [41, 42, 43, 44]:
                         raise RuntimeError("direct cross-browser compute readback mismatch")
+                    if execution_profile == "target-hardware":
+                        webgpu = payload.get("webgpu") or {}
+                        adapter = webgpu.get("adapter") or {}
+                        if webgpu.get("highPerformanceAdapterUnavailable") or webgpu.get("fallbackAdapterRequested"):
+                            raise RuntimeError("target-hardware run did not acquire the preferred high-performance adapter")
+                        if adapter.get("isFallbackAdapter") is not False:
+                            raise RuntimeError("target-hardware run exposed a fallback adapter")
                 if real_flags and not all(flag is True for flag in real_flags):
                     raise RuntimeError(f"page exposed non-real WebGPU evidence flags: {real_flags}")
                 if not payload.get("ok"):
@@ -319,17 +340,64 @@ def run_browser(name: str, base_url: str, out_dir: Path, timeout: float):
     return report
 
 
+def windows_video_controllers():
+    if platform.system() != "Windows":
+        return []
+    command = (
+        "Get-CimInstance Win32_VideoController | "
+        "Select-Object Name,DriverVersion,AdapterRAM,VideoProcessor | "
+        "ConvertTo-Json -Compress"
+    )
+    try:
+        completed = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-Command", command],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        value = json.loads(completed.stdout)
+        return value if isinstance(value, list) else [value]
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
+        return [{"inventoryError": str(exc)}]
+
+
+def git_source_state():
+    def run(*args):
+        return subprocess.run(
+            ["git", *args],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout.strip()
+
+    try:
+        return {
+            "commit": run("rev-parse", "--verify", "HEAD"),
+            "trackedChanges": bool(run("status", "--porcelain", "--untracked-files=no")),
+        }
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"inventoryError": str(exc)}
+
+
 def main():
     parser = argparse.ArgumentParser(description="SM-405 Windows Chrome/Firefox functional WebGPU matrix")
     parser.add_argument("--browsers", nargs="+", choices=["chrome", "firefox"], default=["chrome", "firefox"])
     parser.add_argument("--timeout", type=float, default=90.0)
     parser.add_argument("--report", type=Path, default=Path("artifacts/sm405/cross-browser-functional.json"))
+    parser.add_argument("--execution-profile", choices=["hosted-ci", "target-hardware"], default="hosted-ci")
     args = parser.parse_args()
     report_path = args.report if args.report.is_absolute() else ROOT / args.report
     out_dir = report_path.parent / "screenshots"
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    handler = functools.partial(Quiet, directory=str(ROOT))
+    handler = functools.partial(
+        Quiet,
+        directory=str(ROOT),
+        inject_hosted_firefox_fallback=args.execution_profile == "hosted-ci",
+    )
     server = Server(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -338,15 +406,28 @@ def main():
         "schema": "steelmoth-sm405-cross-browser-functional/v1",
         "ok": False,
         "matrixVersion": 1,
-        "host": {"system": platform.system(), "release": platform.release(), "python": platform.python_version()},
-        "evidenceBoundary": "Functional/API correctness on the executing Windows browser environment only. This report is not GTX 1650 Super timing, physical-target support certification, or human visual sign-off.",
+        "host": {
+            "system": platform.system(),
+            "release": platform.release(),
+            "python": platform.python_version(),
+            "videoControllers": windows_video_controllers(),
+        },
+        "executionProfile": args.execution_profile,
+        "source": git_source_state(),
+        "evidenceBoundary": (
+            "Functional/API correctness on the recorded physical Windows GPU and fresh headed browser profiles. "
+            "This report is not GPU timing or automated human visual sign-off."
+            if args.execution_profile == "target-hardware"
+            else "Functional/API correctness on the executing Windows browser environment only. "
+            "This report is not GTX 1650 Super timing, physical-target support certification, or human visual sign-off."
+        ),
         "browsers": [],
         "requiredGates": ["A", "B", "C", "D", "E"],
         "autoPromotionAllowed": False,
     }
     try:
         for name in args.browsers:
-            browser_report = run_browser(name, base_url, out_dir, args.timeout)
+            browser_report = run_browser(name, base_url, out_dir, args.timeout, args.execution_profile)
             aggregate["browsers"].append(browser_report)
         aggregate["ok"] = (
             set(args.browsers) == {"chrome", "firefox"}
