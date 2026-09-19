@@ -30,6 +30,8 @@ Firefox 156.0 completed 600 retained representative GPU samples on the same non-
 - `target-report.json` is the canonical SM-501 report and contains the complete Chrome and Firefox sample arrays, adapter/browser/environment metadata, CPU/workload/memory data, and WebGL2 baseline comparison.
 - `raw/` contains one JSON result and one screenshot for every physical browser run.
 - `validator.log` records the canonical validator failure without weakening its thresholds.
-- Pass-level localization is intentionally captured separately from this total-only acceptance run so SM-500 boundary overhead cannot contaminate the release totals.
+- `localization/pass-report.json` and `localization/raw/` contain a separate 300-warm-up/600-retained pass breakdown for representative and dense-static at source `e5f854766a36f98cf30d880c492ec145ca3aae17`. Each of 13 production stages has 600 raw samples. These values are localization-only because the per-pass timestamp boundaries add submissions and must not be substituted for release totals.
+
+The localization is decisive: Dark Bloom accounts for 157.650 ms mean / 183.718 ms p95 in representative and 612.779 ms / 678.683 ms in dense-static. The next-largest mean is Dark Bloom Temporal at 10.674 ms in dense-static and 10.647 ms in representative; the other individual stage means are below 8 ms. Bounded tuning should therefore begin in the Dark Bloom production path rather than weakening the SM-501 thresholds.
 
 No merge or issue closure is justified by this result.
