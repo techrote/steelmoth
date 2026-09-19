@@ -1,0 +1,475 @@
+{
+  "browserCommand": [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-background-networking",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-sync",
+    "--metrics-recording-only",
+    "--no-first-run",
+    "--enable-webgl",
+    "--enable-unsafe-webgpu",
+    "--remote-allow-origins=*",
+    "--remote-debugging-port=61516",
+    "--user-data-dir=C:\\Users\\-\\AppData\\Local\\Temp\\steelmoth-sm307-chrome-u2u6nz_f",
+    "<local-sm307-url>"
+  ],
+  "browserExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserVersion": {
+    "jsVersion": "15.3.76.12",
+    "product": "Chrome/153.0.8010.48",
+    "protocolVersion": "1.3",
+    "revision": "@199a3a541d76237379e353b348e64045584db057",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+  },
+  "error": "[WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\-\\\\AppData\\\\Local\\\\Temp\\\\steelmoth-sm307-chrome-u2u6nz_f\\\\Default\\\\Cache\\\\No_Vary_Search\\\\journal.baj'",
+  "evidenceBoundary": "Real hosted WebGPU validates SM-307 bounded visibility formula, dense-scene readability floors, term toggles, individual/combined debug views, current-frame moving-input response and the reserved GTAO consumer interface. The screenshot is retained for later human review. Hosted CI wall time is diagnostic only and is not GTX 1650 Super timing evidence.",
+  "ok": true,
+  "requireWebGPU": true,
+  "schema": "steelmoth-webgpu-visibility-browser-report/v1",
+  "screenshot": "benchmarks\\webgpu-gtx1650s\\sm601-2026-09-19\\correctness\\webgpu-visibility-browser.png",
+  "screenshotBytes": 29114,
+  "smoke": {
+    "captures": [
+      {
+        "debugMode": "combined",
+        "denseMetrics": {
+          "belowTenPercent": 0,
+          "belowTwentyPercent": 473,
+          "max": 1,
+          "mean": 0.6835374713373312,
+          "min": 0.11999999731779099
+        },
+        "errors": [
+          0.0004655122756958008,
+          0.00038504600524902344,
+          0.00014647841453552246,
+          0
+        ],
+        "label": "dense-control"
+      },
+      {
+        "label": "toggle-matrix",
+        "terms": {
+          "contactShadow": {
+            "combinedMean": 0.6921197229785321,
+            "err": 0.0004655122756958008
+          },
+          "darkBloom": {
+            "combinedMean": 0.7005624983248708,
+            "err": 0.0003554821014404297
+          },
+          "dso": {
+            "combinedMean": 0.716333369127824,
+            "err": 0.0004655122756958008
+          },
+          "gtao": {
+            "combinedMean": 0.68913786246776,
+            "err": 0.0004655122756958008
+          },
+          "materialAO": {
+            "combinedMean": 0.6835374713373312,
+            "err": 0.0004655122756958008
+          },
+          "selfShadow": {
+            "combinedMean": 0.716813343398826,
+            "err": 0.0004655122756958008
+          }
+        }
+      },
+      {
+        "debugErrors": {
+          "ambient": 2.9802322387695312e-08,
+          "combined": 0,
+          "contact-shadow": 0,
+          "dark-bloom": 0,
+          "direct": 0,
+          "dso": 0,
+          "gtao": 2.9802322387695312e-08,
+          "local": 0,
+          "macro": 0,
+          "material-ao": 2.9802322387695312e-08,
+          "self-shadow": 0
+        },
+        "label": "debug-matrix"
+      },
+      {
+        "label": "moving-light-a",
+        "mean": 0.6835374713373312
+      },
+      {
+        "label": "moving-light-b",
+        "mean": 0.6835374713373312,
+        "motionRms": 0.1301755790255472
+      },
+      {
+        "interface": {
+          "format": "single-channel float texture sampled as texture_2d<f32>",
+          "ownership": "reserved input only; SM-307 does not generate GTAO",
+          "range": "0=occluded, 1=visible",
+          "resolution": "full-resolution at SM-307 boundary; future producer may reconstruct from reduced resolution before binding",
+          "semantic": "visibility",
+          "version": 1
+        },
+        "label": "gtao-reserved",
+        "missingRejected": true
+      }
+    ],
+    "checks": [
+      {
+        "label": "navigator.gpu available",
+        "ok": true
+      },
+      {
+        "label": "WebGPU adapter acquired",
+        "ok": true
+      },
+      {
+        "label": "SM-307 module loaded",
+        "ok": true
+      },
+      {
+        "errors": [
+          0.0004655122756958008,
+          0.00038504600524902344,
+          0.00014647841453552246,
+          0
+        ],
+        "label": "GPU/CPU visibility channels agree",
+        "ok": true
+      },
+      {
+        "denseMetrics": {
+          "belowTenPercent": 0,
+          "belowTwentyPercent": 473,
+          "max": 1,
+          "mean": 0.6835374713373312,
+          "min": 0.11999999731779099
+        },
+        "label": "dense fixture preserves bounded readability",
+        "ok": true
+      },
+      {
+        "denseMetrics": {
+          "belowTenPercent": 0,
+          "belowTwentyPercent": 473,
+          "max": 1,
+          "mean": 0.6835374713373312,
+          "min": 0.11999999731779099
+        },
+        "label": "dense fixture has no near-black combined pixels",
+        "ok": true
+      },
+      {
+        "label": "bounded composition is materially above blind-product collapse",
+        "naiveProbe": 0.0012096,
+        "ok": true,
+        "probe": 0.9423999786376953
+      },
+      {
+        "err": 0.0004655122756958008,
+        "label": "toggle dso GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0.0004655122756958008,
+        "label": "toggle selfShadow GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0.0004655122756958008,
+        "label": "toggle contactShadow GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0.0003554821014404297,
+        "label": "toggle darkBloom GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0.0004655122756958008,
+        "label": "toggle materialAO GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0.0004655122756958008,
+        "label": "toggle gtao GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug combined GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug direct GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 2.9802322387695312e-08,
+        "label": "debug ambient GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug dso GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug self-shadow GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug contact-shadow GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug dark-bloom GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 2.9802322387695312e-08,
+        "label": "debug material-ao GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 2.9802322387695312e-08,
+        "label": "debug gtao GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug macro GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "err": 0,
+        "label": "debug local GPU/CPU agreement",
+        "ok": true
+      },
+      {
+        "label": "shifted moving-light-style input changes current composition",
+        "motionRms": 0.1301755790255472,
+        "ok": true
+      },
+      {
+        "error": 0.0004655122756958008,
+        "label": "shifted current frame has no hidden history",
+        "ok": true
+      },
+      {
+        "label": "reserved GTAO enabled-without-view is rejected",
+        "ok": true
+      },
+      {
+        "label": "reserved GTAO disabled accepts no producer",
+        "ok": true
+      },
+      {
+        "label": "bindings expose GTAO consumer contract",
+        "ok": true
+      },
+      {
+        "label": "diagnostics expose all debug modes",
+        "ok": true
+      },
+      {
+        "label": "composition rationale visible in diagnostics",
+        "ok": true
+      }
+    ],
+    "diagnostics": {
+      "debugModes": [
+        "combined",
+        "direct",
+        "ambient",
+        "dso",
+        "self-shadow",
+        "contact-shadow",
+        "dark-bloom",
+        "material-ao",
+        "gtao",
+        "macro",
+        "local"
+      ],
+      "dispatchCount": 22,
+      "extent": {
+        "height": 32,
+        "width": 64
+      },
+      "generation": 1,
+      "gtaoInterface": {
+        "format": "single-channel float texture sampled as texture_2d<f32>",
+        "ownership": "reserved input only; SM-307 does not generate GTAO",
+        "range": "0=occluded, 1=visible",
+        "resolution": "full-resolution at SM-307 boundary; future producer may reconstruct from reduced resolution before binding",
+        "semantic": "visibility",
+        "version": 1
+      },
+      "invalidationCount": 1,
+      "lastInvalidationReason": "",
+      "pipelineDiagnostics": {
+        "clearCount": 0,
+        "count": 1,
+        "generation": 1,
+        "hits": 0,
+        "keys": [
+          "compute:visibility-compose-v1"
+        ],
+        "misses": 1,
+        "schema": "steelmoth-webgpu-pipeline-cache/v1"
+      },
+      "resourceDiagnostics": {
+        "createCount": 3,
+        "definitionCount": 3,
+        "destroyCount": 0,
+        "dynamicArenas": [],
+        "estimatedBytes": 24640,
+        "extent": {
+          "height": 32,
+          "width": 64
+        },
+        "frameIndex": 0,
+        "generation": 1,
+        "rebuildCount": 0,
+        "resizeCount": 0,
+        "resourceCount": 3,
+        "resources": [
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 8192,
+            "format": "r32float",
+            "generation": 1,
+            "height": 32,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm307:debug",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 64,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm307:params",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 64,
+            "usage": 72,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 16384,
+            "format": "rgba16float",
+            "generation": 1,
+            "height": 32,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm307:visibility",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 64
+          }
+        ],
+        "schema": "steelmoth-webgpu-resources/v1",
+        "uploads": {
+          "dynamic": {
+            "bytes": 0,
+            "count": 0
+          },
+          "static": {
+            "bytes": 0,
+            "count": 0
+          }
+        }
+      },
+      "schema": "steelmoth-webgpu-visibility/v1",
+      "snapshot": {
+        "channels": {
+          "a": "DSO macro visibility",
+          "b": "ambient/AO visibility",
+          "g": "direct shadow visibility",
+          "r": "combined visibility envelope"
+        },
+        "composition": "overlapping evidence uses min/strongest-occluder semantics, then direct/ambient weighted envelope; no independent term multiplication",
+        "debugMode": "combined",
+        "flags": 63,
+        "gtaoInterface": {
+          "format": "single-channel float texture sampled as texture_2d<f32>",
+          "ownership": "reserved input only; SM-307 does not generate GTAO",
+          "range": "0=occluded, 1=visible",
+          "resolution": "full-resolution at SM-307 boundary; future producer may reconstruct from reduced resolution before binding",
+          "semantic": "visibility",
+          "version": 1
+        },
+        "height": 32,
+        "options": {
+          "ambientFloor": 0.35,
+          "ambientWeight": 0.2,
+          "bloomMax": 0.5,
+          "combinedFloor": 0.18,
+          "contactShadow": true,
+          "darkBloom": true,
+          "debugMode": "combined",
+          "directWeight": 0.8,
+          "dso": true,
+          "gtao": true,
+          "gtaoStrength": 1,
+          "hardCoreFloor": 0.12,
+          "materialAO": true,
+          "materialAOStrength": 0.62,
+          "selfShadow": true
+        },
+        "schema": "steelmoth-webgpu-visibility-snapshot/v1",
+        "width": 64
+      },
+      "updateCount": 22,
+      "valid": true
+    },
+    "ok": true,
+    "readback": {
+      "debugFormat": "r32float",
+      "debugMatrix": true,
+      "denseReadable": true,
+      "format": "rgba16float",
+      "gpuCpuTolerance": 0.0015,
+      "gtaoReserved": true,
+      "movingInputCurrentFrame": true,
+      "pixelCount": 2048,
+      "termToggleMatrix": true
+    },
+    "schema": "steelmoth-webgpu-visibility-smoke/v1",
+    "timing": {
+      "gpuTimingClaimed": false,
+      "submitWallMs": [
+        37.89999997615814,
+        3.6999999284744263,
+        3.200000047683716,
+        2.9000000953674316,
+        2.899999976158142,
+        3,
+        3.4000000953674316
+      ]
+    }
+  }
+}
