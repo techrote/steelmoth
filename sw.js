@@ -1,12 +1,12 @@
 'use strict';
-const CACHE = 'small-machine-web-v1.2.3-r24';
+const CACHE = 'small-machine-web-v1.2.3-r25';
 const CORE = [
   './index.html', './style.css?v=1.2.3', './webapp.js?v=1.2.3', './manifest.webmanifest',
   './engine/game.js?v=1.2.3', './engine/editor.js?v=1.2.3', './engine/foliagefx.js?v=1.2.3', './engine/surfacefx.js?v=1.2.3',
   './engine/render_transform.js?v=sm101-1', './engine/render_transform_integration.js?v=sm101-1',
   './engine/render_scene.js?v=sm100-1', './engine/render_transform_scene_adapter.js?v=sm101-1', './engine/webgl2_scene_adapter.js?v=sm100-1',
   './engine/webgpu_device.js?v=sm102-1', './engine/webgpu_resources.js?v=sm103-1', './engine/pseudo_depth.js?v=sm201-1',
-  './engine/webgpu_gbuffer.js?v=sm200-1', './engine/webgpu_ownership.js?v=sm202-1', './engine/webgpu_depth_hierarchy.js?v=sm203-1', './engine/webgpu_lighting.js?v=sm204-1', './engine/webgpu_local_shadows.js?v=sm205-1', './engine/webgpu_transparent_fx.js?v=sm206-1', './engine/webgpu_post.js?v=sm207-1', './engine/webgpu_occluders.js?v=sm300-1', './engine/webgpu_clusters.js?v=sm301-1', './engine/webgpu_dominance.js?v=sm302-1', './engine/webgpu_dso.js?v=sm303-1', './engine/webgpu_dso_hierarchy.js?v=sm304-1', './engine/webgpu_dark_bloom.js?v=sm305-1', './engine/webgpu_dark_bloom_temporal.js?v=sm306-1', './engine/webgpu_visibility.js?v=sm307-1', './engine/webgpu_water.js?v=sm400-1', './engine/webgpu_foliage.js?v=sm401-1', './engine/webgpu_ordering.js?v=sm402-1', './engine/webgpu_editor_state.js?v=sm403-1', './engine/backend_runtime.js?v=sm102-1', './engine/webgpu_transition_state.js?v=sm404-1', './engine/webgpu_quality.js?v=sm501-1',
+  './engine/webgpu_gbuffer.js?v=sm200-1', './engine/webgpu_ownership.js?v=sm202-1', './engine/webgpu_depth_hierarchy.js?v=sm203-1', './engine/webgpu_lighting.js?v=sm204-1', './engine/webgpu_local_shadows.js?v=sm205-1', './engine/webgpu_transparent_fx.js?v=sm206-1', './engine/webgpu_post.js?v=sm207-1', './engine/webgpu_occluders.js?v=sm300-1', './engine/webgpu_clusters.js?v=sm301-1', './engine/webgpu_dominance.js?v=sm302-1', './engine/webgpu_dso.js?v=sm303-1', './engine/webgpu_dso_hierarchy.js?v=sm304-1', './engine/webgpu_dark_bloom.js?v=sm305-2', './engine/webgpu_dark_bloom_temporal.js?v=sm306-1', './engine/webgpu_visibility.js?v=sm307-1', './engine/webgpu_water.js?v=sm400-1', './engine/webgpu_foliage.js?v=sm401-1', './engine/webgpu_ordering.js?v=sm402-1', './engine/webgpu_editor_state.js?v=sm403-1', './engine/backend_runtime.js?v=sm102-1', './engine/webgpu_transition_state.js?v=sm404-1', './engine/webgpu_quality.js?v=sm501-1',
   './game_data/maps.json', './game_data/story.json', './game_data/sprites.json',
   './game_data/luts.json', './game_data/effects.json', './assets/generated/atlas.json'
 ];
