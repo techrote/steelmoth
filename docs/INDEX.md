@@ -35,7 +35,8 @@ Do not silently promote a historical suggestion into a requirement.
 - [`WEBGPU_LOCAL_SHADOWS_SM205.md`](WEBGPU_LOCAL_SHADOWS_SM205.md) — SM-205 bounded local Material-v2 height self-shadow and half-resolution/depth-aware contact-shadow parity, debug/readback, disable semantics and timing-evidence boundary.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
-- [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
+- [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md)
+- [`COLOUR_PIPELINE.md`](COLOUR_PIPELINE.md) — canonical WebGPU source/linear-HDR/display colour-space contract and numeric fixtures. — post-migration lighting/material/indirect-light development sequence.
 - [`DEPENDENCY_AND_CONCURRENCY.md`](DEPENDENCY_AND_CONCURRENCY.md) — dependency graph, serialization points and safe parallel lanes.
 - [`RESEARCH_AND_DECISIONS.md`](RESEARCH_AND_DECISIONS.md) — external research findings, assumptions, ADR-style decisions and unresolved questions.
 - [`ISSUE_MAP.md`](ISSUE_MAP.md) — canonical task-code → GitHub issue-number map. Task codes/dependency docs define order; issue-number order does not.

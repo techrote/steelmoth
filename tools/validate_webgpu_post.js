@@ -44,5 +44,5 @@ const bloomOn=P.applyPostReference(mid,[.2,.2,.2],{...base,bloom:true,bloomInten
 check(bloomOn[0]>bloomOff[0],'bloom intensity contributes only when enabled');
 const packed=P.packPostSettings(P.DEFAULTS,[1.1,.9,.8],[640,360]);
 check(packed.length===24&&near(packed[0],1)&&near(packed[1],1)&&near(packed[20],640)&&near(packed[21],360),'post uniform layout is stable and aligned');
-check(P.BRIGHT_WGSL.includes('knee=.12')&&P.BLUR_WGSL.includes('.227027')&&P.POST_WGSL.includes('smoothstep(.12,.56')&&P.RAW_WGSL.includes('textureLoad'),'WGSL pins bright/blur/post/raw compatibility equations');
+check(P.BRIGHT_WGSL.includes('knee=.12')&&P.BLUR_WGSL.includes('.227027')&&P.POST_WGSL.includes('linear_to_srgb')&&P.RAW_WGSL.includes('1.0/2.4'),'WGSL pins linear bloom/grade and explicit sRGB presentation transfer');
 console.log(`SM-207 post model PASS: ${checks.length} checks`);

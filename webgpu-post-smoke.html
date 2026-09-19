@@ -25,7 +25,7 @@
     const read=async(x,y)=>{const b=device.createBuffer({size:256*H,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ}),e=device.createCommandEncoder();e.copyTextureToBuffer({texture:target},{buffer:b,bytesPerRow:256,rowsPerImage:H},{width:W,height:H,depthOrArrayLayers:1});device.queue.submit([e.finish()]);await b.mapAsync(GPUMapMode.READ);const a=new Uint8Array(b.getMappedRange()),o=y*256+x*4,v=[a[o],a[o+1],a[o+2],a[o+3]];b.unmap();b.destroy();return v};
     const render=async(settings={},grade=[1,1,1],raw=false)=>{const e=device.createCommandEncoder();const meta=renderer.render({encoder:e,sceneView:scene.createView(),outputView:target.createView(),settings,grade,raw});device.queue.submit([e.finish()]);await device.queue.onSubmittedWorkDone();return meta};
     const base={bloom:false,saturation:1,gradeMix:0,vignette:0,grain:0,exposure:1,brightness:0,contrast:1,gamma:1,gradeTemperature:0,gradeTint:0,shadowLift:0,highlightGain:0};
-    await render(base,[1,1,1],true);let raw=await read(10,10);result.samples.raw=raw;check(Math.abs(raw[0]-48)<=1&&Math.abs(raw[1]-76)<=1&&Math.abs(raw[2]-108)<=1,'raw bypass copies scene without post transform',{raw});
+    await render(base,[1,1,1],true);let raw=await read(10,10);result.samples.raw=raw;const rawExpected=[48,76,108].map(v=>Math.round(P.linearChannelToSrgb(v/255)*255));check(raw.slice(0,3).every((v,i)=>Math.abs(v-rawExpected[i])<=1),'raw bypass skips grading/bloom but applies the required linear-to-sRGB display transfer',{raw,rawExpected});
     await render({...base,exposure:.55});const expLow=await read(10,10);await render({...base,exposure:2.0});const expHigh=await read(10,10);result.samples.exposure={low:expLow,high:expHigh};check(expHigh[0]>expLow[0]&&expHigh[1]>expLow[1],'exposure control is monotonic',{expLow,expHigh});
     await render({...base,brightness:-.12});const brLow=await read(10,10);await render({...base,brightness:.12});const brHigh=await read(10,10);check(brHigh[0]>brLow[0]&&brHigh[2]>brLow[2],'brightness control is monotonic',{brLow,brHigh});
     await render({...base,gamma:.65});const gammaLow=await read(10,10);await render({...base,gamma:1.8});const gammaHigh=await read(10,10);check(gammaHigh[0]>gammaLow[0],'gamma raises mid-tones monotonically',{gammaLow,gammaHigh});
@@ -42,7 +42,7 @@
     const pe=device.createCommandEncoder();canvasRenderer.render({encoder:pe,sceneView:scene.createView(),outputView:preferredTarget.createView(),settings:{...base,bloom:false},raw:false});device.queue.submit([pe.finish()]);await device.queue.onSubmittedWorkDone();
     check(typeof preferred==='string'&&preferred.length>0,'preferred browser canvas format accepts production final-post pipeline',{preferred});
 
-    const canvas=document.getElementById('postCanvas'),ctx=canvas.getContext('webgpu');ctx.configure({device,format:preferred,alphaMode:'opaque'});
+    const canvas=document.getElementById('postCanvas'),ctx=canvas.getContext('webgpu');ctx.configure({device,format:preferred,alphaMode:'opaque',colorSpace:'srgb'});
     check(!!ctx,'real GPUCanvasContext configures with browser-preferred format',{preferred});
     let swapchainRendered=false,swapchainError=null;
     try{
@@ -56,7 +56,7 @@
     check(result.diagnostics.intermediateFormat==='rgba16float'&&result.diagnostics.outputFormat==='rgba8unorm','diagnostics expose intermediate and final formats');
     check(result.diagnostics.rawBypass.includes('skipped'),'diagnostics expose raw/debug post bypass');
     check(result.diagnostics.lightingBoundary.includes('SM-204'),'post path does not duplicate direct lighting');
-    check(result.diagnostics.colorSpaceBoundary.includes('SM-502'),'colour-space redesign explicitly deferred');
+    check(result.diagnostics.colorSpaceBoundary.includes('linear/HDR')&&result.diagnostics.colorSpaceBoundary.includes('sRGB'),'diagnostics expose the corrected linear/HDR to sRGB display boundary');
     check(result.diagnostics.compilation.every(m=>!(m.messages||[]).some(x=>x.type==='error')),'production post WGSL compiles without errors');
     result.preferredCanvasFormat=preferred;result.adapterInfo=adapter.info?Object.fromEntries(Object.entries(adapter.info).filter(([,v])=>typeof v!=='object')):{};result.ok=true;
     renderer.close();canvasRenderer.close();scene.destroy();target.destroy();preferredTarget.destroy();

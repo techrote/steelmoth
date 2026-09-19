@@ -16,6 +16,8 @@
   const finite=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
   const smoothstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
   const lum=c=>c[0]*.2126+c[1]*.7152+c[2]*.0722;
+  const linearChannelToSrgb=v=>{v=Math.max(0,finite(v,0));return v<=.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-.055};
+  const linearToSrgb=value=>{const v=Array.isArray(value)?value:[value,value,value];return [linearChannelToSrgb(v[0]),linearChannelToSrgb(v[1]),linearChannelToSrgb(v[2])]};
   const FALLBACK_TEXTURE_USAGE=Object.freeze({COPY_SRC:0x01,COPY_DST:0x02,TEXTURE_BINDING:0x04,STORAGE_BINDING:0x08,RENDER_ATTACHMENT:0x10});
   const FALLBACK_BUFFER_USAGE=Object.freeze({COPY_SRC:0x0004,COPY_DST:0x0008,UNIFORM:0x0040});
   const textureUsage=(...n)=>n.reduce((v,k)=>v|Number(root?.GPUTextureUsage?.[k]??FALLBACK_TEXTURE_USAGE[k]??0),0);
@@ -60,7 +62,7 @@
       c[i]=(c[i]-.5)*Math.max(.05,s.contrast)+.5+s.brightness;
       c[i]=Math.pow(Math.max(c[i],0),1/Math.max(.10,s.gamma));
       c[i]+=noiseAt(frag[0],frag[1])*s.grain;
-      c[i]=Math.pow(Math.max(c[i],0),.96);
+      c[i]=linearChannelToSrgb(Math.max(c[i],0));
     }
     return c;
   }
@@ -112,6 +114,7 @@ struct Post{p0:vec4f,p1:vec4f,p2:vec4f,p3:vec4f,grade:vec4f,extent:vec4f};
 @group(0) @binding(2) var bloom:texture_2d<f32>;
 @group(0) @binding(3) var<uniform> p:Post;
 fn luminance(c:vec3f)->f32{return dot(c,vec3f(.2126,.7152,.0722));}
+fn linear_to_srgb(c:vec3f)->vec3f{let x=max(c,vec3f(0));let lo=x*12.92;let hi=1.055*pow(x,vec3f(1.0/2.4))-.055;return select(hi,lo,x<=vec3f(.0031308));}
 @fragment fn fs_main(@builtin(position) frag:vec4f,@location(0) uv:vec2f)->@location(0) vec4f{
   var c=textureSample(scene,samp,uv).rgb;let b=textureSample(bloom,samp,uv).rgb;
   c+=b*p.p0.y*p.p0.x;let l=luminance(c);c=mix(vec3f(l),c,p.p0.z);c=mix(c,c*p.grade.rgb*1.25,p.p0.w);
@@ -121,12 +124,12 @@ fn luminance(c:vec3f)->f32{return dot(c,vec3f(.2126,.7152,.0722));}
   let q=uv-.5;let edge=smoothstep(.12,.56,dot(q,q));c*=1.0-edge*p.p1.x;c=vec3f(1.0)-exp(-max(c,vec3f(0))*p.p1.z);
   c=(c-.5)*max(.05,p.p2.x)+.5+p.p1.w;c=pow(max(c,vec3f(0)),vec3f(1.0/max(.10,p.p2.y)));
   let n=fract(sin(dot(frag.xy,vec2f(12.9898,78.233)))*43758.5453)-.5;c+=n*p.p1.y;
-  return vec4f(pow(max(c,vec3f(0)),vec3f(.96)),1);
+  return vec4f(linear_to_srgb(c),1);
 }`;
   const RAW_WGSL=FULLSCREEN_WGSL+`
 @group(0) @binding(0) var scene:texture_2d<f32>;
 @fragment fn fs_main(@builtin(position) frag:vec4f)->@location(0) vec4f{
-  let p=vec2i(floor(frag.xy));return textureLoad(scene,p,0);
+  let p=vec2i(floor(frag.xy));let c=textureLoad(scene,p,0);let x=max(c.rgb,vec3f(0));let lo=x*12.92;let hi=1.055*pow(x,vec3f(1.0/2.4))-.055;return vec4f(select(hi,lo,x<=vec3f(.0031308)),c.a);
 }`;
 
   class WebGPUPost{
@@ -200,10 +203,10 @@ fn luminance(c:vec3f)->f32{return dot(c,vec3f(.2126,.7152,.0722));}
       const bg=this.device.createBindGroup({layout:finalPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:this.sampler},{binding:1,resource:sceneView},{binding:2,resource:this.bloomA.createView()},{binding:3,resource:{buffer:this.postBuffer}}]});
       this._pass(encoder,`${this.labelPrefix}:final-pass`,outputView,finalPipeline,bg);this.renderCounts.final++;return{raw:false,bloomPasses:s.bloom?passes:0};
     }
-    diagnostics(){return{schema:SCHEMA,extent:{width:this.width,height:this.height},bloomExtent:{width:this.bloomWidth,height:this.bloomHeight},intermediateFormat:this.intermediateFormat,outputFormat:this.outputFormat,compatibilityBloomQuality:DEFAULTS.bloomQuality,qualityPasses:[0,1,2,3],renderCounts:{...this.renderCounts},lastSettings:this.lastSettings?{...this.lastSettings}:null,compilation:JSON.parse(JSON.stringify(this.compilation)),rawBypass:'scene -> output; bloom/grade/post skipped',lightingBoundary:'SM-204 supplies already-lit scene; SM-207 does not multiply a second light map',colorSpaceBoundary:'compatibility transfer retained; colour-space redesign deferred to SM-502',fallback:'WebGL2 compatibility renderer remains authoritative until SM-505 promotion',lastError:this.lastError}}
+    diagnostics(){return{schema:SCHEMA,extent:{width:this.width,height:this.height},bloomExtent:{width:this.bloomWidth,height:this.bloomHeight},intermediateFormat:this.intermediateFormat,outputFormat:this.outputFormat,compatibilityBloomQuality:DEFAULTS.bloomQuality,qualityPasses:[0,1,2,3],renderCounts:{...this.renderCounts},lastSettings:this.lastSettings?{...this.lastSettings}:null,compilation:JSON.parse(JSON.stringify(this.compilation)),rawBypass:'scene -> output; bloom/grade/post skipped',lightingBoundary:'SM-204 supplies already-lit scene; SM-207 does not multiply a second light map',colorSpaceBoundary:'scene+bloom+grading are linear/HDR; final and raw presentation apply IEC sRGB transfer exactly once into an sRGB canvas',fallback:'WebGL2 compatibility renderer remains authoritative until SM-505 promotion',lastError:this.lastError}}
     _destroyTextures(){for(const t of [this.bloomA,this.bloomB])try{t?.destroy()}catch(_e){}}
     close(){this._destroyTextures();for(const b of [this.brightBuffer,this.blurHBuffer,this.blurVBuffer,this.postBuffer])try{b?.destroy()}catch(_e){}}
   }
   function preferredCanvasFormat(){try{return root?.navigator?.gpu?.getPreferredCanvasFormat?.()||'bgra8unorm'}catch(_e){return'bgra8unorm'}}
-  return{SCHEMA,DEFAULTS,BRIGHT_WGSL,BLUR_WGSL,POST_WGSL,RAW_WGSL,normalizeSettings,bloomPassesForQuality,applyPostReference,packPostSettings,preferredCanvasFormat,WebGPUPost};
+  return{SCHEMA,DEFAULTS,BRIGHT_WGSL,BLUR_WGSL,POST_WGSL,RAW_WGSL,normalizeSettings,bloomPassesForQuality,linearChannelToSrgb,linearToSrgb,applyPostReference,packPostSettings,preferredCanvasFormat,WebGPUPost};
 });

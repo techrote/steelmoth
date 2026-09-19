@@ -28,7 +28,7 @@ const scene={materials:[material],sprites:[sprite('dynamic-late','dynamic',30,30
 const instances=G.buildSceneInstances(scene,atlas);
 assert.deepEqual(instances.map(x=>x.id),['static-one','dynamic-early','dynamic-late','foreground-one']);
 assert.deepEqual(instances.map(x=>x.category),['static','dynamic','dynamic','foreground']);
-assert.equal(instances[0].heightFactor,1);assert.equal(instances[0].tintStrength,.07);assert.equal(instances[0].materialModeValue,G.MATERIAL_MODE.normal);assert.deepEqual(instances[0].tint,[1,.5,.25]);
+assert.equal(instances[0].heightFactor,1);assert.equal(instances[0].tintStrength,.07);assert.equal(instances[0].materialModeValue,G.MATERIAL_MODE.normal);assert.deepEqual(instances[0].tint,G.srgbToLinear([1,.5,.25]));
 const packed=G.packInstances(instances);
 assert.equal(packed.byteLength,G.INSTANCE_STRIDE*instances.length);
 const dv=new DataView(packed.buffer,packed.byteOffset,packed.byteLength);

@@ -49,7 +49,7 @@
     if(isCone(light))return 22;
     return DEFAULT_Z[String(light?.group||'')]??12;
   }
-  function normalizedColor(value){return Array.isArray(value)?[finite(value[0],1),finite(value[1],1),finite(value[2],1)]:[1,1,1]}
+  function normalizedColor(value){const c=Array.isArray(value)?[finite(value[0],1),finite(value[1],1),finite(value[2],1)]:[1,1,1];return GBuffer.srgbToLinear(c)}
   function buildCanonicalLights(scene={},settings={}){
     if(settings.lighting===false)return[];
     const source=[],seen=new Set();
@@ -184,7 +184,7 @@ fn fres(F0:vec3f,VoH:f32)->vec3f{return F0+(vec3f(1)-F0)*pow(1.0-VoH,5.0);}
       encoder.copyTextureToBuffer({texture:record.handle,origin:{x:Math.max(0,Math.min(record.width-1,Math.floor(x))),y:Math.max(0,Math.min(record.height-1,Math.floor(y))),z:0}},{buffer,bytesPerRow:256,rowsPerImage:1},{width:1,height:1,depthOrArrayLayers:1});this.queue.submit([encoder.finish()]);await buffer.mapAsync(Number(root?.GPUMapMode?.READ??MAP_MODE_READ));
       const raw=new Uint8Array(buffer.getMappedRange()).slice(0,8);buffer.unmap();buffer.destroy();const dv=new DataView(raw.buffer,raw.byteOffset,8);return[0,2,4,6].map(o=>halfToFloat(dv.getUint16(o,true)));
     }
-    diagnostics(){return{schema:SCHEMA,extent:{width:this.width,height:this.height},maxLights:MAX_LIGHTS,lightStride:LIGHT_STRIDE,oneCanonicalLightBuffer:LIGHT_BUFFER_NAME,activeLightCount:this.activeLightCount,lastDebugMode:this.lastDebugMode,debugModes:[...DEBUG_MODES],outputFormat:OUTPUT_FORMAT,renderCount:this.renderCount,lights:this.lastLights.map(clone),compilation:clone(this.compilation),pbr:{model:'restrained-ggx-schlick-smith-v123-parity',dielectricF0:.04,directClamp:.22,viewVector:[0,-.12,1],selfShadow:'deferred-sm205',contactShadow:'deferred-sm205'},resourceDiagnostics:this.registry.diagnostics(),pipelineDiagnostics:this.pipelines.diagnostics()}}
+    diagnostics(){return{schema:SCHEMA,extent:{width:this.width,height:this.height},maxLights:MAX_LIGHTS,lightStride:LIGHT_STRIDE,oneCanonicalLightBuffer:LIGHT_BUFFER_NAME,activeLightCount:this.activeLightCount,lastDebugMode:this.lastDebugMode,debugModes:[...DEBUG_MODES],outputFormat:OUTPUT_FORMAT,renderCount:this.renderCount,lights:this.lastLights.map(clone),colourSpace:{g0:'linear-albedo',materialChannels:'linear-data',authoredLightColors:'srgb-decoded-during-canonicalization',ggx:'linear-hdr',output:'linear-hdr-rgba16float',debug:{final:'linear-hdr',diffuse:'linear-hdr',specular:'linear-hdr','light-count':'unitless-linear'}},compilation:clone(this.compilation),pbr:{model:'restrained-ggx-schlick-smith-v123-parity',dielectricF0:.04,directClamp:.22,viewVector:[0,-.12,1],selfShadow:'deferred-sm205',contactShadow:'deferred-sm205'},resourceDiagnostics:this.registry.diagnostics(),pipelineDiagnostics:this.pipelines.diagnostics()}}
     close(){if(this.ownsRegistry)this.registry.close()}
   }
 

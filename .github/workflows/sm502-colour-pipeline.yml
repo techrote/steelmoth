@@ -1,0 +1,36 @@
+name: SM-502 WebGPU colour pipeline
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_device.js'
+      - 'engine/webgpu_gbuffer.js'
+      - 'engine/webgpu_lighting.js'
+      - 'engine/webgpu_post.js'
+      - 'webgpu-gbuffer-smoke.html'
+      - 'webgpu-post-smoke.html'
+      - 'tools/validate_webgpu_colour.js'
+      - 'tools/validate_webgpu_colour_contract.py'
+      - 'docs/COLOUR_PIPELINE.md'
+      - '.github/workflows/sm502-colour-pipeline.yml'
+  workflow_dispatch:
+
+jobs:
+  colour-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate numeric colour contract
+        run: |
+          node tools/validate_webgpu_colour.js
+          python tools/validate_webgpu_colour_contract.py
+          node tools/validate_webgpu_gbuffer.js
+          node tools/validate_webgpu_lighting.js
+          node tools/validate_webgpu_post.js
