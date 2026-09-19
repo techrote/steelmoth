@@ -105,8 +105,11 @@ def wait_payload(driver, timeout: float) -> dict:
     raise TimeoutError(f"target benchmark did not finish within {timeout:.0f}s; last={last!r}")
 
 
-def run_page(driver, base_url: str, *, browser: str, mode: str, scene: str, warmup: int, samples: int, timeout: float, out: Path) -> dict:
-    query = urllib.parse.urlencode({"mode": mode, "scene": scene, "quality": "Medium", "gtao": 1 if mode == "sm601" else 0, "width": 1920, "height": 1080, "warmup": warmup, "samples": samples, "seed": 1397572098})
+def run_page(driver, base_url: str, *, browser: str, mode: str, scene: str, warmup: int, samples: int, timeout: float, out: Path, candidate: str | None = None) -> dict:
+    params = {"mode": mode, "scene": scene, "quality": "Medium", "gtao": 1 if mode == "sm601" else 0, "width": 1920, "height": 1080, "warmup": warmup, "samples": samples, "seed": 1397572098}
+    if candidate:
+        params["candidate"] = candidate
+    query = urllib.parse.urlencode(params)
     started = time.monotonic()
     driver.get(f"{base_url}/webgpu-target-benchmark.html?{query}")
     payload = wait_payload(driver, timeout)
@@ -121,17 +124,17 @@ def run_page(driver, base_url: str, *, browser: str, mode: str, scene: str, warm
     return payload
 
 
-def chrome_sessions(base_url: str, mode: str, scenes: tuple[str, ...], sessions: int, warmup: int, samples: int, timeout: float, raw_root: Path) -> list[dict]:
+def chrome_sessions(base_url: str, mode: str, scenes: tuple[str, ...], sessions: int, warmup: int, samples: int, timeout: float, raw_root: Path, candidate: str | None = None) -> list[dict]:
     rows = []
     for session in range(1, sessions + 1):
-        print(f"[{mode}] Chrome session {session}/{sessions}", flush=True)
+        print(f"[{mode}{'/' + candidate if candidate else ''}] Chrome session {session}/{sessions}", flush=True)
         driver = make_driver("chrome")
         try:
             driver.set_page_load_timeout(max(60, timeout))
             driver.set_script_timeout(max(60, timeout))
             for scene in scenes:
                 print(f"  {scene}: {warmup} warm-up + {samples} retained", flush=True)
-                rows.append(run_page(driver, base_url, browser="chrome", mode=mode, scene=scene, warmup=warmup, samples=samples, timeout=timeout, out=raw_root / f"session-{session:02d}" / f"{scene}.json"))
+                rows.append(run_page(driver, base_url, browser="chrome", mode=mode, scene=scene, warmup=warmup, samples=samples, timeout=timeout, out=raw_root / f"session-{session:02d}" / f"{scene}.json", candidate=candidate))
         finally:
             driver.quit()
     return rows
@@ -203,6 +206,54 @@ def sm501_localization_report(rows: list[dict], source: dict, gpu: dict, warmup:
     }
 
 
+def parity(reference: dict, candidate: dict) -> dict:
+    a = ((reference.get("validation") or {}).get("precision") or {}).get("samples") or []
+    b = ((candidate.get("validation") or {}).get("precision") or {}).get("samples") or []
+    if len(a) != len(b) or not a:
+        return {"pass": False, "error": "reference/candidate readback sample mismatch"}
+    normal_max = material_max = roughness_max = lighting_max = 0.0
+    object_ids_match = True
+    for left, right in zip(a, b):
+        if [left.get("x"), left.get("y")] != [right.get("x"), right.get("y")]:
+            return {"pass": False, "error": "readback coordinates differ"}
+        object_ids_match = object_ids_match and left.get("objectId") == right.get("objectId")
+        ln, rn = left["normal"], right["normal"]
+        dot = max(-1.0, min(1.0, sum(float(x) * float(y) for x, y in zip(ln, rn))))
+        normal_max = max(normal_max, math.degrees(math.acos(dot)))
+        roughness_max = max(roughness_max, abs(float(left["roughness"]) - float(right["roughness"])))
+        material_max = max(material_max, *(abs(float(x) - float(y)) for x, y in zip(left["material"], right["material"])))
+        lighting_max = max(lighting_max, *(abs(float(x) - float(y)) for x, y in zip(left["lighting"], right["lighting"])))
+    return {"pass": object_ids_match and normal_max <= 1.0 and roughness_max <= 1 / 510 + 1e-6 and material_max <= 1 / 510 + 1e-6 and lighting_max <= .02, "sampleCount": len(a), "objectIdsMatch": object_ids_match, "maxNormalAngleDeg": normal_max, "maxRoughnessAbsError": roughness_max, "maxMaterialAbsError": material_max, "maxLightingAbsError": lighting_max, "thresholds": {"normalAngleDeg": 1.0, "normalizedChannelAbsError": 1 / 510 + 1e-6, "lightingAbsError": .02}}
+
+
+def sm800_report(rows_by_variant: dict[str, list[dict]], source: dict, gpu: dict, warmup: int, samples: int) -> dict:
+    variants = {}
+    for variant, rows in rows_by_variant.items():
+        variants[variant] = {"scenes": {row["configuration"]["scene"]: {"stats": stats(row["gpuRendererMs"]), "workload": row["workload"], "memory": row["memory"], "adapter": row["adapter"], "browser": row["run"], "readback": (row.get("validation") or {}).get("precision")} for row in rows}}
+    comparisons = {}
+    reference = variants["reference"]["scenes"]
+    reference_rows = {r["configuration"]["scene"]: r for r in rows_by_variant["reference"]}
+    for candidate in ("material8", "octMaterial8"):
+        comparison_key = {"material8": "referenceToMaterial8", "octMaterial8": "referenceToOctMaterial8"}[candidate]
+        scene_rows = {}; useful = regressive = 0
+        candidate_rows = {r["configuration"]["scene"]: r for r in rows_by_variant[candidate]}
+        for name in SCENARIOS:
+            ref_mean = reference[name]["stats"]["mean"]; cand_mean = variants[candidate]["scenes"][name]["stats"]["mean"]
+            gain = (ref_mean - cand_mean) / ref_mean if ref_mean else 0.0
+            if gain >= .03: useful += 1
+            if gain <= -.03: regressive += 1
+            scene_rows[name] = {"referenceMeanMs": ref_mean, "candidateMeanMs": cand_mean, "relativeGain": gain, "deltaMs": cand_mean - ref_mean, "readbackParity": parity(reference_rows[name], candidate_rows[name])}
+        all_parity = all(row["readbackParity"].get("pass") is True for row in scene_rows.values())
+        potentially_useful = useful >= 2 and regressive == 0 and all_parity
+        comparisons[comparison_key] = {"scenes": scene_rows, "usefulSceneCount": useful, "regressiveSceneCount": regressive, "allReadbackParity": all_parity, "potentiallyUseful": potentially_useful, "disposition": "paired-confirmation-required" if potentially_useful else "completed-negative-stop"}
+    direct = {}
+    for name in SCENARIOS:
+        a = variants["material8"]["scenes"][name]["stats"]["mean"]; b = variants["octMaterial8"]["scenes"][name]["stats"]["mean"]
+        direct[name] = {"material8MeanMs": a, "octMaterial8MeanMs": b, "relativeGain": (a - b) / a if a else 0.0, "deltaMs": b - a}
+    comparisons["material8ToOctMaterial8"] = {"scenes": direct}
+    return {"schema": "steelmoth-sm800-target-report/v1", "source": source, "environment": {"gpuName": gpu["name"], "driver": gpu["driver"], "os": platform.platform(), "resolution": [1920, 1080], "dpr": 1}, "qualityPreset": "Medium", "gtaoEnabled": False, "methodology": {"warmupFrames": warmup, "measuredFrames": samples, "freshChromeProcessPerVariant": True, "resourceRecreationPerScene": True, "timestampQuery": True, "fullRenderer": True, "initialCanonicalSweep": True}, "variants": variants, "comparisons": comparisons, "referenceContext": {"sameRunReference": True, "compatibleBroadReference": "../sm501-2026-09-19/target-report.json"}}
+
+
 def write_validator_log(command: list[str], path: Path) -> int:
     run = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
     path.write_text(run.stdout + run.stderr, encoding="utf-8")
@@ -212,12 +263,14 @@ def write_validator_log(command: list[str], path: Path) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Physical GTX 1650 SUPER SM-501/SM-601 acceptance runner")
-    ap.add_argument("--phase", choices=("sm501", "sm501-localization", "sm601", "all"), default="all")
+    ap.add_argument("--phase", choices=("sm501", "sm501-localization", "sm601", "sm800-sweep", "all"), default="all")
     ap.add_argument("--warmup", type=int, default=300); ap.add_argument("--samples", type=int, default=600); ap.add_argument("--sessions", type=int, default=3)
     ap.add_argument("--timeout", type=float, default=1200); ap.add_argument("--out", type=Path, default=Path("benchmarks/webgpu-gtx1650s"))
     args = ap.parse_args()
-    if args.warmup < 300 or args.samples < 600 or args.sessions < 3:
-        ap.error("physical acceptance requires >=300 warm-up, >=600 retained samples, and >=3 runs")
+    if args.phase != "sm800-sweep" and (args.warmup < 300 or args.samples < 600 or args.sessions < 3):
+        ap.error("SM-501/601 physical acceptance requires >=300 warm-up, >=600 retained samples, and >=3 runs")
+    if args.phase == "sm800-sweep" and (args.warmup < 100 or args.samples < 200):
+        ap.error("SM-800 initial sweep requires >=100 warm-up and >=200 retained samples")
     gpu, source = gpu_inventory(), source_state()
     if "GTX 1650 SUPER" not in gpu.get("name", "").upper():
         print(f"physical target not found: {gpu}", file=sys.stderr); return 2
@@ -234,6 +287,8 @@ def main() -> int:
             root = out / "sm501-2026-09-19" / "localization"; rows = chrome_sessions(base, "sm501-breakdown", ("representative", "dense-static"), 1, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); report = sm501_localization_report(rows, source, gpu, args.warmup, args.samples); (root / "pass-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         if args.phase in ("sm601", "all"):
             root = out / "sm601-2026-09-19"; rows = chrome_sessions(base, "sm601", ("dynamic-robot",), args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); report = sm601_report(rows, source, gpu, args.warmup, args.samples); (root / "target-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"); rc |= write_validator_log([sys.executable, "tools/validate_sm601_target_report.py", str(root / "target-report.json")], root / "validator.log")
+        if args.phase in ("sm800-sweep", "all"):
+            root = out / "sm800-2026-09-19"; rows_by_variant = {variant: chrome_sessions(base, "sm800", SCENARIOS, 1, args.warmup, args.samples, args.timeout, root / "raw" / "chrome" / variant, candidate=variant) for variant in ("reference", "material8", "octMaterial8")}; report = sm800_report(rows_by_variant, source, gpu, args.warmup, args.samples); (root / "target-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"); rc |= write_validator_log([sys.executable, "tools/validate_sm800_target_report.py", str(root / "target-report.json")], root / "validator.log")
     finally:
         server.shutdown(); server.server_close()
     return 1 if rc else 0
