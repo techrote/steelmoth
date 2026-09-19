@@ -20,8 +20,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Apply SM-502 source and validation patch
-        run: python tools/apply_sm502_patch.py
+      - name: Repair bootstrap anchor and apply SM-502 source patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('tools/apply_sm502_patch.py')
+          s=p.read_text(encoding='utf-8')
+          old='SCHEMA,DEFAULTS,normalizeSettings,bloomPassesForQuality,applyPostReference,packPostSettings'
+          new='SCHEMA,DEFAULTS,BRIGHT_WGSL,BLUR_WGSL,POST_WGSL,RAW_WGSL,normalizeSettings,bloomPassesForQuality,applyPostReference,packPostSettings'
+          if old not in s:
+              raise SystemExit('post export bootstrap anchor not found')
+          p.write_text(s.replace(old,new),encoding='utf-8')
+          PY
+          python tools/apply_sm502_patch.py
       - name: Commit transformed source
         shell: bash
         run: |
