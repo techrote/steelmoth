@@ -91,7 +91,9 @@ def run_one(name: str, group: str, cmd: list[str]) -> dict:
     exe = cmd[0]
     if os.path.sep not in exe and shutil.which(exe) is None:
         return {"name":name,"group":group,"command":cmd,"returncode":127,"duration_s":0,"stdout":"","stderr":f"required executable not found: {exe}"}
-    p = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True)
+    env = os.environ.copy()
+    env.setdefault("PYTHONUTF8", "1")
+    p = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, env=env)
     return {"name":name,"group":group,"command":cmd,"returncode":p.returncode,"duration_s":round(time.time()-started,3),"stdout":p.stdout,"stderr":p.stderr}
 
 def write_report(path: Path|None, payload: dict) -> None:

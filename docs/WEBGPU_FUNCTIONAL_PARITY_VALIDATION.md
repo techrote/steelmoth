@@ -12,6 +12,16 @@ Hosted screenshots are retained for inspection, but no automated run is describe
 
 The authoritative machine-readable artifact is `artifacts/sm405/cross-browser-functional.json`; per-page screenshots are stored under `artifacts/sm405/screenshots/<browser>/`.
 
+## Target-hardware execution
+
+The default runner profile remains the hosted-CI path described below. A physical Windows acceptance run must instead use fresh temporary headed-browser profiles and must not enable the hosted Firefox blocklist, parent-process, software-WebRender, or fallback-adapter accommodations:
+
+```text
+python tools/validate_webgpu_cross_browser.py --execution-profile target-hardware --browsers chrome firefox --timeout 90 --report artifacts/sm405/cross-browser-functional.json
+```
+
+The target-hardware profile records `Win32_VideoController` name, driver, adapter memory and video processor metadata. It fails if the direct probe cannot acquire the preferred high-performance adapter or reports a fallback adapter. Its captures remain review evidence rather than an automated claim of human visual approval. Record the reviewer and disposition separately after inspecting all retained captures.
+
 ## Gate mapping
 
 | Release-plan gate | SM-405 evidence |
@@ -73,3 +83,11 @@ The direct probe executes the production `WebGPUDeviceManager` deliberate adapte
 The repository document is the durable protocol and evidence interpretation. The exact browser versions, adapter metadata, page outcomes, structured payloads and screenshot paths come from the successful SM-405 workflow artifact for the PR head. This section must not be converted into an optimistic pass statement before that workflow and the inherited repository Verification workflow are both green.
 
 SM-405 changes validation infrastructure only. It does not change rendering algorithms, does not change gameplay, and does not change the `Auto` backend policy owned by SM-505.
+
+### Target-hardware acceptance — 2026-09-19
+
+The strict target-hardware matrix passed against source commit `2bb6495e` on Windows 11 with an NVIDIA GeForce GTX 1650 SUPER (4 GB reported adapter memory), driver `32.0.16.1692`, Chrome `153.0.8010.48`, and Firefox `156.0`. Both browsers ran fresh temporary headed profiles with the hosted Firefox blocklist, parent-process, software-WebRender and fallback-adapter accommodations disabled. Each browser passed all 23 pages and populated Gates A–E. Both direct probes acquired the preferred high-performance adapter and reported `isFallbackAdapter=false`; Chrome additionally exposed NVIDIA/Turing adapter identity, while Firefox did not expose optional vendor/architecture strings.
+
+All 46 retained captures were inspected for black-canvas, browser-error and gross cross-browser rendering regressions. The DSO hard-core and bounded visibility-composition captures agreed across Chrome and Firefox, and every structured capture reported `ok=true`. This inspection is recorded as engineering evidence, not as an automated claim of external human art-direction approval. The deterministic fixture/readback contracts remain the acceptance authority for the named controls and bin ownership/DSO/Dark-Bloom behaviours.
+
+Durable evidence is stored in `benchmarks/webgpu-gtx1650s/sm405-2026-09-19/`. The report records the exact source commit, clean tracked state, browser metadata, GPU/driver inventory, per-page results, gate coverage, adapter flags and screenshot paths. SM-405 Gates A–E have no remaining functional blocker. This result makes no GPU-performance claim and does not authorize `Auto` promotion; Gate F timing and default-backend promotion remain owned by SM-501/SM-505.

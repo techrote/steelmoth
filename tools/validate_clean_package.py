@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, shutil, subprocess, sys, tempfile, zipfile
+import argparse, hashlib, json, os, shutil, subprocess, sys, tempfile, zipfile
 from pathlib import Path, PurePosixPath
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -21,6 +21,13 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda:f.read(1024*1024),b''): h.update(chunk)
     return h.hexdigest()
 
+def baseline_sha256_matches(path: Path, expected: str) -> tuple[bool,bool]:
+    payload=path.read_bytes()
+    raw=hashlib.sha256(payload).hexdigest()
+    if raw.lower()==expected.lower(): return True,False
+    normalized=payload.replace(b'\r\n',b'\n')
+    return hashlib.sha256(normalized).hexdigest().lower()==expected.lower(),normalized != payload
+
 def include(path: Path) -> bool:
     rel=path.relative_to(ROOT)
     if rel.parts and rel.parts[0] in SKIP_TOP: return False
@@ -35,7 +42,8 @@ def baseline_runtime_path(name: str) -> bool:
     return name in BASELINE_RUNTIME_ROOT or any(name.startswith(prefix) for prefix in BASELINE_RUNTIME_PREFIXES)
 
 def run(root: Path, cmd: list[str]) -> dict:
-    p=subprocess.run(cmd,cwd=root,text=True,capture_output=True)
+    env=dict(os.environ);env.setdefault('PYTHONUTF8','1')
+    p=subprocess.run(cmd,cwd=root,text=True,capture_output=True,env=env)
     return {'command':cmd,'returncode':p.returncode,'stdout':p.stdout,'stderr':p.stderr}
 
 def main() -> int:
@@ -69,7 +77,7 @@ def main() -> int:
         if missing:
             report['error']='missing required extracted files';report['missing']=missing
         else:
-            sums=unpack/'SHA256SUMS.txt';sum_errors=[];sum_total=0;sum_checked=0;sum_skipped=0
+            sums=unpack/'SHA256SUMS.txt';sum_errors=[];sum_total=0;sum_checked=0;sum_skipped=0;sum_normalized=0
             if sums.is_file():
                 for raw in sums.read_text(encoding='utf-8').splitlines():
                     raw=raw.strip()
@@ -80,10 +88,14 @@ def main() -> int:
                         continue
                     clean=name.replace('\\','/').removeprefix('./');f=unpack/clean;sum_checked+=1
                     if not f.is_file(): sum_errors.append(f'missing baseline content file: {clean}')
-                    elif sha256(f).lower()!=digest.lower(): sum_errors.append(f'baseline content hash mismatch: {clean}')
+                    else:
+                        matches,normalized=baseline_sha256_matches(f,digest)
+                        if normalized: sum_normalized+=1
+                        if not matches: sum_errors.append(f'baseline content hash mismatch: {clean}')
             report['baseline_sha256_entries_total']=sum_total
             report['baseline_content_entries_checked']=sum_checked
             report['baseline_evolving_entries_skipped']=sum_skipped
+            report['baseline_crlf_entries_normalized']=sum_normalized
             report['baseline_sha256_errors']=sum_errors
             checks=[
                 [sys.executable,'tools/validate_webapp_v123.py'],

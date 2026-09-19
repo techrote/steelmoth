@@ -71,6 +71,11 @@ require('set(args.browsers) == {"chrome", "firefox"}' in runner, "aggregate pass
 require("firefoxBlocklistIgnoredForHostedFunctionalCI" in runner, "Firefox hosted-CI blocklist override must be explicit in evidence")
 require("firefoxWebGPUAllowedInParentForHostedHeadlessCI" in runner, "Firefox hosted-CI parent-process override must be explicit in evidence")
 require('"dom.webgpu.allow-in-parent", True' in runner, "Firefox hosted runner must explicitly try parent-process WebGPU when the GPU process is unavailable")
+require('choices=["hosted-ci", "target-hardware"]' in runner, "runner must expose separate hosted-CI and target-hardware profiles")
+require("target-hardware run did not acquire the preferred high-performance adapter" in runner, "target-hardware profile must reject fallback adapter acquisition")
+require("windows_video_controllers" in runner and "DriverVersion" in runner, "target-hardware evidence must inventory the Windows GPU and driver")
+require("git_source_state" in runner and '"commit": run("rev-parse", "--verify", "HEAD")' in runner, "evidence must identify its source commit")
+require('"trackedChanges": bool(run("status", "--porcelain", "--untracked-files=no"))' in runner, "evidence must identify tracked source changes without treating its output as dirty")
 
 if errors:
     print("SM-405 CONTRACT FAIL")
