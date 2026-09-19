@@ -138,3 +138,5 @@ Start with explicit/debuggable formats (including XYZ normals and sufficiently p
 ### Q-005 — compute vs raster per pass
 
 WebGPU compute is not assumed to be faster. Each candidate compute conversion must be justified by dataflow/reuse or measured performance. Conventional fullscreen/render passes remain valid where they are simpler or faster.
+
+**SM-801 measured submission corollary:** WebGPU render bundles are likewise not assumed to beat simple inline encoding. The Chrome/Firefox representative+dense A/B study in `WEBGPU_STATIC_SUBMISSION_SM801.md` rejects render-bundle adoption for the current SM-200 path: the renderer already emits at most five coarse instanced category draws, the proposed static/ground bundle failed the ≥10% CPU improvement criterion in three of four browser/workload rows, Firefox dense CPU encoding regressed, and hosted Chrome timestamp-query measurements regressed beyond the 3% GPU ceiling in both workloads. Production retains inline category batching; revisit only if the submission shape materially changes or later browser implementations change the measured trade-off.

@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-801 CPU encode A/B</title>
+<pre id="status">Running SM-801 CPU encode study…</pre>
+<script id="sm801CpuResult" type="application/json">{"schema":"steelmoth-sm801-cpu-browser/v1","ok":false,"status":"pending"}</script>
+<script src="tools/sm801_static_submission_probe.js?v=sm801-2"></script>
+<script>
+(async()=>{
+  const SM=globalThis.SteelMothSM801;
+  const result={schema:'steelmoth-sm801-cpu-browser/v1',ok:false,browser:navigator.userAgent,policy:{runs:3,warmupSamples:4,measureSamples:18,encodesPerSample:512,rebuildSamples:512},workloads:{},checks:[]};
+  const publish=()=>{const json=JSON.stringify(result);document.getElementById('status').textContent=json;document.getElementById('sm801CpuResult').textContent=json;document.body.dataset.sm801CpuDone='1'};
+  const check=(ok,id,details={})=>{result.checks.push({id,ok:!!ok,...details});if(!ok)throw new Error(`SM-801 CPU check failed: ${id}`)};
+  let device=null,target=null,pipeline=null,bindGroup=null,uniform=null;
+  const makeBundle=plan=>{const e=device.createRenderBundleEncoder({colorFormats:['rgba8unorm']});e.setPipeline(pipeline);e.setBindGroup(0,bindGroup);for(const b of plan.stable)e.draw(6,b.instanceCount,0,b.firstInstance);return e.finish()};
+  const encode=(mode,plan,bundle)=>{const e=device.createCommandEncoder(),p=e.beginRenderPass({colorAttachments:[{view:target.createView(),loadOp:'clear',storeOp:'store',clearValue:{r:0,g:0,b:0,a:1}}]});if(mode==='baseline'){p.setPipeline(pipeline);p.setBindGroup(0,bindGroup);for(const b of plan.batches)p.draw(6,b.instanceCount,0,b.firstInstance)}else{p.executeBundles([bundle]);if(plan.dynamic.length){p.setPipeline(pipeline);p.setBindGroup(0,bindGroup);for(const b of plan.dynamic)p.draw(6,b.instanceCount,0,b.firstInstance)}}p.end();return e.finish()};
+  const sample=(mode,plan,bundle)=>{let last=null;const t0=performance.now();for(let i=0;i<result.policy.encodesPerSample;i++)last=encode(mode,plan,bundle);const t1=performance.now();return {msPerEncode:(t1-t0)/result.policy.encodesPerSample,last}};
+  const cpuRun=(mode,plan,bundle)=>{for(let i=0;i<result.policy.warmupSamples;i++)sample(mode,plan,bundle);const values=[];for(let i=0;i<result.policy.measureSamples;i++)values.push(sample(mode,plan,bundle).msPerEncode);return SM.summarize(values)};
+  const rebuildRun=plan=>{const values=[];for(let s=0;s<16;s++){const t0=performance.now();for(let i=0;i<result.policy.rebuildSamples/16;i++)makeBundle(plan);const t1=performance.now();values.push((t1-t0)/(result.policy.rebuildSamples/16))}return SM.summarize(values)};
+  try{
+    check(!!SM,'helper-loaded');check(!!navigator.gpu,'navigator-gpu-present');let adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});if(!adapter)adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:true});check(!!adapter,'adapter-acquired');device=await adapter.requestDevice();
+    target=device.createTexture({size:{width:64,height:64,depthOrArrayLayers:1},format:'rgba8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT});uniform=device.createBuffer({size:16,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});device.queue.writeBuffer(uniform,0,new Float32Array([1,0,0,0]));
+    const module=device.createShaderModule({code:`@group(0) @binding(0) var<uniform> u:vec4f;@vertex fn vs(@builtin(vertex_index) i:u32)->@builtin(position) vec4f{let p=array<vec2f,6>(vec2f(-.5,-.5),vec2f(.5,-.5),vec2f(-.5,.5),vec2f(-.5,.5),vec2f(.5,-.5),vec2f(.5,.5));return vec4f(p[i]*u.x,0,1);}@fragment fn fs()->@location(0) vec4f{return vec4f(.2,.4,.6,1);}`});pipeline=await device.createRenderPipelineAsync({layout:'auto',vertex:{module,entryPoint:'vs'},fragment:{module,entryPoint:'fs',targets:[{format:'rgba8unorm'}]}});bindGroup=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:uniform}}]});
+    device.pushErrorScope('validation');
+    for(const [name,counts] of Object.entries(SM.DEFAULT_WORKLOADS)){const plan=SM.buildBatchPlan(counts),bundle=makeBundle(plan),runs=[];for(let r=0;r<result.policy.runs;r++){const order=r%2?['bundle','baseline']:['baseline','bundle'],cpu={};for(const mode of order)cpu[mode]=cpuRun(mode,plan,bundle);runs.push({run:r+1,order,cpu})}const base=runs.map(x=>x.cpu.baseline.p50Ms),bund=runs.map(x=>x.cpu.bundle.p50Ms);result.workloads[name]={plan,runs,aggregate:{baseline:SM.summarize(base),bundle:SM.summarize(bund),bundleRebuild:rebuildRun(plan)}}}
+    const plan=SM.buildBatchPlan(SM.DEFAULT_WORKLOADS.representative),bundle=makeBundle(plan);device.queue.submit([encode('baseline',plan,bundle),encode('bundle',plan,bundle)]);await device.queue.onSubmittedWorkDone();const err=await device.popErrorScope();check(!err,'no-validation-errors',{message:err?String(err.message||err):null});result.resourceComplexity={additionalCachedRenderBundlesPerRoom:1,additionalBuffers:0,additionalTextures:0,usesExistingPipeline:true,usesExistingBindGroup:true};result.ok=true;
+  }catch(e){result.error=String(e?.stack||e)}finally{try{uniform?.destroy?.()}catch(_e){}try{target?.destroy?.()}catch(_e){}try{device?.destroy?.()}catch(_e){}publish()}
+})();
+</script>
