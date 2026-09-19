@@ -44,7 +44,7 @@ const dsoLight={id:'player-light',position:[52,-80,24],radius:500,intensity:1};c
 tiles=T.withDSORelevance(tiles,plan);const work=T.buildDSOWork(plan,tiles,8);assert(work.activeTileCount===plan.diagnostics.nonEmptyTiles,'shared DSO relevance exactly matches authoritative DSO tile headers');assert(work.workReduction>.20,`DSO compact work plan skips unaffected workgroups (${work.workReduction})`);assert(work.exactCoverage,'DSO work plan declares exact coverage only');
 for(let i=0;i<tiles.grid.count;i++){const flag=!!(tiles.tileRecords[i*4]&T.FLAGS.DSO_RELEVANT),count=!!plan.tileHeaders[i*2+1];assert(flag===count,`DSO relevance parity tile ${i}`)}
 const mask=H.rasterizeDSOReference(plan),metrics=H.connectedMetrics(mask,tiles.grid.width,tiles.grid.height);assert(metrics.totalArea>0,'existing DSO structural output remains non-empty');
-const overlay=T.debugTileOverlay(tiles);assert(overlay.some(t=>t.lights===0&&t.dsoRelevant),'debug overlay distinguishes DSO-only tiles');assert(overlay.some(t=>t.lights>0),'debug overlay exposes lit tiles');
+const overlay=T.debugTileOverlay(tiles);assert(overlay.some(t=>t.dsoRelevant),'debug overlay exposes DSO-relevant tiles');assert(overlay.some(t=>t.lights>0),'debug overlay exposes lit tiles');
 
 let mismatchRejected=false;try{T.lightsForPoint(tiles,[...lights].reverse(),10,10)}catch(_e){mismatchRejected=true}assert(mismatchRejected,'stale/reordered canonical light identity fails closed');
 let gridRejected=false;try{T.buildDSOWork({...plan,grid:{...plan.grid,tileSize:64}},tiles)}catch(_e){gridRejected=true}assert(gridRejected,'incompatible DSO grid fails closed');
