@@ -1,0 +1,50 @@
+name: SM-503 Material-v2 semantic calibration
+
+on:
+  push:
+    branches:
+      - sm503-material-semantics
+
+permissions:
+  contents: write
+
+jobs:
+  calibrate-and-materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sm503-material-semantics
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install material tooling
+        run: python -m pip install -r tools/requirements-ci.txt
+      - name: Regenerate calibrated Material-v2 assets
+        run: python tools/generate_material_v2.py
+      - name: Validate Material-v2 outputs and semantics
+        run: |
+          python tools/validate_material_v2.py
+          python tools/validate_material_v2_semantics.py
+          node tools/validate_pseudo_depth.js
+      - name: Commit deterministic generated assets to the owned branch
+        shell: bash
+        run: |
+          git add \
+            assets/generated/atlas.json \
+            assets/generated/material_v2_report.json \
+            assets/generated/sprite_material_normal_roughness.png \
+            assets/generated/sprite_material_height_material.png \
+            docs/material_v2/material_v2_representative.png \
+            docs/material_v2/material_v2_calibration_8angle.png \
+            MATERIAL_V2_AUDIT.md
+          if git diff --cached --quiet; then
+            echo "Generated Material-v2 outputs already match the branch."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "SM-503 regenerate calibrated Material-v2 assets"
+          git push origin HEAD:sm503-material-semantics
