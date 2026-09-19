@@ -6,6 +6,7 @@ def need(path,needle,msg):
     text=(ROOT/path).read_text(encoding='utf-8')
     if needle not in text: errors.append(msg)
 need('engine/webgpu_gbuffer.js',"'rgba8unorm-srgb'",'albedo atlas must use sRGB sampling format')
+need('engine/webgpu_gbuffer.js',"textureUsage(['COPY_DST','TEXTURE_BINDING','RENDER_ATTACHMENT'])",'external-image atlas textures must retain WebGPU-required COPY_DST + RENDER_ATTACHMENT usage')
 need('engine/webgpu_gbuffer.js',"normalRoughness:make('normal-roughness',normalRoughness,'rgba8unorm')",'normal/roughness atlas must stay linear unorm')
 need('engine/webgpu_gbuffer.js',"heightMaterial:make('height-material',heightMaterial,'rgba8unorm')",'height/material atlas must stay linear unorm')
 need('engine/webgpu_gbuffer.js',"g0:'rgba8unorm'",'G0 must remain a linear internal target')
