@@ -27,6 +27,14 @@ The reduced pass reads the SM-203 level-0 `rg32float` nearest/farthest pseudo-de
 
 `WebGPUDarkBloom` owns persistent reduced and full-resolution `r32float` textures, a compact `u32` tier map, and one uniform parameter buffer through the SM-103 resource registry. Resize, room transition, editor invalidation and device reset invalidate stale bindings. The staged web app imports the module after SM-304; Auto presentation remains WebGL2 until the later backend cutover.
 
+## SM-501 target-hardware pathology repair
+
+The 2026-09-19 GTX 1650 SUPER campaign exposed a host-side scaling defect in the original production tier-map preparation. The old `buildTierMap()` walked each job's swept rectangle and then called `tierAtPoint()` for every candidate reduced pixel; `tierAtPoint()` searched every job again. Scene density therefore introduced an accidental nested all-jobs traversal before the bounded Dark Bloom shader was submitted.
+
+The production path now generates the reduced near/mid/far tier map on the GPU. It consumes the existing SM-304 packed job/member buffers and active-tile/job-reference spatial index, dispatching one bounded tier-map workgroup per active SM-304 tile before the residual and upsample passes. No radius, strength, ownership, pseudo-depth, or Medium-quality acceptance rule is weakened. The CPU `buildTierMap()` remains as a deterministic reference/fallback path for small fixtures and legacy snapshots, and its optimized form also reuses the SM-304 active-tile index rather than rescanning all jobs.
+
+The original SM-501 pass-localization timestamps must be read as **queue-span localization**, not shader-only time. SM-500's current timestamp wrapper submits a start marker, executes the JavaScript pass callback, then submits an end marker. The old CPU tier-map construction happened between those marker submissions, so GPU queue idle time while the CPU encoded work was included in the interval. This is corroborated by the physical session data: representative recorded 197.154 ms mean queue span versus 197.056 ms mean CPU encoding, while dense-static recorded 672.760 ms versus 672.732 ms. The evidence still correctly localizes the frame-time pathology to SM-305, but it does not imply that the bounded half-resolution residual shader itself consumed hundreds of milliseconds.
+
 ## Validation evidence
 
 `tools/validate_webgpu_dark_bloom.js` provides deterministic CPU-reference checks for bounded radius, quality monotonicity, near/mid/far strength bias, exact no-core zero behaviour, hard-core preservation, a controlled depth discontinuity, and the named `binsup` residual contract.
