@@ -14,6 +14,8 @@ quality=(ROOT/'engine/webgpu_quality.js').read_text(encoding='utf-8')
 local=(ROOT/'engine/webgpu_local_shadows.js').read_text(encoding='utf-8')
 hierarchy=(ROOT/'engine/webgpu_dso_hierarchy.js').read_text(encoding='utf-8')
 bloom=(ROOT/'engine/webgpu_dark_bloom.js').read_text(encoding='utf-8')
+webapp=(ROOT/'webapp.js').read_text(encoding='utf-8')
+sw=(ROOT/'sw.js').read_text(encoding='utf-8')
 doc=(ROOT/'docs/WEBGPU_QUALITY_TIERS_SM501.md').read_text(encoding='utf-8')
 
 for name in ('Low','Medium','High','Ultra'):
@@ -33,6 +35,12 @@ require("hierarchyQuality:'Medium'" in quality and "quality:'Medium'" in quality
 require("hardCore:'full'" in quality, 'quality policy must preserve full hard DSO ownership')
 require(quality.count('implemented:false') >= 12, 'reserved future effects must not be reported implemented by SM-501')
 require(quality.count('enabled:false') >= 12, 'reserved future effects must remain disabled until owning issues land')
+require("STORAGE_KEY='steelmoth-webgpu-quality-preset-v1'" in quality, 'static preset selection must have a dedicated persistent key')
+require('webgpuQualitySelect' in quality and 'webgpuQualityStatus' in quality, 'graphics panel quality selector/diagnostics are missing')
+require('webgpuQuality' in quality and 'URLSearchParams' in quality, 'target/diagnostic runs must be able to select an explicit preset by query')
+require("import('./engine/webgpu_quality.js?v=sm501-1')" in webapp, 'normal staged runtime does not load SM-501 quality policy')
+require('installRuntimeIntegration' in webapp, 'normal staged runtime does not install SM-501 quality controls')
+require("'./engine/webgpu_quality.js?v=sm501-1'" in sw, 'offline cache does not include SM-501 quality policy')
 
 for phrase in (
     '300 warm-up frames',
@@ -56,4 +64,4 @@ if errors:
     for error in errors:
         print(' -',error)
     raise SystemExit(1)
-print('SM-501 QUALITY CONTRACT PASS: bounded static presets, core invariants, production subsystem mappings, benchmark protocol and evidence boundary verified')
+print('SM-501 QUALITY CONTRACT PASS: bounded static presets, staged runtime UI/diagnostics, core invariants, production subsystem mappings, benchmark protocol and evidence boundary verified')
