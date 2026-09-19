@@ -184,6 +184,25 @@ def sm601_report(rows: list[dict], gpu: dict, warmup: int, samples: int) -> dict
     }
 
 
+def sm501_localization_report(rows: list[dict], source: dict, gpu: dict, warmup: int, samples: int) -> dict:
+    scenes = {}
+    for row in rows:
+        name = row["configuration"]["scene"]
+        scenes[name] = {
+            "browser": row["run"], "adapter": row["adapter"], "workload": row["workload"], "memory": row["memory"],
+            "passGpuMs": row["passGpuMs"], "passStats": row["passStats"],
+            "sumOfInstrumentedPassesMs": row["gpuRendererMs"], "sumStats": stats(row["gpuRendererMs"]),
+        }
+    return {
+        "schema": "steelmoth-sm501-pass-localization/v1", "source": source,
+        "environment": {"gpuName": gpu["name"], "driver": gpu["driver"], "os": platform.platform(), "resolution": [1920, 1080], "dpr": 1},
+        "qualityPreset": "Medium", "gtaoEnabled": False,
+        "methodology": {"warmupFrames": warmup, "measuredFrames": samples, "timestampQuery": True, "passLevel": True, "acceptanceTiming": False, "separateFromTotalOnlyRun": True, "boundarySubmissionsPerPass": 2},
+        "warning": "Pass-level timings and their sums include SM-500 instrumentation boundaries and are localization evidence only; they are not SM-501 release totals.",
+        "scenes": scenes,
+    }
+
+
 def write_validator_log(command: list[str], path: Path) -> int:
     run = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
     path.write_text(run.stdout + run.stderr, encoding="utf-8")
@@ -193,7 +212,7 @@ def write_validator_log(command: list[str], path: Path) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Physical GTX 1650 SUPER SM-501/SM-601 acceptance runner")
-    ap.add_argument("--phase", choices=("sm501", "sm601", "all"), default="all")
+    ap.add_argument("--phase", choices=("sm501", "sm501-localization", "sm601", "all"), default="all")
     ap.add_argument("--warmup", type=int, default=300); ap.add_argument("--samples", type=int, default=600); ap.add_argument("--sessions", type=int, default=3)
     ap.add_argument("--timeout", type=float, default=1200); ap.add_argument("--out", type=Path, default=Path("benchmarks/webgpu-gtx1650s"))
     args = ap.parse_args()
@@ -211,6 +230,8 @@ def main() -> int:
     try:
         if args.phase in ("sm501", "all"):
             root = out / "sm501-2026-09-19"; rows = chrome_sessions(base, "sm501", SCENARIOS, args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); firefox = firefox_spot(base, args.warmup, args.samples, args.timeout, root / "raw" / "firefox"); report = sm501_report(rows, firefox, source, gpu, args.warmup, args.samples); (root / "target-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"); rc |= write_validator_log([sys.executable, "tools/validate_sm501_target_report.py", str(root / "target-report.json")], root / "validator.log")
+        if args.phase in ("sm501-localization", "all"):
+            root = out / "sm501-2026-09-19" / "localization"; rows = chrome_sessions(base, "sm501-breakdown", ("representative", "dense-static"), 1, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); report = sm501_localization_report(rows, source, gpu, args.warmup, args.samples); (root / "pass-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         if args.phase in ("sm601", "all"):
             root = out / "sm601-2026-09-19"; rows = chrome_sessions(base, "sm601", ("dynamic-robot",), args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); report = sm601_report(rows, gpu, args.warmup, args.samples); (root / "target-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"); rc |= write_validator_log([sys.executable, "tools/validate_sm601_target_report.py", str(root / "target-report.json")], root / "validator.log")
     finally:
