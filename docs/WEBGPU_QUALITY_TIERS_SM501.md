@@ -81,3 +81,9 @@ SM-500 proves that the instrumentation records real pass-level GPU timestamps wh
 The static quality policy and its deterministic contracts can be completed in ordinary CI. **SM-501 must remain open until a physical GTX 1650 SUPER Medium benchmark dataset satisfying the protocol above is committed/reviewed, together with the Firefox target-machine spot-check.** A hosted software/fallback adapter run cannot close this gate.
 
 When the target run is available, the acceptance report should record source commit/tree cleanliness, browser versions, GPU/driver metadata, resolution/DPR, preset, scenario, all three run distributions, workload/memory metadata, and the direct comparison to `docs/WEBGL2_BASELINE_PERFORMANCE.md`.
+
+## Physical execution entrypoint
+
+`webgpu-target-benchmark.html` drives the actual staged production WebGPU G-buffer, ownership depth, depth hierarchy, local shadows, occluder/cluster/dominance, DSO hierarchy, Dark Bloom/temporal, bounded visibility, deferred lighting and post path. Its SM-501 mode brackets that whole submitted chain with one SM-500 timestamp pair and keeps GTAO off. Pass-level timing is deliberately separate.
+
+`python tools/run_webgpu_target_campaign.py --phase sm501` launches three fresh Chrome processes/profiles, iterates all eight canonical scenes in each process, runs the required 300-frame warm-up and 600 retained timestamp frames, then performs the physical Firefox spot-check. It retains raw samples under `benchmarks/webgpu-gtx1650s/sm501-2026-09-19/`, emits the canonical report, and runs `tools/validate_sm501_target_report.py` without weakening the target.
