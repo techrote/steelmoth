@@ -56,7 +56,7 @@
     .then(() => import('./engine/webgpu_dominance.js?v=sm302-1'))
     .then(() => import('./engine/webgpu_dso.js?v=sm303-1'))
     .then(() => import('./engine/webgpu_dso_hierarchy.js?v=sm304-1'))
-    .then(() => import('./engine/webgpu_dark_bloom.js?v=sm305-1'))
+    .then(() => import('./engine/webgpu_dark_bloom.js?v=sm305-2'))
     .then(() => import('./engine/webgpu_dark_bloom_temporal.js?v=sm306-1'))
     .then(() => import('./engine/webgpu_visibility.js?v=sm307-1'))
     .then(() => import('./engine/webgpu_water.js?v=sm400-1'))
