@@ -105,6 +105,14 @@ def wait_payload(driver, timeout: float) -> dict:
     raise TimeoutError(f"target benchmark did not finish within {timeout:.0f}s; last={last!r}")
 
 
+def close_page(driver) -> dict:
+    return driver.execute_async_script("""
+        const done=arguments[arguments.length-1],close=window.steelmothTargetBenchmarkClose;
+        if(typeof close!=='function'){done({ok:false,error:'target benchmark teardown API is unavailable'});return}
+        Promise.resolve().then(()=>close()).then(value=>done({ok:true,...value})).catch(error=>done({ok:false,error:String(error?.stack||error)}));
+    """)
+
+
 def run_page(driver, base_url: str, *, browser: str, mode: str, scene: str, warmup: int, samples: int, timeout: float, out: Path, candidate: str | None = None, fresh_process_for_scene: bool = False) -> dict:
     params = {"mode": mode, "scene": scene, "quality": "Medium", "gtao": 1 if mode == "sm601" else 0, "width": 1920, "height": 1080, "warmup": warmup, "samples": samples, "seed": 1397572098}
     if candidate:
@@ -115,8 +123,11 @@ def run_page(driver, base_url: str, *, browser: str, mode: str, scene: str, warm
     payload = wait_payload(driver, timeout)
     payload["run"] = {"browser": browser, "browserVersion": driver.capabilities.get("browserVersion"), "freshProfile": True, "freshProcessForScene": fresh_process_for_scene, "durationSeconds": round(time.monotonic() - started, 3)}
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     driver.save_screenshot(str(out.with_suffix(".png")))
+    payload["run"]["teardown"] = close_page(driver)
+    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if not payload["run"]["teardown"].get("ok"):
+        raise RuntimeError(payload["run"]["teardown"].get("error") or f"{mode}/{scene} teardown failed")
     if not payload.get("ok"):
         raise RuntimeError(payload.get("error") or f"{mode}/{scene} page reported ok=false")
     if len(payload.get("gpuRendererMs") or []) < samples:
