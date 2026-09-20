@@ -82,7 +82,7 @@ The 2026-09-20 post-repair physical campaign at clean source `44e7947e0b6e402f7f
 
 Full acceptance still **fails**. Six Chrome scenes satisfy both limits, but bin-cluster measures 57.983 ms mean / 91.130 ms p95 and diagnostic-light measures 68.680 ms / 96.229 ms across three fresh processes. Their timestamp queue spans closely track separate CPU encoding means, so the retained evidence supports a host-preparation/queue-idle-dominated remainder but does not justify subtracting CPU or calling the residual shader time. Firefox representative passes at 7.643 ms mean / 9.205 ms p95. The complete report, raw samples, screenshots, correctness reports, logs and interpretation are under `benchmarks/webgpu-gtx1650s/post-sm501-dark-bloom-fix-2026-09-20/`.
 
-**SM-501, issue #31 and PR #92 remain open and unmerged.** The next bounded measurement should localize bin-cluster and diagnostic-light before selecting another repair. A hosted software/fallback adapter result, a two-scene diagnostic pass, or a large improvement in other scenes cannot close this gate.
+**SM-501, issue #31 and PR #92 remain open and unmerged.** SM-501 must remain open until a physical GTX 1650 SUPER Medium benchmark dataset satisfying the protocol above is committed/reviewed, together with the Firefox target-machine spot-check, and every canonical scenario meets the acceptance limits. The current dataset completes the required protocol but fails two scenes. The next bounded measurement should localize bin-cluster and diagnostic-light before selecting another repair. A hosted software/fallback adapter result, a two-scene diagnostic pass, or a large improvement in other scenes cannot close this gate.
 
 ## Physical execution entrypoint
 
