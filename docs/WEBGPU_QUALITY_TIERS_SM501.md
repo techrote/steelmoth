@@ -78,9 +78,11 @@ SM-500 proves that the instrumentation records real pass-level GPU timestamps wh
 
 ## Current acceptance state
 
-The static quality policy and its deterministic contracts can be completed in ordinary CI. **SM-501 must remain open until a physical GTX 1650 SUPER Medium benchmark dataset satisfying the protocol above is committed/reviewed, together with the Firefox target-machine spot-check.** A hosted software/fallback adapter run cannot close this gate.
+The 2026-09-20 post-repair physical campaign at clean source `44e7947e0b6e402f7f8c36f081e70420eacd691a` confirms that the SM-305 scene-density pathology is removed. The bounded representative/dense-static localization records Dark Bloom means of 1.861/2.114 ms, down from 157.646/612.783 ms, with the repaired production path reporting `tierSource = gpu-sm304-active-tiles`. The physical SM-305 and SM-306 browser gates pass without weakening quality, ownership, depth or temporal contracts.
 
-When the target run is available, the acceptance report should record source commit/tree cleanliness, browser versions, GPU/driver metadata, resolution/DPR, preset, scenario, all three run distributions, workload/memory metadata, and the direct comparison to `docs/WEBGL2_BASELINE_PERFORMANCE.md`.
+Full acceptance still **fails**. Six Chrome scenes satisfy both limits, but bin-cluster measures 57.983 ms mean / 91.130 ms p95 and diagnostic-light measures 68.680 ms / 96.229 ms across three fresh processes. Their timestamp queue spans closely track separate CPU encoding means, so the retained evidence supports a host-preparation/queue-idle-dominated remainder but does not justify subtracting CPU or calling the residual shader time. Firefox representative passes at 7.643 ms mean / 9.205 ms p95. The complete report, raw samples, screenshots, correctness reports, logs and interpretation are under `benchmarks/webgpu-gtx1650s/post-sm501-dark-bloom-fix-2026-09-20/`.
+
+**SM-501, issue #31 and PR #92 remain open and unmerged.** The next bounded measurement should localize bin-cluster and diagnostic-light before selecting another repair. A hosted software/fallback adapter result, a two-scene diagnostic pass, or a large improvement in other scenes cannot close this gate.
 
 ## Physical execution entrypoint
 

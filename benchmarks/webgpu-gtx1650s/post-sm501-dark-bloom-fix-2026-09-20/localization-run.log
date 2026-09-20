@@ -1,0 +1,34 @@
+**********************
+PowerShell transcript start
+Start time: 20260920030129
+Username: DESKTOP-D7T9A7Q\-
+RunAs User: DESKTOP-D7T9A7Q\-
+Configuration Name:
+Machine: DESKTOP-D7T9A7Q (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Users\-\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$log='benchmarks\webgpu-gtx1650s\post-sm501-dark-bloom-fix-2026-09-20\localization-run.log'
+Start-Transcript -LiteralPath $log -Force
+try {
+  python tools/run_webgpu_target_campaign.py --phase sm501-localization --warmup 300 --samples 600 --sessions 3 --out benchmarks/webgpu-gtx1650s/post-sm501-dark-bloom-fix-2026-09-20
+  $campaignExit=$LASTEXITCODE
+} finally {
+  Stop-Transcript
+}
+exit $campaignExit
+Process ID: 11876
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is benchmarks\webgpu-gtx1650s\post-sm501-dark-bloom-fix-2026-09-20\localization-run.log
+
+**********************
+PowerShell transcript end
+End time: 20260920030202
+**********************
