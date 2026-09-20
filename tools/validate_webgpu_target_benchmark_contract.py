@@ -30,7 +30,7 @@ for token in (
     "SCENARIOS", "freshChromeProcesses", "firefoxSpotCheck", "cleanTrackedState", "gpuRendererMs",
     "validate_sm501_target_report.py", "validate_sm601_target_report.py", "sm501-initial-webgpu-release",
     "validate_sm800_target_report.py", "sm800_report", "referenceToMaterial8", "material8ToOctMaterial8",
-    "sm501-diagnostic", "fresh_process_per_scene", "freshProcessForScene", "--scenes",
+    "sm501-diagnostic", "fresh_process_per_scene", "freshProcessForScene", "--scenes", "--reuse-process",
     "close_page", 'payload["run"]["teardown"] = close_page',
 ):
     need(token in runner, f"physical campaign runner missing report/validation token: {token}")

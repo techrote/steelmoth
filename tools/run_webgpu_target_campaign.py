@@ -242,7 +242,7 @@ def sm501_diagnostic_report(rows: list[dict], source: dict, gpu: dict, warmup: i
         "schema": "steelmoth-sm501-isolated-diagnostic/v1", "source": source,
         "environment": {"gpuName": gpu["name"], "driver": gpu["driver"], "os": platform.platform(), "resolution": [1920, 1080], "dpr": 1},
         "qualityPreset": "Medium", "gtaoEnabled": False,
-        "methodology": {"warmupFrames": warmup, "measuredFrames": samples, "timestampQuery": True, "totalOnly": True, "freshChromeProcessPerScene": True, "acceptanceTiming": False},
+        "methodology": {"warmupFrames": warmup, "measuredFrames": samples, "timestampQuery": True, "totalOnly": True, "freshChromeProcessPerScene": all(row["run"].get("freshProcessForScene") is True for row in rows), "acceptanceTiming": False},
         "warning": "Isolated one-run scene diagnostics are comparison evidence only and do not replace the three-session SM-501 acceptance campaign.",
         "scenes": scenes,
     }
@@ -308,6 +308,7 @@ def main() -> int:
     ap.add_argument("--phase", choices=("sm501", "sm501-diagnostic", "sm501-localization", "sm601", "sm800-sweep", "all"), default="all")
     ap.add_argument("--warmup", type=int, default=300); ap.add_argument("--samples", type=int, default=600); ap.add_argument("--sessions", type=int, default=3)
     ap.add_argument("--scenes", nargs="+", choices=SCENARIOS, help="explicit scene selection for SM-501 diagnostic/localization phases")
+    ap.add_argument("--reuse-process", action="store_true", help="reuse one Chrome process across selected SM-501 diagnostic scenes")
     ap.add_argument("--timeout", type=float, default=1200); ap.add_argument("--out", type=Path, default=Path("benchmarks/webgpu-gtx1650s"))
     args = ap.parse_args()
     if args.phase in ("sm501", "sm601", "all") and (args.warmup < 300 or args.samples < 600 or args.sessions < 3):
@@ -329,7 +330,7 @@ def main() -> int:
         if args.phase in ("sm501", "all"):
             root = out / "sm501-2026-09-19"; rows = chrome_sessions(base, "sm501", SCENARIOS, args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome"); firefox = firefox_spot(base, args.warmup, args.samples, args.timeout, root / "raw" / "firefox"); report = sm501_report(rows, firefox, source, gpu, args.warmup, args.samples); (root / "target-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"); rc |= write_validator_log([sys.executable, "tools/validate_sm501_target_report.py", str(root / "target-report.json")], root / "validator.log")
         if args.phase == "sm501-diagnostic":
-            root = out / "sm501-diagnostic"; scenes = tuple(args.scenes or ("bin-cluster", "diagnostic-light", "dense-static")); rows = chrome_sessions(base, "sm501", scenes, args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome", fresh_process_per_scene=True); report = sm501_diagnostic_report(rows, source, gpu, args.warmup, args.samples); (root / "diagnostic-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            root = out / "sm501-diagnostic"; scenes = tuple(args.scenes or ("bin-cluster", "diagnostic-light", "dense-static")); rows = chrome_sessions(base, "sm501", scenes, args.sessions, args.warmup, args.samples, args.timeout, root / "raw" / "chrome", fresh_process_per_scene=not args.reuse_process); report = sm501_diagnostic_report(rows, source, gpu, args.warmup, args.samples); (root / "diagnostic-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         if args.phase in ("sm501-localization", "all"):
             root = out / "sm501-2026-09-19" / "localization"; scenes = tuple(args.scenes or ("representative", "dense-static")); rows = chrome_sessions(base, "sm501-breakdown", scenes, 1, args.warmup, args.samples, args.timeout, root / "raw" / "chrome", fresh_process_per_scene=bool(args.scenes)); report = sm501_localization_report(rows, source, gpu, args.warmup, args.samples); (root / "pass-report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         if args.phase in ("sm601", "all"):
