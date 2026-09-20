@@ -88,7 +88,53 @@ shader-only GPU number is inferred. The next bounded investigation should
 localize only bin-cluster and diagnostic-light with pass instrumentation before
 choosing a repair; no threshold, content or quality reduction is justified.
 
-## Firefox spot-check
+## Lifecycle diagnosis and repair
+
+Fresh-process isolation at clean source
+`eb4c37599b188a21f52602d4071ed4c7ac699027` measured bin-cluster at
+3.920/5.034 ms mean/p95, diagnostic-light at 9.508/11.728 ms, and the
+dense-static passing control at 11.221/13.100 ms. This demonstrated that the
+retained positions-6/7 failures were not intrinsic to those scene fixtures.
+
+The sequential campaign created a complete WebGPU renderer/device/resource
+stack per page but did not explicitly release it before the next navigation.
+The harness now drains pending instrumentation and queue work, closes 13
+renderer resource owners, releases the atlas image bitmaps, unconfigures the
+canvas, and destroys the device before navigation. It does not change
+production rendering semantics.
+
+A one-process source-matched confirmation at repair source
+`50a1cb540c39f311890567ef913306fe6c7a061e` preserved the original first
+seven scene positions. Bin-cluster in position 6 measured 3.944/4.806 ms and
+diagnostic-light in position 7 measured 9.984/12.863 ms. Every page reported
+successful teardown and device status `closed`.
+
+## Lifecycle-repair full acceptance rerun
+
+The required clean-source full rerun measured
+`5cf74587c69c26e06d734eccfe1a6cb98de2d46d`: three fresh Chrome processes,
+all eight canonical scenes in their normal order, 300 warm-up + 600 retained
+total-only timestamp frames per scene, followed by Firefox representative.
+
+| Scene | Aggregate mean ms | Aggregate p95 ms | 12.0 / 14.5 ms gate |
+|---|---:|---:|---|
+| empty | 3.772 | 4.886 | pass |
+| representative | 7.783 | 9.228 | pass |
+| dense-static | 12.294 | 15.971 | **fail mean and p95** |
+| dynamic-robot | 10.292 | 12.868 | pass |
+| foliage | 7.203 | 8.919 | pass |
+| bin-cluster | 4.564 | 5.813 | pass |
+| diagnostic-light | 10.498 | 13.636 | pass |
+| mixed | 11.491 | 14.561 | **fail p95** |
+
+The two scoped positions-6/7 failures are repaired in all three sessions.
+However, the strict validator correctly keeps SM-501 open for dense-static
+mean/p95 and mixed p95. No threshold was changed and no outlier was removed.
+Firefox representative passes at 7.712 ms mean / 9.353 ms p95. The complete
+rerun is under
+`lifecycle-repair-full-acceptance-2026-09-20/sm501-2026-09-19/`.
+
+## Post-Dark-Bloom Firefox spot-check
 
 Firefox 156.0 completed 600 retained representative samples on the same
 non-fallback adapter with `timestamp-query`: 7.643 ms mean, 7.519 ms median,
@@ -111,6 +157,8 @@ Chrome scenes.
 - `validator.log`, `localization-run.log` and `full-acceptance-run.log` preserve
   the strict disposition and command transcripts.
 
-This campaign does not satisfy SM-501. PR #92 must not merge and issue #31 must
-not close. No SM-601, SM-800, backend-promotion or unrelated cleanup work is
-included.
+The latest full campaign still does not satisfy SM-501. PR #92 must not merge
+and issue #31 must not close. The exact remaining measured blocker is
+dense-static at 12.294/15.971 ms mean/p95 and mixed at 11.491/14.561 ms, where
+only mixed p95 fails. No SM-601, SM-800, backend-promotion or unrelated cleanup
+work is included.

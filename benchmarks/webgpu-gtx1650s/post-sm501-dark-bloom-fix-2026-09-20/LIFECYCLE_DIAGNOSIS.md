@@ -43,3 +43,14 @@ Raw samples, workload/memory metadata, screenshots, CPU distributions, and teard
 
 - `isolated-scene-diagnosis-2026-09-20/`
 - `sequential-teardown-confirmation-2026-09-20/`
+
+## Full acceptance disposition
+
+The required full rerun at clean source
+`5cf74587c69c26e06d734eccfe1a6cb98de2d46d` confirms the lifecycle repair:
+bin-cluster passes at 4.564/5.813 ms aggregate mean/p95 and diagnostic-light
+passes at 10.498/13.636 ms. Full SM-501 acceptance remains open because
+dense-static measures 12.294/15.971 ms and mixed measures 11.491/14.561 ms,
+failing dense-static mean/p95 and mixed p95. The strict validator output and
+all raw samples are retained under
+`lifecycle-repair-full-acceptance-2026-09-20/sm501-2026-09-19/`.
