@@ -23,14 +23,19 @@ for token in (
 need("gtaoEnabled===false" in page and "gtaoExcludedFromRendererTotal" in page, "SM-501 page must make GTAO-off/excluded state executable")
 need("minimumCombinedVisibility" in page and "movingDeltaMax" in page and "historyRejection" in page, "SM-601 page must retain physical temporal/composition evidence")
 need("precisionCandidate" in page and "octMaterial8" in page and "normalEncoding" in page, "SM-800 page must expose isolated reference/material8/octMaterial8 full-renderer variants")
+need("passCpuCallbackMs" in page and "passCpuCallbackStats" in page, "SM-501 pass breakdown must export per-pass CPU callback distributions")
+need("steelmothTargetBenchmarkClose" in page and "manager.close()" in page and "await perf.close()" in page, "target benchmark must expose deterministic resource/device teardown")
 
 for token in (
     "SCENARIOS", "freshChromeProcesses", "firefoxSpotCheck", "cleanTrackedState", "gpuRendererMs",
     "validate_sm501_target_report.py", "validate_sm601_target_report.py", "sm501-initial-webgpu-release",
     "validate_sm800_target_report.py", "sm800_report", "referenceToMaterial8", "material8ToOctMaterial8",
+    "sm501-diagnostic", "fresh_process_per_scene", "freshProcessForScene", "--scenes", "--reuse-process",
+    "close_page", 'payload["run"]["teardown"] = close_page',
 ):
     need(token in runner, f"physical campaign runner missing report/validation token: {token}")
-need('args.warmup < 300 or args.samples < 600 or args.sessions < 3' in runner, "runner must reject sub-canonical acceptance sampling")
+need('args.phase in ("sm501", "sm601", "all") and (args.warmup < 300 or args.samples < 600 or args.sessions < 3)' in runner, "runner must reject sub-canonical acceptance sampling")
+need('"passCpuCallbackMs": row["passCpuCallbackMs"]' in runner and '"passCpuCallbackStats": row["passCpuCallbackStats"]' in runner, "localization report must retain per-pass CPU callback distributions")
 need('"includedInRendererTotal": False' in runner and '"owner": "SM-601"' in runner, "SM-501 report must encode GTAO exclusion and ownership")
 
 if errors:

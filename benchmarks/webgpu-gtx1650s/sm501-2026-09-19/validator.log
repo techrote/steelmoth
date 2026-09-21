@@ -1,0 +1,13 @@
+SM-501 TARGET REPORT FAIL
+ - representative: aggregate GPU mean 188.5798739377778 exceeds 12.0 ms
+ - representative: aggregate GPU p95 220.892 exceeds 14.5 ms
+ - dense-static: aggregate GPU mean 652.8720699911111 exceeds 12.0 ms
+ - dense-static: aggregate GPU p95 738.031584 exceeds 14.5 ms
+ - dynamic-robot: aggregate GPU mean 359.46172231111115 exceeds 12.0 ms
+ - dynamic-robot: aggregate GPU p95 405.216832 exceeds 14.5 ms
+ - foliage: aggregate GPU mean 105.24812705777778 exceeds 12.0 ms
+ - foliage: aggregate GPU p95 124.43728 exceeds 14.5 ms
+ - diagnostic-light: aggregate GPU mean 331.22395359999996 exceeds 12.0 ms
+ - diagnostic-light: aggregate GPU p95 376.452864 exceeds 14.5 ms
+ - mixed: aggregate GPU mean 485.4474548977778 exceeds 12.0 ms
+ - mixed: aggregate GPU p95 534.003712 exceeds 14.5 ms

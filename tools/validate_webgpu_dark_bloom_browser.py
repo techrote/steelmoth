@@ -50,6 +50,7 @@ def validate(smoke,require_webgpu):
     if diag.get('schema')!='steelmoth-webgpu-dark-bloom/v1':raise RuntimeError(f"unexpected diagnostics schema: {diag.get('schema')}")
     if not sd.get('boundedRadius') or not sd.get('depthAwareUpsample'):raise RuntimeError('Dark Bloom bounded/depth-aware contract diagnostics missing')
     if sd.get('temporalAccumulation'):raise RuntimeError('SM-306 temporal history leaked into SM-305 baseline')
+    if sd.get('tierSource')!='gpu-sm304-active-tiles':raise RuntimeError('SM-305 browser gate did not exercise the GPU SM-304 tier-map path')
     rb=smoke.get('readback') or {}
     if not rb.get('noCoreZero') or rb.get('depthBarrierLeak')!=0 or not rb.get('hardOwnershipPreserved'):raise RuntimeError('no-core/depth-barrier/hard-ownership evidence incomplete')
     binsup=smoke.get('binsup') or {}

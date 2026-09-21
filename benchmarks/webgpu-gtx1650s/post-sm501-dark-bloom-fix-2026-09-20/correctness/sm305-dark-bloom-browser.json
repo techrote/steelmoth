@@ -1,0 +1,480 @@
+{
+  "browserExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserLogs": [
+    {
+      "level": "SEVERE",
+      "message": "http://127.0.0.1:60329/favicon.ico - Failed to load resource: the server responded with a status of 404 (File not found)",
+      "source": "network",
+      "timestamp": 1789869953594
+    }
+  ],
+  "browserVersion": "153.0.8010.48",
+  "canonicalValidator": "tools/validate_webgpu_dark_bloom_browser.py::validate",
+  "evidenceBoundary": "Physical Chrome WebGPU validates SM-305 bounded Dark Bloom execution and the GPU SM-304 active-tile tier source; SM-500 timestamp distributions remain the timing authority.",
+  "executionHarness": "selenium-fresh-profile",
+  "ok": true,
+  "requireWebGPU": true,
+  "schema": "steelmoth-webgpu-dark-bloom-browser-report/v1",
+  "screenshot": "benchmarks\\webgpu-gtx1650s\\post-sm501-dark-bloom-fix-2026-09-20\\correctness\\sm305-dark-bloom-browser.png",
+  "screenshotBytes": 25514,
+  "smoke": {
+    "binsup": {
+      "automatedResidualPixels": 2036,
+      "fixture": "binsup",
+      "hardOwnershipPreserved": true,
+      "humanVisualReviewClaimed": false
+    },
+    "captures": [
+      {
+        "farStrength": 0.28,
+        "maxError": 2.9802322387695312e-08,
+        "maxRadiusPixels": 6,
+        "nearStrength": 0.08,
+        "nonzero": 1704,
+        "peak": 0.1925000101327896,
+        "quality": "Low"
+      },
+      {
+        "farStrength": 0.34,
+        "maxError": 2.9802322387695312e-08,
+        "maxRadiusPixels": 8,
+        "nearStrength": 0.1,
+        "nonzero": 2036,
+        "peak": 0.2550000250339508,
+        "quality": "Medium"
+      },
+      {
+        "farStrength": 0.4,
+        "maxError": 2.9802322387695312e-08,
+        "maxRadiusPixels": 12,
+        "nearStrength": 0.12,
+        "nonzero": 3040,
+        "peak": 0.3285714387893677,
+        "quality": "High"
+      },
+      {
+        "farStrength": 0.45,
+        "maxError": 5.960464477539063e-08,
+        "maxRadiusPixels": 16,
+        "nearStrength": 0.14,
+        "nonzero": 3680,
+        "peak": 0.38750001788139343,
+        "quality": "Ultra"
+      }
+    ],
+    "checks": [
+      {
+        "label": "SM-305 Dark Bloom API available",
+        "ok": true
+      },
+      {
+        "label": "SM-305 residual field runs at fixed half resolution",
+        "ok": true
+      },
+      {
+        "label": "production tier map consumes SM-304 near/mid/far distance semantics",
+        "ok": true
+      },
+      {
+        "label": "Low GPU residual matches CPU bounded reference",
+        "ok": true
+      },
+      {
+        "label": "Low residual is visible and weaker than the unit hard core",
+        "ok": true
+      },
+      {
+        "label": "Low peak stays within configured residual strength",
+        "ok": true
+      },
+      {
+        "label": "Low leaves hard DSO core ownership untouched",
+        "ok": true
+      },
+      {
+        "label": "Low produces a non-empty feather around DSO core",
+        "ok": true
+      },
+      {
+        "label": "Low reaches production path",
+        "ok": true
+      },
+      {
+        "label": "Low reports bounded radius",
+        "ok": true
+      },
+      {
+        "label": "Low remains non-temporal in SM-305",
+        "ok": true
+      },
+      {
+        "label": "Low generates tiers from the SM-304 GPU spatial index",
+        "ok": true
+      },
+      {
+        "label": "Medium GPU residual matches CPU bounded reference",
+        "ok": true
+      },
+      {
+        "label": "Medium residual is visible and weaker than the unit hard core",
+        "ok": true
+      },
+      {
+        "label": "Medium peak stays within configured residual strength",
+        "ok": true
+      },
+      {
+        "label": "Medium leaves hard DSO core ownership untouched",
+        "ok": true
+      },
+      {
+        "label": "Medium produces a non-empty feather around DSO core",
+        "ok": true
+      },
+      {
+        "label": "Medium reaches production path",
+        "ok": true
+      },
+      {
+        "label": "Medium reports bounded radius",
+        "ok": true
+      },
+      {
+        "label": "Medium remains non-temporal in SM-305",
+        "ok": true
+      },
+      {
+        "label": "Medium generates tiers from the SM-304 GPU spatial index",
+        "ok": true
+      },
+      {
+        "label": "High GPU residual matches CPU bounded reference",
+        "ok": true
+      },
+      {
+        "label": "High residual is visible and weaker than the unit hard core",
+        "ok": true
+      },
+      {
+        "label": "High peak stays within configured residual strength",
+        "ok": true
+      },
+      {
+        "label": "High leaves hard DSO core ownership untouched",
+        "ok": true
+      },
+      {
+        "label": "High produces a non-empty feather around DSO core",
+        "ok": true
+      },
+      {
+        "label": "High reaches production path",
+        "ok": true
+      },
+      {
+        "label": "High reports bounded radius",
+        "ok": true
+      },
+      {
+        "label": "High remains non-temporal in SM-305",
+        "ok": true
+      },
+      {
+        "label": "High generates tiers from the SM-304 GPU spatial index",
+        "ok": true
+      },
+      {
+        "label": "Ultra GPU residual matches CPU bounded reference",
+        "ok": true
+      },
+      {
+        "label": "Ultra residual is visible and weaker than the unit hard core",
+        "ok": true
+      },
+      {
+        "label": "Ultra peak stays within configured residual strength",
+        "ok": true
+      },
+      {
+        "label": "Ultra leaves hard DSO core ownership untouched",
+        "ok": true
+      },
+      {
+        "label": "Ultra produces a non-empty feather around DSO core",
+        "ok": true
+      },
+      {
+        "label": "Ultra reaches production path",
+        "ok": true
+      },
+      {
+        "label": "Ultra reports bounded radius",
+        "ok": true
+      },
+      {
+        "label": "Ultra remains non-temporal in SM-305",
+        "ok": true
+      },
+      {
+        "label": "Ultra generates tiers from the SM-304 GPU spatial index",
+        "ok": true
+      },
+      {
+        "label": "quality controls monotonically expand the bounded radius",
+        "ok": true
+      },
+      {
+        "label": "quality controls monotonically raise long-throw residual strength",
+        "ok": true
+      },
+      {
+        "label": "no Dark Bloom is generated when the DSO hard core is absent",
+        "ok": true
+      },
+      {
+        "label": "depth-barrier fixture retains valid residual on matching-depth receiver side",
+        "ok": true
+      },
+      {
+        "label": "depth-aware expansion and upsample reject residual across unrelated foreground depth",
+        "ok": true
+      },
+      {
+        "label": "restored Medium residual remains deterministic after no-core/depth-barrier frames",
+        "ok": true
+      },
+      {
+        "label": "debug view exposes Dark Bloom scope and strength contract",
+        "ok": true
+      },
+      {
+        "label": "editor invalidation rejects stale SM-305 bindings",
+        "ok": true
+      },
+      {
+        "label": "SM-305 rebuild restores valid current-room resources",
+        "ok": true
+      },
+      {
+        "label": "binsup fixture is in the SM-305 evidence chain",
+        "ok": true
+      },
+      {
+        "label": "binsup target explicitly requires a soft feathered residual",
+        "ok": true
+      }
+    ],
+    "diagnostics": {
+      "dispatchCount": 24,
+      "extent": {
+        "height": 96,
+        "width": 128
+      },
+      "generation": 1,
+      "invalidationCount": 2,
+      "lastInvalidationReason": "",
+      "pipelineDiagnostics": {
+        "clearCount": 0,
+        "count": 3,
+        "generation": 1,
+        "hits": 0,
+        "keys": [
+          "compute:dark-bloom-tier-v2",
+          "compute:dark-bloom-upsample-v1",
+          "compute:dark-bloom-v1"
+        ],
+        "misses": 3,
+        "schema": "steelmoth-webgpu-pipeline-cache/v1"
+      },
+      "resourceDiagnostics": {
+        "createCount": 5,
+        "definitionCount": 5,
+        "destroyCount": 0,
+        "dynamicArenas": [],
+        "estimatedBytes": 73824,
+        "extent": {
+          "height": 96,
+          "width": 128
+        },
+        "frameIndex": 0,
+        "generation": 1,
+        "rebuildCount": 0,
+        "resizeCount": 0,
+        "resourceCount": 5,
+        "resources": [
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 49152,
+            "format": "r32float",
+            "generation": 1,
+            "height": 96,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm305:full",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 128
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 12288,
+            "format": "r32float",
+            "generation": 1,
+            "height": 48,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm305:low",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": null,
+            "usage": 13,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 64,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm305:params",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 64,
+            "usage": 72,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 32,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm305:tier-params",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 32,
+            "usage": 72,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 12288,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm305:tiers",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 12288,
+            "usage": 140,
+            "width": null
+          }
+        ],
+        "schema": "steelmoth-webgpu-resources/v1",
+        "uploads": {
+          "dynamic": {
+            "bytes": 0,
+            "count": 0
+          },
+          "static": {
+            "bytes": 0,
+            "count": 0
+          }
+        }
+      },
+      "roomId": "sm305-browser",
+      "schema": "steelmoth-webgpu-dark-bloom/v1",
+      "snapshot": {
+        "diagnostics": {
+          "boundedRadius": true,
+          "depthAwareUpsample": true,
+          "farContribution": 0.34,
+          "maxRadiusPixels": 8,
+          "maxRadiusReduced": 4,
+          "nearContribution": 0.1,
+          "peakBound": 0.34,
+          "temporalAccumulation": false,
+          "tierMap": {
+            "jobCount": 1,
+            "spatialIndex": "gpu-sm304-active-tiles",
+            "tileCount": 30
+          },
+          "tierMapBuilds": 0,
+          "tierMapReused": false,
+          "tierMapReuses": 0,
+          "tierSource": "gpu-sm304-active-tiles"
+        },
+        "height": 96,
+        "lowHeight": 48,
+        "lowWidth": 64,
+        "quality": "Medium",
+        "roomId": "sm305-browser",
+        "schema": "steelmoth-webgpu-dark-bloom-snapshot/v1",
+        "settings": {
+          "depthThreshold": 0.02,
+          "farRadius": 4,
+          "farStrength": 0.34,
+          "midRadius": 3,
+          "midStrength": 0.22,
+          "nearRadius": 1,
+          "nearStrength": 0.1
+        },
+        "sourceHierarchySignature": 3241587555,
+        "tierCounts": null,
+        "width": 128
+      },
+      "tierBuildCount": 0,
+      "tierReuseCount": 0,
+      "updateCount": 8,
+      "uploadCount": 16,
+      "valid": true
+    },
+    "error": null,
+    "ok": true,
+    "readback": {
+      "depthBarrierLeak": 0,
+      "format": "r32float",
+      "gpuCpuTolerance": 2e-05,
+      "hardOwnershipPreserved": true,
+      "noCoreZero": true,
+      "pixelCount": 12288
+    },
+    "schema": "steelmoth-webgpu-dark-bloom-browser-smoke/v1",
+    "timing": {
+      "gpuTimingClaimed": false,
+      "submitWallMs": [
+        {
+          "quality": "Low",
+          "value": 130.29999995231628
+        },
+        {
+          "quality": "Medium",
+          "value": 33.5
+        },
+        {
+          "quality": "High",
+          "value": 7.200000047683716
+        },
+        {
+          "quality": "Ultra",
+          "value": 6.699999928474426
+        }
+      ],
+      "timestampQueryAvailable": true
+    }
+  },
+  "wrapperNote": "The repository CDP wrapper did not exit on Windows after page success; unchanged canonical validate() was applied to the fresh-profile Selenium result."
+}
