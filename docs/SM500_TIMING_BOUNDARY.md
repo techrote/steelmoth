@@ -56,3 +56,34 @@ Actual Chrome/Firefox/GTX 1650 SUPER performance claims still require the canoni
 Do not reinterpret historical queue-span datasets as command execution time. For future bottleneck attribution, prefer `commandGpuMs` only for passes with complete explicit submission coverage. Keep queue span alongside it because queue idle can still be a real end-to-end frame-latency problem.
 
 Do not subtract CPU callback time, host wait time, or readback latency from queue span to manufacture a command-time estimate.
+
+## Query-resolve alignment repair — 2026-10-03
+
+Physical SM-601 localization exposed an API defect in the initial command-span
+readback: its second `resolveQuerySet()` destination followed the used queue
+timestamps without 256-byte alignment. A one-pass frame used offset 16, which
+invalidated the resolve encoder and yielded zero-filled readback data. Historical
+queue-only campaigns use offset zero and are unaffected. The failed diagnostic
+is retained and is not performance evidence.
+
+Command timestamps now occupy a fixed aligned section after maximum queue-query
+capacity. Persistent buffers include padding and maximum command payload;
+decoding uses the same section. Queue-only layout and `gpuMs` compatibility stay
+unchanged. Mock validation enforces alignment and bounds, including changing
+counts across reused ring slots. Real smoke/physical diagnostics collect API
+errors before accepting even finite timing values.
+
+At clean diagnostic source `0c1c707de426fce89ac5f21386ca99edbe8281be`, three fresh
+Chrome processes on the GTX 1650 SUPER retained 600 frames each after 300 warm-up
+frames, with two explicit GTAO submissions per frame and no WebGPU errors.
+The diagnostic pooled queue span was **3.067721 ms mean / 3.958624 ms p95**;
+explicit command span was **1.100543 / 1.398208 ms**. Raw horizon, reconstruction
+and temporal compute means were **0.214253 / 0.185178 / 0.698088 ms**.
+These include stated observer work and do not replace acceptance measurements.
+No CPU latency was subtracted; no SM-601 optimization or acceptance is adopted
+by this instrumentation repair.
+
+See `benchmarks/webgpu-gtx1650s/campaign-2026-10-02-sm500/` for source-separated
+baseline, failed and successful reports and `SM601_PHYSICAL_DIAGNOSTIC.md` for
+the boundaries and method. Driver 616.92, Chrome 154.0.8037.92, native 1920x1080
+attachments/DPR 1/Medium were retained; desktop dimensions are recorded separately.
