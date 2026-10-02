@@ -6,9 +6,9 @@
 'use strict';
 (async()=>{
   const q=new URLSearchParams(location.search),width=1920,height=1080,warmup=Number(q.get('warmup')||300),samples=Number(q.get('samples')||600),sceneName='dynamic-robot';
-  const result={schema:'steelmoth-sm601-physical-diagnostic/v1',ok:false,targetAcceptance:false,configuration:{width,height,quality:'Medium',scene:sceneName,warmupFrames:warmup,measuredFrames:samples},rows:[],uncapturedErrors:[],cleanupErrors:[],coverage:null,error:null};
+  const result={schema:'steelmoth-sm601-physical-diagnostic/v1',ok:false,targetAcceptance:false,configuration:{width,height,quality:'Medium',scene:sceneName,warmupFrames:warmup,measuredFrames:samples},rows:[],uncapturedErrors:[],validationErrors:[],cleanupErrors:[],coverage:null,error:null};
   const check=(condition,message)=>{if(!condition)throw new Error(message)},now=()=>performance.now();
-  let device,manager,gb,depth,raw,temporal,perf,directQueries,slots=[],bitmaps=[],active=null;
+  let device,manager,gb,depth,raw,temporal,perf,directQueries,slots=[],bitmaps=[],active=null,validationScopeOpen=false;
   const pending=new Set();
   globalThis.SM601PhysicalDiagnosticLive=result;
   function publish(){globalThis.SM601PhysicalDiagnosticResult=result;document.getElementById('status').textContent=JSON.stringify(result,null,2)}
@@ -29,7 +29,7 @@
     result.display={width:screen.width,height:screen.height,devicePixelRatio,canvasWidth:canvas.width,canvasHeight:canvas.height};
     check(devicePixelRatio===1&&canvas.width===1920&&canvas.height===1080,'Unscaled 1920x1080 render attachments and DPR 1 required');
     device.addEventListener('uncapturederror',event=>result.uncapturedErrors.push(String(event.error?.message||event.error)));
-    device.pushErrorScope('validation');
+    device.pushErrorScope('validation');validationScopeOpen=true;
     const meta=await(await fetch('assets/generated/atlas.json',{cache:'no-store'})).json();bitmaps=await Promise.all([loadBitmap(meta.image),loadBitmap(meta.material_normal_roughness_image),loadBitmap(meta.material_height_image)]);
     const count=33,lightCount=2,dynamicCount=33,names=['floor_plate','cargo_crate','rust_barrel','server_cabinet','hex_maintenance_idle_0'];
     // Canonical buildScene function copied byte-for-byte; preservation test owns provenance.
@@ -84,18 +84,20 @@
       delete row.scope;delete row.seen;delete row.encodingStart;result.rows.push(row);await perf.endFrame();await retainDirect(row,i);
     }
     phase('flush');await Promise.all([...pending]);result.sm500=await perf.flush();
+    validationScopeOpen=false;const validationError=await device.popErrorScope();if(validationError)result.validationErrors.push(String(validationError.message||validationError));check(!validationError,`WebGPU validation: ${validationError?.message}`);check(!result.uncapturedErrors.length,'Uncaptured WebGPU errors');
     check(result.sm500.frames.length===samples&&result.rows.length===samples,'Incomplete retained samples');
     for(const frame of result.sm500.frames){const p=frame.passes[0];check(frame.gpuTiming.readbackPending===false&&p?.commandSpans.length===2&&p.commandSpans.every(span=>Number.isFinite(span.gpuMs)&&span.gpuMs>0)&&Number.isFinite(p.queueSpanGpuMs)&&p.queueSpanGpuMs>0&&Number.isFinite(p.commandGpuMs)&&p.commandGpuMs>0&&Number.isFinite(frame.gpuTiming.readbackMapLatencyMs),'Invalid/unresolved SM500 frame');}
     result.coverage={completeGtaoCommandBufferSubmissions:true,explicitSubmissionsPerFrame:2,directComputePassesPerFrame:3,diagnosticCopyBytes:32,diagnosticMapCallsPerFrame:1,timestampReadbackRings:{sm500:8,direct:8}};
     result.methodology={freshProcessRequired:true,timestampQuery:true,rawSamplesRetained:true,acceptanceTiming:false,productionShadersUnchanged:true,canonicalSceneSource:'webgpu-target-benchmark.html:buildScene',displayContract:'Unscaled 1920x1080 render attachments and DPR 1; desktop physical resolution is retained separately and is not changed',queueSpanGpuMs:'historical-compatible callback boundary with added diagnostic observer work',commandGpuMs:'sum of two explicit SM500 command-buffer spans, including stats copy and instrumented marker overhead; excludes host gaps',diagnosticCopyInstrumentedGpuMs:'32-byte copy bracketed by two empty timestamp compute passes; includes transition/observer costs and may quantize to zero',diagnosticMapLatencyCpuMs:'host wall latency of production stats mapAsync; includes GPU completion and delivery, never GPU execution',encodingCpuMs:'host wall time from first parameter writeBuffer call to producer submit entry; no awaited mapping inside this interval',directTimestampReadbackMapLatencyCpuMs:'separate diagnostic direct-pass timestamp transport; outside measured gtao callback',counterAttribution:'diagnostic atomics remain part of temporalComputeGpuMs; their contribution requires isolated counter A/B, never subtraction'};
     result.validation={historyRejectionObserved:historyRejected,humanVisualAcceptance:false};
-    const error=await device.popErrorScope();check(!error,`WebGPU validation: ${error?.message}`);check(!result.uncapturedErrors.length,'Uncaptured WebGPU errors');result.ok=true;phase('complete');
+    result.ok=true;phase('complete');
   }catch(error){result.error=String(error?.stack||error);phase('failed')}
   finally{
     async function cleanup(name,callback){try{await callback()}catch(error){result.ok=false;result.cleanupErrors.push({resource:name,error:String(error?.stack||error)});if(!result.error)result.error=`Cleanup failed: ${name}`}}
     try{
       await cleanup('pending-direct-timestamp-maps',async()=>{const completions=await Promise.allSettled([...pending]);const failures=completions.filter(x=>x.status==='rejected');if(failures.length)throw new Error(failures.map(x=>String(x.reason)).join('; '))});
       await cleanup('sm500',()=>perf?.close());
+      await cleanup('validation-error-scope',async()=>{if(validationScopeOpen&&device){validationScopeOpen=false;const error=await device.popErrorScope();if(error){result.ok=false;result.validationErrors.push(String(error.message||error));if(!result.error)result.error=`WebGPU validation: ${error.message||error}`}}});
       await cleanup('raw-gtao',()=>raw?.close());await cleanup('temporal-gtao',()=>temporal?.close());
       await cleanup('depth-hierarchy',()=>depth?.close());await cleanup('ownership-gbuffer',()=>gb?.close());
       for(let i=0;i<bitmaps.length;i++)await cleanup(`bitmap-${i}`,()=>bitmaps[i].close());

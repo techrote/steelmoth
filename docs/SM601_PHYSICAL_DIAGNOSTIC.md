@@ -66,3 +66,41 @@ The test suite proves source preservation and queue-facade accounting only.
 Actual target execution, costs, visual acceptance and adoption are established by
 the physical reports, not by this document or mocked tests. #36 remains open and
 SM-602 remains blocked until its real criteria are satisfied.
+
+## Physical instrumentation blocker — 2026-10-03
+
+The first physical diagnostic at clean source
+`d69faf9bad7b70ec6d0ecadcc086dfc06412d140` retained 600 rows after 300 warm-up
+frames on the nonfallback NVIDIA Turing adapter in Chrome `154.0.8037.92`.
+The campaign inventory identified the GTX 1650 SUPER. The run failed, as required,
+because every SM-500 queue and command result was zero. The retained local report
+is `artifacts/physical-campaign-2026-10-02/main-d69faf9-decomposition/diagnostic.json`.
+Do not reinterpret those zero results as valid performance or replace the frozen
+file with a repaired run.
+
+The independent direct-pass timestamps remain positive: their 600-sample means
+are raw horizon **0.214035 ms**, reconstruction **0.185324 ms**, and temporal
+compute **0.683761 ms**. These are one diagnostic process with observer work,
+not a completed three-run baseline or acceptance distribution. No valid enclosing
+SM-500 queue/command attribution can be made from this failed report.
+
+Source investigation found that SM-500 packed the command-query resolve at
+`queueUsed * 8` bytes: 16 bytes for this one-pass case. The
+[WebGPU resolveQuerySet validation contract](https://www.w3.org/TR/webgpu/#dom-gpucommandencoder-resolvequeryset)
+requires each destination offset to be a multiple of 256 and its resolved range
+to fit the buffer. The invalid resolve invalidated the encoder; the original
+mock did not enforce either constraint, and zero-duration checks in the tiny
+resource smoke could not distinguish invalid API work from timer precision.
+
+The repair keeps the queue section at offset zero, adds a fixed 256-byte-aligned
+command section after maximum queue capacity, sizes both persistent ring buffers
+for padding plus maximum command capacity, and decodes command results from that
+section. Queue-only resolve/copy layout and historical aliases are preserved.
+The mock now rejects invalid offsets/ranges and checks changing pass/submission
+counts across reused slots. The real resource smoke collects API errors before
+interpreting timings. The diagnostic likewise pops its validation scope before
+numeric guards and captures any outstanding scoped error during cleanup.
+
+Repaired source requires new physical evidence. The failed sample set remains
+retained as a precise instrumentation defect, with no weakening of timestamp or
+acceptance gates and no implied production GTAO adoption.

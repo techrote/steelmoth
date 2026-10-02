@@ -5,7 +5,7 @@ const Perf=require('../engine/webgpu_performance.js');
 
 function makeDevice(options={}){
   let serial=0,clock=1_000_000n;
-  const calls={querySets:0,buffers:0,submits:0,timestampPasses:0,push:0,pop:0};
+  const calls={querySets:0,buffers:0,submits:0,timestampPasses:0,push:0,pop:0,resolves:[],copies:[]};
   const features=new Set(options.features||[]);
   const buffer=desc=>({id:++serial,desc,bytes:new ArrayBuffer(desc.size),async mapAsync(){},getMappedRange(offset=0,size=desc.size){return this.bytes.slice(offset,offset+size)},unmap(){},destroy(){}});
   const queue={
@@ -22,8 +22,8 @@ function makeDevice(options={}){
     createBuffer(desc){calls.buffers++;return buffer(desc)},
     createCommandEncoder(){const ops=[];return {
       beginComputePass(desc={}){calls.timestampPasses++;const t=desc.timestampWrites||{};return {end(){if(t.beginningOfPassWriteIndex!=null)ops.push({type:'timestamp',query:t.querySet,index:t.beginningOfPassWriteIndex});if(t.endOfPassWriteIndex!=null)ops.push({type:'timestamp',query:t.querySet,index:t.endOfPassWriteIndex})}}},
-      resolveQuerySet(query,first,count,destination,offset){ops.push({type:'resolve',query,first,count,buffer:destination,offset})},
-      copyBufferToBuffer(src,srcOffset,dst,dstOffset,size){ops.push({type:'copy',src,srcOffset,dst,dstOffset,size})},
+      resolveQuerySet(query,first,count,destination,offset){assert(Number.isSafeInteger(offset)&&offset>=0&&offset%256===0,'resolveQuerySet destinationOffset must be a multiple of 256');assert(Number.isSafeInteger(first)&&first>=0&&first<query.desc.count&&Number.isSafeInteger(count)&&count>=0&&first+count<=query.desc.count,'resolveQuerySet query range exceeds query set');assert(destination.desc.usage&0x0200,'resolveQuerySet destination requires QUERY_RESOLVE usage');assert(offset+count*8<=destination.desc.size,'resolveQuerySet range exceeds destination buffer');calls.resolves.push({first,count,offset,size:destination.desc.size,bufferId:destination.id});ops.push({type:'resolve',query,first,count,buffer:destination,offset})},
+      copyBufferToBuffer(src,srcOffset,dst,dstOffset,size){assert([srcOffset,dstOffset,size].every(v=>Number.isSafeInteger(v)&&v>=0&&v%4===0),'copyBufferToBuffer offsets/size must be aligned');assert(srcOffset+size<=src.desc.size&&dstOffset+size<=dst.desc.size,'copyBufferToBuffer range exceeds buffer');calls.copies.push({size,srcId:src.id,dstId:dst.id});ops.push({type:'copy',src,srcOffset,dst,dstOffset,size})},
       finish(){return {ops}}
     }},
     pushErrorScope(){calls.push++},async popErrorScope(){calls.pop++;return null}
@@ -125,4 +125,44 @@ async function boundedAndClosedScopes(){
   assert.throws(()=>escaped.submit([env.gpuWork(1)]),/scope.*closed/);await perf.endFrame();await perf.flush();await perf.close();
 }
 
-(async()=>{await supportedTimestampPath();await commandSpanExcludesHostGap();await attachedFrameGraphScope();await explicitHostWaitMeasurement();await unsupportedTimestampStillSubmits();await boundedAndClosedScopes();await unavailableTimestampPath();await disabledInstrumentationPath();await registryMemoryAccounting();console.log('SM-500 TIMING BOUNDARY PASS: legacy queue span preserved, explicit command span excludes host gaps, host waits/readback latency separated, scopes bounded, unavailable/disabled paths safe')})().catch(error=>{console.error(error?.stack||error);process.exit(1)});
+function resolveValidationWitnesses(){
+  const env=makeDevice({features:['timestamp-query']}),query=env.device.createQuerySet({type:'timestamp',count:40}),destination=env.device.createBuffer({size:512,usage:0x0200}),encoder=env.device.createCommandEncoder();
+  assert.throws(()=>encoder.resolveQuerySet(query,0,4,destination,16),/multiple of 256/,'old one-pass packed command offset must be rejected');
+  assert.throws(()=>encoder.resolveQuerySet(query,0,4,destination,80),/multiple of 256/,'old five-pass smoke offset must be rejected');
+  assert.throws(()=>encoder.resolveQuerySet(query,39,2,destination,0),/query range/);
+  assert.throws(()=>encoder.resolveQuerySet(query,0,33,destination,256),/destination buffer/);
+  assert.throws(()=>encoder.resolveQuerySet(query,0,1,env.device.createBuffer({size:256,usage:0x0008}),0),/QUERY_RESOLVE/);
+}
+
+async function alignedCommandResolveAndReuse(){
+  const cases=[
+    {maxPasses:1,frames:[[2],[0],[1],[3],[0]]},
+    {maxPasses:3,frames:[[3,0],[0],[1,2,3],[0,0,0],[2]]},
+    {maxPasses:8,frames:[[1,2,0,3,1],[0],[3,3,3,3,3,3,3,3],[1,0],[0]]},
+    {maxPasses:17,frames:[Array(17).fill(3),[1],Array(16).fill(0),[2,0,1],[0]]},
+    {maxPasses:33,frames:[Array(33).fill(1),[0],Array(17).fill(3),[1,2],[0]]},
+  ];
+  for(const config of cases){
+    const env=makeDevice({features:['timestamp-query']}),perf=new Perf.WebGPUPerformanceInstrumentation({device:env.device,maxPasses:config.maxPasses,maxCommandSpansPerPass:3,readbackRingSize:2,maxFrames:8});
+    const commandOffset=Math.ceil(config.maxPasses*16/256)*256,capacityBytes=Math.ceil((commandOffset+config.maxPasses*3*16)/256)*256;
+    assert(perf._slots.every(slot=>slot.resolve.desc.size===capacityBytes&&slot.readback.desc.size===capacityBytes),'both persistent buffers must include command-section padding and maximum payload');
+    for(let frameIndex=0;frameIndex<config.frames.length;frameIndex++){
+      const counts=config.frames[frameIndex],resolveStart=env.calls.resolves.length,copyStart=env.calls.copies.length,expected=[];
+      await perf.beginFrame(`layout-${config.maxPasses}-${frameIndex}`);
+      for(let passIndex=0;passIndex<counts.length;passIndex++){
+        const count=counts[passIndex],workNs=(frameIndex+1)*(passIndex+1)*100_000;
+        expected.push(count?(count*workNs+count*(count-1)*500+count*1_000)/1e6:null);
+        await perf.measureGpuPass(`pass-${passIndex}`,async scope=>{if(!count)env.submitGpuWork(workNs);for(let span=0;span<count;span++)scope.submit([env.gpuWork(workNs+span*1_000)])});
+      }
+      await perf.endFrame();await perf.flush();const frame=perf.diagnostics().latestFrame,totalCommands=counts.reduce((n,v)=>n+v,0),resolves=env.calls.resolves.slice(resolveStart),copies=env.calls.copies.slice(copyStart);
+      assert.equal(resolves.length,totalCommands?2:1);assert.equal(resolves[0].offset,0);assert.equal(resolves[0].count,counts.length*2);
+      if(totalCommands){assert.equal(resolves[1].offset,commandOffset);assert.equal(resolves[1].first,config.maxPasses*2);assert.equal(resolves[1].count,totalCommands*2)}
+      assert.equal(copies.length,1);assert.equal(copies[0].size,totalCommands?commandOffset+totalCommands*16:counts.length*16,'queue-only readback layout must remain unchanged');
+      assert.equal(frame.gpuTiming.readbackPending,false);assert.equal(frame.gpuTiming.commandSpanCount,totalCommands);
+      for(let passIndex=0;passIndex<counts.length;passIndex++){const pass=frame.passes[passIndex];assert.equal(pass.commandSpans.length,counts[passIndex]);assert.equal(pass.gpuMs,pass.queueSpanGpuMs);assert(pass.queueSpanGpuMs>0);if(expected[passIndex]===null)assert.equal(pass.commandGpuMs,null);else assert(Math.abs(pass.commandGpuMs-expected[passIndex])<1e-9,`padded command decode failed: maxPasses=${config.maxPasses}, frame=${frameIndex}, pass=${passIndex}, value=${pass.commandGpuMs}`)}
+    }
+    assert.equal(new Set(env.calls.copies.map(copy=>copy.srcId)).size,2,'bounded resolve ring must reuse the same two buffers across changing layouts');await perf.close();
+  }
+}
+
+(async()=>{resolveValidationWitnesses();await alignedCommandResolveAndReuse();await supportedTimestampPath();await commandSpanExcludesHostGap();await attachedFrameGraphScope();await explicitHostWaitMeasurement();await unsupportedTimestampStillSubmits();await boundedAndClosedScopes();await unavailableTimestampPath();await disabledInstrumentationPath();await registryMemoryAccounting();console.log('SM-500 TIMING BOUNDARY PASS: aligned and bounded command resolves, changing counts/ring reuse, legacy queue span preserved, explicit command span excludes host gaps, host waits/readback latency separated, scopes bounded, unavailable/disabled paths safe')})().catch(error=>{console.error(error?.stack||error);process.exit(1)});
