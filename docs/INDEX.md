@@ -45,6 +45,10 @@ Do not silently promote a historical suggestion into a requirement.
 
 - **WEBGL2_BASELINE_PERFORMANCE.md** — measured SM-003 GTX 1650 Super compatibility-renderer baseline, methodology and evidence boundary.
 
+## Execution and acceptance packets
+
+- [`SM501_SM601_SM800_PHYSICAL_GPU_ACCEPTANCE_2026-09-19.md`](SM501_SM601_SM800_PHYSICAL_GPU_ACCEPTANCE_2026-09-19.md) — non-canonical execution packet for the coordinated physical GTX 1650 SUPER campaign covering #31 / SM-501, #36 / SM-601 and #42 / SM-800; consolidates reconciliation, benchmark reuse, minimum hardware matrix, tooling gaps, artifact layout and interruption handling while deferring requirement authority to the issues and canonical subsystem documents.
+
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.
