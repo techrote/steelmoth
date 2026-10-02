@@ -262,7 +262,16 @@ No stale instance/object/depth/material/cluster/DSO/Dark-Bloom/contact state may
 
 ## 16. Performance methodology
 
-Primary benchmark uses pass-level GPU timestamps when adapter supports them. Never substitute CPU command-encoding duration and call it GPU time.
+Primary benchmark uses GPU timestamp queries when the adapter supports them. Timing reports must identify the boundary being measured; never substitute CPU command-encoding duration and call it GPU time.
+
+SM-500 exposes two distinct timestamp metrics:
+
+- **queue span** (`queueSpanGpuMs`; historical `gpuMs` alias): a marker is submitted before an async pass callback and another after it returns. This preserves historical reports and measures end-to-end GPU-queue latency, but it may include GPU-idle gaps when the host waits before submitting the ending marker.
+- **command span** (`commandGpuMs`): only explicitly supplied command buffers are bracketed, with start marker + work + end marker submitted in one `GPUQueue.submit()`. Multiple explicit submissions are summed. Host gaps between submissions are excluded.
+
+For bottleneck attribution, prefer command span only when the pass has complete explicit submission coverage. Retain queue span alongside it because queue idle can be a real frame-latency problem. Record explicit host waits and timestamp-readback `mapAsync()` latency separately when available. **Do not subtract CPU callback time, host-wait time, or readback latency from queue span to manufacture a command-time estimate.** A missing command span is `null`, not an inferred value.
+
+See `docs/SM500_TIMING_BOUNDARY.md` for compatibility and boundedness details.
 
 Per benchmark:
 
