@@ -46,6 +46,33 @@ class CDP:
                 return event.get('result', {})
 
 
+def wait_for_page_target(port: int, proc, deadline: float) -> dict:
+    """DevTools can start before about:blank has registered its page target.
+
+    Wait only for browser startup within the existing campaign deadline. This
+    does not retry a failed shader test or restart Chrome until a test passes.
+    """
+    observed_types: list[str] = []
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError(f'Browser page target unavailable before deadline; target types={observed_types}')
+        status = proc.poll()
+        if status is not None:
+            raise RuntimeError(f'Browser exited before its page target was ready: exit={status}')
+        with urllib.request.urlopen(f'http://127.0.0.1:{port}/json/list', timeout=min(10, remaining)) as response:
+            targets = json.load(response)
+        if not isinstance(targets, list):
+            raise RuntimeError('Browser target inventory was not a JSON list.')
+        observed_types = [str(x.get('type', '')) for x in targets if isinstance(x, dict)]
+        for target in targets:
+            if (isinstance(target, dict) and target.get('type') == 'page'
+                    and isinstance(target.get('webSocketDebuggerUrl'), str)
+                    and target['webSocketDebuggerUrl']):
+                return target
+        time.sleep(min(.1, max(0, deadline - time.monotonic())))
+
+
 def run_once(args, url: str) -> dict:
     command = [args.browser, '--headless=new', '--no-sandbox', '--disable-dev-shm-usage',
                '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
@@ -64,9 +91,7 @@ def run_once(args, url: str) -> dict:
                         raise RuntimeError('Browser did not expose its debugging endpoint.')
                     time.sleep(.1)
                 port = int(port_file.read_text().splitlines()[0])
-                with urllib.request.urlopen(f'http://127.0.0.1:{port}/json/list', timeout=10) as response:
-                    targets = json.load(response)
-                target = next(x for x in targets if x.get('type') == 'page')
+                target = wait_for_page_target(port, proc, deadline)
                 cdp = CDP(target['webSocketDebuggerUrl'], min(args.timeout, 30))
                 version = cdp.call('Browser.getVersion')
                 cdp.call('Runtime.enable')

@@ -8,6 +8,7 @@ on:
       - 'tools/sm600_gtao_reference_fixtures.js'
       - 'tools/validate_webgpu_gtao_reference.js'
       - 'tools/validate_webgpu_gtao_reference_browser.py'
+      - 'tools/validate_webgpu_gtao_reference_runner.py'
       - 'render-tests/gtao-reference-baseline.json'
       - 'webgpu-gtao-reference-smoke.html'
       - 'docs/GTAO_REFERENCE_POLICY.md'
@@ -38,6 +39,7 @@ jobs:
           node --check engine/webgpu_gtao.js
           node tools/validate_webgpu_gtao_reference.js > artifacts/gtao-reference-cpu.json
           python -m py_compile tools/validate_webgpu_gtao_reference_browser.py
+          python tools/validate_webgpu_gtao_reference_runner.py
       - name: Actual reconstruction and exact f32 branch tests on software WebGPU
         run: python tools/validate_webgpu_gtao_reference_browser.py --report artifacts/gtao-reference-browser.json
       - name: Retain exact-run evidence
