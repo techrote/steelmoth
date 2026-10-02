@@ -1,0 +1,130 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SM-601 arithmetic and memory audit: isolated shader comparison</title>
+<pre id="status">Running isolated arithmetic/memory audit...</pre>
+<script src="engine/webgpu_resources.js"></script>
+<script src="engine/webgpu_gtao.js"></script>
+<script src="tools/sm601_gtao_arithmetic_study.js"></script>
+<script>
+'use strict';
+(async()=>{
+  const G=SteelMothWebGPUGTAO,S=SteelMothGTAOArithmeticStudy,q=new URLSearchParams(location.search);
+  const software=q.get('hardware')!=='1',benchmark=q.get('benchmark')==='1';
+  const report={schema:S.SCHEMA+'/browser-report',ok:false,targetAcceptance:false,softwareRequested:software,benchmark,
+    evidenceBoundary:'Isolated SM-600 horizon/reconstruction arithmetic and resource correctness. No SM-601 temporal acceptance, game integration, visual sign-off or target speedup inferred.',
+    compilation:[],cases:[],uncapturedErrors:[],candidateHashes:{}};
+  let device=null;globalThis.SM601ArithmeticProgress=report;
+  const check=(v,m)=>{if(!v)throw new Error(m);},align=n=>Math.ceil(n/256)*256;
+  function equalBytes(a,b){return a.length===b.length&&a.every((v,i)=>v===b[i]);}
+  function field(a){let min=Infinity,max=-Infinity,sum=0;for(const x of a){check(Number.isFinite(x),'Non-finite visibility.');min=Math.min(min,x);max=Math.max(max,x);sum+=x;}return {min,max,mean:sum/a.length};}
+  try {
+    check(!software||!benchmark,'Software performance collection is prohibited.');check(navigator.gpu,'WebGPU unavailable, not a skipped pass.');
+    const adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:software});check(adapter,'Requested adapter unavailable.');const info=adapter.info||{};
+    report.adapter={vendor:info.vendor||'',architecture:info.architecture||'',device:info.device||'',description:info.description||'',isFallbackAdapter:!!(info.isFallbackAdapter??adapter.isFallbackAdapter),features:[...adapter.features].sort()};
+    if(software)check(report.adapter.isFallbackAdapter||/swiftshader|software/i.test(JSON.stringify(report.adapter)),'Software identity not established.');
+    else check(!report.adapter.isFallbackAdapter&&!/swiftshader|llvmpipe|software/i.test(JSON.stringify(report.adapter)),'Hardware mode acquired software rendering.');
+    if(benchmark)check(adapter.features.has('timestamp-query'),'Hardware timestamp-query unavailable.');
+    device=await adapter.requestDevice({requiredFeatures:benchmark?['timestamp-query']:[]});
+    device.addEventListener('uncapturederror',e=>report.uncapturedErrors.push(String(e.error?.message||e.error)));
+    const tex=(binding)=>({binding,visibility:GPUShaderStage.COMPUTE,texture:{sampleType:'unfilterable-float'}});
+    const uni=(binding)=>({binding,visibility:GPUShaderStage.COMPUTE,buffer:{type:'uniform',minBindingSize:64}});
+    const store=(binding,format)=>({binding,visibility:GPUShaderStage.COMPUTE,storageTexture:{access:'write-only',format}});
+    const rawLayout=device.createBindGroupLayout({entries:[tex(0),tex(1),uni(2),store(3,'rgba16float')]});
+    const upLayout=device.createBindGroupLayout({entries:[tex(0),tex(1),tex(2),uni(3),store(4,'r32float'),store(5,'r32float')]});
+    const pipelineCache=new Map();
+    async function pipeline(code,stage,label) {
+      const key=stage+':'+await S.sha256(code);if(pipelineCache.has(key))return pipelineCache.get(key);
+      device.pushErrorScope('validation');
+      const module=device.createShaderModule({label,code}),ci=await module.getCompilationInfo();
+      report.compilation.push({label,messages:ci.messages.map(m=>({type:m.type,message:m.message,lineNum:m.lineNum}))});
+      check(!ci.messages.some(m=>m.type==='error'),`${label} WGSL compilation failed.`);
+      const p=await device.createComputePipelineAsync({label,layout:device.createPipelineLayout({bindGroupLayouts:[stage==='raw'?rawLayout:upLayout]}),compute:{module,entryPoint:'cs_main'}});
+      const err=await device.popErrorScope();check(!err,`${label} pipeline: ${err?.message}`);pipelineCache.set(key,p);return p;
+    }
+    const kernels=[];
+    for(const variant of S.VARIANTS){const c=await S.createShaders(G.RAW_WGSL,G.UPSAMPLE_WGSL,variant);report.candidateHashes[variant]={raw:c.rawSha256,upsample:c.upSha256};kernels.push({name:variant,raw:await pipeline(c.raw,'raw',variant+'-raw'),up:await pipeline(c.up,'up',variant+'-upsample')});}
+    function resources(f,options) {
+      const {width:w,height:h}=f,hw=Math.ceil(w/2),hh=Math.ceil(h/2),owned=[];
+      const texture=(width,height,format,usage)=>{const t=device.createTexture({size:[width,height],format,usage});owned.push(t);return t;};
+      const buffer=(size,usage)=>{const b=device.createBuffer({size,usage});owned.push(b);return b;};
+      const depth=texture(w,h,'rg32float',GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST),normal=texture(w,h,'rgba16float',GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST);
+      device.queue.writeTexture({texture:depth},f.depth,{bytesPerRow:w*8},[w,h]);
+      device.queue.writeTexture({texture:normal},Uint16Array.from(f.normal,S.halfBits),{bytesPerRow:w*8},[w,h]);
+      const params=buffer(64,GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST);device.queue.writeBuffer(params,0,G.parameterBytes(w,h,options));
+      const variants=kernels.map(k=>{
+        const raw=texture(hw,hh,'rgba16float',GPUTextureUsage.STORAGE_BINDING|GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_SRC|GPUTextureUsage.COPY_DST);
+        const outputs=[raw,...[0,1].map(()=>texture(w,h,'r32float',GPUTextureUsage.STORAGE_BINDING|GPUTextureUsage.COPY_SRC))];
+        if(f.raw)device.queue.writeTexture({texture:raw},Uint16Array.from(f.raw.data,S.halfBits),{bytesPerRow:hw*8},[hw,hh]);
+        const rb=device.createBindGroup({layout:rawLayout,entries:[{binding:0,resource:depth.createView()},{binding:1,resource:normal.createView()},{binding:2,resource:{buffer:params}},{binding:3,resource:raw.createView()}]});
+        const ub=device.createBindGroup({layout:upLayout,entries:[{binding:0,resource:raw.createView()},{binding:1,resource:depth.createView()},{binding:2,resource:normal.createView()},{binding:3,resource:{buffer:params}},{binding:4,resource:outputs[1].createView()},{binding:5,resource:outputs[2].createView()}]});
+        return {...k,rb,ub,outputs};
+      });
+      return {w,h,hw,hh,variants,syntheticRaw:!!f.raw,close:()=>owned.reverse().forEach(x=>x.destroy())};
+    }
+    function dispatch(encoder,r,v,querySet,index=0) {
+      const pass=(pipeline,bind,w,h,pair)=>{const p=encoder.beginComputePass(querySet?{timestampWrites:{querySet,beginningOfPassWriteIndex:pair,endOfPassWriteIndex:pair+1}}:{});p.setPipeline(pipeline);p.setBindGroup(0,bind);p.dispatchWorkgroups(Math.ceil(w/8),Math.ceil(h/8));p.end();};
+      if(!r.syntheticRaw)pass(v.raw,v.rb,r.hw,r.hh,index);
+      pass(v.up,v.ub,r.w,r.h,index+2);
+    }
+    async function capture(r,v) {
+      let size=0;const planes=[[r.hw,r.hh,8],[r.w,r.h,4],[r.w,r.h,4]].map(([w,h,bpp])=>{const p={w,h,row:w*bpp,pitch:align(w*bpp),offset:size};size+=p.pitch*h;return p;});
+      const read=device.createBuffer({size,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+      try{
+        const encoder=device.createCommandEncoder();for(let i=0;i<3;i++)encoder.copyTextureToBuffer({texture:v.outputs[i]},{buffer:read,offset:planes[i].offset,bytesPerRow:planes[i].pitch},[planes[i].w,planes[i].h]);
+        device.queue.submit([encoder.finish()]);await read.mapAsync(GPUMapMode.READ);
+        const mapped=new Uint8Array(read.getMappedRange()),out=planes.map(p=>{const a=new Uint8Array(p.row*p.h);for(let y=0;y<p.h;y++)a.set(mapped.subarray(p.offset+y*p.pitch,p.offset+y*p.pitch+p.row),y*p.row);return a;});read.unmap();return out;
+      }finally{read.destroy();}
+    }
+    // Test every candidate against baseline independently, plus their cross-product.
+    for(const [caseIndex,c] of S.cases().entries()){
+      report.phase=`case-${caseIndex}-${c.w}x${c.h}-${c.pattern}`;
+      const f=c.pattern==='weak-weight'?S.weakWeightFixture():S.makeFixture(c.w,c.h,c.pattern,caseIndex+1),o=G.normalizeOptions(c.options),r=resources(f,o);
+      let baselineField=null,maxReferenceError=0;
+      device.pushErrorScope('validation');
+      try{
+        for(let repeat=0;repeat<2;repeat++){
+          const encoder=device.createCommandEncoder();for(const v of r.variants)dispatch(encoder,r,v);device.queue.submit([encoder.finish()]);
+          const captures=[];for(const v of r.variants)captures.push(await capture(r,v));
+          for(let variant=1;variant<captures.length;variant++)for(let plane=0;plane<3;plane++)check(equalBytes(captures[0][plane],captures[variant][plane]),`${report.phase} repeat ${repeat} ${r.variants[variant].name}: plane ${plane} not byte-identical.`);
+          const raw={width:r.hw,height:r.hh,data:Float32Array.from(new Uint16Array(captures[0][0].buffer),S.fromHalf)};
+          const vis=new Float32Array(captures[0][1].buffer),dbg=new Float32Array(captures[0][2].buffer);baselineField=field(vis);field(dbg);check(raw.data.every(Number.isFinite),'Non-finite raw output.');
+          check(baselineField.min>=.149&&baselineField.max<=1,'Baseline visibility outside bounded range.');
+          if(!o.enabled||c.pattern==='plane'||c.pattern==='empty')check(vis.every(x=>x===1),'Neutral fixture is not neutral.');
+          if(c.pattern==='saturated'&&c.w>=17)check(baselineField.min<.9,'Saturated fixture lost nontrivial occlusion.');
+          const ref=S.upsampleReference(raw,f.depth,f.normal,c.w,c.h,o);
+          for(let i=0;i<vis.length;i++)maxReferenceError=Math.max(maxReferenceError,Math.abs(vis[i]-ref.visibility[i]),Math.abs(dbg[i]-ref.debug[i]));
+          // Reference arithmetic may differ; exact A/B equality above is never relaxed.
+          // The crafted fallback case asserts the branch itself, not a broad tolerance.
+          if(c.pattern==='weak-weight'){
+            check(vis[0]===.25&&dbg[0]===0,'WGSL fallback witness did not select nearestRaw.');
+            const legacy=G.referenceUpsample(raw,f.depth,f.normal,c.w,c.h,o);
+            report.weakWeightWitness={gpuVisibility:vis[0],legacyJSVisibility:legacy.visibility[0],gpuConfidence:dbg[0],weightSum:legacy.confidence[0]*2};
+            check(Math.abs(legacy.visibility[0]-vis[0])>.1,'Expected legacy CPU/GPU guard mismatch not reproduced.');
+          }
+        }
+        const err=await device.popErrorScope();check(!err,`${report.phase} resource validation: ${err?.message}`);
+        report.cases.push({width:c.w,height:c.h,pattern:c.pattern,options:o,repeats:2,allThreeOutputsByteIdentical:true,baselineField,maxReferenceError});
+      }finally{r.close();}
+    }
+    if(benchmark){
+      const w=Number(q.get('width')||1920),h=Number(q.get('height')||1080),warmup=Number(q.get('warmup')||300),samples=Number(q.get('samples')||600),pattern=q.get('pattern')||'dense';S.extent(w,h);
+      check([warmup,samples].every(Number.isSafeInteger)&&warmup>=300&&warmup<=2000&&samples>=600&&samples<=5000,'Invalid benchmark budget.');
+      const r=resources(S.makeFixture(w,h,pattern,7),G.normalizeOptions({intensity:1})),queries=device.createQuerySet({type:'timestamp',count:16}),resolved=device.createBuffer({size:128,usage:GPUBufferUsage.QUERY_RESOLVE|GPUBufferUsage.COPY_SRC}),read=device.createBuffer({size:128,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+      report.microbenchmark={width:w,height:h,pattern,warmup,samples,order:'Rotated variant order; raw and upsample in one encoder per iteration',timingBoundary:'Compute-pass start/end plus first-raw-start to last-upsample-end for each variant; excludes temporal pass, CPU preparation and maps. Synthetic input, not full SM-601 acceptance.',variants:Object.fromEntries(S.VARIANTS.map(n=>[n,{rawMs:[],upsampleMs:[],twoPassCommandSpanMs:[]}]))};
+      try{
+        for(let frame=0;frame<warmup+samples;frame++){
+          report.phase=`benchmark-${frame}`;const encoder=device.createCommandEncoder();for(let j=0;j<4;j++){const i=(frame+j)%4;dispatch(encoder,r,r.variants[i],queries,i*4);}
+          encoder.resolveQuerySet(queries,0,16,resolved,0);encoder.copyBufferToBuffer(resolved,0,read,0,128);device.queue.submit([encoder.finish()]);await read.mapAsync(GPUMapMode.READ);const t=Array.from(new BigUint64Array(read.getMappedRange().slice(0)));read.unmap();
+          for(let i=0;i<4;i++){
+            const start=i*4,raw=Number(t[start+1]-t[start])/1e6,up=Number(t[start+3]-t[start+2])/1e6,total=Number(t[start+3]-t[start])/1e6;
+            check([raw,up,total].every(x=>Number.isFinite(x)&&x>0),'Invalid/zero timestamp sample; fail, never filter until passing.');
+            if(frame>=warmup){const v=report.microbenchmark.variants[S.VARIANTS[i]];v.rawMs.push(raw);v.upsampleMs.push(up);v.twoPassCommandSpanMs.push(total);}
+          }
+        }
+      }finally{read.destroy();resolved.destroy();queries.destroy();r.close();}
+    }
+    await device.queue.onSubmittedWorkDone();check(!report.uncapturedErrors.length,'Uncaptured WebGPU errors.');report.ok=true;
+  }catch(e){report.error=String(e.stack||e);}
+  finally{device?.destroy();globalThis.SM601ArithmeticResult=report;document.getElementById('status').textContent=JSON.stringify(report,null,2);}
+})();
+</script>
