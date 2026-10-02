@@ -13,6 +13,11 @@
   const RAW_FORMAT='rgba16float';
   const OUTPUT_FORMAT='r32float';
   const DEBUG_FORMAT='r32float';
+  // One canonical spelling preserves deployed WGSL bytes; the CPU cutoff is
+  // its f32 value. This is a reconstruction fallback policy, not a tolerance.
+  const UPSAMPLE_WEIGHT_EPSILON_WGSL='0.000001';
+  const UPSAMPLE_WEIGHT_EPSILON=Math.fround(Number(UPSAMPLE_WEIGHT_EPSILON_WGSL));
+  function upsampleHasSupport(weightSum){return weightSum>UPSAMPLE_WEIGHT_EPSILON;}
   const DEBUG_MODES=Object.freeze(['visibility','occlusion','raw-half','upsample-confidence']);
   const DEFAULTS=Object.freeze({enabled:true,directions:6,steps:4,radius:12,bias:.0015,depthScale:34,intensity:1.1,depthSigma:180,normalPower:4,debugMode:'visibility'});
   const LIMITS=Object.freeze({directions:[4,8],steps:[2,6],radius:[4,24],intensity:[0,2],depthSigma:[16,512],normalPower:[1,12]});
@@ -59,7 +64,7 @@
     for(let y=0;y<height;y++)for(let x=0;x<width;x++){
       const i=y*width+x,ri=i*2,cr=[depthRanges[ri],depthRanges[ri+1]];if(!occupied(cr)){out[i]=1;confidence[i]=1;continue;}const n=normalAt(normals,i),bx=Math.floor(x/2),by=Math.floor(y/2);let ws=0,vs=0;
       for(let oy=0;oy<=1;oy++)for(let ox=0;ox<=1;ox++){const hx=clamp(bx+ox,0,hw-1),hy=clamp(by+oy,0,hh-1),hidx=(hy*hw+hx)*4;if(raw.data[hidx+2]<.5)continue;const sx=Math.min(width-1,hx*2+1),sy=Math.min(height-1,hy*2+1),si=sy*width+sx,n2=normalAt(normals,si),depthWeight=1/(1+Math.abs(cr[0]-raw.data[hidx+1])*o.depthSigma),nd=Math.max(0,n[0]*n2[0]+n[1]*n2[1]+n[2]*n2[2]),normalWeight=Math.pow(nd,o.normalPower),spatial=1/(1+Math.hypot(x-sx,y-sy)),w=depthWeight*normalWeight*spatial;ws+=w;vs+=raw.data[hidx]*w;}
-      if(ws<=1e-8){const hx=clamp(bx,0,hw-1),hy=clamp(by,0,hh-1);out[i]=raw.data[(hy*hw+hx)*4];confidence[i]=0;}else{out[i]=clamp(vs/ws,0,1);confidence[i]=clamp(ws/2,0,1);}
+      if(!upsampleHasSupport(ws)){const hx=clamp(bx,0,hw-1),hy=clamp(by,0,hh-1);out[i]=raw.data[(hy*hw+hx)*4];confidence[i]=0;}else{out[i]=clamp(vs/ws,0,1);confidence[i]=clamp(ws/2,0,1);}
     }
     return{visibility:out,confidence};
   }
@@ -100,7 +105,7 @@ fn normalAt(p:vec2i)->vec3f{return normalize(textureLoad(normalTex,p,0).xyz*2.0-
   if(gid.x>=params.extent.x||gid.y>=params.extent.y){return;}let p=vec2i(gid.xy);let c=textureLoad(depthRange,p,0).rg;var vis=1.0;var conf=1.0;var nearestRaw=1.0;
   if(params.quality.x!=0u&&occupied(c)){let n=normalAt(p);let base=vec2i(gid.xy/2u);var ws=0.0;var vs=0.0;conf=0.0;
     for(var oy:i32=0;oy<=1;oy++){for(var ox:i32=0;ox<=1;ox++){let h=clamp(base+vec2i(ox,oy),vec2i(0),vec2i(params.extent.zw)-vec2i(1));let raw=textureLoad(rawTex,h,0);if(ox==0&&oy==0){nearestRaw=raw.x;}if(raw.z<0.5){continue;}let sp=min(h*2+vec2i(1),vec2i(params.extent.xy)-vec2i(1));let n2=normalAt(sp);let depthWeight=1.0/(1.0+abs(c.x-raw.y)*params.s1.x);let nd=max(0.0,dot(n,n2));let normalWeight=pow(nd,params.s1.y);let spatial=1.0/(1.0+distance(vec2f(p),vec2f(sp)));let w=depthWeight*normalWeight*spatial;ws+=w;vs+=raw.x*w;}}
-    if(ws>0.000001){vis=clamp(vs/ws,0.0,1.0);conf=clamp(ws*0.5,0.0,1.0);}else{vis=nearestRaw;conf=0.0;}
+    if(ws>${UPSAMPLE_WEIGHT_EPSILON_WGSL}){vis=clamp(vs/ws,0.0,1.0);conf=clamp(ws*0.5,0.0,1.0);}else{vis=nearestRaw;conf=0.0;}
   }
   var dbg=vis;if(params.quality.w==1u){dbg=1.0-vis;}else if(params.quality.w==2u){dbg=nearestRaw;}else if(params.quality.w==3u){dbg=conf;}textureStore(visibilityOut,p,vec4f(vis,0,0,1));textureStore(debugOut,p,vec4f(dbg,0,0,1));
 }`;
@@ -126,5 +131,5 @@ fn normalAt(p:vec2i)->vec3f{return normalize(textureLoad(normalTex,p,0).xyz*2.0-
     close(){this.registry?.close();this.pipelines?.clear();this.registry=null;this.rawPipeline=null;this.upPipeline=null;this.valid=false;this.snapshot=null;this.closed=true;}
   }
 
-  return{SCHEMA,SNAPSHOT_SCHEMA,RAW_FORMAT,OUTPUT_FORMAT,DEBUG_FORMAT,DEBUG_MODES,DEFAULTS,LIMITS,MATERIAL_AO_POLICY,RAW_WGSL,UPSAMPLE_WGSL,normalizeOptions,recommendedVisibilityOptions,occupied,decodeNormal,referenceHalf,referenceUpsample,referenceGTAO,fieldMetrics,parameterBytes,WebGPUGTAO};
+  return{SCHEMA,SNAPSHOT_SCHEMA,RAW_FORMAT,OUTPUT_FORMAT,DEBUG_FORMAT,UPSAMPLE_WEIGHT_EPSILON,upsampleHasSupport,DEBUG_MODES,DEFAULTS,LIMITS,MATERIAL_AO_POLICY,RAW_WGSL,UPSAMPLE_WGSL,normalizeOptions,recommendedVisibilityOptions,occupied,decodeNormal,referenceHalf,referenceUpsample,referenceGTAO,fieldMetrics,parameterBytes,WebGPUGTAO};
 });
