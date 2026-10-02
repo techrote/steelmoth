@@ -71,3 +71,16 @@ The dedicated hosted workflow is correctness/API evidence only. It does **not** 
 The prototype exposes bounded controls for enabled state, direction count, sample steps, search radius, bias, depth scale, intensity, reconstruction depth sigma, reconstruction normal power and debug mode. Diagnostics report the full/half extents, active bounded settings, debug modes, material-AO policy, resource state and pipeline state. `temporalHistory` is explicitly `false` in the snapshot.
 
 The intended visual result is subtle: adjacent machinery and dense intersections gain depth, while broad surfaces remain readable and the existing DSO/contact/self-shadow architecture remains authoritative for light visibility.
+
+## Reconstruction reference-policy reconciliation — 2026-10-02
+
+The authoritative fallback cutoff is `f32(0.000001)`, with reconstruction only
+when the ordered weight sum is strictly greater; equality and smaller sums use
+the existing nearest raw visibility and zero confidence. The previous CPU-only
+`1e-8` guard was inconsistent with the deployed shader and has been repaired.
+One shared literal now drives both policies without changing generated WGSL bytes.
+
+See [GTAO_REFERENCE_POLICY.md](GTAO_REFERENCE_POLICY.md) for the compatibility
+decision, finite-input reproducer, exact branch-boundary tests, binary16 fixture
+policy and limits of the double-precision CPU reference. This is not a rendering
+quality change or SM-601 performance acceptance.

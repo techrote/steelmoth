@@ -42,4 +42,5 @@ const disabled=G.referenceGTAO(boxScene.depth,boxScene.normals,64,40,{enabled:fa
 const alteredNormals=scene(64,40,[{...box,normal:[.8,.5,.9]}]),altered=G.referenceGTAO(alteredNormals.depth,alteredNormals.normals,64,40);assert(mean(altered.visibility,boxBand)>.1,'normal-aware sampling remains bounded');
 
 const bytes=G.parameterBytes(65,41,{directions:7,steps:5,debugMode:'occlusion'}),u=new Uint32Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/4);assert.deepStrictEqual(Array.from(u.slice(0,8)),[65,41,33,21,1,7,5,1]);
-console.log(JSON.stringify({schema:'steelmoth-sm600-deterministic-report/v1',ok:true,plane:planeMetrics,box:{metrics:G.fieldMetrics(boxResult.visibility),bandMean:mean(boxResult.visibility,boxBand),coreMean:mean(boxResult.visibility,boxCore)},fixtures:evidence,materialAOPolicy:G.MATERIAL_AO_POLICY,halfResolution:[boxResult.raw.width,boxResult.raw.height]},null,2));
+const referencePolicy=require('./validate_webgpu_gtao_reference.js').validate();
+console.log(JSON.stringify({referencePolicy,schema:'steelmoth-sm600-deterministic-report/v1',ok:true,plane:planeMetrics,box:{metrics:G.fieldMetrics(boxResult.visibility),bandMean:mean(boxResult.visibility,boxBand),coreMean:mean(boxResult.visibility,boxCore)},fixtures:evidence,materialAOPolicy:G.MATERIAL_AO_POLICY,halfResolution:[boxResult.raw.width,boxResult.raw.height]},null,2));

@@ -88,6 +88,14 @@ The required full rerun at clean source `5cf74587c69c26e06d734eccfe1a6cb98de2d46
 
 ## Physical execution entrypoint
 
+### Current-main reconciliation for the 2026-10-02 campaign
+
+The exact PR #92 renderer head `672c7097c5ee6f436cca5acf40f8d221ece3cc70` is retained as a separate physical measurement source. The integration branch reconciles that head with production `main` `6cb332e4181b2cf5508cdcdafdbf81f7dac48744`, preserving the merged GTAO reference-policy repair (#107) and SM-500 timing-boundary hardening (#108). The benchmark retains the SM-501 CPU callback distributions and deterministic teardown while adding the hardened queue-span labels and explicit command-span coverage record.
+
+`gpuRendererMs` and `passGpuMs` remain historical-compatible `queueSpanGpuMs` results. The SM-501 full-renderer chain has no explicit command-span adoption; zero `explicitCommandSpans` must not be represented as command execution evidence. CPU callback time and readback latency are never subtracted from the queue span.
+
+The source changes introduced by reconciliation require a new full eight-scene, three-process Chrome campaign and Firefox representative spot-check on the committed integration head. Exact-head measurements and historical failed datasets remain retained with their original source identity; they must not be pooled with the integration-head acceptance distribution. The acceptance targets and Medium settings are unchanged. Issue #31 and PR #92 remain open until the integration-head physical evidence and required automated checks satisfy the gate.
+
 `webgpu-target-benchmark.html` drives the actual staged production WebGPU G-buffer, ownership depth, depth hierarchy, local shadows, occluder/cluster/dominance, DSO hierarchy, Dark Bloom/temporal, bounded visibility, deferred lighting and post path. Its SM-501 mode brackets that whole submitted chain with one SM-500 timestamp pair and keeps GTAO off. Pass-level timing is deliberately separate. The runner invokes the page's deterministic teardown API after retaining its screenshot and before the next navigation.
 
 `python tools/run_webgpu_target_campaign.py --phase sm501` launches three fresh Chrome processes/profiles, iterates all eight canonical scenes in each process, runs the required 300-frame warm-up and 600 retained timestamp frames, then performs the physical Firefox spot-check. It retains raw samples under `benchmarks/webgpu-gtx1650s/sm501-2026-09-19/`, emits the canonical report, and runs `tools/validate_sm501_target_report.py` without weakening the target.

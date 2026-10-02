@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+"""Run bounded software-WebGPU GTAO reference-policy regression; never timing."""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import platform
+import functools
+import hashlib
+import http.server
+import json
+import shutil
+import subprocess
+import tempfile
+import threading
+import time
+import urllib.request
+from pathlib import Path
+
+import websocket  # Existing tools/requirements-ci.txt dependency.
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *_args):
+        pass
+
+
+class CDP:
+    def __init__(self, url: str, timeout: float):
+        self.ws = websocket.create_connection(url, timeout=timeout, suppress_origin=True)
+        self.serial = 0
+        self.exceptions: list[dict] = []
+
+    def call(self, method: str, params: dict | None = None):
+        self.serial += 1
+        self.ws.send(json.dumps({'id': self.serial, 'method': method, 'params': params or {}}))
+        while True:
+            event = json.loads(self.ws.recv())
+            if event.get('method') == 'Runtime.exceptionThrown':
+                self.exceptions.append(event.get('params', {}))
+            if event.get('id') == self.serial:
+                if 'error' in event:
+                    raise RuntimeError(f'{method}: {event["error"]}')
+                return event.get('result', {})
+
+
+def wait_for_page_target(port: int, proc, deadline: float) -> dict:
+    """DevTools can start before about:blank has registered its page target.
+
+    Wait only for browser startup within the existing campaign deadline. This
+    does not retry a failed shader test or restart Chrome until a test passes.
+    """
+    observed_types: list[str] = []
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError(f'Browser page target unavailable before deadline; target types={observed_types}')
+        status = proc.poll()
+        if status is not None:
+            raise RuntimeError(f'Browser exited before its page target was ready: exit={status}')
+        with urllib.request.urlopen(f'http://127.0.0.1:{port}/json/list', timeout=min(10, remaining)) as response:
+            targets = json.load(response)
+        if not isinstance(targets, list):
+            raise RuntimeError('Browser target inventory was not a JSON list.')
+        observed_types = [str(x.get('type', '')) for x in targets if isinstance(x, dict)]
+        for target in targets:
+            if (isinstance(target, dict) and target.get('type') == 'page'
+                    and isinstance(target.get('webSocketDebuggerUrl'), str)
+                    and target['webSocketDebuggerUrl']):
+                return target
+        time.sleep(min(.1, max(0, deadline - time.monotonic())))
+
+
+def run_once(args, url: str) -> dict:
+    command = [args.browser, '--headless=new', '--no-sandbox', '--disable-dev-shm-usage',
+               '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
+               '--enable-unsafe-webgpu', '--remote-debugging-port=0']
+    command += ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']
+    with tempfile.TemporaryDirectory(prefix='sm600-reference-', ignore_cleanup_errors=True) as profile:
+        command += [f'--user-data-dir={profile}', 'about:blank']
+        with tempfile.TemporaryFile(mode='w+b') as log:
+            proc = subprocess.Popen(command, stdout=log, stderr=log)
+            cdp = None
+            try:
+                deadline = time.monotonic() + args.timeout
+                port_file = Path(profile) / 'DevToolsActivePort'
+                while not port_file.exists():
+                    if proc.poll() is not None or time.monotonic() >= deadline:
+                        raise RuntimeError('Browser did not expose its debugging endpoint.')
+                    time.sleep(.1)
+                port = int(port_file.read_text().splitlines()[0])
+                target = wait_for_page_target(port, proc, deadline)
+                cdp = CDP(target['webSocketDebuggerUrl'], min(args.timeout, 30))
+                version = cdp.call('Browser.getVersion')
+                cdp.call('Runtime.enable')
+                navigation = cdp.call('Page.navigate', {'url': url})
+                if navigation.get('errorText'):
+                    raise RuntimeError(f'Browser navigation refused: {navigation["errorText"]}')
+                while time.monotonic() < deadline:
+                    value = cdp.call('Runtime.evaluate', {'expression': "globalThis.SM600ReferenceResult || (location.protocol === 'chrome-error:' ? {ok:false,error:document.body.innerText} : null)", 'returnByValue': True})
+                    payload = value.get('result', {}).get('value')
+                    if isinstance(payload, dict):
+                        payload['browserVersion'] = version
+                        payload['javascriptExceptions'] = cdp.exceptions
+                        payload['browserCommand'] = [x for x in command if not x.startswith('--user-data-dir=')]
+                        if cdp.exceptions:
+                            payload['ok'] = False
+                        return payload
+                    time.sleep(.1)
+                progress = cdp.call('Runtime.evaluate', {'expression': 'globalThis.SM600ReferenceProgress || null', 'returnByValue': True})
+                raise TimeoutError(f'Bounded reference test timed out: {json.dumps(progress)}; exceptions={cdp.exceptions}')
+            finally:
+                if cdp:
+                    cdp.ws.close()
+                proc.terminate()
+                try:
+                    proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait(timeout=10)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--browser', default=shutil.which('chromium') or shutil.which('google-chrome') or shutil.which('google-chrome-stable'))
+    parser.add_argument('--report', type=Path, default=ROOT / 'artifacts/gtao-reference-browser.json')
+    parser.add_argument('--timeout', type=float, default=180)
+    args = parser.parse_args()
+    if not args.browser:
+        parser.error('Chrome/Chromium not found; pass --browser with its executable path.')
+    if not (1 <= args.timeout <= 300):
+        parser.error('--timeout must be between 1 and 300 seconds.')
+    handler = functools.partial(QuietHandler, directory=str(ROOT))
+    server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = f'http://127.0.0.1:{server.server_port}/webgpu-gtao-reference-smoke.html'
+    files = ['engine/webgpu_gtao.js', 'tools/sm600_gtao_reference_fixtures.js',
+             'tools/validate_webgpu_gtao_reference_browser.py', 'webgpu-gtao-reference-smoke.html']
+    result = {'schema': 'steelmoth-gtao-reference-policy-runs/v1', 'ok': False, 'runs': [],
+              'sourceSha256': {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in files},
+              'targetAcceptance': False, 'softwareRequested': True, 'benchmark': False,
+              'createdAt': dt.datetime.now(dt.timezone.utc).isoformat(), 'hostPlatform': platform.platform()}
+    try:
+        for _ in range(1):
+            run = run_once(args, url)
+            result['runs'].append(run)
+            if not run.get('ok'):
+                break  # A failure stops the bounded campaign; never rerun until success.
+        result['ok'] = len(result['runs']) == 1 and all(x.get('ok') for x in result['runs'])
+    except Exception as exc:
+        result['error'] = f'{type(exc).__name__}: {exc}'
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        args.report.parent.mkdir(parents=True, exist_ok=True)
+        args.report.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps({'ok': result['ok'], 'runs': len(result['runs']), 'report': str(args.report), 'targetAcceptance': False}))
+    return 0 if result['ok'] else 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

@@ -21,6 +21,8 @@ for token in (
 ):
     need(token in page, f"physical target page missing production/timing token: {token}")
 need("gtaoEnabled===false" in page and "gtaoExcludedFromRendererTotal" in page, "SM-501 page must make GTAO-off/excluded state executable")
+need("queueSpanGpuMs" in page and "timingSemantics" in page and "primaryMetric" in page, "target benchmark must label historical GPU fields as queue-span timing")
+need("explicitCommandSpans" in page, "target benchmark must report explicit command-span coverage rather than infer it")
 need("minimumCombinedVisibility" in page and "movingDeltaMax" in page and "historyRejection" in page, "SM-601 page must retain physical temporal/composition evidence")
 need("precisionCandidate" in page and "octMaterial8" in page and "normalEncoding" in page, "SM-800 page must expose isolated reference/material8/octMaterial8 full-renderer variants")
 need("passCpuCallbackMs" in page and "passCpuCallbackStats" in page, "SM-501 pass breakdown must export per-pass CPU callback distributions")
