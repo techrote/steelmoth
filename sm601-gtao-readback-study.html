@@ -1,0 +1,179 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SM-601 readback scheduling A/B study</title>
+<pre id="status">Running readback correctness study...</pre>
+<script src="engine/webgpu_resources.js"></script>
+<script src="engine/webgpu_gtao_stabilization.js"></script>
+<script src="engine/webgpu_gtao_readback.js"></script>
+<script src="engine/webgpu_gtao.js"></script>
+<script>
+'use strict';
+(async()=>{
+  const B=SteelMothWebGPUGTAOStabilization,R=SteelMothWebGPUGTAOReadback,G=SteelMothWebGPUGTAO;
+  const q=new URLSearchParams(location.search),software=q.get('hardware')!=='1',benchmark=q.get('benchmark')==='1';
+  const report={schema:'steelmoth-sm601-readback-browser/v1',ok:false,targetAcceptance:false,softwareRequested:software,
+    evidenceBoundary:'Isolated scheduling correctness and optional diagnostic timings; not full-game or target acceptance.',cases:[],uncapturedErrors:[]};
+  globalThis.SM601ReadbackProgress=report;
+  let device=null;
+  const check=(c,m)=>{if(!c)throw new Error(m);},equal=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+  const align=n=>Math.ceil(n/256)*256;
+  const formats=['r32float','rg32float','r32uint','rgba16float'],bpp=[4,8,4,8];
+  function arrays(w,h,frame){
+    const n=w*h,current=new Float32Array(n),depth=new Float32Array(n*2),object=new Uint32Array(n),normal=new Float32Array(n*4);
+    for(let i=0;i<n;i++){
+      current[i]=.45+((i+frame)%11)*.025;
+      depth[i*2]=depth[i*2+1]=.35+(i%7)*.003+(frame===3&&i%3===0?.08:0);
+      object[i]=frame===2&&i%5===0?2:1;
+      normal.set(frame===4&&i%7===0?[1,.5,.5,1]:[.5,.5,1,1],i*4);
+      if(i%17===0){depth[i*2]=1;depth[i*2+1]=0;object[i]=0;}
+    }
+    return{current,depth,object,normal};
+  }
+  const half=n=>n===1?0x3c00:n===.5?0x3800:0;
+  function inputs(w,h){
+    const textures=formats.map(format=>device.createTexture({size:[w,h],format,usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST}));
+    return{textures,source:{width:w,height:h,currentVisibilityView:textures[0].createView(),currentDepthView:textures[1].createView(),
+      currentObjectView:textures[2].createView(),currentNormalView:textures[3].createView()},write(a){
+        const data=[a.current,a.depth,a.object,Uint16Array.from(a.normal,half)];
+        textures.forEach((t,i)=>device.queue.writeTexture({texture:t},data[i],{bytesPerRow:w*bpp[i]},[w,h]));
+      },close(){textures.forEach(t=>t.destroy());}};
+  }
+  async function capture(p){
+    const w=p.width,h=p.height,offsets=[];let size=0;
+    for(const bytes of bpp){offsets.push({offset:size,row:w*bytes,pitch:align(w*bytes)});size+=align(w*bytes)*h;}
+    const read=device.createBuffer({size,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+    try{
+      const encoder=device.createCommandEncoder();
+      for(const [i,name] of ['vis','depth','object','normal'].entries()){
+        const texture=p.registry.require(p._name(`${name}${p.historyIndex}`)).handle;
+        encoder.copyTextureToBuffer({texture},{buffer:read,offset:offsets[i].offset,bytesPerRow:offsets[i].pitch},[w,h]);
+      }
+      device.queue.submit([encoder.finish()]);await read.mapAsync(GPUMapMode.READ);
+      const mapped=new Uint8Array(read.getMappedRange());
+      return offsets.map(o=>{const out=new Uint8Array(o.row*h);for(let y=0;y<h;y++)out.set(mapped.subarray(o.offset+y*o.pitch,o.offset+y*o.pitch+o.row),y*o.row);return out;});
+    }finally{read.destroy();}
+  }
+  try{
+    check(!software||!benchmark,'Software timing is not permitted.');check(navigator.gpu,'WebGPU unavailable');
+    const adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:software});check(adapter,'Requested adapter unavailable');
+    const info=adapter.info||{};
+    report.adapter={vendor:info.vendor||'',architecture:info.architecture||'',device:info.device||'',description:info.description||'',
+      isFallbackAdapter:!!(info.isFallbackAdapter??adapter.isFallbackAdapter),features:[...adapter.features].sort()};
+    const fallback=report.adapter.isFallbackAdapter||/swiftshader|software/i.test(JSON.stringify(report.adapter));
+    check(software?fallback:!fallback,'Adapter does not match explicitly selected software/physical mode');
+    check(!benchmark||adapter.features.has('timestamp-query'),'Physical diagnostic timing requires timestamp-query');
+    device=await adapter.requestDevice({requiredFeatures:benchmark?['timestamp-query']:[]});
+    device.addEventListener('uncapturederror',e=>report.uncapturedErrors.push(String(e.error?.message||e.error)));
+    device.pushErrorScope('validation');
+    for(const [w,h] of [[1,1],[1,9],[9,1],[7,9],[8,8],[9,17],[65,33]]){
+      const input=inputs(w,h),base=new B.WebGPUGTAOTemporal({device,width:w,height:h}),candidate=new R.WebGPUGTAOTemporal({device,width:w,height:h,statsMode:'deferred'});
+      let previous=null,previousMeta=null,historyValid=false;
+      try{
+        for(let frame=0;frame<8;frame++){
+          report.phase=`parity-${w}x${h}-${frame}`;
+          const a=arrays(w,h,frame),meta={roomId:frame===5?'room-b':'room-a',deviceGeneration:1,backendGeneration:frame===7?2:1};
+          const quality=frame===6?'Low':'Medium';input.write(a);
+          const expected=B.temporalReference({width:w,height:h,current:a.current,currentDepth:a.depth,currentObject:a.object,currentNormal:a.normal,
+            previous:previous?.full,previousDepth:previous?.depth,previousObject:previous?.object,previousNormal:previous?.normal,
+            previousMeta,currentMeta:meta,historyValid},{quality});
+          const left=await base.update(input.source,{wait:false,quality,meta});
+          await candidate.update(input.source,{wait:false,quality,meta});await candidate.flushStats();
+          const right=candidate.diagnostics(),[x,y]=await Promise.all([capture(base),capture(candidate)]);
+          check(x.every((v,i)=>equal(v,y[i])),'Baseline/candidate history output byte mismatch');
+          check(JSON.stringify(left.lastStats)===JSON.stringify(right.lastStats),'Baseline/candidate counters differ');
+          check(right.readback.lastStatsFrame.frameId===frame+1&&right.readback.statsForCurrentFrame,'Incorrect frame attribution');
+          const rows=candidate.takeCompletedStats();check(rows.length===1&&rows[0].frame.frameId===frame+1,'Lost/duplicate drained diagnostic row');
+          const reasons=expected.diagnostics.reasons,expectedWords=[reasons.accepted,reasons.rejected,reasons.depth,reasons.object,reasons.normal,reasons.global+reasons.disabled,0,0];
+          check(equal(rows[0].words,expectedWords),'Counter classification differs from independent CPU fixture');
+          const v=new Float32Array(y[0].buffer);let maxReferenceError=0;
+          for(let i=0;i<v.length;i++){const error=Math.abs(v[i]-expected.full[i]);check(Number.isFinite(v[i])&&error<=2e-6,'CPU visibility mismatch');maxReferenceError=Math.max(maxReferenceError,error);}
+          check(equal(y[1],new Uint8Array(a.depth.buffer))&&equal(y[2],new Uint8Array(a.object.buffer)),'Depth/ownership changed');
+          report.cases.push({width:w,height:h,frameId:frame+1,quality,allFourOutputsByteIdentical:true,allEightCounterWordsExact:true,maxReferenceError});
+          previous={...a,full:expected.full};previousMeta=meta;historyValid=quality!=='Low';
+        }
+      }finally{candidate.close();base.close();input.close();}
+    }
+    // Deliberately postpone JavaScript delivery AFTER native mapping. This is a
+    // correctness fault injection, not an estimate of real readback latency.
+    report.phase='real-buffer-saturation';
+    {
+      const w=9,h=7,input=inputs(w,h),base=new B.WebGPUGTAOTemporal({device,width:w,height:h});
+      const candidate=new R.WebGPUGTAOTemporal({device,width:w,height:h,statsMode:'deferred',statsSlots:2});
+      let release;const gate=new Promise(resolve=>{release=resolve;});const ring=candidate._statsRing();
+      for(const slot of ring.slots){const native=slot.buffer.mapAsync.bind(slot.buffer);slot.buffer.mapAsync=(...args)=>native(...args).then(()=>gate);}
+      try{
+        const expected=[];
+        for(let f=0;f<6;f++){
+          input.write(arrays(w,h,f%2));const opts={wait:false,meta:{roomId:'burst',deviceGeneration:1,backendGeneration:1}};
+          expected.push((await base.update(input.source,opts)).lastStats);await candidate.update(input.source,opts);
+        }
+        const d=candidate.diagnostics().readback;check(d.ring.pending===2&&d.ring.skipped===4,'Saturation did not skip only newest telemetry');
+        check(candidate.updateCount===6,'Rendering did not advance during delayed telemetry');
+        const [a,b]=await Promise.all([capture(base),capture(candidate)]);check(a.every((v,i)=>equal(v,b[i])),'Burst output differs');
+        release();await candidate.flushStats();
+        for(const row of candidate.takeCompletedStats())check(JSON.stringify(row.stats)===JSON.stringify(expected[row.frame.frameId-1]),'Burst frame attribution mismatch');
+        check(candidate.diagnostics().readback.lastStatsFrame.frameId===2,'Skipped frames mislabeled as measured');
+        candidate.resize(7,5);check(candidate.lastStats===null&&!candidate.valid,'Resize left stale history/statistics');
+        report.saturation={submittedFrames:6,retainedCopies:2,skippedCopies:4,allFourOutputsByteIdentical:true,delayedDeliveryFaultInjection:true,resizeClearsStats:true};
+      }finally{release();candidate.close();base.close();input.close();}
+    }
+    if(benchmark){
+      const width=Number(q.get('width')||1920),height=Number(q.get('height')||1080),warmup=Number(q.get('warmup')||300),samples=Number(q.get('samples')||600);
+      check([width,height,warmup,samples].every(Number.isSafeInteger)&&width>0&&height>0&&width<=8192&&height<=8192&&width*height<=16777216&&warmup>=300&&warmup<=2000&&samples>=600&&samples<=5000,'Invalid bounded diagnostic budget');
+      report.phase='physical-diagnostic';
+      report.timing={width,height,warmup,samples,alternatingVariantOrder:true,acceptanceTiming:false,rows:[],
+        boundary:'Diagnostic instrumented queue span plus separate raw/upscale/temporal compute-pass timestamps. Never substitute for original acceptance report; CPU/map times are not subtracted.'};
+      const queries=device.createQuerySet({type:'timestamp',count:8});
+      const resolved=device.createBuffer({size:64,usage:GPUBufferUsage.QUERY_RESOLVE|GPUBufferUsage.COPY_SRC});
+      const read=device.createBuffer({size:64,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+      let active=null;
+      const labels={'SteelMothGTAO:half-horizon':0,'SteelMothGTAO:depth-aware-upsample':2,'SteelMothGTAOStabilization:temporal':4,'SteelMothGTAOReadback:temporal':4};
+      // Probe-only proxy attaches timestamps to the actual production passes.
+      // The renderer and the SM-500/SM-501 acceptance implementations are not edited.
+      const timedDevice=new Proxy(device,{get(target,key){
+        if(key==='createCommandEncoder')return (...args)=>{
+          const encoder=target.createCommandEncoder(...args);
+          return new Proxy(encoder,{get(e,k){
+            if(k==='beginComputePass')return descriptor=>{
+              const index=labels[descriptor?.label];
+              if(active&&index!==undefined){check(!active.seen.has(index),'Duplicated timed pass');active.seen.add(index);
+                return e.beginComputePass({...descriptor,timestampWrites:{querySet:queries,beginningOfPassWriteIndex:index,endOfPassWriteIndex:index+1}});}
+              return e.beginComputePass(descriptor);
+            };const value=e[k];return typeof value==='function'?value.bind(e):value;
+          }});
+        };
+        if(key==='createBuffer')return descriptor=>{
+          const b=target.createBuffer(descriptor);
+          if(String(descriptor.label||'').includes('statsReadback')){
+            const native=b.mapAsync.bind(b);b.mapAsync=(...args)=>{const record=active,start=performance.now();return native(...args).then(v=>{if(record)record.mapLatencyCpuMs.push(performance.now()-start);return v;});};
+          }return b;
+        };const value=target[key];return typeof value==='function'?value.bind(target):value;
+      }});
+      const input=inputs(width,height),raw=new G.WebGPUGTAO({device:timedDevice,width,height});
+      const variants=[new B.WebGPUGTAOTemporal({device:timedDevice,width,height}),new R.WebGPUGTAOTemporal({device:timedDevice,width,height,statsMode:'deferred'})];
+      function marker(index,start){const encoder=device.createCommandEncoder();const pass=encoder.beginComputePass({timestampWrites:{querySet:queries,...(start?{endOfPassWriteIndex:index}:{beginningOfPassWriteIndex:index})}});pass.end();device.queue.submit([encoder.finish()]);}
+      try{
+        for(let f=0;f<warmup+samples;f++)for(const variant of f%2?[1,0]:[0,1]){
+          input.write(arrays(width,height,f%5));active={seen:new Set(),mapLatencyCpuMs:[]};const record=active;
+          marker(6,true);const started=performance.now();
+          await raw.update({width,height,depthRangeView:input.source.currentDepthView,normalView:input.source.currentNormalView},{directions:6,steps:4,radius:12,intensity:1,wait:false});
+          await variants[variant].update({...input.source,currentVisibilityView:raw.bindings().visibility},{quality:'Medium',wait:false,meta:{roomId:'timing',deviceGeneration:1,backendGeneration:1}});
+          const callbackCpuMs=performance.now()-started;marker(7,false);active=null;
+          check(record.seen.size===3,'Not all real compute passes were timed');
+          const encoder=device.createCommandEncoder();encoder.resolveQuerySet(queries,0,8,resolved,0);encoder.copyBufferToBuffer(resolved,0,read,0,64);device.queue.submit([encoder.finish()]);
+          await read.mapAsync(GPUMapMode.READ);const values=Array.from(new BigUint64Array(read.getMappedRange().slice(0)));read.unmap();
+          if(variant===1)await variants[1].flushStats();
+          const ms=[0,2,4,6].map(i=>Number(values[i+1]-values[i])/1e6);
+          check(ms.every(v=>Number.isFinite(v)&&v>0),'Invalid/zero timestamp sample; no filtering allowed');
+          check(record.mapLatencyCpuMs.length===1,'Missing diagnostic-map latency');
+          if(f>=warmup)report.timing.rows.push({frame:f-warmup,variant:variant?'deferred':'blocking',rawGpuMs:ms[0],upscaleGpuMs:ms[1],temporalGpuMs:ms[2],instrumentedQueueSpanMs:ms[3],callbackCpuMs,mapLatencyCpuMs:record.mapLatencyCpuMs[0]});
+          if(variant===1)variants[1].takeCompletedStats();
+        }
+      }finally{variants.forEach(v=>v.close());raw.close();input.close();read.destroy();resolved.destroy();queries.destroy();}
+    }
+    await device.queue.onSubmittedWorkDone();const error=await device.popErrorScope();check(!error,`WebGPU validation error: ${error?.message}`);
+    check(!report.uncapturedErrors.length,'Uncaptured WebGPU errors');report.ok=true;
+  }catch(error){report.error=String(error.stack||error);}
+  finally{device?.destroy();globalThis.SM601ReadbackResult=report;document.getElementById('status').textContent=JSON.stringify(report,null,2);}
+})();
+</script>
