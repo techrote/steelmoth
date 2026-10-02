@@ -18,9 +18,9 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 
 import websocket
-from validate_webgpu_gtao_reference_browser import wait_for_page_target
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ('webgpu-gtao-physical-diagnostic.html', 'tools/run_sm601_physical_diagnostic.py',
@@ -92,6 +92,69 @@ class CDP:
                 return event.get('result', {})
 
 
+class BrowserStartup:
+    """Poll one existing process's startup endpoint within its original deadline."""
+
+    def __init__(self, process, port_file: Path, deadline: float, *,
+                 clock=time.monotonic, sleep=time.sleep, opener=urllib.request.urlopen):
+        self.process, self.port_file, self.deadline = process, port_file, deadline
+        self.clock, self.sleep, self.opener = clock, sleep, opener
+        self.last_state = 'debugging port file not ready'
+
+    def _remaining(self) -> float:
+        status = self.process.poll()
+        if status is not None:
+            raise RuntimeError(f'Browser exited during startup with status {status}.')
+        remaining = self.deadline - self.clock()
+        if remaining <= 0:
+            raise TimeoutError(f'Bounded browser startup timed out: {self.last_state}.')
+        return remaining
+
+    def wait_for_page(self) -> dict:
+        while True:
+            remaining = self._remaining()
+            target = None
+            try:
+                lines = self.port_file.read_text().splitlines()
+                port = int(lines[0])
+                if not 1 <= port <= 65535:
+                    raise ValueError('Incomplete or invalid debugging port')
+                with self.opener(f'http://127.0.0.1:{port}/json/list',
+                                 timeout=min(10, remaining)) as response:
+                    targets = json.load(response)
+                if not isinstance(targets, list):
+                    raise ValueError('Debugging page inventory is not ready')
+                target = next((item for item in targets if isinstance(item, dict)
+                               and item.get('type') == 'page'
+                               and isinstance(item.get('webSocketDebuggerUrl'), str)
+                               and item['webSocketDebuggerUrl'].startswith(('ws://', 'wss://'))), None)
+                self.last_state = 'debugging page websocket not ready'
+            except (FileNotFoundError, PermissionError, IndexError, ValueError,
+                    urllib.error.URLError, ConnectionError, TimeoutError) as exc:
+                self.last_state = f'{type(exc).__name__}: {exc}'
+            if target is not None:
+                self._remaining()
+                return target
+            self.sleep(min(.1, max(0, self.deadline - self.clock())))
+
+
+BROWSER_IDENTITY_FIELDS = ('product', 'protocolVersion', 'jsVersion', 'userAgent')
+
+
+def validate_browser_identity(runs: list[dict]) -> None:
+    identities = []
+    for run in runs:
+        if not run.get('ok'):
+            continue  # Failed startup/measurement evidence retains its own error.
+        version = (run.get('browser') or {}).get('version')
+        if not isinstance(version, dict) or not all(isinstance(version.get(key), str) and version[key]
+                                                    for key in BROWSER_IDENTITY_FIELDS):
+            raise RuntimeError('Successful diagnostic run has incomplete browser identity metadata')
+        identities.append(tuple(version[key] for key in BROWSER_IDENTITY_FIELDS))
+    if identities and any(identity != identities[0] for identity in identities[1:]):
+        raise RuntimeError('Browser version changed between fresh processes')
+
+
 def run_once(args, url: str, run_number: int) -> dict:
     command = [args.browser, '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
                '--disable-component-update', '--disable-sync', '--enable-unsafe-webgpu', '--ignore-gpu-blocklist',
@@ -108,12 +171,7 @@ def run_once(args, url: str, run_number: int) -> dict:
             try:
                 deadline = started + args.timeout
                 port_file = Path(profile) / 'DevToolsActivePort'
-                while not port_file.exists():
-                    if proc.poll() is not None or time.monotonic() >= deadline:
-                        raise RuntimeError('Fresh Chrome process did not expose debugging endpoint')
-                    time.sleep(.1)
-                port = int(port_file.read_text().splitlines()[0])
-                page = wait_for_page_target(port, proc, deadline)
+                page = BrowserStartup(proc, port_file, deadline).wait_for_page()
                 cdp = CDP(page['webSocketDebuggerUrl'])
                 version = cdp.call('Browser.getVersion')
                 if 'Chrome/' not in version.get('product', ''):
@@ -206,10 +264,9 @@ def main() -> int:
             print(f'SM-601 main diagnostic process {run_number}/{args.runs}', flush=True)
             payload = run_once(args, url, run_number)
             result['runs'].append(payload)
-            versions = [run.get('browser', {}).get('version') for run in result['runs']]
-            if versions and any(version != versions[0] for version in versions[1:]):
-                raise RuntimeError('Browser version changed between fresh processes')
+            validate_browser_identity(result['runs'])
             if not payload.get('ok'):
+                result['error'] = payload.get('error') or f'Physical diagnostic process {run_number} failed'
                 break
         final_source = source_state()
         if final_source != result['source']:
