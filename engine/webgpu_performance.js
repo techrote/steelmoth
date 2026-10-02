@@ -51,6 +51,8 @@
       this._queueQueryCapacity=this.maxPasses*2;
       this._commandQueryOffset=this._queueQueryCapacity;
       this._commandQueryCapacity=this.maxCommandSpans*2;
+      // Each resolveQuerySet destination offset must be a multiple of 256 bytes.
+      this._commandResolveByteOffset=align(this._queueQueryCapacity*8,256);
       this._timestampFeature=!!this.device.features?.has?.('timestamp-query');
       this._timestampApi=typeof this.device.createQuerySet==='function'&&typeof this.device.createBuffer==='function'&&typeof this.device.createCommandEncoder==='function';
       this.timestampSupported=!!(this.enabled&&this.gpuTimingEnabled&&this._timestampFeature&&this._timestampApi);
@@ -58,7 +60,7 @@
       if(this.timestampSupported)this._createTimestampResources();
     }
     _createTimestampResources(){
-      const queryCount=this._queueQueryCapacity+this._commandQueryCapacity,bytes=align(queryCount*8,256);
+      const queryCount=this._queueQueryCapacity+this._commandQueryCapacity,bytes=align(this._commandResolveByteOffset+this._commandQueryCapacity*8,256);
       this._querySet=this.device.createQuerySet({label:`${this.labelPrefix}:timestamps`,type:'timestamp',count:queryCount});
       const resolveUsage=usage('QUERY_RESOLVE',FALLBACK_BUFFER_USAGE.QUERY_RESOLVE)|usage('COPY_SRC',FALLBACK_BUFFER_USAGE.COPY_SRC),readUsage=usage('COPY_DST',FALLBACK_BUFFER_USAGE.COPY_DST)|usage('MAP_READ',FALLBACK_BUFFER_USAGE.MAP_READ);
       for(let i=0;i<this.readbackRingSize;i++)this._slots.push({index:i,resolve:this.device.createBuffer({label:`${this.labelPrefix}:resolve:${i}`,size:bytes,usage:resolveUsage}),readback:this.device.createBuffer({label:`${this.labelPrefix}:readback:${i}`,size:bytes,usage:readUsage}),pending:null});
@@ -143,14 +145,14 @@
       if(!this.enabled)return null;const frame=this._assertFrame();this.activeFrame=null;frame.endedAtMs=now();
       if(!this.timestampSupported||!frame.passes.length){frame.gpuTiming.queryCount=0;delete frame._commandSpanCount;this._commitFrame(frame);return frame}
       const queueUsed=frame.passes.length*2,commandUsed=frame._commandSpanCount*2,totalUsed=queueUsed+commandUsed,slot=await this._acquireSlot(),encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:resolve:${frame.index}`});
-      let byteOffset=0;encoder.resolveQuerySet(this._querySet,0,queueUsed,slot.resolve,byteOffset);byteOffset+=queueUsed*8;if(commandUsed){encoder.resolveQuerySet(this._querySet,this._commandQueryOffset,commandUsed,slot.resolve,byteOffset);byteOffset+=commandUsed*8}const byteLength=align(byteOffset,8);encoder.copyBufferToBuffer(slot.resolve,0,slot.readback,0,byteLength);this.queue.submit([encoder.finish()]);
+      encoder.resolveQuerySet(this._querySet,0,queueUsed,slot.resolve,0);if(commandUsed)encoder.resolveQuerySet(this._querySet,this._commandQueryOffset,commandUsed,slot.resolve,this._commandResolveByteOffset);const byteLength=commandUsed?this._commandResolveByteOffset+commandUsed*8:queueUsed*8;encoder.copyBufferToBuffer(slot.resolve,0,slot.readback,0,byteLength);this.queue.submit([encoder.finish()]);
       frame.gpuTiming.queryCount=totalUsed;frame.gpuTiming.queueSpanQueryCount=queueUsed;frame.gpuTiming.commandSpanQueryCount=commandUsed;frame.gpuTiming.commandSpanCount=frame._commandSpanCount;frame.gpuTiming.readbackPending=true;delete frame._commandSpanCount;this._commitFrame(frame);
       const pending=this._readbackFrame(slot,frame,queueUsed,commandUsed,byteLength);slot.pending=pending;this.pending.add(pending);pending.finally(()=>{this.pending.delete(pending);if(slot.pending===pending)slot.pending=null});return frame;
     }
     async _readbackFrame(slot,frame,queueUsed,commandUsed,byteLength){
       const mapStarted=now();await slot.readback.mapAsync(Number(root?.GPUMapMode?.READ??MAP_MODE_READ),0,byteLength);frame.gpuTiming.readbackMapLatencyMs=Math.max(0,now()-mapStarted);
       const bytes=slot.readback.getMappedRange(0,byteLength),copy=bytes.slice?bytes.slice(0):new Uint8Array(bytes).slice().buffer,values=new BigUint64Array(copy);slot.readback.unmap();
-      for(let i=0;i<frame.passes.length;i++){const record=frame.passes[i],start=values[i*2],end=values[i*2+1];record.queueSpanGpuMs=end>=start?Number(end-start)/1e6:null;record.gpuMs=record.queueSpanGpuMs;let sum=0,count=0;for(const span of record.commandSpans){if(span.readIndex==null)continue;const vi=queueUsed+span.readIndex*2,s=values[vi],e=values[vi+1];span.gpuMs=e>=s?Number(e-s)/1e6:null;if(Number.isFinite(span.gpuMs)){sum+=span.gpuMs;count++}}record.commandGpuMs=count?sum:null}
+      for(let i=0;i<frame.passes.length;i++){const record=frame.passes[i],start=values[i*2],end=values[i*2+1];record.queueSpanGpuMs=end>=start?Number(end-start)/1e6:null;record.gpuMs=record.queueSpanGpuMs;let sum=0,count=0;for(const span of record.commandSpans){if(span.readIndex==null)continue;const vi=this._commandResolveByteOffset/8+span.readIndex*2,s=values[vi],e=values[vi+1];span.gpuMs=e>=s?Number(e-s)/1e6:null;if(Number.isFinite(span.gpuMs)){sum+=span.gpuMs;count++}}record.commandGpuMs=count?sum:null}
       frame.gpuTiming.readbackPending=false;return frame;
     }
     _commitFrame(frame){this.frames.push(frame);if(this.frames.length>this.maxFrames)this.frames.splice(0,this.frames.length-this.maxFrames)}
