@@ -1,0 +1,51 @@
+name: GTAO reference-policy correctness
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_gtao.js'
+      - 'tools/validate_webgpu_gtao.js'
+      - 'tools/sm600_gtao_reference_fixtures.js'
+      - 'tools/validate_webgpu_gtao_reference.js'
+      - 'tools/validate_webgpu_gtao_reference_browser.py'
+      - 'tools/validate_webgpu_gtao_reference_runner.py'
+      - 'render-tests/gtao-reference-baseline.json'
+      - 'webgpu-gtao-reference-smoke.html'
+      - 'docs/GTAO_REFERENCE_POLICY.md'
+      - 'docs/WEBGPU_GTAO_SM600.md'
+      - '.github/workflows/sm600-reference-policy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing browser-driver dependency
+        run: python -m pip install --disable-pip-version-check 'websocket-client>=1.8'
+      - name: Reference policy, stock invariance and branch mutants
+        run: |
+          mkdir -p artifacts
+          node --check engine/webgpu_gtao.js
+          node tools/validate_webgpu_gtao_reference.js > artifacts/gtao-reference-cpu.json
+          python -m py_compile tools/validate_webgpu_gtao_reference_browser.py
+          python tools/validate_webgpu_gtao_reference_runner.py
+      - name: Actual reconstruction and exact f32 branch tests on software WebGPU
+        run: python tools/validate_webgpu_gtao_reference_browser.py --report artifacts/gtao-reference-browser.json
+      - name: Retain exact-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gtao-reference-policy-${{ github.run_id }}
+          path: artifacts/gtao-reference-*.json
+          if-no-files-found: error
