@@ -17,6 +17,37 @@
   const check=(v,m)=>{if(!v)throw new Error(m);},align=n=>Math.ceil(n/256)*256;
   function equalBytes(a,b){return a.length===b.length&&a.every((v,i)=>v===b[i]);}
   function field(a){let min=Infinity,max=-Infinity,sum=0;for(const x of a){check(Number.isFinite(x),'Non-finite visibility.');min=Math.min(min,x);max=Math.max(max,x);sum+=x;}return {min,max,mean:sum/a.length};}
+  const bitHex=(word,width)=>'0x'+word.toString(16).padStart(width,'0');
+  async function capturedPlaneWitness(data,half=false){
+    const words=half?new Uint16Array(data.buffer,data.byteOffset,data.byteLength/2):new Uint32Array(data.buffer,data.byteOffset,data.byteLength/4);
+    const values=half?Array.from(words,S.fromHalf):Array.from(new Float32Array(data.buffer,data.byteOffset,data.byteLength/4));
+    const witness={byteLength:data.byteLength,format:half?'rgba16float':'r32float',words:Array.from(words).slice(0,64),bitHex:Array.from(words,x=>bitHex(x,half?4:8)).slice(0,64),values:values.slice(0,64),bytes:Array.from(data).slice(0,256),truncated:words.length>64||data.byteLength>256};
+    try{const digest=await crypto.subtle.digest('SHA-256',data);witness.sha256=Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');}
+    catch(error){witness.hashError=String(error?.message||error);}
+    return witness;
+  }
+  function hostReconstructionAt(raw,f,o,x,y){
+    const clamp=(n,a,b)=>Math.max(a,Math.min(b,n)),normal=S.quantizeHalf(f.normal),params=new Float32Array(G.parameterBytes(f.width,f.height,o).buffer),n=S.normalAt(normal,y*f.width+x),taps=[];
+    let ws=0,vs=0;
+    for(let oy=0;oy<=1;oy++)for(let ox=0;ox<=1;ox++){
+      const hx=clamp(Math.floor(x/2)+ox,0,raw.width-1),hy=clamp(Math.floor(y/2)+oy,0,raw.height-1),j=(hy*raw.width+hx)*4,sx=Math.min(f.width-1,hx*2+1),sy=Math.min(f.height-1,hy*2+1),value=Array.from(raw.data.subarray(j,j+4));
+      const tap={ox,oy,halfCoordinate:[hx,hy],normalCoordinate:[sx,sy],raw:value,rawHalfBits:value.map(v=>bitHex(S.halfBits(v),4)),occupied:value[2]>=.5};
+      if(tap.occupied){const n2=S.normalAt(normal,sy*f.width+sx),depthWeight=1/(1+Math.abs(f.depth[(y*f.width+x)*2]-value[1])*params[12]),nd=Math.max(0,n[0]*n2[0]+n[1]*n2[1]+n[2]*n2[2]),normalWeight=Math.pow(nd,params[13]),spatial=1/(1+Math.hypot(x-sx,y-sy)),weight=depthWeight*normalWeight*spatial;Object.assign(tap,{depthWeight,nd,normalWeight,spatial,weight});ws+=weight;vs+=value[0]*weight;}
+      taps.push(tap);
+    }
+    return {method:'CPU JavaScript double arithmetic, captured binary16 raw values, quantized fixture normals and serialized f32 parameters; not a GPU accumulator readback',gpuWs:null,gpuVs:null,ws,vs,ratio:ws?vs/ws:null,authoritativeCutoffF32:Math.fround(1e-6),supportsReconstruction:ws>Math.fround(1e-6),taps};
+  }
+  async function neutralFailureWitness(c,f,o,r,raw,vis,dbg,captures,repeat,baselineField){
+    const index=vis.findIndex(x=>x!==1),x=index%r.w,y=Math.floor(index/r.w),visWords=new Uint32Array(captures[0][1].buffer),debugWords=new Uint32Array(captures[0][2].buffer);
+    const witness={schema:S.SCHEMA+'/neutral-failure-witness',frozenStudyHead:'1813085f158a24d52365b0ee5011dc32c0251c90',phase:report.phase,repeat,pattern:c.pattern,fixtureSeed:f.seed,width:r.w,height:r.h,halfWidth:r.hw,halfHeight:r.hh,options:o,exactOutputEqualityPassed:report.exactOutputEqualityPassed,shaderHashes:report.candidateHashes,baselineField,firstNonNeutral:{index,x,y,value:vis[index],word:visWords[index],bitHex:bitHex(visWords[index],8),debug:dbg[index],debugBitHex:bitHex(debugWords[index],8),requiredValue:1,requiredBitHex:'0x3f800000'},variants:[]};
+    for(let i=0;i<captures.length;i++)witness.variants.push({name:r.variants[i].name,raw:await capturedPlaneWitness(captures[i][0],true),visibility:await capturedPlaneWitness(captures[i][1]),debug:await capturedPlaneWitness(captures[i][2])});
+    try{
+      const studyReference=S.upsampleReference(raw,f.depth,f.normal,r.w,r.h,o),legacyReference=G.referenceUpsample(raw,f.depth,f.normal,r.w,r.h,o),rawReference=G.referenceHalf(f.depth,f.normal,r.w,r.h,o);
+      witness.cpuReference={method:'Frozen source CPU references; GPU raw readback supplied to both reconstruction references',studyOracleThreshold:1e-6,legacyProductionReferenceThreshold:1e-8,studyVisibility:Array.from(studyReference.visibility).slice(0,64),studyDebug:Array.from(studyReference.debug).slice(0,64),studyField:field(studyReference.visibility),legacyVisibility:Array.from(legacyReference.visibility).slice(0,64),legacyConfidence:Array.from(legacyReference.confidence).slice(0,64),rawHalfValues:Array.from(S.quantizeHalf(rawReference.data)).slice(0,64),truncated:vis.length>64||rawReference.data.length>64};
+      witness.hostReconstruction=hostReconstructionAt(raw,f,o,x,y);
+    }catch(error){witness.cpuDiagnosticError=String(error?.stack||error);}
+    return witness;
+  }
   try {
     check(!software||!benchmark,'Software performance collection is prohibited.');check(navigator.gpu,'WebGPU unavailable, not a skipped pass.');
     const adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:software});check(adapter,'Requested adapter unavailable.');const info=adapter.info||{};
@@ -81,14 +112,18 @@
       const f=c.pattern==='weak-weight'?S.weakWeightFixture():S.makeFixture(c.w,c.h,c.pattern,caseIndex+1),o=G.normalizeOptions(c.options),r=resources(f,o);
       let baselineField=null,maxReferenceError=0;
       device.pushErrorScope('validation');
+      let validationScopeOpen=true;
       try{
         for(let repeat=0;repeat<2;repeat++){
+          report.exactOutputEqualityPassed=false;report.exactOutputEqualityContext={phase:report.phase,repeat,variants:r.variants.map(v=>v.name),planes:3};
           const encoder=device.createCommandEncoder();for(const v of r.variants)dispatch(encoder,r,v);device.queue.submit([encoder.finish()]);
           const captures=[];for(const v of r.variants)captures.push(await capture(r,v));
           for(let variant=1;variant<captures.length;variant++)for(let plane=0;plane<3;plane++)check(equalBytes(captures[0][plane],captures[variant][plane]),`${report.phase} repeat ${repeat} ${r.variants[variant].name}: plane ${plane} not byte-identical.`);
+          report.exactOutputEqualityPassed=true;
           const raw={width:r.hw,height:r.hh,data:Float32Array.from(new Uint16Array(captures[0][0].buffer),S.fromHalf)};
           const vis=new Float32Array(captures[0][1].buffer),dbg=new Float32Array(captures[0][2].buffer);baselineField=field(vis);field(dbg);check(raw.data.every(Number.isFinite),'Non-finite raw output.');
           check(baselineField.min>=.149&&baselineField.max<=1,'Baseline visibility outside bounded range.');
+          if((!o.enabled||c.pattern==='plane'||c.pattern==='empty')&&!vis.every(x=>x===1))report.failureWitness=await neutralFailureWitness(c,f,o,r,raw,vis,dbg,captures,repeat,baselineField);
           if(!o.enabled||c.pattern==='plane'||c.pattern==='empty')check(vis.every(x=>x===1),'Neutral fixture is not neutral.');
           if(c.pattern==='saturated'&&c.w>=17)check(baselineField.min<.9,'Saturated fixture lost nontrivial occlusion.');
           const ref=S.upsampleReference(raw,f.depth,f.normal,c.w,c.h,o);
@@ -102,8 +137,17 @@
             check(Math.abs(legacy.visibility[0]-vis[0])>.1,'Expected legacy CPU/GPU guard mismatch not reproduced.');
           }
         }
-        const err=await device.popErrorScope();check(!err,`${report.phase} resource validation: ${err?.message}`);
+        const err=await device.popErrorScope();validationScopeOpen=false;
+        if(err)report.failureValidationScope={phase:report.phase,popped:true,error:{name:err.name||err.constructor?.name||'GPUError',message:String(err.message||err)}};
+        check(!err,`${report.phase} resource validation: ${err?.message}`);
         report.cases.push({width:c.w,height:c.h,pattern:c.pattern,options:o,repeats:2,allThreeOutputsByteIdentical:true,baselineField,maxReferenceError});
+      }catch(error){
+        if(validationScopeOpen){
+          validationScopeOpen=false;
+          try{const validationError=await device.popErrorScope();report.failureValidationScope={phase:report.phase,popped:true,error:validationError?{name:validationError.name||validationError.constructor?.name||'GPUError',message:String(validationError.message||validationError)}:null};}
+          catch(validationError){report.failureValidationScope={phase:report.phase,popped:false,popError:String(validationError?.stack||validationError)};}
+        }
+        throw error;
       }finally{r.close();}
     }
     if(benchmark){

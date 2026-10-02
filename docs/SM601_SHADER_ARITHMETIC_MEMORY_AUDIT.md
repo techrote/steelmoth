@@ -123,6 +123,22 @@ Raw and reconstruction each receive timestamps on their actual compute passes. A
 
 Keep this work draft/unmerged as an experiment. Adopt only candidates with exact target-adapter correctness and useful measured benefit, in a separately reviewed production change, then rerun the unchanged complete SM-601 moving-scene acceptance campaign. Do not close #36, unblock SM-602, combine with PR #104/#105, weaken quality or performance gates, or touch PR #92 on the strength of this audit.
 
+## Physical neutral-failure witness — 2026-10-03
+
+The requested exact head `1813085f158a24d52365b0ee5011dc32c0251c90` stopped its physical GTX 1650 SUPER run at `case-18-3x5-plane`, after 18 completed correctness cases and before any performance samples. The unchanged check reported `Neutral fixture is not neutral.` All three textures across all four variants are compared byte-for-byte **before** that baseline-neutral assertion. The failure therefore followed successful candidate/baseline equality in the failing repeat; it does not itself establish a candidate divergence. The original report omitted the failed case's floats and bits, so its magnitude and cause are unresolved.
+
+This diagnostic-only overlay retains that assertion, the exact A/B checks, all shaders, CPU thresholds and benchmark guards. Before a neutral failure it records the repeat/options/source shader hashes, float32 words, bit hex, compact actual texture bytes and complete byte hashes for each variant, plus frozen CPU reference values and host reconstruction tap/weight details. Host sums use JavaScript double arithmetic on captured raw values and serialized inputs; they are explicitly **not** GPU accumulator readbacks. Failure validation scopes are popped and their errors retained alongside the witness. The original failure is still thrown and cannot enter the benchmark loop.
+
+A CPU-only model of the 3x5 plane has raw samples `[1, 0.5, 1, 0]`, visibility 1 and weight sums 1.180612903055417–4. A reconstruction-rounding explanation is a hypothesis until the physical witness is captured. It does not justify relaxing exact neutral output, changing quality or manufacturing performance results. The frozen branch's 1e-8 JS control is historical; merged #107 establishes the current authoritative strict `> f32(0.000001)` policy. That repaired policy is not reopened here.
+
+Run the witness separately, without timing:
+
+```text
+python tools/run_sm601_gtao_arithmetic_study.py --browser "C:/Program Files/Google/Chrome/Application/chrome.exe" --hardware --timeout 180 --report artifacts/sm601-arithmetic-neutral-witness.json
+```
+
+The arithmetic performance campaign remains stopped at this correctness gate. No successful physical witness, performance acceptance or production adoption is claimed by this addition.
+
 ## External technical references
 
 Primary specifications consulted on 2026-10-02:
