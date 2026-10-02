@@ -1,0 +1,511 @@
+{
+  "browserExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserLogs": [
+    {
+      "level": "SEVERE",
+      "message": "http://127.0.0.1:56254/favicon.ico - Failed to load resource: the server responded with a status of 404 (File not found)",
+      "source": "network",
+      "timestamp": 1789869978182
+    }
+  ],
+  "browserVersion": "153.0.8010.48",
+  "canonicalValidator": "tools/validate_webgpu_dark_bloom_temporal_browser.py::validate",
+  "evidenceBoundary": "Physical Chrome WebGPU validates SM-306 low-frequency Dark Bloom history, hard-core exclusion, rejection and lifecycle contracts; SM-500 timestamp distributions remain the timing authority.",
+  "executionHarness": "selenium-fresh-profile",
+  "ok": true,
+  "requireWebGPU": true,
+  "schema": "steelmoth-webgpu-dark-bloom-temporal-browser-report/v1",
+  "screenshot": "benchmarks\\webgpu-gtx1650s\\post-sm501-dark-bloom-fix-2026-09-20\\correctness\\sm306-dark-bloom-temporal-browser.png",
+  "screenshotBytes": 19574,
+  "smoke": {
+    "captures": [
+      {
+        "acceptedPercent": 95.3125,
+        "gpuCpuMaxError": 2.9802322387695312e-08,
+        "label": "slow-light",
+        "rawRms": 0.010251828176546377,
+        "rejectedPercent": 0,
+        "temporalRms": 0.0028705116346178206
+      },
+      {
+        "acceptedPercent": 0,
+        "label": "light-teleport",
+        "maxError": 0,
+        "resetReason": "light-angle-discontinuity"
+      },
+      {
+        "label": "cluster-move",
+        "maxError": 0,
+        "resetReason": "cluster-discontinuity"
+      },
+      {
+        "label": "editor-delete",
+        "nonzero": 0
+      },
+      {
+        "label": "resize-rebuild",
+        "maxError": 0
+      }
+    ],
+    "checks": [
+      {
+        "label": "SM-306 temporal API available",
+        "ok": true
+      },
+      {
+        "label": "stable SM-306 schema available",
+        "ok": true
+      },
+      {
+        "label": "uninitialized history resolves exactly to current Dark Bloom",
+        "ok": true
+      },
+      {
+        "label": "first frame explicitly rejects undefined history",
+        "ok": true
+      },
+      {
+        "label": "first frame reports zero history acceptance",
+        "ok": true
+      },
+      {
+        "label": "first frame rejects the complete eligible soft-history field; hard-core pixels remain outside temporal accumulation",
+        "ok": true
+      },
+      {
+        "label": "slow-light GPU temporal residual matches CPU reference",
+        "ok": true
+      },
+      {
+        "label": "slow 2 degree/1px light motion retains history",
+        "ok": true
+      },
+      {
+        "label": "stable soft field reports high history acceptance",
+        "ok": true
+      },
+      {
+        "label": "slow-light temporal field reduces frame-to-frame penumbra change",
+        "ok": true
+      },
+      {
+        "label": "hard DSO core never receives temporal residual",
+        "ok": true
+      },
+      {
+        "label": "diagnostics state hard-core unsmoothed contract",
+        "ok": true
+      },
+      {
+        "label": "diagnostics expose neighborhood anti-trail clamp",
+        "ok": true
+      },
+      {
+        "label": "light teleport rejects history and returns current residual exactly",
+        "ok": true
+      },
+      {
+        "label": "light teleport forces global history rejection",
+        "ok": true
+      },
+      {
+        "label": "light teleport reset reason is explicit",
+        "ok": true
+      },
+      {
+        "label": "light teleport reports zero accepted history",
+        "ok": true
+      },
+      {
+        "label": "settled frame after teleport accepts history again",
+        "ok": true
+      },
+      {
+        "label": "single object-ID discontinuity remains pixel-local",
+        "ok": true
+      },
+      {
+        "label": "object discontinuity increments rejection diagnostics",
+        "ok": true
+      },
+      {
+        "label": "changed object pixel uses current residual without stale history",
+        "ok": true
+      },
+      {
+        "label": "depth discontinuity increments rejection diagnostics",
+        "ok": true
+      },
+      {
+        "label": "changed depth pixel uses current residual without stale history",
+        "ok": true
+      },
+      {
+        "label": "large cluster movement globally rejects prior soft history",
+        "ok": true
+      },
+      {
+        "label": "cluster movement reset reason is explicit",
+        "ok": true
+      },
+      {
+        "label": "cluster movement reports zero accepted history",
+        "ok": true
+      },
+      {
+        "label": "room change rejects prior-room history exactly",
+        "ok": true
+      },
+      {
+        "label": "room change reset reason is explicit",
+        "ok": true
+      },
+      {
+        "label": "explicit invalidation rejects stale history bindings",
+        "ok": true
+      },
+      {
+        "label": "editor deletion plus invalidation leaves no stale bin silhouette",
+        "ok": true
+      },
+      {
+        "label": "editor invalidation reports zero history acceptance on rebuild",
+        "ok": true
+      },
+      {
+        "label": "resize invalidates temporal bindings immediately",
+        "ok": true
+      },
+      {
+        "label": "post-resize rebuild starts from current residual without stale history",
+        "ok": true
+      },
+      {
+        "label": "post-resize first frame globally rejects old history",
+        "ok": true
+      },
+      {
+        "label": "debug overlay exposes accepted/rejected history percentages",
+        "ok": true
+      },
+      {
+        "label": "debug overlay states hard ownership scope boundary",
+        "ok": true
+      }
+    ],
+    "diagnostics": {
+      "dispatchCount": 12,
+      "extent": {
+        "height": 48,
+        "width": 64
+      },
+      "generation": 3,
+      "historyValid": true,
+      "invalidationCount": 5,
+      "lastInvalidationReason": "",
+      "pipelineDiagnostics": {
+        "clearCount": 2,
+        "count": 1,
+        "generation": 3,
+        "hits": 0,
+        "keys": [
+          "compute:dark-bloom-temporal-v1"
+        ],
+        "misses": 2,
+        "schema": "steelmoth-webgpu-pipeline-cache/v1"
+      },
+      "resourceDiagnostics": {
+        "createCount": 9,
+        "definitionCount": 9,
+        "destroyCount": 0,
+        "dynamicArenas": [],
+        "estimatedBytes": 98400,
+        "extent": {
+          "height": 48,
+          "width": 64
+        },
+        "frameIndex": 0,
+        "generation": 1,
+        "rebuildCount": 0,
+        "resizeCount": 0,
+        "resourceCount": 9,
+        "resources": [
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 24576,
+            "format": "rg32float",
+            "generation": 1,
+            "height": 48,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm306:depth0",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 12,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 24576,
+            "format": "rg32float",
+            "generation": 1,
+            "height": 48,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm306:depth1",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 12,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 12288,
+            "format": "r32float",
+            "generation": 1,
+            "height": 48,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm306:history0",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 12288,
+            "format": "r32float",
+            "generation": 1,
+            "height": 48,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm306:history1",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 12288,
+            "format": "r32uint",
+            "generation": 1,
+            "height": 48,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm306:object0",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 12,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 12288,
+            "format": "r32uint",
+            "generation": 1,
+            "height": 48,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm306:object1",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 12,
+            "width": 64
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 32,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm306:params",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 32,
+            "usage": 72,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 32,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm306:stats",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 32,
+            "usage": 140,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 32,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm306:statsReadback",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 32,
+            "usage": 9,
+            "width": null
+          }
+        ],
+        "schema": "steelmoth-webgpu-resources/v1",
+        "uploads": {
+          "dynamic": {
+            "bytes": 0,
+            "count": 0
+          },
+          "static": {
+            "bytes": 0,
+            "count": 0
+          }
+        }
+      },
+      "roomId": "room-b",
+      "schema": "steelmoth-webgpu-dark-bloom-temporal/v1",
+      "snapshot": {
+        "clusterSignature": "7:41:41.42:7:4:12:7",
+        "depthThreshold": 0.02,
+        "diagnostics": {
+          "accepted": 0,
+          "acceptedPercent": 0,
+          "depth": 0,
+          "global": 2928,
+          "hard": 0,
+          "hardCoreUnsmooth": true,
+          "historyAcceptedPercent": 0,
+          "historyRejectedPercent": 95.3125,
+          "neighborhoodClamp": true,
+          "object": 0,
+          "rejected": 2928,
+          "rejectedPercent": 95.3125,
+          "softHistoryOnly": true
+        },
+        "globalReject": true,
+        "height": 48,
+        "historyIndex": 1,
+        "historyWeight": 0.72,
+        "lightDelta": {
+          "angleDeg": 0,
+          "movePixels": 0,
+          "reason": "history-uninitialized",
+          "reject": true
+        },
+        "lightState": {
+          "direction": [
+            0,
+            1
+          ],
+          "id": "player",
+          "position": [
+            90,
+            24
+          ]
+        },
+        "resetReason": "configure",
+        "roomId": "room-b",
+        "schema": "steelmoth-webgpu-dark-bloom-temporal-snapshot/v1",
+        "width": 64
+      },
+      "updateCount": 12,
+      "valid": true
+    },
+    "error": null,
+    "ok": true,
+    "readback": {
+      "clusterRejected": true,
+      "depthRejected": true,
+      "format": "r32float",
+      "gpuCpuTolerance": 2e-05,
+      "hardCoreUnsmooth": true,
+      "noStaleAfterInvalidation": true,
+      "objectRejected": true,
+      "pixelCount": 3072,
+      "resizeRejected": true,
+      "roomRejected": true,
+      "slowLightStabilized": true,
+      "teleportRejected": true
+    },
+    "schema": "steelmoth-webgpu-dark-bloom-temporal-browser-smoke/v1",
+    "timing": {
+      "gpuTimingClaimed": false,
+      "submitWallMs": [
+        {
+          "label": "first",
+          "value": 53.59999990463257
+        },
+        {
+          "label": "slow-light",
+          "value": 7.299999952316284
+        },
+        {
+          "label": "light-teleport",
+          "value": 7.5
+        },
+        {
+          "label": "settled-after-teleport",
+          "value": 7.599999904632568
+        },
+        {
+          "label": "object-change",
+          "value": 5.799999952316284
+        },
+        {
+          "label": "ownership-restored",
+          "value": 5
+        },
+        {
+          "label": "depth-change",
+          "value": 5.900000095367432
+        },
+        {
+          "label": "depth-restored",
+          "value": 7
+        },
+        {
+          "label": "cluster-move",
+          "value": 6.600000023841858
+        },
+        {
+          "label": "room-change",
+          "value": 4.300000071525574
+        },
+        {
+          "label": "editor-delete",
+          "value": 6.5
+        },
+        {
+          "label": "resize-rebuild",
+          "value": 6.600000023841858
+        }
+      ],
+      "timestampQueryAvailable": true
+    }
+  }
+}

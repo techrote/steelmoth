@@ -8,6 +8,9 @@ const F=require('./sm600_gtao_reference_fixtures.js');
 const ROOT=path.resolve(__dirname,'..');
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 const bytes=a=>Buffer.from(a.buffer,a.byteOffset,a.byteLength);
+// Git checkouts may use CRLF on Windows. Canonicalize only those line endings
+// before VM evaluation and source hashes; every other source byte remains pinned.
+const canonicalSource=source=>source.replace(/\r\n/g,'\n');
 
 // Load the exact production source in a CPU-only realm. No GPU/resource
 // method is called; the browser suite separately uses the real registry.
@@ -17,6 +20,7 @@ function loadCPU(source){
   return context.SteelMothWebGPUGTAO;
 }
 function validate(source=fs.readFileSync(path.join(ROOT,'engine/webgpu_gtao.js'),'utf8')){
+  source=canonicalSource(source);
   const G=loadCPU(source),gold=JSON.parse(fs.readFileSync(path.join(ROOT,'render-tests/gtao-reference-baseline.json'),'utf8'));
   assert.equal(G.UPSAMPLE_WEIGHT_EPSILON,F.f32FromBits(F.POLICY_BITS),'The cutoff is the deployed f32 literal, not a validation tolerance.');
   assert.equal(hash(G.RAW_WGSL),F.BASELINE_RAW_SHA256,'Raw WGSL must remain byte-identical in this reference-only repair.');
@@ -80,11 +84,16 @@ function validate(source=fs.readFileSync(path.join(ROOT,'engine/webgpu_gtao.js')
   return {schema:'steelmoth-gtao-reference-policy-cpu/v1',ok:true,node:process.version,sourceSha256:hash(source),rawWGSL:hash(G.RAW_WGSL),upsampleWGSL:hash(G.UPSAMPLE_WGSL),cutoff:G.UPSAMPLE_WEIGHT_EPSILON,cutoffBits:F.POLICY_BITS,boundary,witness,fixtureConfigurations:F.cases().length*G.DEBUG_MODES.length,randomCases:512,testedPixels,changedPolicyPixels,stock,cpuOnly:true};
 }
 if(require.main===module){
-  const report=validate();
   const source=fs.readFileSync(path.join(ROOT,'engine/webgpu_gtao.js'),'utf8');
-  assert.throws(()=>validate(source.replace("UPSAMPLE_WEIGHT_EPSILON_WGSL='0.000001'","UPSAMPLE_WEIGHT_EPSILON_WGSL='0.00000001'")),/cutoff/);
-  assert.throws(()=>validate(source.replace('return weightSum>UPSAMPLE_WEIGHT_EPSILON','return weightSum>=UPSAMPLE_WEIGHT_EPSILON')),/Strict f32 guard/);
+  const report=validate(source),lfSource=canonicalSource(source),crlfSource=lfSource.replace(/\n/g,'\r\n');
+  assert.notEqual(lfSource,crlfSource,'Line-ending regression must exercise distinct source bytes.');
+  for(const variant of [lfSource,crlfSource]){
+    assert.deepEqual(validate(variant),report,'LF and CRLF checkouts must produce the same canonical hashes and oracle results.');
+    assert.throws(()=>validate(variant.replace("UPSAMPLE_WEIGHT_EPSILON_WGSL='0.000001'","UPSAMPLE_WEIGHT_EPSILON_WGSL='0.00000001'")),/cutoff/);
+    assert.throws(()=>validate(variant.replace('return weightSum>UPSAMPLE_WEIGHT_EPSILON','return weightSum>=UPSAMPLE_WEIGHT_EPSILON')),/Strict f32 guard/);
+  }
   report.policyMutantsRejected=2;
+  report.lineEndingRegression={variants:['LF','CRLF'],identicalCanonicalReport:true,policyMutantExecutions:4};
   console.log(JSON.stringify(report,null,2));
 }
 module.exports={validate};

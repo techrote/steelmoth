@@ -1,0 +1,1006 @@
+{
+  "schema": "steelmoth-ci-report/v1",
+  "groups": [
+    "regression",
+    "source"
+  ],
+  "ok": true,
+  "failed": [],
+  "checks": [
+    {
+      "name": "python-compile",
+      "group": "source",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-m",
+        "compileall",
+        "-q",
+        "tools"
+      ],
+      "returncode": 0,
+      "duration_s": 0.128,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-game",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/game.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.075,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-editor",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/editor.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.062,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-surfacefx",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/surfacefx.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-foliagefx",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/foliagefx.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-render-transform",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/render_transform.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-pseudo-depth",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/pseudo_depth.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-render-transform-integration",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/render_transform_integration.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-render-scene",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/render_scene.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-render-transform-scene-adapter",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/render_transform_scene_adapter.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.062,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgl2-scene-adapter",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgl2_scene_adapter.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.064,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-device",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_device.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-resources",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_resources.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.062,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-validation",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_validation.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-gbuffer",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_gbuffer.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.062,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-ownership",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_ownership.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-depth-hierarchy",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_depth_hierarchy.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-lighting",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_lighting.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.066,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-local-shadows",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_local_shadows.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.065,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-transparent-fx",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_transparent_fx.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-water",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_water.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.066,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-foliage",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_foliage.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.062,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-clusters",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_clusters.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-dominance",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_dominance.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.067,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-transition-state",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_transition_state.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.06,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webgpu-gtao",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/webgpu_gtao.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.062,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-backend-runtime",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/backend_runtime.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-render-harness",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/render_harness.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-render-fixture-adapter",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "engine/render_fixture_adapter.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.064,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-webapp",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "webapp.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "js-service-worker",
+      "group": "source",
+      "command": [
+        "node",
+        "--check",
+        "sw.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "planning",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_planning.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "PASS: Steel Moth planning documents are internally consistent\n  canonical tasks: 50\n  mapped GitHub task issues: 50\n  dependency task references: 50 unique codes\n  milestone counts: {'M0': 6, 'M1': 5, 'M2': 8, 'M3': 8, 'M4': 6, 'M5': 6, 'M6': 4, 'M7': 3, 'M8': 4}\n",
+      "stderr": ""
+    },
+    {
+      "name": "render-transform",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_render_transform.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.076,
+      "stdout": "SM-101 render-transform parity: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "render-transform-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_transform_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "SM-101 render-transform source contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "pseudo-depth",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_pseudo_depth.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.073,
+      "stdout": "Pseudo-depth model PASS: steelmoth-pseudo-depth/v1; 5 fixture prototypes; production depth writes remain deferred to SM-202.\n",
+      "stderr": ""
+    },
+    {
+      "name": "pseudo-depth-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_pseudo_depth_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.067,
+      "stdout": "Pseudo-depth source contract PASS: SM-201 remains the canonical formula; SM-200 is the depth-disabled control and SM-202 is the production ownership adopter.\n",
+      "stderr": ""
+    },
+    {
+      "name": "render-scene",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_render_scene.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.074,
+      "stdout": "RENDER SCENE PASS: typed scene validates; static/dynamic/foreground/procedural categories explicit; stable scope IDs retained; WebGL2 replay order preserved; gameplay state untouched\n",
+      "stderr": ""
+    },
+    {
+      "name": "render-scene-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_scene_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.057,
+      "stdout": "RENDER SCENE CONTRACT PASS: typed schemas, explicit categories, stable identity basis, WebGL2 compatibility bridge, offline module registration, and fail-open authority boundary are present\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-lifecycle",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_lifecycle.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.115,
+      "stdout": "SM-102 WEBGPU LIFECYCLE PASS: policy, capability inventory, optional negotiation, validation scope, resize/reconfigure, uncaptured errors, device loss, deliberate failure and WebGL2 fallback verified\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.058,
+      "stdout": "SM-102 WEBGPU CONTRACT PASS: staged Auto policy, lifecycle APIs, runtime diagnostics, offline registration and verification wiring present\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-resources",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_resources.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.091,
+      "stdout": "SM-103 WEBGPU INFRASTRUCTURE PASS: persistent resources, resize/reset invalidation, bounded uploads, explicit frame graph, validation scopes, pipeline cache and diagnostics verified\nSM-500 WEBGPU PERFORMANCE INSTRUMENTATION PASS: timestamp-query frame-graph timings, separate CPU phases, workload/memory export, unavailable-feature path and disabled-instrumentation path verified\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-resources-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_resources_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "SM-103/SM-500 WEBGPU RESOURCE CONTRACT PASS: persistent resources plus optional pass-level timestamp instrumentation, separate CPU phases, workload/memory export and unavailable-feature fallback are wired\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-validation",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_validation.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.084,
+      "stdout": "SM-104 WebGPU validation unit checks: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-validation-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_validation_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "SM-104 WebGPU validation source contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-gbuffer",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_gbuffer.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.071,
+      "stdout": "{\n  \"ok\": true,\n  \"schema\": \"steelmoth-webgpu-gbuffer/v1\",\n  \"instances\": 4,\n  \"instanceStride\": 80,\n  \"debugModes\": [\n    \"albedo\",\n    \"normals\",\n    \"roughness\",\n    \"height\",\n    \"metalness\",\n    \"ao\",\n    \"emissive\",\n    \"object-id\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-gbuffer-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_gbuffer_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.061,
+      "stdout": "SM-200 WebGPU G-buffer source contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-ownership",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_ownership.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.072,
+      "stdout": "{\n  \"ok\": true,\n  \"schema\": \"steelmoth-webgpu-ownership/v1\",\n  \"instanceStride\": 80,\n  \"debugModes\": [\n    \"albedo\",\n    \"normals\",\n    \"roughness\",\n    \"height\",\n    \"metalness\",\n    \"ao\",\n    \"emissive\",\n    \"object-id\",\n    \"depth\"\n  ],\n  \"pseudoDepth\": {\n    \"schema\": \"steelmoth-pseudo-depth/v1\",\n    \"maxWorldZ\": 64,\n    \"zToScreenY\": 1,\n    \"layerStride\": 1024,\n    \"depthKeyRange\": [\n      -2048,\n      3072\n    ],\n    \"categoryLayer\": {\n      \"ground\": -1,\n      \"static\": 0,\n      \"dynamic\": 0,\n      \"foreground\": 1,\n      \"top\": 2\n    },\n    \"alphaCutoff\": 0.12,\n    \"materialHeightEncoding\": \"G2.R * MAX_WORLD_Z after uniform render-scale compatibility\",\n    \"materialHeightSemantics\": \"SM-503/v1\",\n    \"productionDepthWrites\": true,\n    \"productionOwner\": \"SM-202\",\n    \"productionModule\": \"engine/webgpu_ownership.js\"\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-ownership-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_ownership_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.062,
+      "stdout": "SM-202 ownership contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-depth-hierarchy",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_depth_hierarchy.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.07,
+      "stdout": "SM-203 depth hierarchy deterministic tests: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-depth-hierarchy-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_depth_hierarchy_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "SM-203 depth hierarchy contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-lighting",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_lighting.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.078,
+      "stdout": "SM-204 lighting semantics PASS: 3 canonical lights, 8-angle reference matrix, normal-axis convention, debug/PBR/material roles validated.\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-lighting-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_lighting_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "SM-204 canonical lighting contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-local-shadows",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_local_shadows.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.075,
+      "stdout": "SM-205 local-shadow semantics PASS: self tiers 0/8/12/16/28, contact tiers 0/4/8/12, 8-angle local-height matrix and short-range depth-aware contact reconstruction validated.\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-local-shadows-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_local_shadows_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "SM-205 local shadow contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-transparent-fx",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_transparent_fx.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.08,
+      "stdout": "SM-206 transparent FX model PASS: 29 checks\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-transparent-fx-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_transparent_fx_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.072,
+      "stdout": "SM-206 transparent FX contract PASS: baseline caps/order/blend, atlas sampling, bounded WebGPU ownership and fallback are coherent\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-water",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_water.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.074,
+      "stdout": "SM-400 water deterministic tests: PASS {\"fieldBytes\":100,\"ripples\":12,\"dark\":[0,0,0,0],\"lit\":[0.04278948309480236,0.047205360304017695,0.051619443916044554,0.04741984105158251],\"shadow\":[0.0399470464,0.0399470464,0.0399470464,0.014352000000000002],\"depthReject\":0,\"canonicalLightBuffer\":\"sm204:lights\",\"debugModes\":6}\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-water-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_water_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.057,
+      "stdout": "SM-400 water contract validation: PASS (13 assertions)\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-foliage",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_foliage.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.082,
+      "stdout": "SM-401 foliage deterministic tests: PASS {\"instances\":14,\"classes\":{\"receiverOnly\":9,\"contact\":5,\"macro\":0},\"dark\":[0,0,0],\"lit\":[0.034879994303641186,0.13683690072966928,0.12073844182029642],\"shadow\":[0.0032500000000000003,0.012750000000000001,0.011250000000000001],\"angleSpread\":0.012539827156918038,\"canonicalLightBuffer\":\"sm204:lights\"}\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-foliage-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_foliage_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "SM-401 foliage contract validation: PASS (14 assertions)\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-clusters",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_clusters.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.084,
+      "stdout": "SM-301 stable occluder clustering deterministic tests: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-clusters-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_clusters_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.06,
+      "stdout": "SM-301 cluster contract PASS: deterministic geometry membership, bounded candidate work, perturbation stability and SM-302 boundary are coherent\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-dominance",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_dominance.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.081,
+      "stdout": "SM-302 dominant-occluder scoring + hysteresis deterministic tests: PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-dominance-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_dominance_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "SM-302 dominance contract PASS: directional exposed-silhouette scoring, stable single-owner hysteresis, bounded GPU data and SM-303 boundary are coherent\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-transition",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_transition.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.091,
+      "stdout": "SM-404 TRANSITION INVALIDATION PASS: 191 assertions, rooms=9, events=24, revision=24\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-transition-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_transition_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.057,
+      "stdout": "SM-404 TRANSITION CONTRACT PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-gtao",
+      "group": "regression",
+      "command": [
+        "node",
+        "tools/validate_webgpu_gtao.js"
+      ],
+      "returncode": 0,
+      "duration_s": 0.155,
+      "stdout": "{\n  \"schema\": \"steelmoth-sm600-deterministic-report/v1\",\n  \"ok\": true,\n  \"plane\": {\n    \"min\": 1,\n    \"max\": 1,\n    \"mean\": 1,\n    \"occludedPixels\": 0\n  },\n  \"box\": {\n    \"metrics\": {\n      \"min\": 0.44999998807907104,\n      \"max\": 1,\n      \"mean\": 0.8964261676301248,\n      \"occludedPixels\": 1080\n    },\n    \"bandMean\": 0.6669555176463392,\n    \"coreMean\": 1\n  },\n  \"fixtures\": {\n    \"box\": {\n      \"min\": 0.44999998807907104,\n      \"max\": 1,\n      \"mean\": 0.8910626642522402,\n      \"occludedPixels\": 1128\n    },\n    \"bin\": {\n      \"min\": 0.2721710503101349,\n      \"max\": 1,\n      \"mean\": 0.8608038560952991,\n      \"occludedPixels\": 1476\n    },\n    \"cabinet\": {\n      \"min\": 0.4526510238647461,\n      \"max\": 1,\n      \"mean\": 0.8524482171982527,\n      \"occludedPixels\": 1661\n    },\n    \"dense\": {\n      \"min\": 0.2666666805744171,\n      \"max\": 1,\n      \"mean\": 0.7922739280387759,\n      \"occludedPixels\": 2038\n    }\n  },\n  \"materialAOPolicy\": {\n    \"semantic\": \"Material AO remains intra-object; GTAO is inter-surface/world occlusion.\",\n    \"composition\": \"SM-307 combines material AO and GTAO with strongest-occluder/min semantics rather than multiplication.\",\n    \"recommendedMaterialAOStrength\": 0.5,\n    \"gtaoStrength\": 1\n  },\n  \"halfResolution\": [\n    32,\n    20\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-gtao-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_gtao_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "SM-600 CONTRACT PASS: half-resolution non-temporal GTAO -> depth/normal-aware upscale -> SM-307 reserved input\n",
+      "stderr": ""
+    },
+    {
+      "name": "render-harness",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_harness.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.064,
+      "stdout": "render harness validation: PASS\nfixture: harness-smoke\nangles: 0,45,90,135,180,225,270,315\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgl2-benchmark",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgl2_benchmark.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.204,
+      "stdout": "WebGL2 benchmark validation: PASS\nbaseline: measured artifact validated\n",
+      "stderr": ""
+    },
+    {
+      "name": "webgpu-target-benchmark-contract",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_target_benchmark_contract.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.059,
+      "stdout": "WEBGPU TARGET BENCHMARK CONTRACT PASS: production chain, SM-501 totals, SM-601 GTAO gate, SM-800 full-renderer A/B, raw samples, canonical matrices and strict report validators are wired\n",
+      "stderr": ""
+    },
+    {
+      "name": "render-fixtures",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_fixtures.py",
+        "--repeat",
+        "3"
+      ],
+      "returncode": 0,
+      "duration_s": 0.13,
+      "stdout": "PASS barrel a9d8b0e2a263e7a4c43da0094d9e60ac405ae7099dd7e126927108741dc13e8b\nPASS binsleft 5492756c8adeca1857d88b17cacabbb1168cd98ee9fa97490eb9bc0ea9db4c4b\nPASS binsright 8714d997396eee58d8391818768b4ddbb4cde02b9164c6b3658ce39b603f8f47\nPASS binsup e636d5d7262a84aba9918066adc95c0feee3e2dae5eea4c1b5368541f65e1349\nPASS binsupleft c07bcbc489b0bce746e26533353b2750f99629e92c970f64938f656af758af31\nPASS box-pair 6f92e7462704df76d94086710753ac5b31d278ae8cf32ab4b538143f65e479b6\nPASS cabinet 2bcac897c569e7a94e061fd3625fb0f86e364a59bfdfac753bf996e17eb990ea\nPASS crate 7172eecca15e82dcb79db62f610f45450ae90d99dd41325d2638442f38f0b47e\nPASS dense-mixed 4dc7b52eff7147e82f97681229ebe752b2c7897c972766288c1b744fc6eac8be\nPASS empty-floor b76ccbc405f0438d013d8066add2a1c939997877aa653eb131604114fadaf836\nPASS foliage-dense 49b67c61b8ac6183a66664c22811eee03522d0d719dfdbcefd01b6353215be42\nPASS lamp-pole d443e23ac379ca54f634f81c30c5fdfb2595a22e7da3604be062c73f5c1416d6\nPASS pipe-bundle e06db8e96cd98a5a8b93a692c1937c41d1c808c5aa6ffebb20ce3586cf4c384c\nPASS robot 081be674a5fc43cfd154575721f071b2f70c658d339226c020855a496cd3b1b9\nPASS single-box 448f734d0e5b47d1546f3458ceb46f355697bc29b7fe6f284e36b2d941466e4d\nPASS water-material 56b48810bf8c0ff808d642bc58ff3f372c2d463d98d18b485b9dd545d9121bf1\nPASS references 8 exact PNGs\nPASS auxiliary fixtures harness-smoke.json\nPASS corpus 16 fixtures; repeated loads=3; gameplay save state=not required\n",
+      "stderr": ""
+    },
+    {
+      "name": "webapp-v123",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webapp_v123.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.072,
+      "stdout": "WEBAPP V1.2.3 PASS: version/cache closure, 9 rooms/27 objectives, Material-v2 assets, staged SM-101 transforms through SM-204 canonical lighting runtime present, 193/257-ray visibility profile declared\n",
+      "stderr": ""
+    },
+    {
+      "name": "surface-coherence-v123",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_v123_surface_coherence.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.063,
+      "stdout": "V1.2.3 SURFACE COHERENCE PASS: amber Fine GrassField root cause removed; grass/foliage use lit scene; foliage consumes Material-v2 normals; 193/257-ray hard-light profile\n",
+      "stderr": ""
+    },
+    {
+      "name": "renderer-v120",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_renderer_v120.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.064,
+      "stdout": "RENDERER V1.2 PASS: baseline fixes, shared foot anchor, deterministic clears, MRT, GGX, height self-shadow, half-res contact shadows, UI/debug/fallback/timer contracts\n",
+      "stderr": ""
+    },
+    {
+      "name": "material-v2",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_material_v2.py"
+      ],
+      "returncode": 0,
+      "duration_s": 2.205,
+      "stdout": "MATERIAL V2 PASS: 314 regions, calibrated geometry/material priors, explicit world-height/AO semantics, deterministic hashes\n",
+      "stderr": ""
+    },
+    {
+      "name": "ghost-material",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_ghost_material_v120.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.801,
+      "stdout": "GHOST MATERIAL PASS: static descriptors reset, all static material canvases explicitly cleared, all MRT attachments cleared, editor invalidates rebuild, deleted region returns to baseline\n",
+      "stderr": ""
+    },
+    {
+      "name": "visual-material",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_visual_material_v120.py"
+      ],
+      "returncode": 0,
+      "duration_s": 1.748,
+      "stdout": "VISUAL MATERIAL PASS: semantic box/barrel/pole/pipe/floor/robot response, bounded painted-steel weathering, exact roots, and scale-relative crate height self-shadow blockers (1846/2082)\n",
+      "stderr": ""
+    },
+    {
+      "name": "v122-coherence",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_v122_coherence.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.074,
+      "stdout": "V1.2.2 COHERENCE FIXES RETAINED: world-normal convention, bounded water, cool companion light, pseudo-depth flashlight shadows, semantic rough-floor/material response\n",
+      "stderr": ""
+    },
+    {
+      "name": "v112-regression",
+      "group": "regression",
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_v1_1_2.py"
+      ],
+      "returncode": 0,
+      "duration_s": 0.855,
+      "stdout": "V1.1.2 TERRAIN SHADOW PASS: 26 sectioned profiles retained in v1.2.3; max sampled world height=20.59px; material alpha alignment exact\n",
+      "stderr": ""
+    }
+  ]
+}
