@@ -1,0 +1,36 @@
+name: SM-500 timing boundary
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_performance.js'
+      - 'tools/validate_webgpu_performance.js'
+      - 'tools/validate_webgpu_performance_contract.py'
+      - 'tools/run_checks.py'
+      - 'docs/SM500_TIMING_BOUNDARY.md'
+      - 'docs/WEBGPU_VALIDATION_PLAN.md'
+      - 'webgpu-target-benchmark.html'
+      - 'tools/validate_webgpu_target_benchmark_contract.py'
+      - '.github/workflows/sm500-timing-boundary.yml'
+  workflow_dispatch:
+
+jobs:
+  timing-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: JavaScript syntax
+        run: node --check engine/webgpu_performance.js && node --check tools/validate_webgpu_performance.js
+      - name: Deterministic timing semantics
+        run: node tools/validate_webgpu_performance.js
+      - name: Timing contract
+        run: python tools/validate_webgpu_performance_contract.py
+      - name: Target benchmark timing labels
+        run: python tools/validate_webgpu_target_benchmark_contract.py

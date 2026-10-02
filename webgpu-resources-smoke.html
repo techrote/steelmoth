@@ -25,7 +25,7 @@
     infra.registry.defineTexture('fixed',{format:'rgba8unorm',usage:Infra.TEXTURE_USAGE.TEXTURE_BINDING,size:{width:4,height:4}});
     infra.registry.uploadStatic('static-data',new Uint32Array([1,2,3,4]),{usage:bufUsage,maxBytes:1024});
     infra.registry.ensureDynamicArena('actors',{capacity:1024,usage:bufUsage,alignment:256});
-    const gpuPass=name=>({name,execute({device,registry}){const encoder=device.createCommandEncoder({label:`SM500Smoke:${name}`});encoder.clearBuffer(registry.require('static-data').handle);device.queue.submit([encoder.finish()])}});
+    const gpuPass=name=>({name,execute({device,registry,performanceTimingScope}){const encoder=device.createCommandEncoder({label:`SM500Smoke:${name}`});encoder.clearBuffer(registry.require('static-data').handle);const commands=[encoder.finish()];if(performanceTimingScope)performanceTimingScope.submit(commands,{label:name});else device.queue.submit(commands)}});
     infra.graph.addPass({name:'prepare-buffer',writes:['dynamic:actors'],execute(){}});
     infra.graph.addPass({...gpuPass('gbuffer'),after:['prepare-buffer'],reads:['dynamic:actors','static-data'],writes:['g0']});
     infra.graph.addPass({...gpuPass('lighting'),after:['gbuffer'],reads:['g0'],writes:['lit']});
@@ -56,8 +56,8 @@
     if(performanceDiagnostics.frameCount!==3)throw new Error('performance instrumentation frame count mismatch');
     const latest=performanceDiagnostics.latestFrame;if(!latest||latest.passes.length!==5||latest.cpu.scenePrepMs==null||latest.cpu.encodingMs==null)throw new Error('SM-500 CPU/pass diagnostics incomplete');
     if(latest.workload.dsoTiles!==4||latest.memory.totalEstimatedBytes<=0)throw new Error('SM-500 workload or memory diagnostics incomplete');
-    if(performanceDiagnostics.gpuTiming.supported){if(latest.passes.some(pass=>!Number.isFinite(pass.gpuMs)||pass.gpuMs<0))throw new Error('supported timestamp-query path did not return finite per-pass GPU timings')}
-    else if(latest.passes.some(pass=>pass.gpuMs!==null)||!performanceDiagnostics.gpuTiming.unavailableReason)throw new Error('unavailable timestamp-query path fabricated timings or omitted reason');
+    if(performanceDiagnostics.gpuTiming.supported){if(latest.passes.some(pass=>!Number.isFinite(pass.gpuMs)||pass.gpuMs<0||pass.gpuMs!==pass.queueSpanGpuMs))throw new Error('supported timestamp-query path did not preserve finite legacy queue-span timings');if(latest.passes.some(pass=>!Number.isFinite(pass.commandGpuMs)||pass.commandGpuMs<0||pass.commandSubmissionCount!==1))throw new Error('supported timestamp-query path did not return finite explicit command-span timings')}
+    else if(latest.passes.some(pass=>pass.gpuMs!==null||pass.queueSpanGpuMs!==null||pass.commandGpuMs!==null||pass.commandSubmissionCount!==1)||!performanceDiagnostics.gpuTiming.unavailableReason)throw new Error('unavailable timestamp-query path fabricated timings, lost command submission, or omitted reason');
     JSON.parse(perf.exportJSON());
     result.actual={available:true,initialized:true,status:'ready',initial,diagnostics,performance:performanceDiagnostics};result.ok=true;await perf.close();infra.close();manager.close();
   }catch(error){result.error=String(error?.stack||error);result.actual=result.actual||{available:!!navigator.gpu,initialized:false,status:'resource-smoke-failed'}}
