@@ -5,14 +5,15 @@
 <script src="engine/webgpu_resources.js"></script>
 <script src="engine/webgpu_gtao.js"></script>
 <script src="tools/sm601_gtao_arithmetic_study.js"></script>
+<script src="tools/sm601_neutral_probe_policy.js"></script>
 <script>
 'use strict';
 (async()=>{
-  const G=SteelMothWebGPUGTAO,S=SteelMothGTAOArithmeticStudy,q=new URLSearchParams(location.search);
+  const G=SteelMothWebGPUGTAO,S=SteelMothGTAOArithmeticStudy,Neutral=SteelMothGTAONeutralProbe,q=new URLSearchParams(location.search);
   const software=q.get('hardware')!=='1',benchmark=q.get('benchmark')==='1';
   const report={schema:S.SCHEMA+'/browser-report',ok:false,targetAcceptance:false,softwareRequested:software,benchmark,
     evidenceBoundary:'Isolated SM-600 horizon/reconstruction arithmetic and resource correctness. No SM-601 temporal acceptance, game integration, visual sign-off or target speedup inferred.',
-    compilation:[],cases:[],uncapturedErrors:[],candidateHashes:{}};
+    compilation:[],cases:[],uncapturedErrors:[],candidateHashes:{},neutralArithmeticObservations:[],diagnosticPolicy:{schema:Neutral.SCHEMA,ordinaryOccupiedPlaneAbsoluteBound:Neutral.ORDINARY_PLANE_ABSOLUTE_BOUND,rawEmptyDisabledExact:true,exactCandidateComparisons:true,preservedWitnessHead:'5425c9b939791451fb4a6cb6f45db52cafc6473f'}};
   let device=null;globalThis.SM601ArithmeticProgress=report;
   const check=(v,m)=>{if(!v)throw new Error(m);},align=n=>Math.ceil(n/256)*256;
   function equalBytes(a,b){return a.length===b.length&&a.every((v,i)=>v===b[i]);}
@@ -123,8 +124,9 @@
           const raw={width:r.hw,height:r.hh,data:Float32Array.from(new Uint16Array(captures[0][0].buffer),S.fromHalf)};
           const vis=new Float32Array(captures[0][1].buffer),dbg=new Float32Array(captures[0][2].buffer);baselineField=field(vis);field(dbg);check(raw.data.every(Number.isFinite),'Non-finite raw output.');
           check(baselineField.min>=.149&&baselineField.max<=1,'Baseline visibility outside bounded range.');
-          if((!o.enabled||c.pattern==='plane'||c.pattern==='empty')&&!vis.every(x=>x===1))report.failureWitness=await neutralFailureWitness(c,f,o,r,raw,vis,dbg,captures,repeat,baselineField);
-          if(!o.enabled||c.pattern==='plane'||c.pattern==='empty')check(vis.every(x=>x===1),'Neutral fixture is not neutral.');
+          const neutral=Neutral.evaluate({pattern:c.pattern,enabled:o.enabled,raw:raw.data,visibility:vis,depth:f.depth});
+          if(neutral.required&&!vis.every(x=>x===1)){const witness=await neutralFailureWitness(c,f,o,r,raw,vis,dbg,captures,repeat,baselineField);witness.diagnosticPolicy=neutral;if(neutral.ok){witness.schema=S.SCHEMA+'/ordinary-plane-arithmetic-observation';witness.disposition='Within existing ordinary arithmetic bound; original exact-neutral failure retained separately';witness.firstNonNeutral.analyticExpectedValue=1;witness.firstNonNeutral.acceptedAbsoluteBound=neutral.absoluteBound;report.neutralArithmeticObservations.push(witness)}else report.failureWitness=witness;}
+          if(neutral.required&&!neutral.ok){report.neutralPolicyFailure=neutral;check(false,'Neutral fixture violates canonical literal/ordinary arithmetic policy.');}
           if(c.pattern==='saturated'&&c.w>=17)check(baselineField.min<.9,'Saturated fixture lost nontrivial occlusion.');
           const ref=S.upsampleReference(raw,f.depth,f.normal,c.w,c.h,o);
           for(let i=0;i<vis.length;i++)maxReferenceError=Math.max(maxReferenceError,Math.abs(vis[i]-ref.visibility[i]),Math.abs(dbg[i]-ref.debug[i]));

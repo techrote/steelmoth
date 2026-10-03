@@ -19,6 +19,7 @@ import urllib.request
 from pathlib import Path
 
 import websocket  # Existing tools/requirements-ci.txt dependency.
+from sm601_probe_browser_startup import BrowserStartup
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -61,14 +62,7 @@ def run_once(args, url: str) -> dict:
             try:
                 deadline = time.monotonic() + args.timeout
                 port_file = Path(profile) / 'DevToolsActivePort'
-                while not port_file.exists():
-                    if proc.poll() is not None or time.monotonic() >= deadline:
-                        raise RuntimeError('Browser did not expose its debugging endpoint.')
-                    time.sleep(.1)
-                port = int(port_file.read_text().splitlines()[0])
-                with urllib.request.urlopen(f'http://127.0.0.1:{port}/json/list', timeout=10) as response:
-                    targets = json.load(response)
-                target = next(x for x in targets if x.get('type') == 'page')
+                target = BrowserStartup(proc, port_file, deadline).wait_for_page()
                 cdp = CDP(target['webSocketDebuggerUrl'], min(args.timeout, 30))
                 version = cdp.call('Browser.getVersion')
                 cdp.call('Runtime.enable')
@@ -131,7 +125,9 @@ def main() -> int:
                                    'width': args.width, 'height': args.height, 'warmup': args.warmup, 'samples': args.samples, 'pattern': args.pattern})
     url = f'http://127.0.0.1:{server.server_port}/sm601-gtao-arithmetic-study.html?{query}'
     files = ['engine/webgpu_gtao.js', 'tools/sm601_gtao_arithmetic_study.js',
-             'tools/run_sm601_gtao_arithmetic_study.py', 'sm601-gtao-arithmetic-study.html']
+             'tools/run_sm601_gtao_arithmetic_study.py', 'sm601-gtao-arithmetic-study.html',
+             'tools/sm601_probe_browser_startup.py', 'tools/sm601_neutral_probe_policy.js',
+             'tools/sm601_arithmetic_canonical_probe_manifest.json']
     result = {'schema': 'steelmoth-sm601-arithmetic-study-runs/v1', 'ok': False, 'runs': [],
               'sourceSha256': {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in files},
               'targetAcceptance': False, 'softwareRequested': not args.hardware,

@@ -139,7 +139,65 @@ python tools/run_sm601_gtao_arithmetic_study.py --browser "C:/Program Files/Goog
 
 The arithmetic performance campaign remains stopped at this correctness gate. No successful physical witness, performance acceptance or production adoption is claimed by this addition.
 
-## External technical references
+## Canonical diagnostic neutral-policy overlay — 2026-10-03
+
+This section supersedes the *diagnostic occupied-plane assertion* for this new
+overlay only. Frozen study head `1813085f158a24d52365b0ee5011dc32c0251c90`, the
+failed strict run, and preserved witness head
+`5425c9b939791451fb4a6cb6f45db52cafc6473f` retain their original disposition.
+Their reports are not rewritten or relabeled passed. The new overlay must be
+identified by its own Git SHA and file hashes in each report/sidecar.
+
+The captured physical witness reported reconstructed visibility
+`0.9999999403953552` (`0x3f7fffff`) at plane pixel (0,1), while raw visibility was
+exactly 1 and all three outputs across all four variants were byte-identical.
+No captured API errors occurred. Host reconstruction weights exceeded 1.18;
+those host sums are not GPU accumulator readbacks. The observed value is one
+representable step below 1, not evidence of candidate divergence or a measured
+performance result.
+
+Current shared authority is the merged main
+[`GTAO_REFERENCE_POLICY.md` numerical-evidence policy](https://github.com/techrote/steelmoth/blob/b82debb8f18f02d33baf437d3f43b4b79a3db705/docs/GTAO_REFERENCE_POLICY.md),
+which distinguishes exact literal/fallback behavior from ordinary non-branch
+GPU arithmetic and uses `2e-6` absolute for the latter. The
+[WGSL concrete-accuracy rules](https://www.w3.org/TR/WGSL/#accuracy-of-concrete-expressions)
+permit 2.5 ULP error for f32 division with a normal divisor in the specified
+range; [reassociation and permitted fusion](https://www.w3.org/TR/WGSL/#floating-point-reassociation)
+can also alter floating evaluation. An analytically neutral weighted quotient
+therefore has no universal bit-exact-one guarantee. These rules support a narrow
+oracle correction; they do not identify the actual compiler transformation used
+by this adapter, mandate the repository's `2e-6` bound, or establish performance.
+
+`tools/sm601_neutral_probe_policy.js` now applies that existing bound only to
+**enabled, occupied plane reconstructed visibility**, retaining the existing
+finite/range bound. Raw neutral visibility, empty outputs, disabled outputs and
+unoccupied pixels remain exactly 1. Every candidate's raw/visibility/debug
+textures must still match baseline byte-for-byte before this control is checked.
+The strict shader cutoff, nearest raw fallback, exact weak-weight pixel 0.25 /
+confidence 0, and all positive timestamp assertions are unchanged. The frozen
+1e-8 JS discrepancy remains historical evidence; no production policy is changed.
+
+Allowed ordinary deviations are retained as separately labeled observations
+with the original float/bits/hashes and accepted policy. Values outside the
+existing bound, any literal-neutral drift, and any candidate bit difference
+still fail before timing begins. The source-preservation manifest pins the
+whole frozen engine/generator, all four shader pairs, parameter serialization,
+dispatch, exact byte comparator and the complete timing loop. CPU boundary and
+mutation tests verify these distinctions without GPU execution:
+
+```text
+node tools/validate_sm601_neutral_probe_policy.js
+python tools/validate_sm601_probe_browser_startup.py
+```
+
+Browser startup alone uses the already validated bounded port-file/page-target
+helper under the original deadline. Shader assertions are not retried; benchmark
+settings, limits, warm-up, retained sample counts and timing boundaries are not
+changed. A new source-identified physical dense/sparse/empty/plane campaign is
+still required. No speedup, production adoption, issue closure or downstream
+unblock follows from this diagnostic correction.
+
+## External technical references (original study)
 
 Primary specifications consulted on 2026-10-02:
 

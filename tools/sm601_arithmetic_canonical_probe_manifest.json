@@ -1,0 +1,37 @@
+{
+  "schema": "steelmoth-sm601-canonical-probe-preservation/v1",
+  "frozenStudyHead": "1813085f158a24d52365b0ee5011dc32c0251c90",
+  "preservedWitnessHead": "5425c9b939791451fb4a6cb6f45db52cafc6473f",
+  "canonicalOrdinaryArithmeticBound": 0.000002,
+  "authority": "docs/GTAO_REFERENCE_POLICY.md numerical evidence limits; merged main reference repair#107",
+  "preserved": {
+    "engineGitBlob": "7960a3e12e8ffaa9922f81899e42d326b9a43606",
+    "arithmeticGeneratorGitBlob": "0489d695cd180488fdb7f81b0fa5baa4396e762e",
+    "rawWGSL": "d6bbbf28517866d9b3ca6e5de3b54847e4147f89a15df1be3ce47200d0cbae78",
+    "reconstructionWGSL": "7ddda64b8e31f11998ce77abb721c4b1e105e468e1e3785e28374eb0c9ef81cd",
+    "parameterBytesFunctionSha256": "f1ec64a9c4c35516a9bd887f441c73e6d22d10ae1b2f524d6e670f8926c5505e",
+    "dispatchFunctionSha256": "532806074fcc032f9e4175872a880677e3622f083c01cbb3a83cbdff85d9ac54",
+    "benchmarkLoopSha256": "3f777f3c8e398ac1867fcb844412cb66c0e1492f73169a4f7a1662e49e20f446",
+    "exactEqualityFunctionSha256": "34fcadd212d9632f30732131209da0597be32a2c0c424b0849f41c33e93250a4",
+    "candidateShaders": {
+      "baseline": {
+        "raw": "d6bbbf28517866d9b3ca6e5de3b54847e4147f89a15df1be3ce47200d0cbae78",
+        "reconstruction": "7ddda64b8e31f11998ce77abb721c4b1e105e468e1e3785e28374eb0c9ef81cd"
+      },
+      "raw-shared": {
+        "raw": "2cd6cab978d9d4daf1dadd19035f9a9dff93b93205025051c60242d4e3240780",
+        "reconstruction": "7ddda64b8e31f11998ce77abb721c4b1e105e468e1e3785e28374eb0c9ef81cd"
+      },
+      "upsample-shared": {
+        "raw": "d6bbbf28517866d9b3ca6e5de3b54847e4147f89a15df1be3ce47200d0cbae78",
+        "reconstruction": "18c3e3abb6659488b82f5893792579bba290127df354119fd003b6fcf0b1df6a"
+      },
+      "combined": {
+        "raw": "2cd6cab978d9d4daf1dadd19035f9a9dff93b93205025051c60242d4e3240780",
+        "reconstruction": "18c3e3abb6659488b82f5893792579bba290127df354119fd003b6fcf0b1df6a"
+      }
+    },
+    "exactCandidateEqualityLoopSha256": "9958b945c720effa71ef3ae3c9b88ff037eb75d4950261b6159867b09b468c40",
+    "fallbackWitnessBlockSha256": "d15cd34576dbd4db8b64a18c89ac0910a29280794344023dd87b950f701d24c7"
+  }
+}
