@@ -161,13 +161,18 @@ No target-hardware benchmark has yet been accepted; SM-003 remains the WebGL2 GT
 ## Physical campaign recovery — 2026-10-03
 
 PR #92/#31 is complete; timing repair #109 is merged on main at
-`d642b4b9973ae629e28bf5f15ac3c6659e1eafcb`. PR #110 remains open/unmerged;
-its pre-cleanup head `b334e12` passed 23/23 hosted checks. Measured production
-source `b1e87b0` retains 1.088006 ms queue mean / 1.288608 ms worst p95 and
-meets the working mean guardrail; no new physical measurement is claimed.
-The separately completed arithmetic controls retained at checkpoint `94278db`
-justify no arithmetic/cache adoption. Frozen #106's neutral failure is preserved.
-Issue #36 remains open and SM-602 blocked. Stop after this cleanup, without merge,
-closure or further implementation. See [`SM601_MEASURED_ADOPTION.md`](SM601_MEASURED_ADOPTION.md)
-for authoritative current disposition and source-separated evidence; the
+`d642b4b9973ae629e28bf5f15ac3c6659e1eafcb`, and PR #110 is merged on main at
+`826a378581eb678c3f704c4e827c461563d938bc`. Its final head `4de86db` passed
+23/23 hosted checks. Measured production source `b1e87b0` retains 1.088006 ms
+queue mean / 1.288608 ms worst p95 and meets the working mean guardrail; no new
+physical measurement was required for final acceptance. Production renderer,
+benchmark and measured adoption-harness bytes remain identical to `b1e87b0`;
+the only source-identity delta is a Linux-only Chrome executable-discovery fallback
+in the Python wrapper, with no renderer, measurement-loop or Windows campaign
+change. The separately completed arithmetic controls retained at checkpoint
+`94278db` justify no arithmetic/cache adoption, and frozen #106's neutral
+failure is preserved. Final review establishes #36 acceptance; SM-602 is
+dependency-ready but is not started here. See
+[`SM601_MEASURED_ADOPTION.md`](SM601_MEASURED_ADOPTION.md) for the accepted
+source-separated disposition; the
 [earlier checkpoint](PHYSICAL_CAMPAIGN_CHECKPOINT_2026-10-03.md) is historical.
