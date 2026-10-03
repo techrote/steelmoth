@@ -24,7 +24,7 @@
   function scaleScene(scene,width,height,pseudo=null){
     const out=clone(scene),logical=scene?.frame?.logicalSize||[640,360],sx=width/Math.max(1,finite(logical[0],640)),sy=height/Math.max(1,finite(logical[1],360)),ss=Math.min(sx,sy);
     out.frame={...(out.frame||{}),logicalSize:[width,height]};
-    for(const s of out.sprites||[]){const t=s.transform||{};t.x*=sx;t.y*=sy;if(t.w!=null)t.w*=sx;if(t.h!=null)t.h*=sy;if(s.root){s.root.x=finite(s.root.x,t.x)*sx/sx;s.root.y=finite(s.root.y,t.y/sy)*sy}if(pseudo?.projectSpriteFragment){const p=pseudo.projectSpriteFragment(s,{u:.5,v:1,localHeight:0,alpha:s.style?.alpha??1});if(Number.isFinite(p?.depth01))s.depth01=p.depth01}}
+    for(const s of out.sprites||[]){const t=s.transform||{},rx=s.root?finite(s.root.x,finite(t.x)):null,ry=s.root?finite(s.root.y,finite(t.y)):null;t.x=finite(t.x)*sx;t.y=finite(t.y)*sy;if(t.w!=null)t.w=finite(t.w)*sx;if(t.h!=null)t.h=finite(t.h)*sy;if(s.root){s.root.x=rx*sx;s.root.y=ry*sy}if(pseudo?.projectSpriteFragment){const p=pseudo.projectSpriteFragment(s,{u:.5,v:1,localHeight:0,alpha:s.style?.alpha??1});if(Number.isFinite(p?.depth01))s.depth01=p.depth01}}
     for(const l of out.lights||[]){l.x*=sx;l.y*=sy;if(l.z!=null)l.z*=ss;if(l.radius!=null)l.radius*=ss}
     for(const o of out.occluders||[]){if(Array.isArray(o.bounds))o.bounds=[o.bounds[0]*sx,o.bounds[1]*sy,o.bounds[2]*sx,o.bounds[3]*sy];if(Array.isArray(o.rect))o.rect=[o.rect[0]*sx,o.rect[1]*sy,o.rect[2]*sx,o.rect[3]*sy];if(o.root){o.root.x*=sx;o.root.y*=sy}if(o.x!=null)o.x*=sx;if(o.contactY!=null)o.contactY*=sy;if(Array.isArray(o.sections))for(const q of o.sections)if(q.z!=null)q.z*=ss}
     const scaleOverlay=o=>{if(o){if(o.x!=null)o.x*=sx;if(o.y!=null)o.y*=sy}};
@@ -53,7 +53,7 @@
 struct V{@builtin(position) p:vec4f,@location(0) uv:vec2f};
 @vertex fn vs(@builtin(vertex_index) i:u32)->V{let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));var o:V;o.p=vec4f(p[i],0,1);o.uv=vec2f((p[i].x+1.0)*.5,(1.0-p[i].y)*.5);return o;}
 @fragment fn opaque(in:V)->@location(0) vec4f{let bg=textureSampleLevel(aTex,samp,in.uv,0);let lit=textureSampleLevel(bTex,samp,in.uv,0);return vec4f(lit.rgb+bg.rgb*(1.0-lit.a),1);}
-@fragment fn overlay(in:V)->@location(0) vec4f{return textureSampleLevel(aTex,samp,in.uv,0);}
+@fragment fn overlay(in:V)->@location(0) vec4f{let a=textureSampleLevel(aTex,samp,in.uv,0);let layoutKeep=textureSampleLevel(bTex,samp,in.uv,0);return a+layoutKeep*0.0;}
 `;
 
   const FOLIAGE_RASTER_WGSL=`
@@ -69,7 +69,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
 @vertex fn vs(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->O{
  let corners=array<vec2f,6>(vec2f(-.5,0),vec2f(.5,0),vec2f(-.5,1),vec2f(-.5,1),vec2f(.5,0),vec2f(.5,1));
  let q=corners[vi];let r=raster[ii];let s=lit[ii];let bend=bitcast<f32>(s.ids.z);let root=r.rootSize.xy;let size=r.rootSize.zw;
- let x=root.x+q.x*size.x+bend*q.y;let y=root.y-q.y*size.y;var o:O;o.p=vec4f(x/params.extentMode.x*2.0-1.0,1.0-y/params.extentMode.y*2.0,0,1);
+ let x=root.x+q.x*size.x+bend*q.y;let y=root.y-q.y*size.y;let mode=u32(params.extentMode.z+.5);let layerOffset=select(0.0,-1024.0,mode==0u);let depth=clamp((3072.0-(layerOffset+root.y))/5120.0,0.0,1.0);var o:O;o.p=vec4f(x/params.extentMode.x*2.0-1.0,1.0-y/params.extentMode.y*2.0,depth,1);
  o.uv=mix(r.uv.xy,r.uv.zw,vec2f(q.x+.5,1.0-q.y));o.color=s.color;o.front=bitcast<f32>(s.ids.w);o.category=s.ids.y;return o;
 }
 @fragment fn fs(in:O)->@location(0) vec4f{
