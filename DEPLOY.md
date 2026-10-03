@@ -16,4 +16,8 @@ Serve this folder as static files over HTTP(S). `index.html` is the entry point.
 
 ## Cache note
 
-The service worker cache is `small-machine-web-v1.2.3-r1`. `sw.js`, `index.html`, `engine/*`, and `game_data/*` should not be long-cache immutable at the HTTP layer; `_headers` contains suitable hints for hosts that support it.
+The service worker cache is `small-machine-web-v1.2.3-r27`. `sw.js`, `index.html`, `engine/*`, and `game_data/*` should not be long-cache immutable at the HTTP layer; `_headers` contains suitable hints for hosts that support it.
+
+## SM-505 renderer candidate identity
+
+Distribution revision **r27** binds the changed normal-game renderer assets to presentation revision **sm505-1** (`engine/game.js`, `webapp.js`, `engine/webgl2_scene_adapter.js`, `engine/webgpu_scene_presenter.js`, and `engine/backend_runtime.js`). Normal `Auto` remains WebGL2 until the exact-candidate physical acceptance gate is complete; explicit WebGPU selection exercises this candidate only.
