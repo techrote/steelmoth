@@ -1,0 +1,19 @@
+{
+  "recordedAtUtc": "2026-10-02T22:59:45.7912537Z",
+  "environment": "../environment.json",
+  "overlay": "Five precomputed byte-identical input states; GPU uploads/shaders/timing core unchanged. Distinct source and inter-iteration scheduling; not exact dad8c46 timing.",
+  "requestedMethodology": {
+    "samplesPerVariant": 600,
+    "height": 1080,
+    "headless": true,
+    "warmup": 300,
+    "targetAcceptance": false,
+    "runs": 3,
+    "width": 1920
+  },
+  "source": {
+    "commit": "d943827f87598ef4990437b333d3d3e62db1b4ad",
+    "frozenStudyHead": "dad8c46d371522c699ecbeeb1770cfc2e6a29443",
+    "cleanTrackedState": true
+  }
+}

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>SM-601 production diagnostic</title>
+<style>body{margin:0;background:#101014;color:#ddd;font:14px monospace}canvas{display:none}pre{white-space:pre-wrap}</style>
+<canvas id="target"></canvas><pre id="status">Starting bounded diagnostic…</pre>
+<script>
+'use strict';
+(async()=>{
+  const q=new URLSearchParams(location.search),width=1920,height=1080,warmup=Number(q.get('warmup')||300),samples=Number(q.get('samples')||600),sceneName='dynamic-robot';
+  const result={schema:'steelmoth-sm601-production-diagnostic/v1',ok:false,targetAcceptance:false,configuration:{width,height,quality:'Medium',scene:sceneName,warmupFrames:warmup,measuredFrames:samples},rows:[],uncapturedErrors:[],validationErrors:[],cleanupErrors:[],coverage:null,error:null};
+  const check=(condition,message)=>{if(!condition)throw new Error(message)},now=()=>performance.now();
+  let device,manager,gb,depth,raw,temporal,perf,directQueries,slots=[],bitmaps=[],active=null,validationScopeOpen=false;
+  const pending=new Set();
+  globalThis.SM601ProductionDiagnosticLive=result;
+  function publish(){globalThis.SM601ProductionDiagnosticResult=result;document.getElementById('status').textContent=JSON.stringify(result,null,2)}
+  function phase(name){globalThis.SM601ProductionDiagnosticProgress={phase:name,retained:result.rows.length}}
+  const loadBitmap=async url=>{const r=await fetch(url,{cache:'no-store'});check(r.ok,`${url}: HTTP ${r.status}`);return createImageBitmap(await r.blob())};
+  try{
+    check(Number.isSafeInteger(warmup)&&warmup>=300&&warmup<=2000&&Number.isSafeInteger(samples)&&samples>=600&&samples<=5000,'Invalid bounded sample budget');
+    for(const name of ['webgpu_device','webgpu_resources','webgpu_performance','pseudo_depth','webgpu_gbuffer','webgpu_ownership','webgpu_depth_hierarchy','webgpu_gtao','webgpu_gtao_stabilization','webgpu_gtao_readback'])await import(`./engine/${name}.js?physical-diagnostic=1`);
+    const Device=SteelMothWebGPUDevice,R=SteelMothWebGPUResources,Perf=SteelMothWebGPUPerformance,O=SteelMothWebGPUOwnership,D=SteelMothWebGPUDepthHierarchy,G=SteelMothWebGPUGTAO,GT=SteelMothWebGPUGTAOStabilization,GTR=SteelMothWebGPUGTAOReadback;
+    const canvas=document.getElementById('target');canvas.width=width;canvas.height=height;
+    manager=new Device.WebGPUDeviceManager({navigatorRef:navigator});await manager.initialize({canvas,width,height,dpr:1});device=manager.device;
+    check(device&&manager.adapter,'WebGPU device unavailable');const info=manager.adapter.info||{};
+    result.adapter={vendor:String(info.vendor||''),architecture:String(info.architecture||''),device:String(info.device||''),description:String(info.description||''),isFallbackAdapter:!!(info.isFallbackAdapter??manager.adapter.isFallbackAdapter),adapterFeatures:[...manager.adapter.features].sort(),deviceFeatures:[...device.features].sort()};
+    const adapterText=JSON.stringify(result.adapter).toLowerCase();
+    check(result.adapter.isFallbackAdapter===false&&!/swiftshader|llvmpipe|software/.test(adapterText),'Fallback/software adapter is prohibited');
+    check(/nvidia/.test(adapterText)&&/turing/.test(adapterText),'Diagnostic requires an NVIDIA Turing adapter; runner also checks exact physical target inventory');
+    check(device.features.has('timestamp-query'),'Genuine timestamp-query unavailable');
+    result.display={width:screen.width,height:screen.height,devicePixelRatio,canvasWidth:canvas.width,canvasHeight:canvas.height};
+    check(devicePixelRatio===1&&canvas.width===1920&&canvas.height===1080,'Unscaled 1920x1080 render attachments and DPR 1 required');
+    device.addEventListener('uncapturederror',event=>result.uncapturedErrors.push(String(event.error?.message||event.error)));
+    device.pushErrorScope('validation');validationScopeOpen=true;
+    const meta=await(await fetch('assets/generated/atlas.json',{cache:'no-store'})).json();bitmaps=await Promise.all([loadBitmap(meta.image),loadBitmap(meta.material_normal_roughness_image),loadBitmap(meta.material_height_image)]);
+    const count=33,lightCount=2,dynamicCount=33,names=['floor_plate','cargo_crate','rust_barrel','server_cabinet','hex_maintenance_idle_0'];
+    // Canonical buildScene function copied byte-for-byte; preservation test owns provenance.
+    function buildScene(frame=0,roomId='target-room'){
+      const sprites=[],occluders=[];for(let i=0;i<count;i++){const spriteId=names[i%names.length],r=meta.regions[spriteId],scale=Math.max(.8,meta.world_scale*4.8),w=Math.max(24,r[2]*scale),h=Math.max(24,r[3]*scale),cols=Math.max(1,Math.ceil(Math.sqrt(count*16/9))),x=80+(i%cols)*((width-160)/Math.max(1,cols-1)),row=Math.floor(i/cols),rows=Math.max(1,Math.ceil(count/cols)),motion=i<dynamicCount?Math.sin(frame*.045+i)*10:0,y=100+row*((height-200)/Math.max(1,rows-1))+motion,category=i<dynamicCount?'dynamic':'static';sprites.push({id:`${sceneName}:${i}`,atlas:'hd',category,spriteId,materialId:null,transform:{x,y,w,h,rotation:0,flip:!!(i&1)},root:{x,y:y+h*.5},style:{alpha:1,tint:[1,1,1],glow:false,materialMode:'normal'},depthLayer:0,depthBias:0});if(i>0||sceneName!=='empty')occluders.push({id:`${sceneName}:${i}`,rect:[x-w*.5,y-h*.5,x+w*.5,y+h*.5],root:{x,y:y+h*.5},kind:'machine',source:spriteId.includes('barrel')?'bin':'prop',majorOccluder:true,sections:[{z:18+(i%5)*2}]})}
+      const lights=[];for(let i=0;i<lightCount;i++){const a=(frame*.45+i*360/lightCount)*Math.PI/180;lights.push({id:`light:${i}`,group:'benchmark',x:width*.5+Math.cos(a)*Math.min(width,height)*.28,y:height*.5+Math.sin(a)*Math.min(width,height)*.24,z:24+(i%3)*5,radius:Math.max(width,height)*.7,intensity:1,color:[1,.94,.86]})}return{frame:{roomId,logicalSize:[width,height]},sprites,materials:[],lights,occluders};
+    }
+    let scene=buildScene(0),views,historyRejected=false;
+    gb=new O.WebGPUOwnershipGBuffer({device,width,height,maxInstances:256,labelPrefix:'TargetGBuffer',formats:{g1:'rgba16float',g2:'rgba16float'},normalEncoding:'xyz'});
+    await gb.setAtlases({albedo:bitmaps[0],normalRoughness:bitmaps[1],heightMaterial:bitmaps[2],meta});
+    depth=new D.WebGPUDepthHierarchy({device,queue:device.queue,width,height,labelPrefix:'TargetDepth'});
+    async function prepareBase(frame,roomId='target-room'){scene=buildScene(frame,roomId);await gb.renderScene(scene,meta,{wait:false});await depth.buildFromOwnership(gb,{wait:false});views=gb._views()}
+
+    // The real GPUQueue is never patched. Only these two producers receive this explicit facade.
+    function producerQueue(name){return{
+      writeBuffer(...args){if(active&&!active.encodingStart[name])active.encodingStart[name]=now();return device.queue.writeBuffer(...args)},
+      submit(buffers){if(!active)return device.queue.submit(buffers);const record=active,start=now();record.encodingCpuMs[name]=start-record.encodingStart[name];record.submissions.push(name);const value=record.scope.submit(buffers,{producer:name,includesDiagnosticCopy:name==='temporal',diagnosticCopyBytes:name==='temporal'?32:0});record.submitApiCpuMs[name]=now()-start;return value},
+      onSubmittedWorkDone(){return active?active.scope.measureHostWait(`${name}:onSubmittedWorkDone`,()=>device.queue.onSubmittedWorkDone()):device.queue.onSubmittedWorkDone()},
+    }}
+    directQueries=device.createQuerySet({label:'SM601Physical:direct-pass-timestamps',type:'timestamp',count:8});
+    const passIndices={'SteelMothGTAO:half-horizon':0,'SteelMothGTAO:depth-aware-upsample':2,'SteelMothGTAOStabilization:temporal':4,'SteelMothGTAOReadback:temporal':4};
+    // Probe-only encoder facade attaches pass timestamps; all shader bytes/resources stay native.
+    const timedDevice=new Proxy(device,{get(target,key){
+      if(key==='createCommandEncoder')return descriptor=>{
+        const encoder=target.createCommandEncoder(descriptor),isTemporal=['SteelMothGTAOStabilization:encoder','SteelMothGTAOReadback:encoder'].includes(descriptor?.label);
+        return new Proxy(encoder,{get(e,k){
+          if(k==='beginComputePass')return desc=>{const index=passIndices[desc?.label];if(active&&index!==undefined){check(!active.seen.has(index),'Duplicate direct compute pass');active.seen.add(index);return e.beginComputePass({...desc,timestampWrites:{querySet:directQueries,beginningOfPassWriteIndex:index,endOfPassWriteIndex:index+1}})}return e.beginComputePass(desc)};
+          if(k==='copyBufferToBuffer')return(...args)=>{if(active&&isTemporal){check(args[4]===32&&!active.statsCopySeen,'Unexpected diagnostic copy');active.statsCopySeen=true;const before=e.beginComputePass({label:'SM601Physical:stats-copy-start',timestampWrites:{querySet:directQueries,endOfPassWriteIndex:6}});before.end();e.copyBufferToBuffer(...args);const after=e.beginComputePass({label:'SM601Physical:stats-copy-end',timestampWrites:{querySet:directQueries,beginningOfPassWriteIndex:7}});after.end();return}return e.copyBufferToBuffer(...args)};
+          const value=e[k];return typeof value==='function'?value.bind(e):value;
+        }});
+      };
+      const value=target[key];return typeof value==='function'?value.bind(target):value;
+    }});
+    raw=new G.WebGPUGTAO({device:timedDevice,queue:producerQueue('rawAndUpscale'),width,height});
+    temporal=new GTR.WebGPUGTAOTemporal({device:timedDevice,queue:producerQueue('temporal'),width,height,quality:'Medium',statsMode:'deferred',statsSlots:3,counterMode:'aggregated'});
+    for(const slot of temporal._statsRing().slots){const read=slot.buffer,nativeMap=read.mapAsync.bind(read);read.mapAsync=(...args)=>{const record=active,start=now();return nativeMap(...args).finally(()=>{if(record)record.diagnosticMapLatencyCpuMs.push(now()-start)})}}
+    async function runGtao(frame,roomId){await raw.update({width,height,depthRangeView:depth.levelView(0),normalView:views.g1,depthHierarchy:depth},{directions:6,steps:4,radius:12,intensity:1,wait:false});return temporal.update(temporal.sourceFromPaths(raw,depth,gb),{quality:'Medium',wait:false,meta:{roomId,deviceGeneration:manager.deviceGeneration||1,backendGeneration:1}})}
+    async function collectStats(row=null){const started=now();await temporal.flushStats();const samples=temporal.takeCompletedStats(),diag=temporal.diagnostics();check(samples.length===1&&samples[0].status==='complete'&&samples[0].frame.frameId===temporal.updateCount&&diag.readback.statsForCurrentFrame,'Lost/stale production diagnostics');const sample=samples[0];if(sample.stats.globalRejected||sample.stats.objectRejected||sample.stats.depthRejected)historyRejected=true;if(row){row.stats=sample.stats;row.statsWords=sample.words;row.statsFrame=sample.frame;row.schedulerMapLatencyCpuMs=sample.mapLatencyCpuMs;row.drainOutsideCallbackCpuMs=now()-started;row.readback=diag.readback;check(row.diagnosticMapLatencyCpuMs.length===1,'Missing deferred map timing')}}
+    perf=new Perf.WebGPUPerformanceInstrumentation({device,queue:device.queue,maxPasses:1,maxCommandSpansPerPass:2,readbackRingSize:8,maxFrames:samples,labelPrefix:'SM601Physical'});
+    for(let i=0;i<8;i++)slots.push({resolve:device.createBuffer({size:256,usage:GPUBufferUsage.QUERY_RESOLVE|GPUBufferUsage.COPY_SRC}),read:device.createBuffer({size:256,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ}),pending:null});
+    async function retainDirect(record,index){const slot=slots[index%slots.length];if(slot.pending)await slot.pending;const encoder=device.createCommandEncoder({label:'SM601Physical:direct-resolve'});encoder.resolveQuerySet(directQueries,0,8,slot.resolve,0);encoder.copyBufferToBuffer(slot.resolve,0,slot.read,0,64);device.queue.submit([encoder.finish()]);const task=(async()=>{const start=now();await slot.read.mapAsync(GPUMapMode.READ,0,64);record.directTimestampReadbackMapLatencyCpuMs=now()-start;const values=Array.from(new BigUint64Array(slot.read.getMappedRange(0,64).slice(0)));slot.read.unmap();record.directTimestampNanoseconds=values.map(String);const durations=[0,2,4,6].map(i=>{check(values[i+1]>=values[i],'Reversed timestamp interval');return Number(values[i+1]-values[i])/1e6});check(durations.slice(0,3).every(v=>Number.isFinite(v)&&v>0)&&Number.isFinite(durations[3])&&durations[3]>=0,'Invalid direct timestamp samples');[record.rawHorizonGpuMs,record.reconstructionGpuMs,record.temporalComputeGpuMs,record.diagnosticCopyInstrumentedGpuMs]=durations})().finally(()=>{slot.pending=null});slot.pending=task;pending.add(task);task.then(()=>pending.delete(task),()=>{});}
+    phase('warmup');for(let frame=0;frame<warmup;frame++){const roomId=frame===Math.floor(warmup*.7)?'warmup-discontinuity':'target-room';await prepareBase(frame,roomId);await runGtao(frame,roomId);await collectStats()}
+    for(let i=0;i<samples;i++){
+      phase(`measure-${i}`);const frame=warmup+i,roomId=i===Math.floor(samples/2)?'measured-discontinuity':'target-room',prepStart=now();await prepareBase(frame,roomId);const prepCpuMs=now()-prepStart;
+      await perf.beginFrame(`dynamic-robot-${i}`,{scene:sceneName,mode:'sm601-physical-diagnostic',frame,roomId});perf.recordCpuPhase('scenePrep',prepCpuMs);
+      const row={frame:i,roomId,encodingStart:{},encodingCpuMs:{},submitApiCpuMs:{},submissions:[],diagnosticMapLatencyCpuMs:[],seen:new Set(),statsCopySeen:false,scope:null};
+      await perf.measureGpuPass('gtao',async scope=>{row.scope=scope;active=row;try{await runGtao(frame,roomId)}finally{active=null}}, {explicitCoverage:'all two GTAO update command-buffer submissions; queue writes are not inferred as command execution'});
+      check(row.seen.size===3&&row.statsCopySeen&&row.submissions.join(',')==='rawAndUpscale,temporal','Incomplete timing coverage');
+      perf.recordCpuPhase('rawParameterWriteToSubmit',row.encodingCpuMs.rawAndUpscale);perf.recordCpuPhase('temporalParameterWriteToSubmit',row.encodingCpuMs.temporal);
+      perf.setWorkload({visibleInstances:scene.sprites.length,staticInstances:0,dynamicInstances:scene.sprites.length,activeLights:scene.lights.length,gtaoDirections:6,gtaoSteps:4,diagnosticCopyBytes:32});
+      delete row.scope;delete row.seen;delete row.encodingStart;result.rows.push(row);await perf.endFrame();await retainDirect(row,i);await collectStats(row);const counters=row.stats;check(Object.values(counters).every(v=>Number.isSafeInteger(v)&&v>=0)&&counters.accepted+counters.rejected===width*height&&counters.rejected===counters.depthRejected+counters.objectRejected+counters.normalRejected+counters.globalRejected,'Invalid production diagnostic counters');
+    }
+    phase('flush');await Promise.all([...pending]);result.sm500=await perf.flush();
+    validationScopeOpen=false;const validationError=await device.popErrorScope();if(validationError)result.validationErrors.push(String(validationError.message||validationError));check(!validationError,`WebGPU validation: ${validationError?.message}`);check(!result.uncapturedErrors.length,'Uncaptured WebGPU errors');
+    check(result.sm500.frames.length===samples&&result.rows.length===samples,'Incomplete retained samples');
+    for(const frame of result.sm500.frames){const p=frame.passes[0];check(frame.gpuTiming.readbackPending===false&&p?.commandSpans.length===2&&p.commandSpans.every(span=>Number.isFinite(span.gpuMs)&&span.gpuMs>0)&&Number.isFinite(p.queueSpanGpuMs)&&p.queueSpanGpuMs>0&&Number.isFinite(p.commandGpuMs)&&p.commandGpuMs>0&&Number.isFinite(frame.gpuTiming.readbackMapLatencyMs),'Invalid/unresolved SM500 frame');}
+    result.coverage={completeGtaoCommandBufferSubmissions:true,explicitSubmissionsPerFrame:2,directComputePassesPerFrame:3,diagnosticCopyBytes:32,diagnosticMapCallsPerFrame:1,timestampReadbackRings:{sm500:8,direct:8}};
+    result.methodology={freshProcessRequired:true,timestampQuery:true,rawSamplesRetained:true,acceptanceTiming:false,productionShaders:'Exact adopted aggregated temporal shader; unchanged raw/reconstruction',counterShaderSha256:GTR.AGGREGATED_TEMPORAL_WGSL_SHA256,statsMode:'deferred',counterMode:'aggregated',canonicalSceneSource:'webgpu-target-benchmark.html:buildScene',displayContract:'Unscaled 1920x1080 render attachments and DPR 1; desktop physical resolution is retained separately and is not changed',queueSpanGpuMs:'historical-compatible callback boundary with added diagnostic observer work',commandGpuMs:'sum of two explicit SM500 command-buffer spans, including stats copy and instrumented marker overhead; excludes host gaps',diagnosticCopyInstrumentedGpuMs:'32-byte copy bracketed by two empty timestamp compute passes; includes transition/observer costs and may quantize to zero',diagnosticMapLatencyCpuMs:'asynchronous host wall latency of deferred stats mapAsync; never a callback host wait or GPU execution time',drainOutsideCallbackCpuMs:'explicit lossless stats drain outside recorded callback/queue span',encodingCpuMs:'host wall time from first parameter writeBuffer call to producer submit entry; no awaited mapping inside this interval',directTimestampReadbackMapLatencyCpuMs:'separate diagnostic direct-pass timestamp transport; outside measured gtao callback',counterAttribution:'diagnostic atomics remain part of temporalComputeGpuMs; their contribution requires isolated counter A/B, never subtraction'};
+    result.validation={historyRejectionObserved:historyRejected,humanVisualAcceptance:false};
+    result.ok=true;phase('complete');
+  }catch(error){result.error=String(error?.stack||error);phase('failed')}
+  finally{
+    async function cleanup(name,callback){try{await callback()}catch(error){result.ok=false;result.cleanupErrors.push({resource:name,error:String(error?.stack||error)});if(!result.error)result.error=`Cleanup failed: ${name}`}}
+    try{
+      await cleanup('pending-direct-timestamp-maps',async()=>{const completions=await Promise.allSettled([...pending]);const failures=completions.filter(x=>x.status==='rejected');if(failures.length)throw new Error(failures.map(x=>String(x.reason)).join('; '))});
+      await cleanup('sm500',()=>perf?.close());
+      await cleanup('validation-error-scope',async()=>{if(validationScopeOpen&&device){validationScopeOpen=false;const error=await device.popErrorScope();if(error){result.ok=false;result.validationErrors.push(String(error.message||error));if(!result.error)result.error=`WebGPU validation: ${error.message||error}`}}});
+      await cleanup('raw-gtao',()=>raw?.close());await cleanup('temporal-gtao',()=>temporal?.close());
+      await cleanup('depth-hierarchy',()=>depth?.close());await cleanup('ownership-gbuffer',()=>gb?.close());
+      for(let i=0;i<bitmaps.length;i++)await cleanup(`bitmap-${i}`,()=>bitmaps[i].close());
+      for(let i=0;i<slots.length;i++){await cleanup(`direct-readback-${i}`,()=>slots[i].read.destroy());await cleanup(`direct-resolve-${i}`,()=>slots[i].resolve.destroy())}
+      await cleanup('direct-query-set',()=>directQueries?.destroy());await cleanup('device-manager',()=>manager?.close());
+    }finally{publish()}
+  }
+})();
+</script></html>

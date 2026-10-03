@@ -1,0 +1,85 @@
+The complete datasets support further native workload comparison. They do not
+yet establish a production adoption decision or complete SM-601 acceptance.
+
+Each distribution below contains 1,800 retained samples from three fresh Chrome
+processes at one source, after 300 warm-up frames and 600 measured frames per
+process. No samples from earlier failed or partial sources are pooled into it.
+
+Dataset / source                  Measured boundary             Mean ms   p95 ms
+Main diagnostic / 0c1c707          GTAO queue span                3.067721  3.958624
+Main diagnostic / 0c1c707          Complete command span          1.100543  1.398208
+Main diagnostic / 0c1c707          Raw horizon compute            0.214253  0.216640
+Main diagnostic / 0c1c707          Reconstruction compute         0.185178  0.187904
+Main diagnostic / 0c1c707          Temporal compute               0.698088  0.885184
+#105 cache overlay / d943827       Blocking queue span            4.037118  5.347904
+#105 cache overlay / d943827       Deferred queue span            2.907242  3.919264
+#104 startup overlay / ae0bd3f     Baseline temporal compute       0.735079  0.915456
+#104 startup overlay / ae0bd3f     Aggregated temporal compute     0.713118  0.877024
+#106 frozen study / 1813085        Blocked before measurement      unavailable
+
+The deferred study demonstrates a 1.129876 ms mean queue-span reduction in its
+isolated synthetic workload. The counter study demonstrates a 0.021961 ms mean
+temporal-kernel reduction (2.988%) in its separate workload. Their gains must not
+be added. Native four-way comparison is still required before adoption.
+
+The studies do not measure complete command spans. Their commandGpuMs is null;
+their pass times are neither summed nor subtracted to manufacture command time.
+Main measures both queue span and complete coverage of two explicit command
+submissions, including diagnostic copy and observer overhead. The 1.100543 ms
+command result leaves the real 3.067721 ms queue-latency result intact.
+
+Main separately measures CPU callback wall time of 3.802611 ms, the known stats
+map wait of 3.592167 ms, and timestamp-map transport of 0.607111 ms. These overlap
+GPU execution and are never subtracted from a GPU timestamp. All direct GPU
+intervals were independently recomputed from retained nanosecond pairs. All
+command sums, alias fields and exported per-run summaries match their samples.
+
+The #105 overlay caches five input states (414,720,000 host typed-array bytes at
+1080p) while preserving original upload bytes, shader/timing core and per-frame
+operations. This is a separately identified source, with changed inter-iteration
+CPU scheduling. All three runs pass 56 exact four-texture/eight-counter-word
+cases and bounded-slot saturation. The #104 overlay changes only Windows startup
+readiness; all three runs pass 56 exact cases with two repeats per case. Main
+retains 1,800 valid frames, three distinct process IDs, empty error lists and
+observed history rejection. Human visual acceptance remains explicitly false.
+
+#106 is blocked by its exact neutral-fixture assertion at a 3x5 plane pixel:
+baseline and all three candidates produce byte-identical 0x3f7fffff (one float32
+ULP below required exact 1, 0x3f800000). The witness independently confirms all
+three output planes match. This is not candidate divergence and is separate
+from the old CPU/WGSL reconstruction cutoff mismatch repaired by #107. No dense,
+sparse or empty timing distributions exist; preserve the blocker and strict
+control rather than relaxing it to permit measurement.
+
+Environment: sole Windows NVIDIA GeForce GTX 1650 SUPER, 4,096 MiB, driver 616.92,
+PCI device 0x218710DE / bus 00000000:07:00.0, Chrome 154.0.8037.92. All actual
+adapters report NVIDIA/Turing, nonfallback and timestamp-query. The main probe
+records native 1920x1080 attachments at DPR 1; physical desktop 2560x1440 is
+separate. Headless study reports record texture extents but omit individual DPR,
+process IDs and wall start time; fresh processes follow verified runner source.
+The shared environment sidecar supplies exact GPU/driver/OS attribution.
+
+Operator-observed power/clock context: #105 cache run P3, graphics 945 MHz and
+memory 5,000 MHz; original #105 P8 with long CPU fixture preparation. These are
+context observations, without a supplied continuous telemetry artifact. No
+clock normalization or cross-source speedup adjustment is applied.
+
+Preserved and excluded: original #105 dad8c46 timeout with 329 paired samples per
+variant; original #104 ad06d9f with one completed run then startup failure; main
+0618a5e with two completed runs then startup failure; main d69faf9 with 600 zero
+instrumented queue/command samples and an invalid/unresolved-query failure.
+Missing startup metadata in the old main report was incorrectly labeled a
+browser-version change; it does not demonstrate an actual browser change.
+
+Full source identities:
+  main diagnostic 0c1c707de426fce89ac5f21386ca99edbe8281be
+  #105 overlay     d943827f87598ef4990437b333d3d3e62db1b4ad
+  #104 overlay     ae0bd3fd07ebee1b469395c9822823c76d202b2f
+  #106 frozen      1813085f158a24d52365b0ee5011dc32c0251c90
+  #106 witness     5425c9b939791451fb4a6cb6f45db52cafc6473f
+
+Every retained source-file SHA-256 matches its Windows checkout bytes and its
+canonical Git content, allowing LF/CRLF conversion only. Per-run distributions,
+source hash checks, metadata limitations and exclusions are retained in
+complete-candidate-evidence-audit.json. GPU performance and human visual claims
+must remain within these explicitly recorded evidence boundaries.

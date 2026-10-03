@@ -1,0 +1,500 @@
+{
+  "schema": "steelmoth-sm601-production-adoption-runs/v1",
+  "ok": true,
+  "targetAcceptance": false,
+  "performanceEvidence": false,
+  "hardware": true,
+  "native": true,
+  "createdAt": "2026-10-03T00:32:41.551394+00:00",
+  "hostPlatform": "Windows-11-10.0.26200-SP0",
+  "runs": [
+    {
+      "schema": "steelmoth-sm601-production-adoption-browser/v1",
+      "ok": true,
+      "performanceEvidence": false,
+      "hardware": true,
+      "native": true,
+      "cases": [
+        {
+          "label": "uninitialized",
+          "width": 1920,
+          "height": 1080,
+          "allFourTexturesByteIdentical": true,
+          "allEightCounterWordsExact": true,
+          "variants": [
+            {
+              "id": "baseline-blocking",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "413e90c41e28cb4280ea85dd4e88100910ed749e374c82f22bb9fceb7922d520",
+                "24fb4161c05a4bb97af819cd3ef3e6c4420579a8a589660160dc6460110ee0c5",
+                "45cf7edfa4e8d7766de63b5e5f03bc12080ba1e8f50c3a02831dd54c7ef78b3b",
+                "dd4eff50a9bb09c393c886cc0909c973d0245dce35a1f7a32030edf564badef0"
+              ]
+            },
+            {
+              "id": "baseline-deferred",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "413e90c41e28cb4280ea85dd4e88100910ed749e374c82f22bb9fceb7922d520",
+                "24fb4161c05a4bb97af819cd3ef3e6c4420579a8a589660160dc6460110ee0c5",
+                "45cf7edfa4e8d7766de63b5e5f03bc12080ba1e8f50c3a02831dd54c7ef78b3b",
+                "dd4eff50a9bb09c393c886cc0909c973d0245dce35a1f7a32030edf564badef0"
+              ]
+            },
+            {
+              "id": "aggregated-blocking",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "413e90c41e28cb4280ea85dd4e88100910ed749e374c82f22bb9fceb7922d520",
+                "24fb4161c05a4bb97af819cd3ef3e6c4420579a8a589660160dc6460110ee0c5",
+                "45cf7edfa4e8d7766de63b5e5f03bc12080ba1e8f50c3a02831dd54c7ef78b3b",
+                "dd4eff50a9bb09c393c886cc0909c973d0245dce35a1f7a32030edf564badef0"
+              ]
+            },
+            {
+              "id": "aggregated-deferred",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "413e90c41e28cb4280ea85dd4e88100910ed749e374c82f22bb9fceb7922d520",
+                "24fb4161c05a4bb97af819cd3ef3e6c4420579a8a589660160dc6460110ee0c5",
+                "45cf7edfa4e8d7766de63b5e5f03bc12080ba1e8f50c3a02831dd54c7ef78b3b",
+                "dd4eff50a9bb09c393c886cc0909c973d0245dce35a1f7a32030edf564badef0"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "moving",
+          "width": 1920,
+          "height": 1080,
+          "allFourTexturesByteIdentical": true,
+          "allEightCounterWordsExact": true,
+          "variants": [
+            {
+              "id": "baseline-blocking",
+              "words": [
+                2046860,
+                26740,
+                0,
+                26471,
+                269,
+                0,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "867de9dee700485902a711462ccda722202b1627566a6520a835e9456a51685f",
+                "bfe748b941a124b67db20c314f3e2030106d28a50934c418e0bfb2c3d23e5ead",
+                "a4df547caa9af18a9d6cf7d1d1194ae3804191ffeecd16db49865267775000ab",
+                "2fc9f4d4af9893eb1cbf900fb39c920018e288083d983ea6f60cd26c802fb2ef"
+              ]
+            },
+            {
+              "id": "baseline-deferred",
+              "words": [
+                2046860,
+                26740,
+                0,
+                26471,
+                269,
+                0,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "867de9dee700485902a711462ccda722202b1627566a6520a835e9456a51685f",
+                "bfe748b941a124b67db20c314f3e2030106d28a50934c418e0bfb2c3d23e5ead",
+                "a4df547caa9af18a9d6cf7d1d1194ae3804191ffeecd16db49865267775000ab",
+                "2fc9f4d4af9893eb1cbf900fb39c920018e288083d983ea6f60cd26c802fb2ef"
+              ]
+            },
+            {
+              "id": "aggregated-blocking",
+              "words": [
+                2046860,
+                26740,
+                0,
+                26471,
+                269,
+                0,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "867de9dee700485902a711462ccda722202b1627566a6520a835e9456a51685f",
+                "bfe748b941a124b67db20c314f3e2030106d28a50934c418e0bfb2c3d23e5ead",
+                "a4df547caa9af18a9d6cf7d1d1194ae3804191ffeecd16db49865267775000ab",
+                "2fc9f4d4af9893eb1cbf900fb39c920018e288083d983ea6f60cd26c802fb2ef"
+              ]
+            },
+            {
+              "id": "aggregated-deferred",
+              "words": [
+                2046860,
+                26740,
+                0,
+                26471,
+                269,
+                0,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "867de9dee700485902a711462ccda722202b1627566a6520a835e9456a51685f",
+                "bfe748b941a124b67db20c314f3e2030106d28a50934c418e0bfb2c3d23e5ead",
+                "a4df547caa9af18a9d6cf7d1d1194ae3804191ffeecd16db49865267775000ab",
+                "2fc9f4d4af9893eb1cbf900fb39c920018e288083d983ea6f60cd26c802fb2ef"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "room-discontinuity",
+          "width": 1920,
+          "height": 1080,
+          "allFourTexturesByteIdentical": true,
+          "allEightCounterWordsExact": true,
+          "variants": [
+            {
+              "id": "baseline-blocking",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "df4eee3316911b28875f2236207503e72a90f7255fd1ccf3c81d91b7055fc0d1",
+                "3f89ae44ef6053320c5dec0ee5ce0e03f33dec3c616cf14e49ae1217c75cb7dd",
+                "bacf9424c1a49057abf4b1ad9bed09ece9b4d403baabb32d6efc8acf52765675",
+                "62de327183e160feb6d36fe04f0314fcc720fa3aa5bad7f860f0afde7487504a"
+              ]
+            },
+            {
+              "id": "baseline-deferred",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "df4eee3316911b28875f2236207503e72a90f7255fd1ccf3c81d91b7055fc0d1",
+                "3f89ae44ef6053320c5dec0ee5ce0e03f33dec3c616cf14e49ae1217c75cb7dd",
+                "bacf9424c1a49057abf4b1ad9bed09ece9b4d403baabb32d6efc8acf52765675",
+                "62de327183e160feb6d36fe04f0314fcc720fa3aa5bad7f860f0afde7487504a"
+              ]
+            },
+            {
+              "id": "aggregated-blocking",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "df4eee3316911b28875f2236207503e72a90f7255fd1ccf3c81d91b7055fc0d1",
+                "3f89ae44ef6053320c5dec0ee5ce0e03f33dec3c616cf14e49ae1217c75cb7dd",
+                "bacf9424c1a49057abf4b1ad9bed09ece9b4d403baabb32d6efc8acf52765675",
+                "62de327183e160feb6d36fe04f0314fcc720fa3aa5bad7f860f0afde7487504a"
+              ]
+            },
+            {
+              "id": "aggregated-deferred",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "df4eee3316911b28875f2236207503e72a90f7255fd1ccf3c81d91b7055fc0d1",
+                "3f89ae44ef6053320c5dec0ee5ce0e03f33dec3c616cf14e49ae1217c75cb7dd",
+                "bacf9424c1a49057abf4b1ad9bed09ece9b4d403baabb32d6efc8acf52765675",
+                "62de327183e160feb6d36fe04f0314fcc720fa3aa5bad7f860f0afde7487504a"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "explicit-history-reset",
+          "width": 1920,
+          "height": 1080,
+          "allFourTexturesByteIdentical": true,
+          "allEightCounterWordsExact": true,
+          "variants": [
+            {
+              "id": "baseline-blocking",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "58220fa2996c9d9c3d5996666ca02057589b5b5ae4d287c844281cb53fc0ab02",
+                "a8a1bbc2d862d0bdd2efec55e8452871140c119ba743cc019ee33ad2274cc899",
+                "57464162e6e3da4d209ab70abc87fc345b1d0fc30ed44ff1b1780e95610a0dca",
+                "c4eeeb5a4735abef0254ee3008928fa049972073d40ea67c65a045fb85d191f1"
+              ]
+            },
+            {
+              "id": "baseline-deferred",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "58220fa2996c9d9c3d5996666ca02057589b5b5ae4d287c844281cb53fc0ab02",
+                "a8a1bbc2d862d0bdd2efec55e8452871140c119ba743cc019ee33ad2274cc899",
+                "57464162e6e3da4d209ab70abc87fc345b1d0fc30ed44ff1b1780e95610a0dca",
+                "c4eeeb5a4735abef0254ee3008928fa049972073d40ea67c65a045fb85d191f1"
+              ]
+            },
+            {
+              "id": "aggregated-blocking",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "58220fa2996c9d9c3d5996666ca02057589b5b5ae4d287c844281cb53fc0ab02",
+                "a8a1bbc2d862d0bdd2efec55e8452871140c119ba743cc019ee33ad2274cc899",
+                "57464162e6e3da4d209ab70abc87fc345b1d0fc30ed44ff1b1780e95610a0dca",
+                "c4eeeb5a4735abef0254ee3008928fa049972073d40ea67c65a045fb85d191f1"
+              ]
+            },
+            {
+              "id": "aggregated-deferred",
+              "words": [
+                0,
+                2073600,
+                0,
+                0,
+                0,
+                2073600,
+                0,
+                0
+              ],
+              "maxReferenceError": 0,
+              "textureSha256": [
+                "58220fa2996c9d9c3d5996666ca02057589b5b5ae4d287c844281cb53fc0ab02",
+                "a8a1bbc2d862d0bdd2efec55e8452871140c119ba743cc019ee33ad2274cc899",
+                "57464162e6e3da4d209ab70abc87fc345b1d0fc30ed44ff1b1780e95610a0dca",
+                "c4eeeb5a4735abef0254ee3008928fa049972073d40ea67c65a045fb85d191f1"
+              ]
+            }
+          ]
+        }
+      ],
+      "uncapturedErrors": [],
+      "validationErrors": [],
+      "cleanupErrors": [],
+      "error": null,
+      "shaders": {
+        "baseline": "7241992d96d014e996eb826779f2f9f6b4c3360979120d7fee780502b07f00cc",
+        "aggregated": "11024a2f13f20abda1dee7cdc1a6d6703ecfc1982929ed51ccaa7b071579acf7",
+        "raw": "d6bbbf28517866d9b3ca6e5de3b54847e4147f89a15df1be3ce47200d0cbae78",
+        "reconstruction": "7ddda64b8e31f11998ce77abb721c4b1e105e468e1e3785e28374eb0c9ef81cd"
+      },
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "turing",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false,
+        "features": [
+          "bgra8unorm-storage",
+          "chromium-experimental-multi-draw-indirect",
+          "chromium-experimental-sampling-resource-table",
+          "chromium-experimental-timestamp-query-inside-passes",
+          "clip-distances",
+          "core-features-and-limits",
+          "depth-clip-control",
+          "depth32float-stencil8",
+          "dual-source-blending",
+          "float32-blendable",
+          "float32-filterable",
+          "indirect-first-instance",
+          "primitive-index",
+          "rg11b10ufloat-renderable",
+          "shader-f16",
+          "subgroup-size-control",
+          "subgroups",
+          "texture-component-swizzle",
+          "texture-compression-bc",
+          "texture-compression-bc-sliced-3d",
+          "texture-compression-unaligned",
+          "texture-formats-tier1",
+          "texture-formats-tier2",
+          "timestamp-query"
+        ]
+      },
+      "display": {
+        "width": 2560,
+        "height": 1440,
+        "devicePixelRatio": 1,
+        "renderWidth": 1920,
+        "renderHeight": 1080
+      },
+      "browser": {
+        "version": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/154.0.8037.92",
+          "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "jsVersion": "15.4.80.19"
+        },
+        "command": [
+          "C:/Program Files/Google/Chrome/Application/chrome.exe",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--disable-component-update",
+          "--disable-sync",
+          "--enable-unsafe-webgpu",
+          "--ignore-gpu-blocklist",
+          "--remote-debugging-port=0",
+          "--force-device-scale-factor=1",
+          "--high-dpi-support=1",
+          "--window-size=1920,1080",
+          "about:blank"
+        ],
+        "freshProcess": true,
+        "freshProfile": true,
+        "processId": 7420,
+        "durationSeconds": 5.839714799993089
+      },
+      "javascriptExceptions": []
+    }
+  ],
+  "source": {
+    "commit": "b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275",
+    "cleanTrackedState": true,
+    "fileSha256": {
+      "webgpu-gtao-adoption-smoke.html": "e590362ecc277bd5c5bc39d65189778631728ceed515db536d1e5cce06fc5dbc",
+      "tools/validate_sm601_gtao_adoption_browser.py": "a50c4b52d7f39ee2e6d7fc50dd1404440036be207f7bbabfe38294a2364483c2",
+      "tools/validate_webgpu_gtao_reference_browser.py": "92ebf5ca7afaf35c917355a7739289bf192076a1c51e116493cdb8300ab8d947",
+      "engine/webgpu_gtao_readback.js": "734984d46d64eb7c8f60498825db0754fb67716644a8244a4d6e8c427b418558",
+      "tools/experiments/frozen_sm601_readback.js": "e21abf2cc06ca8d793d7d4d96f40ae3e1a679b7f3a5bc5ad15f0709060177fb3",
+      "tools/experiments/frozen_sm601_counter.js": "11d073674585d094a72cdae12f6fac8a9a83ccb7100361fb3efeca2c77c14bcb",
+      "webgpu-target-benchmark.html": "9341c2f941c2527ad864ef04bacbbd0c7e22d6c56be6f4bf76205cfd16943a16",
+      "engine/webgpu_gtao.js": "277d621f189a8ecdd68d05697bcad16f35e65424a5de71020f4752819cf3811c",
+      "engine/webgpu_gtao_stabilization.js": "e075c1ca21bd9496c6a68ad06ef0f159282860dfc737e6ea637947bb6754f5d8",
+      "engine/webgpu_performance.js": "14aacc9e9ec27bd9417230661e2eeae7c652c60b147b41d272188194f7c2325e",
+      "engine/webgpu_resources.js": "46a11fbf2f3a3bf5af9ca5426ab9e10450e6e64cbac535bd671f0bb8bb660e2e",
+      "engine/webgpu_ownership.js": "708faaaaa722d5ca6c2f8e2b79cbecd143256655fc47f7901baea0fd9d8022c0",
+      "engine/webgpu_depth_hierarchy.js": "614be97bff48fc98df6f8dabe15594c1174b6fa2a666d943e7b9f173f249aa33",
+      "engine/webgpu_device.js": "255d01bdbcf15636fab145ce6b0765be36abf4eb171afd75979f143b6a520dd7",
+      "engine/webgpu_gbuffer.js": "8c4f6a2b33c6aa1a247364d8cba0ea6bda124a165d3d4fb5583a583ace51a43c",
+      "engine/pseudo_depth.js": "39f52ab28a93886278edf959bcfdc4ce47d7130ad7151fd28b10662b89e057d8",
+      "assets/generated/atlas.json": "03408be8e0748535029c149366700ee8dfdd0bd9aa68d4f48c01dbdece2e5a80",
+      "assets/generated/sprite_runtime_atlas.png": "8abdecb45e251a181ad0bf080366e64fb5b0d0cfc6571f170463061a32c6d812",
+      "assets/generated/sprite_material_normal_roughness.png": "687f421fafe22c9629e20ab133ae2076f8b543e280236b034bbc556e4023be70",
+      "assets/generated/sprite_material_height_material.png": "4dd0759319df60991d5e570e1990066d34e1203e035224c35a5bd8f68838e38e"
+    },
+    "diagnosticOverlay": true,
+    "frozenExperiments": {
+      "readbackHead": "dad8c46d371522c699ecbeeb1770cfc2e6a29443",
+      "counterHead": "ad06d9f128f7d2494e467da8d6b47de7151e606a"
+    },
+    "frozenGitBlobs": {
+      "tools/experiments/frozen_sm601_readback.js": "f4f82852d3bf04b5c9c665f5370f1a7f915325ff",
+      "tools/experiments/frozen_sm601_counter.js": "af765d115a0b8f02684c4d7a68d5549ba100a2e4"
+    },
+    "note": "Commit identifies repository state. Exact added diagnostic source is additionally identified by file SHA-256; no performance acceptance is implied."
+  },
+  "gpuInventory": [
+    {
+      "name": "NVIDIA GeForce GTX 1650 SUPER",
+      "driver": "616.92",
+      "memoryMiB": 4096,
+      "pciBusId": "00000000:07:00.0"
+    }
+  ]
+}

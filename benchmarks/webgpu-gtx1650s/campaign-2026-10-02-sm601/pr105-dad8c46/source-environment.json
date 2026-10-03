@@ -1,0 +1,20 @@
+{
+  "methodology": {
+    "runs": 3,
+    "warmup": 300,
+    "targetAcceptance": false,
+    "samples": 600,
+    "headless": true,
+    "freshChromeProcessPerRun": true,
+    "height": 1080,
+    "width": 1920
+  },
+  "stage": "PR105 isolated readback A/B",
+  "recordedAtUtc": "2026-10-02T22:25:37.8939813Z",
+  "environment": "../environment.json",
+  "source": {
+    "cleanTrackedState": true,
+    "commit": "dad8c46d371522c699ecbeeb1770cfc2e6a29443"
+  },
+  "note": "Independent isolated study. Retained report file hashes verify exact source. Physical adapter must match sidecar NVIDIA/Turing non-fallback identity. No command execution time is derived by subtracting host measurements."
+}
