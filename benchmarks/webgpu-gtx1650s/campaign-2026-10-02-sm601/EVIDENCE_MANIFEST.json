@@ -250,9 +250,9 @@
     },
     {
       "path": "SUMMARY.md",
-      "bytes": 1684,
-      "rawWindowsSha256": "89f23d2e2adab74d974fe752fbdadb1ceb31bb7d55a746c769d7f2f16b563072",
-      "canonicalGitSha256": "89f23d2e2adab74d974fe752fbdadb1ceb31bb7d55a746c769d7f2f16b563072",
+      "bytes": 1980,
+      "rawWindowsSha256": "a69834501da4ce2db64e463edd7e2cd71eed3a02166187a7355587fe9ac09de4",
+      "canonicalGitSha256": "fc0ed0f364521c731dd63f1068cd942e85ca2515a4519ba2923f3da1ad9cd55b",
       "canonicalization": "CRLF to LF only"
     }
   ],

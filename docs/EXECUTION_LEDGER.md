@@ -158,19 +158,16 @@ Canonical task/issue mapping is maintained in `docs/ISSUE_MAP.md`:
 
 No target-hardware benchmark has yet been accepted; SM-003 remains the WebGL2 GTX 1650 Super measurement lane and may proceed concurrently with documentation/source-audit work where baseline identity is pinned.
 
-## Physical campaign checkpoint — 2026-10-03
+## Physical campaign recovery — 2026-10-03
 
-Stopped at the user's explicit request after review and durable progress recording.
-PR #92 merged and #31 closed; timing repair #109 merged on main at
-`d642b4b9973ae629e28bf5f15ac3c6659e1eafcb`. SM-601 production source
-`b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275` remains on
-`codex/sm601-measured-adoption`, unmerged and awaiting its production PR,
-final-head hosted CI and remaining visual acceptance. Its three-run physical
-queue mean is 1.088006 ms, worst p95 1.288608 ms; native output/counter and numeric
-stability/rejection/composition checks pass. Source gate 86/86 and clean package
-18/18 pass. #36 remains open and SM-602 blocked. #106 retains its strict
-neutral-plane blocker; no research PR was merged.
-
-See the [full checkpoint](PHYSICAL_CAMPAIGN_CHECKPOINT_2026-10-03.md) and retained
-source-separated evidence. No campaign process or follow-up automation remains
-active.
+PR #92/#31 is complete; timing repair #109 is merged on main at
+`d642b4b9973ae629e28bf5f15ac3c6659e1eafcb`. PR #110 remains open/unmerged;
+its pre-cleanup head `b334e12` passed 23/23 hosted checks. Measured production
+source `b1e87b0` retains 1.088006 ms queue mean / 1.288608 ms worst p95 and
+meets the working mean guardrail; no new physical measurement is claimed.
+The separately completed arithmetic controls retained at checkpoint `94278db`
+justify no arithmetic/cache adoption. Frozen #106's neutral failure is preserved.
+Issue #36 remains open and SM-602 blocked. Stop after this cleanup, without merge,
+closure or further implementation. See [`SM601_MEASURED_ADOPTION.md`](SM601_MEASURED_ADOPTION.md)
+for authoritative current disposition and source-separated evidence; the
+[earlier checkpoint](PHYSICAL_CAMPAIGN_CHECKPOINT_2026-10-03.md) is historical.
