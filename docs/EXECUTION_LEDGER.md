@@ -176,3 +176,16 @@ dependency-ready but is not started here. See
 [`SM601_MEASURED_ADOPTION.md`](SM601_MEASURED_ADOPTION.md) for the accepted
 source-separated disposition; the
 [earlier checkpoint](PHYSICAL_CAMPAIGN_CHECKPOINT_2026-10-03.md) is historical.
+
+
+## SM-505 final WebGPU release-gate checkpoint — 2026-10-03
+
+**Blocked; `Auto` remains WebGL2-first.** #31 / SM-501 is complete and its retained GTX 1650 SUPER Medium/GTAO-off target campaign remains a valid performance authority for the staged initial-release core. Current-main hosted source/regression, WebGPU, WebGL2 pixel-parity, GLSL/MRT and clean-package checks are green.
+
+SM-505 reconciliation found that normal gameplay still has no WebGPU presentation consumer: the RenderScene bridge captures the live frame but unconditionally replays it through `WebGL2SceneAdapter`, while `backend_runtime.js` explicitly reports `presentationBackend=webgl2` after successful WebGPU initialization. SM-405 had deliberately excluded final canvas/presentation ownership. Promoting the `AUTO_WEBGPU_ENABLED` flag at this point would therefore misrepresent the shipped renderer.
+
+The deployment audit also found stale identity metadata: `sw.js` uses cache `small-machine-web-v1.2.3-r26` while `DEPLOYMENT_MANIFEST.json`, `DEPLOY.md`, and `README_WEBAPP.md` still identify r1.
+
+The exact next release-gate work is recorded in `WEBGPU_RELEASE_VALIDATION.md`: implement bounded normal-game WebGPU presentation without altering gameplay authority or accepted core semantics, then obtain exact-candidate physical GTX 1650 SUPER Chrome/Firefox presentation/fallback evidence. Rerun the full SM-501 timing campaign only if source/configuration analysis shows that the integrated candidate changes the measured GPU command/timing path. Reconcile static/PWA cache identity and rerun clean package/extraction on the exact candidate.
+
+No physical GPU work was run at this checkpoint, #50 remains open, and #37 / SM-602 was not started.
