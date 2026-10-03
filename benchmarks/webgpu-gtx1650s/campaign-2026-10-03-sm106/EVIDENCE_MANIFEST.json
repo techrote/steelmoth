@@ -39,9 +39,9 @@
     },
     {
       "path": "SUMMARY.md",
-      "rawSha256": "4f5b0e6c6ce5d1a4d5e2728a6478906fc6e93011c6aef2b6443bb9339ab94d30",
-      "canonicalGitSha256": "4f5b0e6c6ce5d1a4d5e2728a6478906fc6e93011c6aef2b6443bb9339ab94d30",
-      "bytes": 1092
+      "rawSha256": "5f01ecda810afe99cb032f81d8150769a40ab8b2632585d95bbab58fe3d1dc1d",
+      "canonicalGitSha256": "de00d17b6d86bd851e4f19a3a44988c1e8a3611ce25d9cdf6ac23af709062738",
+      "bytes": 1170
     }
   ],
   "canonicalization": "CRLF to LF only; raw timestamp values unchanged"

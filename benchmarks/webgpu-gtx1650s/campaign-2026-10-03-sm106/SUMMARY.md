@@ -11,9 +11,9 @@ Each process passes 122 correctness configurations. See `summary.json` for
 per-pass and two-pass means and the four raw reports for all samples and metadata.
 
 No arithmetic/cache candidate is selected: sparse/empty regressions outweigh
-the dense/plane reconstruction benefit. The production deferred/counter adoption
-in PR #110 is unchanged. No physical timings or sample distributions from frozen
+the dense/plane reconstruction benefit. The production deferred/counter proposal
+in PR #110 remains unchanged and unmerged; #36 is open and SM-602 blocked. No physical timings or sample distributions from frozen
 or other overlay heads are mixed into these results.
 
-The detailed checkpoint and resume instructions are in
+The retained checkpoint and current recovery disposition are in
 [`PHYSICAL_CAMPAIGN_PAUSE_2026-10-03.md`](../../../docs/PHYSICAL_CAMPAIGN_PAUSE_2026-10-03.md).

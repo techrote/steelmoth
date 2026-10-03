@@ -2,11 +2,11 @@
 
 The user requested progress recording and rest again before final merge.
 No campaign benchmark remains running and no follow-up automation was created.
-PR #110 remains open/unmerged at `b334e1210eb42d3f5dbb1b0dd065b19c21ae2bc5`,
-with all **23 final-head checks successful** and merge state clean. #36 remains
+Historical pre-cleanup status: PR #110 was open/unmerged at `b334e1210eb42d3f5dbb1b0dd065b19c21ae2bc5`,
+with all **23 checks at that head successful** and merge state clean. #36 remains
 open; SM-602 remains blocked until legitimate verified completion.
 
-## Ready production adoption
+## Retained unmerged production proposal
 
 Branch: `codex/sm601-measured-adoption`.
 Worktree: `C:/steelmoth/.campaign-worktrees/sm601-adoption`.
@@ -74,16 +74,16 @@ The original #106 one-ULP failure is not relabeled passed. This is a new
 diagnostic source following existing numerical authority, not a production
 quality change, CI bypass, new GPU speedup assumption or research-PR merge.
 
-## Next authorized steps after explicit resume
+## Recovery disposition — supersedes earlier resume steps
 
-1. Verify live main/PR #110 head/checks have not changed, and review this completed
-   arithmetic disposition. No additional optimization is justified.
-2. Merge PR #110 only while required final-head checks and actual acceptance remain
-   satisfied. Verify the accepted source landed on main, then close #36.
-3. Record closure/disposition and reconcile current canonical status. SM-602 is
-   blocked until verified completion; do not start unrelated SSGI work here.
-4. Keep #104/#105/#106 research PRs unmerged. Update their evidence pointers and
-   the final campaign report without mixing old/new sources or claiming human
-   visual sign-off.
+Recovery/cleanup only: PR #110 remains open/unmerged; #36 remains open and
+SM-602 blocked. Its pre-cleanup head `b334e12` passed 23/23 checks. The production
+result above is 1.088006 ms mean / 1.288608 ms worst p95 (about 1088/1289
+microseconds, not milliseconds), and meets the unchanged working mean guardrail.
+The completed arithmetic controls do not justify adopting any arithmetic/cache
+candidate. Keep these separate conclusions and source distributions intact.
+No merge, closure, new benchmark or SM-602 implementation is authorized here.
 
-No merge or issue closure was performed after this rest request.
+Current status authority is [`SM601_MEASURED_ADOPTION.md` on the PR #110 branch](https://github.com/techrote/steelmoth/blob/codex/sm601-measured-adoption/docs/SM601_MEASURED_ADOPTION.md).
+This checkpoint retains the measured evidence; its earlier merge/resume guidance
+is superseded by the user's cleanup-only instruction. Stop after cleanup.
