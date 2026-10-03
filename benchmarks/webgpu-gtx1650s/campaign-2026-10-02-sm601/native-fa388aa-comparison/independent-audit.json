@@ -1,0 +1,2186 @@
+{
+  "schema": "steelmoth-sm601-native-comparison-independent-audit/v1",
+  "ok": true,
+  "targetAcceptance": false,
+  "createdAt": "2026-10-03T00:11:32.757628+00:00",
+  "input": "C:\\steelmoth\\artifacts\\physical-campaign-2026-10-02\\native-fa388aa-comparison\\comparison.json",
+  "inputSha256": "a5c56eff6b8bd786b7405352d6344975560bcdd7d3f3610b25a517bad6809edd",
+  "sourceCommit": "fa388aa9567dbacd2598221c644c22946834221d",
+  "sourceFileChecks": {
+    "webgpu-gtao-adoption-comparison.html": {
+      "reportedSha256": "463238f4f8da5c017b5bcf374e1c64b7f18d7928c92e392aea167b062badf657",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "tools/run_sm601_adoption_comparison.py": {
+      "reportedSha256": "354d92d458979e535f65f3c69934df3187032e54a560afd944de7035d2fa04cc",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "tools/validate_webgpu_gtao_reference_browser.py": {
+      "reportedSha256": "92ebf5ca7afaf35c917355a7739289bf192076a1c51e116493cdb8300ab8d947",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "tools/experiments/frozen_sm601_readback.js": {
+      "reportedSha256": "e21abf2cc06ca8d793d7d4d96f40ae3e1a679b7f3a5bc5ad15f0709060177fb3",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "tools/experiments/frozen_sm601_counter.js": {
+      "reportedSha256": "11d073674585d094a72cdae12f6fac8a9a83ccb7100361fb3efeca2c77c14bcb",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "webgpu-target-benchmark.html": {
+      "reportedSha256": "a28aaa20c1b2f2d793511b17f781ba36bcf74879348cd89dada3ef16a624c9d6",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_gtao.js": {
+      "reportedSha256": "277d621f189a8ecdd68d05697bcad16f35e65424a5de71020f4752819cf3811c",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_gtao_stabilization.js": {
+      "reportedSha256": "e075c1ca21bd9496c6a68ad06ef0f159282860dfc737e6ea637947bb6754f5d8",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_performance.js": {
+      "reportedSha256": "14aacc9e9ec27bd9417230661e2eeae7c652c60b147b41d272188194f7c2325e",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_resources.js": {
+      "reportedSha256": "46a11fbf2f3a3bf5af9ca5426ab9e10450e6e64cbac535bd671f0bb8bb660e2e",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_ownership.js": {
+      "reportedSha256": "708faaaaa722d5ca6c2f8e2b79cbecd143256655fc47f7901baea0fd9d8022c0",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_depth_hierarchy.js": {
+      "reportedSha256": "614be97bff48fc98df6f8dabe15594c1174b6fa2a666d943e7b9f173f249aa33",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_device.js": {
+      "reportedSha256": "255d01bdbcf15636fab145ce6b0765be36abf4eb171afd75979f143b6a520dd7",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/webgpu_gbuffer.js": {
+      "reportedSha256": "8c4f6a2b33c6aa1a247364d8cba0ea6bda124a165d3d4fb5583a583ace51a43c",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "engine/pseudo_depth.js": {
+      "reportedSha256": "39f52ab28a93886278edf959bcfdc4ce47d7130ad7151fd28b10662b89e057d8",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "assets/generated/atlas.json": {
+      "reportedSha256": "03408be8e0748535029c149366700ee8dfdd0bd9aa68d4f48c01dbdece2e5a80",
+      "matchedGitRepresentation": [
+        "crlf"
+      ]
+    },
+    "assets/generated/sprite_runtime_atlas.png": {
+      "reportedSha256": "8abdecb45e251a181ad0bf080366e64fb5b0d0cfc6571f170463061a32c6d812",
+      "matchedGitRepresentation": [
+        "git-bytes"
+      ]
+    },
+    "assets/generated/sprite_material_normal_roughness.png": {
+      "reportedSha256": "687f421fafe22c9629e20ab133ae2076f8b543e280236b034bbc556e4023be70",
+      "matchedGitRepresentation": [
+        "git-bytes"
+      ]
+    },
+    "assets/generated/sprite_material_height_material.png": {
+      "reportedSha256": "4dd0759319df60991d5e570e1990066d34e1203e035224c35a5bd8f68838e38e",
+      "matchedGitRepresentation": [
+        "git-bytes"
+      ]
+    }
+  },
+  "gpuInventory": [
+    {
+      "name": "NVIDIA GeForce GTX 1650 SUPER",
+      "driver": "616.92",
+      "memoryMiB": 4096,
+      "pciBusId": "00000000:07:00.0"
+    }
+  ],
+  "browserIdentities": [
+    {
+      "product": "Chrome/154.0.8037.92",
+      "protocolVersion": "1.3",
+      "jsVersion": "15.4.80.19",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "revision": "@334b65d254ccc35df4fca82706d1753227b01039"
+    },
+    {
+      "product": "Chrome/154.0.8037.92",
+      "protocolVersion": "1.3",
+      "jsVersion": "15.4.80.19",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "revision": "@334b65d254ccc35df4fca82706d1753227b01039"
+    },
+    {
+      "product": "Chrome/154.0.8037.92",
+      "protocolVersion": "1.3",
+      "jsVersion": "15.4.80.19",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "revision": "@334b65d254ccc35df4fca82706d1753227b01039"
+    }
+  ],
+  "checkCounts": {
+    "report-admission": 2,
+    "source": 25,
+    "environment": 18,
+    "run-admission": 9,
+    "errors": 3,
+    "snapshot-parity": 40,
+    "snapshot-rejection": 12,
+    "sample-counts": 15,
+    "rotation": 7203,
+    "frame-counter-parity": 7204,
+    "command-coverage": 21600,
+    "host-transport": 18000,
+    "direct-timestamps": 28800,
+    "frame-association": 10800,
+    "sm500-resolved": 7200,
+    "sm500-accounting": 7200,
+    "host-waits": 14400,
+    "bounded-readback": 3600,
+    "measured-room-rejection": 6,
+    "reported-summary": 84
+  },
+  "failures": [],
+  "timingRecomputation": {
+    "maxDirectNsToMsError": 0.0,
+    "maxCommandSumError": 0.0
+  },
+  "sessions": [
+    {
+      "run": 1,
+      "processId": 13404,
+      "orderCounts": {
+        "baseline-blocking": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "counter-blocking": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "baseline-deferred": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "counter-deferred": [
+          150,
+          150,
+          150,
+          150
+        ]
+      },
+      "rowCount": 2400,
+      "sm500FrameCount": 2400,
+      "variants": {
+        "baseline-blocking": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20998693333333332,
+            "p50Ms": 0.202976,
+            "p95Ms": 0.205056,
+            "p99Ms": 0.373504,
+            "minMs": 0.198976,
+            "maxMs": 0.91792
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.19052714666666667,
+            "p50Ms": 0.1864,
+            "p95Ms": 0.189504,
+            "p99Ms": 0.344832,
+            "minMs": 0.18432,
+            "maxMs": 0.575904
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6826359466666667,
+            "p50Ms": 0.664672,
+            "p95Ms": 0.825344,
+            "p99Ms": 1.062912,
+            "minMs": 0.420128,
+            "maxMs": 1.447936
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 2.9966563733333333,
+            "p50Ms": 2.79136,
+            "p95Ms": 4.180928,
+            "p99Ms": 6.336928,
+            "minMs": 1.635776,
+            "maxMs": 20.443136
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.086536,
+            "p50Ms": 1.057984,
+            "p95Ms": 1.2711999999999999,
+            "p99Ms": 1.716384,
+            "minMs": 0.81328,
+            "maxMs": 1.878496
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 4.719166666666666,
+            "p50Ms": 4.5999999940395355,
+            "p95Ms": 6.5,
+            "p99Ms": 8.900000005960464,
+            "minMs": 3,
+            "maxMs": 22.599999994039536
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.516499999786417,
+            "p50Ms": 4.4000000059604645,
+            "p95Ms": 6.299999997019768,
+            "p99Ms": 8.400000005960464,
+            "minMs": 2.5999999940395355,
+            "maxMs": 22.5
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.8435000003129244,
+            "p50Ms": 0.6000000089406967,
+            "p95Ms": 1.7000000029802322,
+            "p99Ms": 4.700000002980232,
+            "minMs": 0.20000000298023224,
+            "maxMs": 12.299999997019768
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.9203333333631356,
+            "p50Ms": 0.7000000029802322,
+            "p95Ms": 1.7000000029802322,
+            "p99Ms": 4.5,
+            "minMs": 0.29999999701976776,
+            "maxMs": 12.400000005960464
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.40053461333333334,
+            "p50Ms": 0.38976,
+            "p95Ms": 0.405184,
+            "p99Ms": 0.654368,
+            "minMs": 0.384832,
+            "maxMs": 1.104768
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6860013866666667,
+            "p50Ms": 0.667648,
+            "p95Ms": 0.828704,
+            "p99Ms": 1.190432,
+            "minMs": 0.422624,
+            "maxMs": 1.451744
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 4.516499999786417,
+            "p50Ms": 4.4000000059604645,
+            "p95Ms": 6.299999997019768,
+            "p99Ms": 8.400000005960464,
+            "minMs": 2.5999999940395355,
+            "maxMs": 22.5
+          }
+        },
+        "counter-blocking": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20570901333333333,
+            "p50Ms": 0.202368,
+            "p95Ms": 0.204288,
+            "p99Ms": 0.361824,
+            "minMs": 0.198656,
+            "maxMs": 0.689984
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.18675744,
+            "p50Ms": 0.1864,
+            "p95Ms": 0.188416,
+            "p99Ms": 0.189664,
+            "minMs": 0.18432,
+            "maxMs": 0.213024
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6763062400000001,
+            "p50Ms": 0.652192,
+            "p95Ms": 0.816512,
+            "p99Ms": 1.25392,
+            "minMs": 0.423936,
+            "maxMs": 1.603232
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 3.328993973333333,
+            "p50Ms": 3.191648,
+            "p95Ms": 4.409344,
+            "p99Ms": 5.903872,
+            "minMs": 2.345088,
+            "maxMs": 13.103616
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0718783466666668,
+            "p50Ms": 1.044544,
+            "p95Ms": 1.266496,
+            "p99Ms": 1.666432,
+            "minMs": 0.8168,
+            "maxMs": 1.992704
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 3.756499999637405,
+            "p50Ms": 3.5999999940395355,
+            "p95Ms": 5,
+            "p99Ms": 6.9000000059604645,
+            "minMs": 2.7000000029802322,
+            "maxMs": 15.5
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 3.501666666169961,
+            "p50Ms": 3.300000011920929,
+            "p95Ms": 4.5999999940395355,
+            "p99Ms": 6.5999999940395355,
+            "minMs": 2.4000000059604645,
+            "maxMs": 15.299999997019768
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.8603333331396182,
+            "p50Ms": 0.7000000029802322,
+            "p95Ms": 1.4000000059604645,
+            "p99Ms": 2.2000000029802322,
+            "minMs": 0.20000000298023224,
+            "maxMs": 23.099999994039536
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.8920000000794729,
+            "p50Ms": 0.7000000029802322,
+            "p95Ms": 1.4000000059604645,
+            "p99Ms": 2.1000000089406967,
+            "minMs": 0.29999999701976776,
+            "maxMs": 23.19999998807907
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.3924947733333334,
+            "p50Ms": 0.389024,
+            "p95Ms": 0.391424,
+            "p99Ms": 0.546816,
+            "minMs": 0.3848,
+            "maxMs": 0.876896
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6793835733333334,
+            "p50Ms": 0.65536,
+            "p95Ms": 0.8192,
+            "p99Ms": 1.25616,
+            "minMs": 0.427744,
+            "maxMs": 1.605632
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 3.501666666169961,
+            "p50Ms": 3.300000011920929,
+            "p95Ms": 4.5999999940395355,
+            "p99Ms": 6.5999999940395355,
+            "minMs": 2.4000000059604645,
+            "maxMs": 15.299999997019768
+          }
+        },
+        "baseline-deferred": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20407434666666668,
+            "p50Ms": 0.202464,
+            "p95Ms": 0.204608,
+            "p99Ms": 0.221184,
+            "minMs": 0.198656,
+            "maxMs": 0.415744
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.18730266666666667,
+            "p50Ms": 0.1864,
+            "p95Ms": 0.188448,
+            "p99Ms": 0.200704,
+            "minMs": 0.18432,
+            "maxMs": 0.366592
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6966288,
+            "p50Ms": 0.671232,
+            "p95Ms": 0.833216,
+            "p99Ms": 1.441792,
+            "minMs": 0.428256,
+            "maxMs": 2.16688
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 1.30096352,
+            "p50Ms": 1.286368,
+            "p95Ms": 1.540096,
+            "p99Ms": 2.273056,
+            "minMs": 1.074816,
+            "maxMs": 2.93888
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0915574933333332,
+            "p50Ms": 1.063616,
+            "p95Ms": 1.240896,
+            "p99Ms": 1.835616,
+            "minMs": 0.822912,
+            "maxMs": 2.560512
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 0.23533333346247673,
+            "p50Ms": 0.20000000298023224,
+            "p95Ms": 0.4000000059604645,
+            "p99Ms": 0.5,
+            "minMs": 0,
+            "maxMs": 1.2000000029802322
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.596000000114242,
+            "p50Ms": 2.2000000029802322,
+            "p95Ms": 4.299999997019768,
+            "p99Ms": 5.299999997019768,
+            "minMs": 1.5,
+            "maxMs": 12.899999991059303
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.5990000002086164,
+            "p50Ms": 2.2000000029802322,
+            "p95Ms": 4.4000000059604645,
+            "p99Ms": 5.200000002980232,
+            "minMs": 1.4000000059604645,
+            "maxMs": 13.599999994039536
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.6795000000546376,
+            "p50Ms": 2.2000000029802322,
+            "p95Ms": 4.5999999940395355,
+            "p99Ms": 5.399999991059303,
+            "minMs": 1.5,
+            "maxMs": 13.599999994039536
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.3913964266666667,
+            "p50Ms": 0.38912,
+            "p95Ms": 0.392896,
+            "p99Ms": 0.441408,
+            "minMs": 0.384224,
+            "maxMs": 0.616448
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.7001610666666667,
+            "p50Ms": 0.6744,
+            "p95Ms": 0.836288,
+            "p99Ms": 1.447104,
+            "minMs": 0.432352,
+            "maxMs": 2.171392
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 0.0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 0,
+            "minMs": 0,
+            "maxMs": 0
+          }
+        },
+        "counter-deferred": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20727242666666668,
+            "p50Ms": 0.202912,
+            "p95Ms": 0.206144,
+            "p99Ms": 0.367392,
+            "minMs": 0.198656,
+            "maxMs": 0.589824
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.1872136,
+            "p50Ms": 0.186368,
+            "p95Ms": 0.188576,
+            "p99Ms": 0.198688,
+            "minMs": 0.18432,
+            "maxMs": 0.338336
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6797299733333333,
+            "p50Ms": 0.660064,
+            "p95Ms": 0.821248,
+            "p99Ms": 1.102496,
+            "minMs": 0.45888,
+            "maxMs": 1.601536
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 1.1300025599999999,
+            "p50Ms": 1.07712,
+            "p95Ms": 1.419648,
+            "p99Ms": 1.992704,
+            "minMs": 0.8704,
+            "maxMs": 2.655936
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0776947733333333,
+            "p50Ms": 1.053632,
+            "p95Ms": 1.276736,
+            "p99Ms": 1.515552,
+            "minMs": 0.852096,
+            "maxMs": 1.99616
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 0.18849999976654847,
+            "p50Ms": 0.20000000298023224,
+            "p95Ms": 0.3999999910593033,
+            "p99Ms": 0.6000000089406967,
+            "minMs": 0,
+            "maxMs": 0.9000000059604645
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.415499999821186,
+            "p50Ms": 4.4000000059604645,
+            "p95Ms": 5.700000002980232,
+            "p99Ms": 7.700000002980232,
+            "minMs": 1.7999999970197678,
+            "maxMs": 22.69999998807907
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.425333333412806,
+            "p50Ms": 4.4000000059604645,
+            "p95Ms": 5.700000002980232,
+            "p99Ms": 7.5999999940395355,
+            "minMs": 1.7000000029802322,
+            "maxMs": 22.69999998807907
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.475333333263794,
+            "p50Ms": 4.5,
+            "p95Ms": 5.700000002980232,
+            "p99Ms": 8.399999991059303,
+            "minMs": 1.7999999970197678,
+            "maxMs": 22.69999998807907
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.39450448,
+            "p50Ms": 0.389728,
+            "p95Ms": 0.395872,
+            "p99Ms": 0.553024,
+            "minMs": 0.385056,
+            "maxMs": 0.776192
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6831902933333334,
+            "p50Ms": 0.663552,
+            "p95Ms": 0.825088,
+            "p99Ms": 1.106336,
+            "minMs": 0.462976,
+            "maxMs": 1.605632
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 0.0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 0,
+            "minMs": 0,
+            "maxMs": 0
+          }
+        }
+      },
+      "display": {
+        "width": 2560,
+        "height": 1440,
+        "devicePixelRatio": 1,
+        "canvasWidth": 1920,
+        "canvasHeight": 1080
+      }
+    },
+    {
+      "run": 2,
+      "processId": 10300,
+      "orderCounts": {
+        "baseline-blocking": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "counter-blocking": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "baseline-deferred": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "counter-deferred": [
+          150,
+          150,
+          150,
+          150
+        ]
+      },
+      "rowCount": 2400,
+      "sm500FrameCount": 2400,
+      "variants": {
+        "baseline-blocking": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20906741333333334,
+            "p50Ms": 0.203296,
+            "p95Ms": 0.205152,
+            "p99Ms": 0.44256,
+            "minMs": 0.200704,
+            "maxMs": 0.827392
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.19158890666666667,
+            "p50Ms": 0.186272,
+            "p95Ms": 0.188416,
+            "p99Ms": 0.411392,
+            "minMs": 0.184288,
+            "maxMs": 1.020384
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6895871466666667,
+            "p50Ms": 0.671744,
+            "p95Ms": 0.826944,
+            "p99Ms": 1.060544,
+            "minMs": 0.432608,
+            "maxMs": 2.104224
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 2.891357173333333,
+            "p50Ms": 2.753824,
+            "p95Ms": 3.81344,
+            "p99Ms": 5.74464,
+            "minMs": 1.4848,
+            "maxMs": 34.641728
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0932824533333334,
+            "p50Ms": 1.064576,
+            "p95Ms": 1.304064,
+            "p99Ms": 1.637248,
+            "minMs": 0.823744,
+            "maxMs": 2.495776
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 4.608499999692043,
+            "p50Ms": 4.5,
+            "p95Ms": 6.199999988079071,
+            "p99Ms": 7,
+            "minMs": 2.800000011920929,
+            "maxMs": 35.79999999701977
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.438499999940396,
+            "p50Ms": 4.299999997019768,
+            "p95Ms": 5.9000000059604645,
+            "p99Ms": 6.600000008940697,
+            "minMs": 2.699999988079071,
+            "maxMs": 35.5
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.7415000001589457,
+            "p50Ms": 0.5999999940395355,
+            "p95Ms": 1.2999999970197678,
+            "p99Ms": 1.7999999970197678,
+            "minMs": 0.19999998807907104,
+            "maxMs": 23.799999997019768
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.7965000002086162,
+            "p50Ms": 0.6000000089406967,
+            "p95Ms": 1.300000011920929,
+            "p99Ms": 1.9000000059604645,
+            "minMs": 0.29999999701976776,
+            "maxMs": 23.799999997019768
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.4006768,
+            "p50Ms": 0.389248,
+            "p95Ms": 0.398176,
+            "p99Ms": 0.669696,
+            "minMs": 0.385728,
+            "maxMs": 1.224704
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6926056533333333,
+            "p50Ms": 0.674944,
+            "p95Ms": 0.829824,
+            "p99Ms": 1.063328,
+            "minMs": 0.435136,
+            "maxMs": 2.108096
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 4.438499999940396,
+            "p50Ms": 4.299999997019768,
+            "p95Ms": 5.9000000059604645,
+            "p99Ms": 6.600000008940697,
+            "minMs": 2.699999988079071,
+            "maxMs": 35.5
+          }
+        },
+        "counter-blocking": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20373029333333334,
+            "p50Ms": 0.202688,
+            "p95Ms": 0.204512,
+            "p99Ms": 0.208512,
+            "minMs": 0.198944,
+            "maxMs": 0.447936
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.1865476266666667,
+            "p50Ms": 0.186144,
+            "p95Ms": 0.187776,
+            "p99Ms": 0.198432,
+            "minMs": 0.183136,
+            "maxMs": 0.44032
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6900994666666667,
+            "p50Ms": 0.659424,
+            "p95Ms": 0.882432,
+            "p99Ms": 1.623296,
+            "minMs": 0.425984,
+            "maxMs": 2.027392
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 3.2695157333333333,
+            "p50Ms": 3.193216,
+            "p95Ms": 4.18816,
+            "p99Ms": 4.978688,
+            "minMs": 2.107392,
+            "maxMs": 14.411552
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0834288,
+            "p50Ms": 1.050784,
+            "p95Ms": 1.2892480000000002,
+            "p99Ms": 2.015392,
+            "minMs": 0.8165439999999999,
+            "maxMs": 2.421376
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 3.6416666672130424,
+            "p50Ms": 3.5,
+            "p95Ms": 4.5999999940395355,
+            "p99Ms": 5.4000000059604645,
+            "minMs": 2.699999988079071,
+            "maxMs": 23.799999997019768
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 3.4273333336164553,
+            "p50Ms": 3.2999999970197678,
+            "p95Ms": 4.300000011920929,
+            "p99Ms": 5,
+            "minMs": 2.5,
+            "maxMs": 23.400000005960464
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.7346666663388411,
+            "p50Ms": 0.6000000089406967,
+            "p95Ms": 1.2999999970197678,
+            "p99Ms": 2.1000000089406967,
+            "minMs": 0.20000000298023224,
+            "maxMs": 7.5
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.7633333329111338,
+            "p50Ms": 0.699999988079071,
+            "p95Ms": 1.2999999970197678,
+            "p99Ms": 2.0999999940395355,
+            "minMs": 0.29999999701976776,
+            "maxMs": 7.299999997019768
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.3902933333333334,
+            "p50Ms": 0.388576,
+            "p95Ms": 0.391168,
+            "p99Ms": 0.402432,
+            "minMs": 0.38336,
+            "maxMs": 0.643968
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6931354666666667,
+            "p50Ms": 0.662048,
+            "p95Ms": 0.884736,
+            "p99Ms": 1.626112,
+            "minMs": 0.43008,
+            "maxMs": 2.029888
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 3.4273333336164553,
+            "p50Ms": 3.2999999970197678,
+            "p95Ms": 4.300000011920929,
+            "p99Ms": 5,
+            "minMs": 2.5,
+            "maxMs": 23.400000005960464
+          }
+        },
+        "baseline-deferred": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.2050832,
+            "p50Ms": 0.202752,
+            "p95Ms": 0.204672,
+            "p99Ms": 0.233472,
+            "minMs": 0.198464,
+            "maxMs": 0.757472
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.18747989333333334,
+            "p50Ms": 0.186176,
+            "p95Ms": 0.188064,
+            "p99Ms": 0.198656,
+            "minMs": 0.18288,
+            "maxMs": 0.79872
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6974838933333334,
+            "p50Ms": 0.668288,
+            "p95Ms": 0.899136,
+            "p99Ms": 1.44352,
+            "minMs": 0.427552,
+            "maxMs": 1.684832
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 1.2751930666666667,
+            "p50Ms": 1.261568,
+            "p95Ms": 1.567008,
+            "p99Ms": 2.183904,
+            "minMs": 0.840032,
+            "maxMs": 2.575424
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0935895466666667,
+            "p50Ms": 1.060864,
+            "p95Ms": 1.29552,
+            "p99Ms": 1.8518400000000002,
+            "minMs": 0.8198080000000001,
+            "maxMs": 2.3590079999999998
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 0.19433333327372868,
+            "p50Ms": 0.20000000298023224,
+            "p95Ms": 0.3999999910593033,
+            "p99Ms": 0.5,
+            "minMs": 0,
+            "maxMs": 1.3999999910593033
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.4726666664828856,
+            "p50Ms": 2.0999999940395355,
+            "p95Ms": 4.200000002980232,
+            "p99Ms": 5.0999999940395355,
+            "minMs": 1.2999999970197678,
+            "maxMs": 7.399999991059303
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.5128333333383,
+            "p50Ms": 2.0999999940395355,
+            "p95Ms": 4.300000011920929,
+            "p99Ms": 5,
+            "minMs": 1.2999999970197678,
+            "maxMs": 7.399999991059303
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.546166666770975,
+            "p50Ms": 2.0999999940395355,
+            "p95Ms": 4.4000000059604645,
+            "p99Ms": 5.299999997019768,
+            "minMs": 1.2999999970197678,
+            "maxMs": 7.399999991059303
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.39258261333333333,
+            "p50Ms": 0.388768,
+            "p95Ms": 0.392,
+            "p99Ms": 0.537728,
+            "minMs": 0.384608,
+            "maxMs": 1.032192
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.7010069333333333,
+            "p50Ms": 0.67184,
+            "p95Ms": 0.902208,
+            "p99Ms": 1.445888,
+            "minMs": 0.43008,
+            "maxMs": 1.687872
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 0.0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 0,
+            "minMs": 0,
+            "maxMs": 0
+          }
+        },
+        "counter-deferred": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.21247541333333334,
+            "p50Ms": 0.203264,
+            "p95Ms": 0.206848,
+            "p99Ms": 0.469312,
+            "minMs": 0.198656,
+            "maxMs": 0.840992
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.18614202666666665,
+            "p50Ms": 0.18624,
+            "p95Ms": 0.188064,
+            "p99Ms": 0.190752,
+            "minMs": 0.182688,
+            "maxMs": 0.20048
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.68309808,
+            "p50Ms": 0.655872,
+            "p95Ms": 0.877504,
+            "p99Ms": 1.356384,
+            "minMs": 0.432544,
+            "maxMs": 1.815872
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 1.1173480533333333,
+            "p50Ms": 1.071104,
+            "p95Ms": 1.425408,
+            "p99Ms": 1.986144,
+            "minMs": 0.84256,
+            "maxMs": 2.323776
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.08519056,
+            "p50Ms": 1.049248,
+            "p95Ms": 1.3269440000000001,
+            "p99Ms": 1.8416000000000001,
+            "minMs": 0.823552,
+            "maxMs": 2.300096
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 0.16,
+            "p50Ms": 0.19999998807907104,
+            "p95Ms": 0.29999999701976776,
+            "p99Ms": 0.3999999910593033,
+            "minMs": 0,
+            "maxMs": 0.5
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.46766666688025,
+            "p50Ms": 4.4000000059604645,
+            "p95Ms": 5.600000008940697,
+            "p99Ms": 6.600000008940697,
+            "minMs": 1.7999999970197678,
+            "maxMs": 35.70000000298023
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.504333333124717,
+            "p50Ms": 4.5,
+            "p95Ms": 5.600000008940697,
+            "p99Ms": 6.700000002980232,
+            "minMs": 1.7000000029802322,
+            "maxMs": 35.79999999701977
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.5323333330700795,
+            "p50Ms": 4.5,
+            "p95Ms": 5.600000008940697,
+            "p99Ms": 6.700000002980232,
+            "minMs": 1.7000000029802322,
+            "maxMs": 35.8999999910593
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.39863813333333337,
+            "p50Ms": 0.389248,
+            "p95Ms": 0.397312,
+            "p99Ms": 0.65568,
+            "minMs": 0.385024,
+            "maxMs": 1.028096
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6865524266666667,
+            "p50Ms": 0.659584,
+            "p95Ms": 0.88064,
+            "p99Ms": 1.360064,
+            "minMs": 0.4352,
+            "maxMs": 1.818688
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 0.0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 0,
+            "minMs": 0,
+            "maxMs": 0
+          }
+        }
+      },
+      "display": {
+        "width": 2560,
+        "height": 1440,
+        "devicePixelRatio": 1,
+        "canvasWidth": 1920,
+        "canvasHeight": 1080
+      }
+    },
+    {
+      "run": 3,
+      "processId": 22020,
+      "orderCounts": {
+        "baseline-blocking": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "counter-blocking": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "baseline-deferred": [
+          150,
+          150,
+          150,
+          150
+        ],
+        "counter-deferred": [
+          150,
+          150,
+          150,
+          150
+        ]
+      },
+      "rowCount": 2400,
+      "sm500FrameCount": 2400,
+      "variants": {
+        "baseline-blocking": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20636975999999999,
+            "p50Ms": 0.202752,
+            "p95Ms": 0.204352,
+            "p99Ms": 0.402144,
+            "minMs": 0.19952,
+            "maxMs": 0.833952
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.19273498666666666,
+            "p50Ms": 0.182432,
+            "p95Ms": 0.18576,
+            "p99Ms": 0.557632,
+            "minMs": 0.180352,
+            "maxMs": 0.85504
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6838842133333334,
+            "p50Ms": 0.665888,
+            "p95Ms": 0.677024,
+            "p99Ms": 1.226848,
+            "minMs": 0.432128,
+            "maxMs": 1.697408
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 2.65628224,
+            "p50Ms": 2.498272,
+            "p95Ms": 3.673184,
+            "p99Ms": 4.245344,
+            "minMs": 1.590176,
+            "maxMs": 15.208736
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0860274133333334,
+            "p50Ms": 1.054688,
+            "p95Ms": 1.296384,
+            "p99Ms": 1.925664,
+            "minMs": 0.8203199999999999,
+            "maxMs": 2.36416
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 4.379499999607603,
+            "p50Ms": 4.200000002980232,
+            "p95Ms": 5.700000002980232,
+            "p99Ms": 7.299999997019768,
+            "minMs": 2.7999999970197678,
+            "maxMs": 12.5
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.231666666517655,
+            "p50Ms": 4.0999999940395355,
+            "p95Ms": 5.600000008940697,
+            "p99Ms": 7.0999999940395355,
+            "minMs": 2.699999988079071,
+            "maxMs": 12.399999991059303
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.6638333334277073,
+            "p50Ms": 0.5,
+            "p95Ms": 1.1000000089406967,
+            "p99Ms": 1.7000000029802322,
+            "minMs": 0.20000000298023224,
+            "maxMs": 19.5
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.725499999721845,
+            "p50Ms": 0.5999999940395355,
+            "p95Ms": 1.2000000029802322,
+            "p99Ms": 2.7999999970197678,
+            "minMs": 0.20000000298023224,
+            "maxMs": 19.5
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.39911621333333336,
+            "p50Ms": 0.385024,
+            "p95Ms": 0.394208,
+            "p99Ms": 0.799648,
+            "minMs": 0.381792,
+            "maxMs": 1.058816
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6869112,
+            "p50Ms": 0.669312,
+            "p95Ms": 0.679936,
+            "p99Ms": 1.230528,
+            "minMs": 0.435648,
+            "maxMs": 1.700288
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 4.231666666517655,
+            "p50Ms": 4.0999999940395355,
+            "p95Ms": 5.600000008940697,
+            "p99Ms": 7.0999999940395355,
+            "minMs": 2.699999988079071,
+            "maxMs": 12.399999991059303
+          }
+        },
+        "counter-blocking": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20620954666666666,
+            "p50Ms": 0.201184,
+            "p95Ms": 0.203008,
+            "p99Ms": 0.2168,
+            "minMs": 0.198368,
+            "maxMs": 0.872352
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.18774554666666668,
+            "p50Ms": 0.182464,
+            "p95Ms": 0.18432,
+            "p99Ms": 0.32624,
+            "minMs": 0.180224,
+            "maxMs": 0.956416
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6914075733333334,
+            "p50Ms": 0.658656,
+            "p95Ms": 0.900576,
+            "p99Ms": 1.462624,
+            "minMs": 0.436224,
+            "maxMs": 1.839264
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 3.1014221866666665,
+            "p50Ms": 2.986624,
+            "p95Ms": 3.997696,
+            "p99Ms": 4.333568,
+            "minMs": 2.289664,
+            "maxMs": 10.38
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0883674133333334,
+            "p50Ms": 1.0460800000000001,
+            "p95Ms": 1.3733119999999999,
+            "p99Ms": 2.05776,
+            "minMs": 0.8237760000000001,
+            "maxMs": 2.4079040000000003
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 3.479500000129143,
+            "p50Ms": 3.3999999910593033,
+            "p95Ms": 4.299999997019768,
+            "p99Ms": 5,
+            "minMs": 2.699999988079071,
+            "maxMs": 19.599999994039536
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 3.2981666666766007,
+            "p50Ms": 3.2000000029802322,
+            "p95Ms": 4.100000008940697,
+            "p99Ms": 4.799999997019768,
+            "minMs": 2.5,
+            "maxMs": 19.400000005960464
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.6404999997466803,
+            "p50Ms": 0.5999999940395355,
+            "p95Ms": 1,
+            "p99Ms": 1.6000000089406967,
+            "minMs": 0.20000000298023224,
+            "maxMs": 6.299999997019768
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 0.6621666666865349,
+            "p50Ms": 0.5999999940395355,
+            "p95Ms": 1,
+            "p99Ms": 1.6000000089406967,
+            "minMs": 0.29999999701976776,
+            "maxMs": 6.299999997019768
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.39397130666666663,
+            "p50Ms": 0.38416,
+            "p95Ms": 0.387072,
+            "p99Ms": 0.89088,
+            "minMs": 0.380928,
+            "maxMs": 1.157376
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6943961066666666,
+            "p50Ms": 0.661504,
+            "p95Ms": 0.903168,
+            "p99Ms": 1.466048,
+            "minMs": 0.440192,
+            "maxMs": 1.841472
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 3.2981666666766007,
+            "p50Ms": 3.2000000029802322,
+            "p95Ms": 4.100000008940697,
+            "p99Ms": 4.799999997019768,
+            "minMs": 2.5,
+            "maxMs": 19.400000005960464
+          }
+        },
+        "baseline-deferred": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.20376768,
+            "p50Ms": 0.201344,
+            "p95Ms": 0.20304,
+            "p99Ms": 0.209536,
+            "minMs": 0.198656,
+            "maxMs": 0.827392
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.18757536,
+            "p50Ms": 0.182624,
+            "p95Ms": 0.18464,
+            "p99Ms": 0.387072,
+            "minMs": 0.180384,
+            "maxMs": 0.828
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6906015466666666,
+            "p50Ms": 0.668224,
+            "p95Ms": 0.681632,
+            "p99Ms": 1.223744,
+            "minMs": 0.431456,
+            "maxMs": 1.98608
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 1.2444953066666666,
+            "p50Ms": 1.23904,
+            "p95Ms": 1.441792,
+            "p99Ms": 2.054144,
+            "minMs": 0.845312,
+            "maxMs": 3.128832
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0853990933333333,
+            "p50Ms": 1.056448,
+            "p95Ms": 1.251968,
+            "p99Ms": 1.954144,
+            "minMs": 0.821376,
+            "maxMs": 2.376352
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 0.17349999964237214,
+            "p50Ms": 0.19999998807907104,
+            "p95Ms": 0.29999999701976776,
+            "p99Ms": 0.4000000059604645,
+            "minMs": 0,
+            "maxMs": 0.6000000089406967
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.4166666665424903,
+            "p50Ms": 2,
+            "p95Ms": 4.200000002980232,
+            "p99Ms": 5.700000002980232,
+            "minMs": 1.5,
+            "maxMs": 12.600000008940697
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.4759999999652305,
+            "p50Ms": 2,
+            "p95Ms": 4.4000000059604645,
+            "p99Ms": 5.600000008940697,
+            "minMs": 1.3999999910593033,
+            "maxMs": 12.5
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 2.508166666726271,
+            "p50Ms": 2,
+            "p95Ms": 4.5,
+            "p99Ms": 5.600000008940697,
+            "minMs": 1.5,
+            "maxMs": 12.5
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.39136112,
+            "p50Ms": 0.384512,
+            "p95Ms": 0.387648,
+            "p99Ms": 0.622592,
+            "minMs": 0.380928,
+            "maxMs": 1.031168
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.6940379733333333,
+            "p50Ms": 0.671744,
+            "p95Ms": 0.685664,
+            "p99Ms": 1.226752,
+            "minMs": 0.434176,
+            "maxMs": 1.98864
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 0.0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 0,
+            "minMs": 0,
+            "maxMs": 0
+          }
+        },
+        "counter-deferred": {
+          "rawHorizonGpuMs": {
+            "count": 600,
+            "meanMs": 0.21227541333333333,
+            "p50Ms": 0.20272,
+            "p95Ms": 0.2048,
+            "p99Ms": 0.557056,
+            "minMs": 0.198688,
+            "maxMs": 0.839744
+          },
+          "reconstructionGpuMs": {
+            "count": 600,
+            "meanMs": 0.18494234666666667,
+            "p50Ms": 0.18256,
+            "p95Ms": 0.18496,
+            "p99Ms": 0.19456,
+            "minMs": 0.180544,
+            "maxMs": 0.732768
+          },
+          "temporalComputeGpuMs": {
+            "count": 600,
+            "meanMs": 0.6722533333333333,
+            "p50Ms": 0.644832,
+            "p95Ms": 0.886784,
+            "p99Ms": 1.200608,
+            "minMs": 0.420224,
+            "maxMs": 1.86736
+          },
+          "queueSpanGpuMs": {
+            "count": 600,
+            "meanMs": 1.09635776,
+            "p50Ms": 1.05472,
+            "p95Ms": 1.380352,
+            "p99Ms": 1.842976,
+            "minMs": 0.8288,
+            "maxMs": 2.516928
+          },
+          "commandGpuMs": {
+            "count": 600,
+            "meanMs": 1.0729634666666668,
+            "p50Ms": 1.033984,
+            "p95Ms": 1.356224,
+            "p99Ms": 1.82208,
+            "minMs": 0.807264,
+            "maxMs": 2.494272
+          },
+          "callbackCpuMs": {
+            "count": 600,
+            "meanMs": 0.13583333340783915,
+            "p50Ms": 0.10000000894069672,
+            "p95Ms": 0.20000000298023224,
+            "p99Ms": 0.29999999701976776,
+            "minMs": 0,
+            "maxMs": 0.5999999940395355
+          },
+          "mapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.410499999970198,
+            "p50Ms": 4.299999997019768,
+            "p95Ms": 5.5999999940395355,
+            "p99Ms": 6.600000008940697,
+            "minMs": 2.2000000029802322,
+            "maxMs": 12.5
+          },
+          "sm500TimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.4669999998311205,
+            "p50Ms": 4.399999991059303,
+            "p95Ms": 5.5999999940395355,
+            "p99Ms": 6.5999999940395355,
+            "minMs": 2.2000000029802322,
+            "maxMs": 12.5
+          },
+          "directTimestampMapLatencyCpuMs": {
+            "count": 600,
+            "meanMs": 4.491499999761581,
+            "p50Ms": 4.399999991059303,
+            "p95Ms": 5.699999988079071,
+            "p99Ms": 6.5999999940395355,
+            "minMs": 2.0999999940395355,
+            "maxMs": 12.5
+          },
+          "rawAndUpscaleCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.3972381866666667,
+            "p50Ms": 0.38512,
+            "p95Ms": 0.394592,
+            "p99Ms": 0.74544,
+            "minMs": 0.381856,
+            "maxMs": 1.022176
+          },
+          "temporalAndCopyCommandGpuMs": {
+            "count": 600,
+            "meanMs": 0.67572528,
+            "p50Ms": 0.647968,
+            "p95Ms": 0.890176,
+            "p99Ms": 1.204448,
+            "minMs": 0.424,
+            "maxMs": 1.871296
+          },
+          "hostWaitCpuMs": {
+            "count": 600,
+            "meanMs": 0.0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "p99Ms": 0,
+            "minMs": 0,
+            "maxMs": 0
+          }
+        }
+      },
+      "display": {
+        "width": 2560,
+        "height": 1440,
+        "devicePixelRatio": 1,
+        "canvasWidth": 1920,
+        "canvasHeight": 1080
+      }
+    }
+  ],
+  "sameSourcePooledDescriptive": {
+    "baseline-blocking": {
+      "rawHorizonGpuMs": {
+        "count": 1800,
+        "meanMs": 0.20847470222222222,
+        "p50Ms": 0.202816,
+        "p95Ms": 0.204864,
+        "p99Ms": 0.44256,
+        "minMs": 0.198976,
+        "maxMs": 0.91792
+      },
+      "reconstructionGpuMs": {
+        "count": 1800,
+        "meanMs": 0.19161701333333334,
+        "p50Ms": 0.185984,
+        "p95Ms": 0.188512,
+        "p99Ms": 0.409536,
+        "minMs": 0.180352,
+        "maxMs": 1.020384
+      },
+      "temporalComputeGpuMs": {
+        "count": 1800,
+        "meanMs": 0.6853691022222221,
+        "p50Ms": 0.667392,
+        "p95Ms": 0.823776,
+        "p99Ms": 1.199328,
+        "minMs": 0.420128,
+        "maxMs": 2.104224
+      },
+      "queueSpanGpuMs": {
+        "count": 1800,
+        "meanMs": 2.8480985955555553,
+        "p50Ms": 2.666752,
+        "p95Ms": 3.935168,
+        "p99Ms": 5.8968,
+        "minMs": 1.4848,
+        "maxMs": 34.641728
+      },
+      "commandGpuMs": {
+        "count": 1800,
+        "meanMs": 1.088615288888889,
+        "p50Ms": 1.058848,
+        "p95Ms": 1.296384,
+        "p99Ms": 1.748864,
+        "minMs": 0.81328,
+        "maxMs": 2.495776
+      },
+      "callbackCpuMs": {
+        "count": 1800,
+        "meanMs": 4.569055555322104,
+        "p50Ms": 4.4000000059604645,
+        "p95Ms": 6.199999988079071,
+        "p99Ms": 8.199999988079071,
+        "minMs": 2.7999999970197678,
+        "maxMs": 35.79999999701977
+      },
+      "mapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 4.3955555554148225,
+        "p50Ms": 4.299999997019768,
+        "p95Ms": 6,
+        "p99Ms": 7.799999997019768,
+        "minMs": 2.5999999940395355,
+        "maxMs": 35.5
+      },
+      "sm500TimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 0.7496111112998591,
+        "p50Ms": 0.5999999940395355,
+        "p95Ms": 1.4000000059604645,
+        "p99Ms": 2.5,
+        "minMs": 0.19999998807907104,
+        "maxMs": 23.799999997019768
+      },
+      "directTimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 0.8141111110978656,
+        "p50Ms": 0.6000000089406967,
+        "p95Ms": 1.4000000059604645,
+        "p99Ms": 3.7999999970197678,
+        "minMs": 0.20000000298023224,
+        "maxMs": 23.799999997019768
+      },
+      "rawAndUpscaleCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.4001092088888889,
+        "p50Ms": 0.38912,
+        "p95Ms": 0.39936,
+        "p99Ms": 0.72496,
+        "minMs": 0.381792,
+        "maxMs": 1.224704
+      },
+      "temporalAndCopyCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.68850608,
+        "p50Ms": 0.669984,
+        "p95Ms": 0.82592,
+        "p99Ms": 1.202176,
+        "minMs": 0.422624,
+        "maxMs": 2.108096
+      },
+      "hostWaitCpuMs": {
+        "count": 1800,
+        "meanMs": 4.3955555554148225,
+        "p50Ms": 4.299999997019768,
+        "p95Ms": 6,
+        "p99Ms": 7.799999997019768,
+        "minMs": 2.5999999940395355,
+        "maxMs": 35.5
+      }
+    },
+    "counter-blocking": {
+      "rawHorizonGpuMs": {
+        "count": 1800,
+        "meanMs": 0.20521628444444445,
+        "p50Ms": 0.202176,
+        "p95Ms": 0.204288,
+        "p99Ms": 0.2168,
+        "minMs": 0.198368,
+        "maxMs": 0.872352
+      },
+      "reconstructionGpuMs": {
+        "count": 1800,
+        "meanMs": 0.1870168711111111,
+        "p50Ms": 0.185792,
+        "p95Ms": 0.188096,
+        "p99Ms": 0.196608,
+        "minMs": 0.180224,
+        "maxMs": 0.956416
+      },
+      "temporalComputeGpuMs": {
+        "count": 1800,
+        "meanMs": 0.68593776,
+        "p50Ms": 0.656896,
+        "p95Ms": 0.8888,
+        "p99Ms": 1.351904,
+        "minMs": 0.423936,
+        "maxMs": 2.027392
+      },
+      "queueSpanGpuMs": {
+        "count": 1800,
+        "meanMs": 3.2333106311111113,
+        "p50Ms": 3.137696,
+        "p95Ms": 4.16672,
+        "p99Ms": 5.39664,
+        "minMs": 2.107392,
+        "maxMs": 14.411552
+      },
+      "commandGpuMs": {
+        "count": 1800,
+        "meanMs": 1.0812248533333333,
+        "p50Ms": 1.0473919999999999,
+        "p95Ms": 1.303296,
+        "p99Ms": 1.8848319999999998,
+        "minMs": 0.8165439999999999,
+        "maxMs": 2.421376
+      },
+      "callbackCpuMs": {
+        "count": 1800,
+        "meanMs": 3.625888888993197,
+        "p50Ms": 3.5,
+        "p95Ms": 4.5999999940395355,
+        "p99Ms": 5.9000000059604645,
+        "minMs": 2.699999988079071,
+        "maxMs": 23.799999997019768
+      },
+      "mapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 3.4090555554876727,
+        "p50Ms": 3.2999999970197678,
+        "p95Ms": 4.299999997019768,
+        "p99Ms": 5.5999999940395355,
+        "minMs": 2.4000000059604645,
+        "maxMs": 23.400000005960464
+      },
+      "sm500TimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 0.7451666664083799,
+        "p50Ms": 0.6000000089406967,
+        "p95Ms": 1.2999999970197678,
+        "p99Ms": 2.1000000089406967,
+        "minMs": 0.20000000298023224,
+        "maxMs": 23.099999994039536
+      },
+      "directTimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 0.7724999998923805,
+        "p50Ms": 0.699999988079071,
+        "p95Ms": 1.2999999970197678,
+        "p99Ms": 2.0999999940395355,
+        "minMs": 0.29999999701976776,
+        "maxMs": 23.19999998807907
+      },
+      "rawAndUpscaleCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.3922531377777778,
+        "p50Ms": 0.387552,
+        "p95Ms": 0.391168,
+        "p99Ms": 0.559104,
+        "minMs": 0.380928,
+        "maxMs": 1.157376
+      },
+      "temporalAndCopyCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.6889717155555555,
+        "p50Ms": 0.659456,
+        "p95Ms": 0.892064,
+        "p99Ms": 1.354368,
+        "minMs": 0.427744,
+        "maxMs": 2.029888
+      },
+      "hostWaitCpuMs": {
+        "count": 1800,
+        "meanMs": 3.4090555554876727,
+        "p50Ms": 3.2999999970197678,
+        "p95Ms": 4.299999997019768,
+        "p99Ms": 5.5999999940395355,
+        "minMs": 2.4000000059604645,
+        "maxMs": 23.400000005960464
+      }
+    },
+    "baseline-deferred": {
+      "rawHorizonGpuMs": {
+        "count": 1800,
+        "meanMs": 0.20430840888888888,
+        "p50Ms": 0.202304,
+        "p95Ms": 0.204352,
+        "p99Ms": 0.221184,
+        "minMs": 0.198464,
+        "maxMs": 0.827392
+      },
+      "reconstructionGpuMs": {
+        "count": 1800,
+        "meanMs": 0.18745264,
+        "p50Ms": 0.185888,
+        "p95Ms": 0.188352,
+        "p99Ms": 0.1992,
+        "minMs": 0.180384,
+        "maxMs": 0.828
+      },
+      "temporalComputeGpuMs": {
+        "count": 1800,
+        "meanMs": 0.6949047466666667,
+        "p50Ms": 0.66944,
+        "p95Ms": 0.842016,
+        "p99Ms": 1.441792,
+        "minMs": 0.427552,
+        "maxMs": 2.16688
+      },
+      "queueSpanGpuMs": {
+        "count": 1800,
+        "meanMs": 1.273550631111111,
+        "p50Ms": 1.259456,
+        "p95Ms": 1.520416,
+        "p99Ms": 2.183904,
+        "minMs": 0.840032,
+        "maxMs": 3.128832
+      },
+      "commandGpuMs": {
+        "count": 1800,
+        "meanMs": 1.0901820444444446,
+        "p50Ms": 1.06064,
+        "p95Ms": 1.277088,
+        "p99Ms": 1.88544,
+        "minMs": 0.8198080000000001,
+        "maxMs": 2.560512
+      },
+      "callbackCpuMs": {
+        "count": 1800,
+        "meanMs": 0.20105555545952586,
+        "p50Ms": 0.20000000298023224,
+        "p95Ms": 0.3999999910593033,
+        "p99Ms": 0.5,
+        "minMs": 0,
+        "maxMs": 1.3999999910593033
+      },
+      "mapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 2.4951111110465396,
+        "p50Ms": 2.0999999940395355,
+        "p95Ms": 4.299999997019768,
+        "p99Ms": 5.300000011920929,
+        "minMs": 1.2999999970197678,
+        "maxMs": 12.899999991059303
+      },
+      "sm500TimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 2.5292777778373825,
+        "p50Ms": 2.0999999940395355,
+        "p95Ms": 4.4000000059604645,
+        "p99Ms": 5.299999997019768,
+        "minMs": 1.2999999970197678,
+        "maxMs": 13.599999994039536
+      },
+      "directTimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 2.5779444445172945,
+        "p50Ms": 2.0999999940395355,
+        "p95Ms": 4.5,
+        "p99Ms": 5.5,
+        "minMs": 1.2999999970197678,
+        "maxMs": 13.599999994039536
+      },
+      "rawAndUpscaleCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.3917800533333334,
+        "p50Ms": 0.387744,
+        "p95Ms": 0.391968,
+        "p99Ms": 0.554976,
+        "minMs": 0.380928,
+        "maxMs": 1.032192
+      },
+      "temporalAndCopyCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.6984019911111111,
+        "p50Ms": 0.672544,
+        "p95Ms": 0.846112,
+        "p99Ms": 1.445888,
+        "minMs": 0.43008,
+        "maxMs": 2.171392
+      },
+      "hostWaitCpuMs": {
+        "count": 1800,
+        "meanMs": 0.0,
+        "p50Ms": 0,
+        "p95Ms": 0,
+        "p99Ms": 0,
+        "minMs": 0,
+        "maxMs": 0
+      }
+    },
+    "counter-deferred": {
+      "rawHorizonGpuMs": {
+        "count": 1800,
+        "meanMs": 0.2106744177777778,
+        "p50Ms": 0.202816,
+        "p95Ms": 0.206208,
+        "p99Ms": 0.466944,
+        "minMs": 0.198656,
+        "maxMs": 0.840992
+      },
+      "reconstructionGpuMs": {
+        "count": 1800,
+        "meanMs": 0.18609932444444446,
+        "p50Ms": 0.185952,
+        "p95Ms": 0.188352,
+        "p99Ms": 0.196608,
+        "minMs": 0.180544,
+        "maxMs": 0.732768
+      },
+      "temporalComputeGpuMs": {
+        "count": 1800,
+        "meanMs": 0.6783604622222222,
+        "p50Ms": 0.65328,
+        "p95Ms": 0.869184,
+        "p99Ms": 1.238144,
+        "minMs": 0.420224,
+        "maxMs": 1.86736
+      },
+      "queueSpanGpuMs": {
+        "count": 1800,
+        "meanMs": 1.1145694577777778,
+        "p50Ms": 1.068256,
+        "p95Ms": 1.4048,
+        "p99Ms": 1.957888,
+        "minMs": 0.8288,
+        "maxMs": 2.655936
+      },
+      "commandGpuMs": {
+        "count": 1800,
+        "meanMs": 1.0786162666666668,
+        "p50Ms": 1.046368,
+        "p95Ms": 1.336192,
+        "p99Ms": 1.7115200000000002,
+        "minMs": 0.807264,
+        "maxMs": 2.494272
+      },
+      "callbackCpuMs": {
+        "count": 1800,
+        "meanMs": 0.16144444439146255,
+        "p50Ms": 0.10000000894069672,
+        "p95Ms": 0.29999999701976776,
+        "p99Ms": 0.4000000059604645,
+        "minMs": 0,
+        "maxMs": 0.9000000059604645
+      },
+      "mapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 4.4312222222238775,
+        "p50Ms": 4.399999991059303,
+        "p95Ms": 5.699999988079071,
+        "p99Ms": 7.200000002980232,
+        "minMs": 1.7999999970197678,
+        "maxMs": 35.70000000298023
+      },
+      "sm500TimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 4.4655555554562145,
+        "p50Ms": 4.4000000059604645,
+        "p95Ms": 5.600000008940697,
+        "p99Ms": 7.0999999940395355,
+        "minMs": 1.7000000029802322,
+        "maxMs": 35.79999999701977
+      },
+      "directTimestampMapLatencyCpuMs": {
+        "count": 1800,
+        "meanMs": 4.499722222031819,
+        "p50Ms": 4.5,
+        "p95Ms": 5.700000002980232,
+        "p99Ms": 7.199999988079071,
+        "minMs": 1.7000000029802322,
+        "maxMs": 35.8999999910593
+      },
+      "rawAndUpscaleCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.39679359999999997,
+        "p50Ms": 0.38912,
+        "p95Ms": 0.395872,
+        "p99Ms": 0.666784,
+        "minMs": 0.381856,
+        "maxMs": 1.028096
+      },
+      "temporalAndCopyCommandGpuMs": {
+        "count": 1800,
+        "meanMs": 0.6818226666666667,
+        "p50Ms": 0.656288,
+        "p95Ms": 0.873248,
+        "p99Ms": 1.241088,
+        "minMs": 0.424,
+        "maxMs": 1.871296
+      },
+      "hostWaitCpuMs": {
+        "count": 1800,
+        "meanMs": 0.0,
+        "p50Ms": 0,
+        "p95Ms": 0,
+        "p99Ms": 0,
+        "minMs": 0,
+        "maxMs": 0
+      }
+    }
+  },
+  "comparisons": {
+    "baseline-blocking -> counter-blocking": {
+      "queueSpanGpuMs": {
+        "baselineMeanMs": 2.8480985955555553,
+        "candidateMeanMs": 3.2333106311111113,
+        "candidateMinusBaselineMs": 0.38521203555555594,
+        "reductionPercent": -13.525235262454661
+      },
+      "commandGpuMs": {
+        "baselineMeanMs": 1.088615288888889,
+        "candidateMeanMs": 1.0812248533333333,
+        "candidateMinusBaselineMs": -0.00739043555555563,
+        "reductionPercent": 0.6788840493962551
+      },
+      "temporalComputeGpuMs": {
+        "baselineMeanMs": 0.6853691022222221,
+        "candidateMeanMs": 0.68593776,
+        "candidateMinusBaselineMs": 0.0005686577777778146,
+        "reductionPercent": -0.08297102625928336
+      },
+      "callbackCpuMs": {
+        "baselineMeanMs": 4.569055555322104,
+        "candidateMeanMs": 3.625888888993197,
+        "candidateMinusBaselineMs": -0.9431666663289073,
+        "reductionPercent": 20.642486284288942
+      }
+    },
+    "baseline-blocking -> baseline-deferred": {
+      "queueSpanGpuMs": {
+        "baselineMeanMs": 2.8480985955555553,
+        "candidateMeanMs": 1.273550631111111,
+        "candidateMinusBaselineMs": -1.5745479644444442,
+        "reductionPercent": 55.28418036164615
+      },
+      "commandGpuMs": {
+        "baselineMeanMs": 1.088615288888889,
+        "candidateMeanMs": 1.0901820444444446,
+        "candidateMinusBaselineMs": 0.0015667555555556323,
+        "reductionPercent": -0.1439218768601683
+      },
+      "temporalComputeGpuMs": {
+        "baselineMeanMs": 0.6853691022222221,
+        "candidateMeanMs": 0.6949047466666667,
+        "candidateMinusBaselineMs": 0.009535644444444547,
+        "reductionPercent": -1.3913151925767344
+      },
+      "callbackCpuMs": {
+        "baselineMeanMs": 4.569055555322104,
+        "candidateMeanMs": 0.20105555545952586,
+        "candidateMinusBaselineMs": -4.367999999862579,
+        "reductionPercent": 95.59962550191948
+      }
+    },
+    "baseline-deferred -> counter-deferred": {
+      "queueSpanGpuMs": {
+        "baselineMeanMs": 1.273550631111111,
+        "candidateMeanMs": 1.1145694577777778,
+        "candidateMinusBaselineMs": -0.15898117333333328,
+        "reductionPercent": 12.48330215145274
+      },
+      "commandGpuMs": {
+        "baselineMeanMs": 1.0901820444444446,
+        "candidateMeanMs": 1.0786162666666668,
+        "candidateMinusBaselineMs": -0.011565777777777786,
+        "reductionPercent": 1.0609033451538539
+      },
+      "temporalComputeGpuMs": {
+        "baselineMeanMs": 0.6949047466666667,
+        "candidateMeanMs": 0.6783604622222222,
+        "candidateMinusBaselineMs": -0.016544284444444446,
+        "reductionPercent": 2.3807988826964284
+      },
+      "callbackCpuMs": {
+        "baselineMeanMs": 0.20105555545952586,
+        "candidateMeanMs": 0.16144444439146255,
+        "candidateMinusBaselineMs": -0.03961111106806331,
+        "reductionPercent": 19.701575008723076
+      }
+    },
+    "baseline-blocking -> counter-deferred": {
+      "queueSpanGpuMs": {
+        "baselineMeanMs": 2.8480985955555553,
+        "candidateMeanMs": 1.1145694577777778,
+        "candidateMinusBaselineMs": -1.7335291377777775,
+        "reductionPercent": 60.86619123660051
+      },
+      "commandGpuMs": {
+        "baselineMeanMs": 1.088615288888889,
+        "candidateMeanMs": 1.0786162666666668,
+        "candidateMinusBaselineMs": -0.009999022222222154,
+        "reductionPercent": 0.9185083402997033
+      },
+      "temporalComputeGpuMs": {
+        "baselineMeanMs": 0.6853691022222221,
+        "candidateMeanMs": 0.6783604622222222,
+        "candidateMinusBaselineMs": -0.007008639999999899,
+        "reductionPercent": 1.0226081066793462
+      },
+      "callbackCpuMs": {
+        "baselineMeanMs": 4.569055555322104,
+        "candidateMeanMs": 0.16144444439146255,
+        "candidateMinusBaselineMs": -4.407611110930642,
+        "reductionPercent": 96.46656858432353
+      }
+    }
+  },
+  "limitations": [
+    "This audit reads only retained JSON and immutable Git objects. It does not rerun GPU/browser measurements or certify human visual acceptance.",
+    "Full texture bytes are not retained in comparison.json; this audit independently checks all four retained SHA-256 identities and eight raw counter words at each snapshot. Exact byte comparison was performed by the recorded harness at capture time.",
+    "Direct compute uint64 nanosecond samples are retained and independently recomputed. SM-500 raw query nanoseconds are not exported in this JSON; its explicit command sums and queue/gpuMs aliases are recomputed from retained span values.",
+    "Each canvas is unscaled 1920x1080 at DPR1; desktop screen metadata is 2560x1440. The screen resolution was not changed.",
+    "The four-way comparison uses shared queue/scene preparation and rotating serial variants. Deferred map initiation occurs inside the frozen scheduler; all remaining drains occur outside measured callbacks. Timestamp transport and adjacent variants can affect scheduling.",
+    "This is a distinct fa388aa diagnostic source and instrumentation boundary. No earlier physical source or campaign distribution is pooled here. Same-source pooled summaries are descriptive, not acceptance distributions.",
+    "A small change in explicit GPU command/temporal cost does not explain the larger callback-bound queue reduction. No command execution time is manufactured by subtracting host/CPU/readback time from queue spans.",
+    "Diagnostic-only success does not complete SM-601. Selected production integration requires fresh full acceptance evidence on its own exact source and any explicitly required human visual review."
+  ]
+}

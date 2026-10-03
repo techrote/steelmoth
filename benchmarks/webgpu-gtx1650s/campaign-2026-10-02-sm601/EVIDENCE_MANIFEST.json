@@ -1,0 +1,260 @@
+{
+  "schema": "steelmoth-physical-campaign-evidence-manifest/v1",
+  "createdAtUtc": "2026-10-03T01:00:12.686438+00:00",
+  "measuredProductionSource": "b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275",
+  "files": [
+    {
+      "path": "audit_complete_candidate_evidence.py",
+      "bytes": 25461,
+      "rawWindowsSha256": "e596ac2c42bc4420e7299b68f8fff8303f934f89bd34312abf309569bce77ea8",
+      "canonicalGitSha256": "e596ac2c42bc4420e7299b68f8fff8303f934f89bd34312abf309569bce77ea8",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "candidate-evidence-table-draft-v2.txt",
+      "bytes": 5601,
+      "rawWindowsSha256": "2ca6509ff181d72032d43504653b73f7cd523a5074efe48fddedb1bc3554016f",
+      "canonicalGitSha256": "2ca6509ff181d72032d43504653b73f7cd523a5074efe48fddedb1bc3554016f",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "complete-candidate-evidence-audit.json",
+      "bytes": 63155,
+      "rawWindowsSha256": "b2aea4b15d761a1da1c83207199ad6318ce26c859e0a319d287003df3d105f1d",
+      "canonicalGitSha256": "d67b8a4c6d22c91d96a15c5fb41874f424f9c19340762be3c90c7ffab8f3c4b0",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 1361,
+      "rawWindowsSha256": "d254a88a38e5bfb68d9f266311803593cfbc69361546e407873ca9f4e30ad137",
+      "canonicalGitSha256": "a9e4edeb0ed6aa9b5f76b430ec9b45c45e353a546d17746ed3d3769e5574a7b3",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "native-fa388aa-comparison/audit_native_fa388aa.py",
+      "bytes": 21589,
+      "rawWindowsSha256": "3dd63478fd8e9203b006b1aff4f2d31e3371f3bca448eae3642f748838142733",
+      "canonicalGitSha256": "3dd63478fd8e9203b006b1aff4f2d31e3371f3bca448eae3642f748838142733",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "native-fa388aa-comparison/comparison.json",
+      "bytes": 44140846,
+      "rawWindowsSha256": "a5c56eff6b8bd786b7405352d6344975560bcdd7d3f3610b25a517bad6809edd",
+      "canonicalGitSha256": "76ee2cab9927d673855b3568f2c89d71cb53961402334aa009ac51bc23976343",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "native-fa388aa-comparison/independent-audit.json",
+      "bytes": 69104,
+      "rawWindowsSha256": "49a377f29c84ea2a8fb0b689c9ec921998bf6149f06f428e107d5ec96f5713d9",
+      "canonicalGitSha256": "59bf194eda84c28593b15a21916c0087ca78e3ae59686cc0201b1c15d93fda68",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "native-fa388aa-comparison/independent-evidence-table.md",
+      "bytes": 3639,
+      "rawWindowsSha256": "440e6c24b7cd62d5c6472f40e57fd5d3be66c71826f1d4c29855a361e1c1786c",
+      "canonicalGitSha256": "7ff55a19f8954b753fff0432b08ee25c4a55ef1d166ac3f5512d6b52563e2389",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr104-ad06d9f/counter-study.json",
+      "bytes": 43454,
+      "rawWindowsSha256": "5be99ba5c5058fa39848821f7e5348c710f74beff91ff16072310457b6b41463",
+      "canonicalGitSha256": "30c0e7937a4e74389c2a26f8bfa6c56c58c76c7ca0749bd02f154307d5afb5b5",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr104-ad06d9f/source-environment.json",
+      "bytes": 703,
+      "rawWindowsSha256": "ebd4ec8a35cf71d0ea45efc75c594a36ff1f1df60b0f6317ca65ed56b8c5e001",
+      "canonicalGitSha256": "984dc254c8bb676286f9c2469f8104127289576358cda3c586fa4eebb2aaec73",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr104-startup-ae0bd3f/counter-study.json",
+      "bytes": 128649,
+      "rawWindowsSha256": "a2b7c9ac8d97dcbb858713805b2bc658c682abc3a0ecb859ba25aa28cdcc6296",
+      "canonicalGitSha256": "ce17d1d42cb113b71ef324b92e09434a9e2255da3eb086b2e3c35a11a4f88f59",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-dad8c46/final-progress-before-deadline.json",
+      "bytes": 222801,
+      "rawWindowsSha256": "1fc709bff462065422ce6acc75e20f365a838ea64e3ca75d44447cd7189f4cac",
+      "canonicalGitSha256": "b708e0295c209f2b54e2b50ca8add35cb0cc5ea1ab2a77c0647a0704ad0b3a0b",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-dad8c46/progress-before-deadline.json",
+      "bytes": 121642,
+      "rawWindowsSha256": "7605fbf123355affaebc2da1426a9a138e90836ef5f93ca4d635bc7d23b87658",
+      "canonicalGitSha256": "c5fc9d0478ef2887a7f8aca863b4a839763e00dea253990490148db6c71e5277",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-dad8c46/readback-study.json",
+      "bytes": 171140,
+      "rawWindowsSha256": "259bb7732d20ba62717fc84c6c1dc85b38bdfeafff019f115c3f3e3963aa413d",
+      "canonicalGitSha256": "7c36d74ccefeddd776b563bbbe225ebb9589d8b9c50a996257fbabbbdf882345",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-dad8c46/source-environment.json",
+      "bytes": 704,
+      "rawWindowsSha256": "4522c5c2d75b5b04dd94d8a8b3464ec25b9514719ddf98c47cd6294ffd1e954b",
+      "canonicalGitSha256": "345038bc2e70699427e9683c4630a2b6c7d24b88562f2cb06c3298140273dd8e",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-dad8c46/timeout-progress.json",
+      "bytes": 262068,
+      "rawWindowsSha256": "3545de50474d465df1ae80426af6544f65b183b8d3a337cdb6a228484c7e85e8",
+      "canonicalGitSha256": "dc6856e60c1192b9c3896da6ca22c6330d5310cd7bea8b67b650f82bcb3625c4",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-fixture-cache-d943827/full-hd-preservation.json",
+      "bytes": 16682,
+      "rawWindowsSha256": "45ad7be73d8ecbb91e13aeb89dfe6ab806e132286e68b7997bf73643f21dc3e8",
+      "canonicalGitSha256": "45ad7be73d8ecbb91e13aeb89dfe6ab806e132286e68b7997bf73643f21dc3e8",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-fixture-cache-d943827/readback-study.json",
+      "bytes": 1314973,
+      "rawWindowsSha256": "96046757975c71fd4ff923559d2fd289fb544a90cf0be33fb397418263a38753",
+      "canonicalGitSha256": "a32766df3c1a5de1b93b6cf89c1ce51918ac89b9c1f38af6ee9dea462530ac49",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr105-fixture-cache-d943827/source-environment.json",
+      "bytes": 654,
+      "rawWindowsSha256": "a09e7e3deea88273469b54b1014c8f29fa3f926b71c7f40af53d4cf016792a9f",
+      "canonicalGitSha256": "8b6bbaff23f69de3a96bcb589f07671f55531139ee6884dfeedbeed01da71756",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr106-1813085/dense-study.json",
+      "bytes": 17314,
+      "rawWindowsSha256": "e86f9e490ff169e135d4bfb373cba32aa8d6863fde04e8e41daaa397ebae789a",
+      "canonicalGitSha256": "91515078dcdb241ef594f950918db4b518b88f2373f0598b081918a59bc8ce52",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr106-1813085/source-environment.json",
+      "bytes": 715,
+      "rawWindowsSha256": "fe97e7d54d42786263f0be62782687e5696cf35e995cd81b22a0620b5acc0825",
+      "canonicalGitSha256": "7700e3243a8239161607c3448e83d0bfa2bc6e6f587339dbb14fea8f1c4ba1fc",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "pr106-neutral-witness/neutral-witness.json",
+      "bytes": 61201,
+      "rawWindowsSha256": "d520a89e9f646a49861811c37cf95d9d9ce87ad715d2d6cf17e853c54fdcbff3",
+      "canonicalGitSha256": "ef0ef3218e0e7fa38462ba03f86e23fda9813c8c9f60261e1e69173fadf568f4",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/raw/chrome/session-01/dynamic-robot.json",
+      "bytes": 753746,
+      "rawWindowsSha256": "365d58384211461fe5034928e6928c925e68332653d4834590e0d94077860abc",
+      "canonicalGitSha256": "7e325bd3e59b7d16f606d4c9a8052d74029afd831d634cce79b446c86c9a72ae",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/raw/chrome/session-01/dynamic-robot.png",
+      "bytes": 398770,
+      "rawWindowsSha256": "9dbc594eb249072eab9d4ab68160ca995142e5f8b43c9a74c0bcb8696228b6ba",
+      "canonicalGitSha256": "9dbc594eb249072eab9d4ab68160ca995142e5f8b43c9a74c0bcb8696228b6ba",
+      "canonicalization": "none"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/raw/chrome/session-02/dynamic-robot.json",
+      "bytes": 753248,
+      "rawWindowsSha256": "1bedb01bcb0cc60a11e19305d1dadd05842c657969fdca1a3313b44c2be92ef3",
+      "canonicalGitSha256": "39368fbe00edc4c2b947c20de5783bbd6a26b6ebaa4ccf5fccdd24effd1e5472",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/raw/chrome/session-02/dynamic-robot.png",
+      "bytes": 399239,
+      "rawWindowsSha256": "7acb91e5286e95a767075e24527f24d68fb451603be86dc6be3fb31893e8084b",
+      "canonicalGitSha256": "7acb91e5286e95a767075e24527f24d68fb451603be86dc6be3fb31893e8084b",
+      "canonicalization": "none"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/raw/chrome/session-03/dynamic-robot.json",
+      "bytes": 753665,
+      "rawWindowsSha256": "893afc5710d0624342529863a0d09f62d9b10c364a738f47e40f614cb2b3c617",
+      "canonicalGitSha256": "76e0c7a63ff4b0d7d4d606429d0b0c201b8c9c510cfa61a499ab862c6e8cdd0c",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/raw/chrome/session-03/dynamic-robot.png",
+      "bytes": 398860,
+      "rawWindowsSha256": "e951a5f44aab934c5c732938ba9905f089db6ced1d16e1ef2308d614488d1565",
+      "canonicalGitSha256": "e951a5f44aab934c5c732938ba9905f089db6ced1d16e1ef2308d614488d1565",
+      "canonicalization": "none"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/target-report.json",
+      "bytes": 2532115,
+      "rawWindowsSha256": "d0cdaf55562da9b4baea54316e610069eae2249ddd59c1a4f0814814742c0147",
+      "canonicalGitSha256": "763027839e43513c1f43eeb8531c13a1e2cc33c8ab5a8e0aeb484a28d7d37d3c",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-acceptance/sm601-2026-09-19/validator.log",
+      "bytes": 410,
+      "rawWindowsSha256": "60c0afa6cf45869cb6ecfe27556307f5aa15adcd75914b2787f5cd008c54bab1",
+      "canonicalGitSha256": "4916d7e6a2849a2df709e8c8c1bdf28664202605a1456677dabd7f445fbe6755",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-clean-package.json",
+      "bytes": 7607,
+      "rawWindowsSha256": "930b8931c50a37f4c1220ac2c8809b6ff56e8464fd61a8bfdc6badcec4c2991f",
+      "canonicalGitSha256": "ed73dba7912dcd652a848df91dddc08b42a36479ae8262f2422f9065b0319951",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-core-checks.json",
+      "bytes": 43383,
+      "rawWindowsSha256": "4051432c5bc4b84b9654a5a1ce4472552056c5d08f1bab6e911567567fc356f4",
+      "canonicalGitSha256": "003f464ee167dee84a623e37caf8d78a7201ee013d6828418e0a404a941ed357",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-b1e87b0-decomposition/diagnostic.json",
+      "bytes": 12478280,
+      "rawWindowsSha256": "631bff42c4b0bf1dad6d478c33b2d5b45869e6cc343487f4f51cb8b68c7dcca4",
+      "canonicalGitSha256": "7af03aeb8380392ec754cd74520f406fcfec39e5abf02bc55ccc893acd0d70e7",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-native-correctness/adoption.json",
+      "bytes": 19072,
+      "rawWindowsSha256": "45bbbc1ab86e93ab0c1e9cb1df641ad97bdf450255f363ae70c8b9ab71b37a55",
+      "canonicalGitSha256": "feaa04503dd07ad8fd86e27b1177934c42b27edd30d77f49d71cdbadbf73ac31",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "production-small-correctness/adoption.json",
+      "bytes": 201286,
+      "rawWindowsSha256": "1e296c4a9f41e69092f3288ffa662a0cb247704e40565c6950272b34b4fcc211",
+      "canonicalGitSha256": "ebda0bcb571cea0adcb3b66bbe9086d7767361750d8f01b313fb8d4f1e297a1d",
+      "canonicalization": "CRLF to LF only"
+    },
+    {
+      "path": "SUMMARY.md",
+      "bytes": 1684,
+      "rawWindowsSha256": "89f23d2e2adab74d974fe752fbdadb1ceb31bb7d55a746c769d7f2f16b563072",
+      "canonicalGitSha256": "89f23d2e2adab74d974fe752fbdadb1ceb31bb7d55a746c769d7f2f16b563072",
+      "canonicalization": "CRLF to LF only"
+    }
+  ],
+  "note": "Raw values are immutable; canonical text hashes account for Git line-ending normalization. No source heads are pooled."
+}

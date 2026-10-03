@@ -1,0 +1,569 @@
+{
+  "schema": "steelmoth-sm601-arithmetic-study-runs/v1",
+  "ok": false,
+  "runs": [
+    {
+      "schema": "steelmoth-sm601-arithmetic-study/v1/browser-report",
+      "ok": false,
+      "targetAcceptance": false,
+      "softwareRequested": false,
+      "benchmark": true,
+      "evidenceBoundary": "Isolated SM-600 horizon/reconstruction arithmetic and resource correctness. No SM-601 temporal acceptance, game integration, visual sign-off or target speedup inferred.",
+      "compilation": [
+        {
+          "label": "baseline-raw",
+          "messages": []
+        },
+        {
+          "label": "baseline-upsample",
+          "messages": []
+        },
+        {
+          "label": "raw-shared-raw",
+          "messages": []
+        },
+        {
+          "label": "upsample-shared-upsample",
+          "messages": []
+        }
+      ],
+      "cases": [
+        {
+          "width": 1,
+          "height": 1,
+          "pattern": "plane",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 1,
+          "height": 1,
+          "pattern": "dense",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.9999999403953552,
+            "max": 0.9999999403953552,
+            "mean": 0.9999999403953552
+          },
+          "maxReferenceError": 5.960464477539063e-08
+        },
+        {
+          "width": 1,
+          "height": 1,
+          "pattern": "sparse",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 1,
+          "height": 1,
+          "pattern": "empty",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 1,
+          "height": 1,
+          "pattern": "edge",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 1,
+          "height": 1,
+          "pattern": "saturated",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.9999999403953552,
+            "max": 0.9999999403953552,
+            "mean": 0.9999999403953552
+          },
+          "maxReferenceError": 5.960464477539063e-08
+        },
+        {
+          "width": 1,
+          "height": 9,
+          "pattern": "plane",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 1,
+          "height": 9,
+          "pattern": "dense",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.1499023288488388,
+            "max": 1,
+            "mean": 0.5625284363826116
+          },
+          "maxReferenceError": 1.1920928955078125e-07
+        },
+        {
+          "width": 1,
+          "height": 9,
+          "pattern": "sparse",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 1,
+          "height": 9,
+          "pattern": "empty",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 1,
+          "height": 9,
+          "pattern": "edge",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.9999999403953552,
+            "max": 1,
+            "mean": 0.999999980131785
+          },
+          "maxReferenceError": 5.960464477539063e-08
+        },
+        {
+          "width": 1,
+          "height": 9,
+          "pattern": "saturated",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.1518862247467041,
+            "max": 0.9987326860427856,
+            "mean": 0.6130214201079475
+          },
+          "maxReferenceError": 5.960464477539063e-08
+        },
+        {
+          "width": 9,
+          "height": 1,
+          "pattern": "plane",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 9,
+          "height": 1,
+          "pattern": "dense",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.5234374403953552,
+            "max": 1,
+            "mean": 0.8114280104637146
+          },
+          "maxReferenceError": 5.960464477539063e-08
+        },
+        {
+          "width": 9,
+          "height": 1,
+          "pattern": "sparse",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 9,
+          "height": 1,
+          "pattern": "empty",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 1,
+            "max": 1,
+            "mean": 1
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 9,
+          "height": 1,
+          "pattern": "edge",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.2666015625,
+            "max": 1,
+            "mean": 0.6335233549276987
+          },
+          "maxReferenceError": 0
+        },
+        {
+          "width": 9,
+          "height": 1,
+          "pattern": "saturated",
+          "options": {
+            "enabled": true,
+            "directions": 6,
+            "steps": 4,
+            "radius": 12,
+            "bias": 0.0015,
+            "depthScale": 34,
+            "intensity": 1.1,
+            "depthSigma": 180,
+            "normalPower": 4,
+            "debugMode": "visibility"
+          },
+          "repeats": 2,
+          "allThreeOutputsByteIdentical": true,
+          "baselineField": {
+            "min": 0.2668238580226898,
+            "max": 1,
+            "mean": 0.7137005693382688
+          },
+          "maxReferenceError": 5.960464477539063e-08
+        }
+      ],
+      "uncapturedErrors": [],
+      "candidateHashes": {
+        "baseline": {
+          "raw": "d6bbbf28517866d9b3ca6e5de3b54847e4147f89a15df1be3ce47200d0cbae78",
+          "upsample": "7ddda64b8e31f11998ce77abb721c4b1e105e468e1e3785e28374eb0c9ef81cd"
+        },
+        "raw-shared": {
+          "raw": "2cd6cab978d9d4daf1dadd19035f9a9dff93b93205025051c60242d4e3240780",
+          "upsample": "7ddda64b8e31f11998ce77abb721c4b1e105e468e1e3785e28374eb0c9ef81cd"
+        },
+        "upsample-shared": {
+          "raw": "d6bbbf28517866d9b3ca6e5de3b54847e4147f89a15df1be3ce47200d0cbae78",
+          "upsample": "18c3e3abb6659488b82f5893792579bba290127df354119fd003b6fcf0b1df6a"
+        },
+        "combined": {
+          "raw": "2cd6cab978d9d4daf1dadd19035f9a9dff93b93205025051c60242d4e3240780",
+          "upsample": "18c3e3abb6659488b82f5893792579bba290127df354119fd003b6fcf0b1df6a"
+        }
+      },
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "turing",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false,
+        "features": [
+          "bgra8unorm-storage",
+          "chromium-experimental-multi-draw-indirect",
+          "chromium-experimental-sampling-resource-table",
+          "chromium-experimental-timestamp-query-inside-passes",
+          "clip-distances",
+          "core-features-and-limits",
+          "depth-clip-control",
+          "depth32float-stencil8",
+          "dual-source-blending",
+          "float32-blendable",
+          "float32-filterable",
+          "indirect-first-instance",
+          "primitive-index",
+          "rg11b10ufloat-renderable",
+          "shader-f16",
+          "subgroup-size-control",
+          "subgroups",
+          "texture-component-swizzle",
+          "texture-compression-bc",
+          "texture-compression-bc-sliced-3d",
+          "texture-compression-unaligned",
+          "texture-formats-tier1",
+          "texture-formats-tier2",
+          "timestamp-query"
+        ]
+      },
+      "phase": "case-18-3x5-plane",
+      "error": "Error: Neutral fixture is not neutral.\n    at check (http://127.0.0.1:49182/sm601-gtao-arithmetic-study.html?hardware=1&benchmark=1&width=1920&height=1080&warmup=300&samples=600&pattern=dense:17:35)\n    at http://127.0.0.1:49182/sm601-gtao-arithmetic-study.html?hardware=1&benchmark=1&width=1920&height=1080&warmup=300&samples=600&pattern=dense:92:67",
+      "browserVersion": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/154.0.8037.92",
+        "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+        "jsVersion": "15.4.80.19"
+      },
+      "javascriptExceptions": [],
+      "browserCommand": [
+        "C:/Program Files/Google/Chrome/Application/chrome.exe",
+        "--headless=new",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--enable-unsafe-webgpu",
+        "--remote-debugging-port=0",
+        "about:blank"
+      ]
+    }
+  ],
+  "sourceSha256": {
+    "engine/webgpu_gtao.js": "62664abf30993b64bb0c2a069646dca17941274f8e19a1a3920dbc982dacb7e9",
+    "tools/sm601_gtao_arithmetic_study.js": "a81c9870b5f9705cbe06d98960df00e484abed378d344c37f379c4014a6d4a2c",
+    "tools/run_sm601_gtao_arithmetic_study.py": "e1005967bc9952996fb136141ee8a1260528f842483d8ce5ba6181c8e5d911b1",
+    "sm601-gtao-arithmetic-study.html": "83cbd04fef35ca36b49193f53386ad8f780f36b862b4003505ad586076903cb1"
+  },
+  "targetAcceptance": false,
+  "softwareRequested": false,
+  "createdAt": "2026-10-02T23:05:00.064650+00:00",
+  "hostPlatform": "Windows-11-10.0.26200-SP0",
+  "gpuInventory": "NVIDIA GeForce GTX 1650 SUPER, 616.92, 4096, 00000000:07:00.0"
+}

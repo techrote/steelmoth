@@ -50,6 +50,8 @@ Do not silently promote a historical suggestion into a requirement.
 
 - **WEBGL2_BASELINE_PERFORMANCE.md** — measured SM-003 GTX 1650 Super compatibility-renderer baseline, methodology and evidence boundary.
 
+- [`PHYSICAL_CAMPAIGN_CHECKPOINT_2026-10-03.md`](PHYSICAL_CAMPAIGN_CHECKPOINT_2026-10-03.md) — reviewed GTX 1650 SUPER campaign checkpoint, retained final-source evidence and remaining work; stopped at user request.
+
 ## Repository-native workflow artifacts
 
 - `AGENTS.md` — autonomous implementation/verification contract.

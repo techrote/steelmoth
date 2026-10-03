@@ -157,3 +157,20 @@ Canonical task/issue mapping is maintained in `docs/ISSUE_MAP.md`:
 - Added `tools/validate_planning.py` so the same canonical-map/dependency/index checks can run automatically once repository CI is established.
 
 No target-hardware benchmark has yet been accepted; SM-003 remains the WebGL2 GTX 1650 Super measurement lane and may proceed concurrently with documentation/source-audit work where baseline identity is pinned.
+
+## Physical campaign checkpoint — 2026-10-03
+
+Stopped at the user's explicit request after review and durable progress recording.
+PR #92 merged and #31 closed; timing repair #109 merged on main at
+`d642b4b9973ae629e28bf5f15ac3c6659e1eafcb`. SM-601 production source
+`b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275` remains on
+`codex/sm601-measured-adoption`, unmerged and awaiting its production PR,
+final-head hosted CI and remaining visual acceptance. Its three-run physical
+queue mean is 1.088006 ms, worst p95 1.288608 ms; native output/counter and numeric
+stability/rejection/composition checks pass. Source gate 86/86 and clean package
+18/18 pass. #36 remains open and SM-602 blocked. #106 retains its strict
+neutral-plane blocker; no research PR was merged.
+
+See the [full checkpoint](PHYSICAL_CAMPAIGN_CHECKPOINT_2026-10-03.md) and retained
+source-separated evidence. No campaign process or follow-up automation remains
+active.
