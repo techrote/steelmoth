@@ -1,0 +1,101 @@
+{
+  "schema": "steelmoth-sm601-complete-arithmetic-controls-summary/v1",
+  "sourceCommit": "2b8d01582fa6ccd954b4437f175658f1d337709b",
+  "ok": true,
+  "patterns": {
+    "dense": {
+      "baseline": {
+        "rawMs": 0.43758321777777776,
+        "upsampleMs": 0.35603948444444444,
+        "twoPassCommandSpanMs": 0.7936293155555556
+      },
+      "raw-shared": {
+        "rawMs": 0.4449655822222222,
+        "upsampleMs": 0.3566443022222222,
+        "twoPassCommandSpanMs": 0.8016156266666666
+      },
+      "upsample-shared": {
+        "rawMs": 0.43804687999999997,
+        "upsampleMs": 0.3221877511111111,
+        "twoPassCommandSpanMs": 0.7602395733333334
+      },
+      "combined": {
+        "rawMs": 0.44572917333333334,
+        "upsampleMs": 0.3236901688888889,
+        "twoPassCommandSpanMs": 0.769424
+      }
+    },
+    "sparse": {
+      "baseline": {
+        "rawMs": 0.4307706666666667,
+        "upsampleMs": 0.24776248888888888,
+        "twoPassCommandSpanMs": 0.6785392888888889
+      },
+      "raw-shared": {
+        "rawMs": 0.44798894222222224,
+        "upsampleMs": 0.2515665777777778,
+        "twoPassCommandSpanMs": 0.69956112
+      },
+      "upsample-shared": {
+        "rawMs": 0.43377139555555555,
+        "upsampleMs": 0.26735816888888886,
+        "twoPassCommandSpanMs": 0.7011380088888889
+      },
+      "combined": {
+        "rawMs": 0.44981740444444446,
+        "upsampleMs": 0.2749508088888889,
+        "twoPassCommandSpanMs": 0.7247748977777778
+      }
+    },
+    "empty": {
+      "baseline": {
+        "rawMs": 0.2104095111111111,
+        "upsampleMs": 0.1584911111111111,
+        "twoPassCommandSpanMs": 0.3689080533333333
+      },
+      "raw-shared": {
+        "rawMs": 0.21111061333333334,
+        "upsampleMs": 0.15740209777777778,
+        "twoPassCommandSpanMs": 0.3685188266666667
+      },
+      "upsample-shared": {
+        "rawMs": 0.21045205333333333,
+        "upsampleMs": 0.17209729777777777,
+        "twoPassCommandSpanMs": 0.38255404444444446
+      },
+      "combined": {
+        "rawMs": 0.21053084444444445,
+        "upsampleMs": 0.17157722666666667,
+        "twoPassCommandSpanMs": 0.38211296
+      }
+    },
+    "plane": {
+      "baseline": {
+        "rawMs": 0.3917518222222222,
+        "upsampleMs": 0.3264071288888889,
+        "twoPassCommandSpanMs": 0.7181650311111111
+      },
+      "raw-shared": {
+        "rawMs": 0.35736618666666664,
+        "upsampleMs": 0.3249351111111111,
+        "twoPassCommandSpanMs": 0.6823093511111111
+      },
+      "upsample-shared": {
+        "rawMs": 0.3904091911111111,
+        "upsampleMs": 0.28175152,
+        "twoPassCommandSpanMs": 0.6721672533333334
+      },
+      "combined": {
+        "rawMs": 0.3603580977777778,
+        "upsampleMs": 0.27981004444444446,
+        "twoPassCommandSpanMs": 0.6401757333333333
+      }
+    }
+  },
+  "timedVariantSamples": 28800,
+  "correctnessConfigurations": 1464,
+  "ordinaryArithmeticObservations": 120,
+  "targetAcceptance": false,
+  "commandBoundary": "two compute passes inside one encoder; temporal and host gaps excluded",
+  "disposition": "No arithmetic/cache adoption: dense reconstruction benefit regresses sparse and empty controls; raw shared is slower dense/sparse."
+}

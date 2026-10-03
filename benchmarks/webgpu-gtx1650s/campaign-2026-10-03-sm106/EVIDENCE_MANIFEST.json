@@ -1,0 +1,48 @@
+{
+  "sourceCommit": "2b8d01582fa6ccd954b4437f175658f1d337709b",
+  "files": [
+    {
+      "path": "dense-study.json",
+      "rawSha256": "053da78401640c73d9642899330d92de7bacd49a91b6fd9db464416aab15bf07",
+      "canonicalGitSha256": "736d08495ce3e49fd7f2fb28c96360c5bcdd9ad4efcb8d8bc14436abf445a646",
+      "bytes": 4728322
+    },
+    {
+      "path": "empty-study.json",
+      "rawSha256": "7254bb91aece08833cf3ca78ab6205fcef177229158399d5a58fe347ff8b3b4c",
+      "canonicalGitSha256": "9f7a4d4e39e432dbf3eceeecacdeb921c841ffb69aa310eb226857a074264394",
+      "bytes": 4726363
+    },
+    {
+      "path": "environment.json",
+      "rawSha256": "d254a88a38e5bfb68d9f266311803593cfbc69361546e407873ca9f4e30ad137",
+      "canonicalGitSha256": "a9e4edeb0ed6aa9b5f76b430ec9b45c45e353a546d17746ed3d3769e5574a7b3",
+      "bytes": 1361
+    },
+    {
+      "path": "plane-study.json",
+      "rawSha256": "e0109f0eb0bce586819829f875be30071fba99fa1168b628b67b48c7ab291363",
+      "canonicalGitSha256": "0b0c698c43b24aba7f9965c2b93fa23ec76e30a1c19c1e2b82d844cb2609601a",
+      "bytes": 4728458
+    },
+    {
+      "path": "sparse-study.json",
+      "rawSha256": "3f9ff3bb994491289d0db009c1cfbdd3828a7c09d1fe2acb6ac66a7dff4def2a",
+      "canonicalGitSha256": "6145543f92cd23639878557acbd652a654c713c4fbe683041d189f5a48a2b48d",
+      "bytes": 4728103
+    },
+    {
+      "path": "summary.json",
+      "rawSha256": "29f8ee86c0cd0fcbeb4c00db2595905958afe8bca66cf53cd472d695762c44a5",
+      "canonicalGitSha256": "7ae101203900acc2598f7a028eb0eecd84f744ac6ab77fb9e1af77a827009f9f",
+      "bytes": 3305
+    },
+    {
+      "path": "SUMMARY.md",
+      "rawSha256": "4f5b0e6c6ce5d1a4d5e2728a6478906fc6e93011c6aef2b6443bb9339ab94d30",
+      "canonicalGitSha256": "4f5b0e6c6ce5d1a4d5e2728a6478906fc6e93011c6aef2b6443bb9339ab94d30",
+      "bytes": 1092
+    }
+  ],
+  "canonicalization": "CRLF to LF only; raw timestamp values unchanged"
+}
