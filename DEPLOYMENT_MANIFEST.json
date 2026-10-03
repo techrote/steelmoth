@@ -3,11 +3,11 @@
   "product": "The Small Machine at the Edge of Night",
   "game_version": "1.2.3",
   "distribution": "static-webapp",
-  "distribution_revision": 1,
+  "distribution_revision": 27,
   "entry_point": "index.html",
   "server_side_runtime_required": false,
   "service_worker": "sw.js",
-  "service_worker_cache": "small-machine-web-v1.2.3-r1",
+  "service_worker_cache": "small-machine-web-v1.2.3-r27",
   "pwa_manifest": "manifest.webmanifest",
   "editor_static_save_mode": "download-json-fallback",
   "mouse_light_cone": true,
@@ -42,7 +42,7 @@
   "robot_noclip_rush_duration_ms": 2400,
   "robot_noclip_rush_damage": false,
   "terrain_material_profile": "v1.1.2 normalized-height sectioned silhouettes",
-  "player_cone_light_intensity": 2.0,
+  "player_cone_light_intensity": 2,
   "shadow_mask_resolution": "full-scene",
   "flashlight_hard_occlusion": "boundaries-and-structural-vertical-planes-only",
   "material_pipeline": "v2-default-legacy-debug-fallback",
@@ -59,5 +59,9 @@
   "macro_shadow_compatibility": "v1.1.2 grounded sectioned silhouette retained",
   "graphics_namespace": "signalOrchardGraphicsV123",
   "procedural_vegetation_lighting": "scene-coupled-material-v2-normal-aware",
-  "fine_grass_palette": "Wet Relay fx_creature/fx_water"
+  "fine_grass_palette": "Wet Relay fx_creature/fx_water",
+  "renderer_candidate": "sm505-normal-webgpu-presentation",
+  "renderer_presentation_asset_revision": "sm505-1",
+  "auto_webgpu_enabled": false,
+  "webgpu_presentation_policy": "explicit-candidate-only-pending-physical-acceptance"
 }
