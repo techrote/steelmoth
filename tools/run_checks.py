@@ -81,6 +81,7 @@ CHECKS = [
     ("webgpu-gtao-contract", "regression", [PY, "tools/validate_webgpu_gtao_contract.py"]),
     ("sm601-gtao-readback", "regression", ["node", "tools/validate_sm601_gtao_readback.js"]),
     ("sm601-gtao-adoption-contract", "regression", [PY, "tools/validate_sm601_gtao_adoption_contract.py"]),
+    ("sm601-gtao-browser-discovery", "regression", [PY, "tools/validate_sm601_gtao_browser_discovery.py"]),
     ("render-harness", "regression", [PY, "tools/validate_render_harness.py"]),
     ("webgl2-benchmark", "regression", [PY, "tools/validate_webgl2_benchmark.py"]),
     ("webgpu-target-benchmark-contract", "regression", [PY, "tools/validate_webgpu_target_benchmark_contract.py"]),

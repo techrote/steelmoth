@@ -71,7 +71,9 @@ def gpu_inventory() -> list[dict]:
 
 
 def chrome_path() -> str | None:
-    found = shutil.which('chrome') or shutil.which('google-chrome') or shutil.which('chromium')
+    found = (shutil.which('chrome') or shutil.which('google-chrome')
+             or shutil.which('google-chrome-stable') or shutil.which('chromium')
+             or shutil.which('chromium-browser'))
     if found:
         return found
     for variable in ('PROGRAMFILES', 'PROGRAMFILES(X86)', 'LOCALAPPDATA'):

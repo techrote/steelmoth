@@ -1,6 +1,6 @@
 # SM-601 measured readback/counter adoption
 
-Status: production adoption candidate selected from physical evidence; full production-source SM-601 acceptance remains pending. Issue #36 stays open and SM-602 remains blocked until its real criteria are satisfied.
+Status: the selected production source has completed the unchanged physical target campaign and correctness/equivalence verification. PR #110 awaits required final-head CI/review and verified merge. Issue #36 stays open and SM-602 blocked until that gate is satisfied.
 
 ## Requirement and decision
 
@@ -69,7 +69,7 @@ python tools/validate_sm601_gtao_adoption_browser.py --timeout 180 --report arti
 
 The browser correctness runner uses software WebGPU by default and records no performance samples. `--hardware --native` supplies canonical full-HD production-versus-frozen output/counter snapshots on physical WebGPU. Neither mode substitutes for the final production timing or visual campaign.
 
-After final production source is committed, run the unchanged three-process GTX campaign with a new output root and validate its report:
+The unchanged three-process GTX campaign completed at clean source `b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275`. Reproduce it with a new output root and validate its report:
 
 ```text
 python tools/run_webgpu_target_campaign.py --phase sm601 --sessions 3 --warmup 300 --samples 600 --timeout 1200 --out <new-production-campaign-root>
@@ -77,3 +77,11 @@ python tools/validate_sm601_target_report.py <new-production-report.json>
 ```
 
 Final evidence must retain exact production SHA, browser/driver/GPU identity, fresh processes, raw samples, unscaled Medium attachments and honest queue/command coverage. Moving actor/light, disocclusion/history rejection, room/backend/device discontinuities and no Material-AO/GTAO double-darkening require the actual issue criteria, including human review where specified. An over-guardrail result requires architectural attribution; a schema-valid report or automated numeric comparison alone does not close #36. SM-602 remains blocked until legitimate completion.
+
+## Completed production-source verification
+
+At `b1e87b0…`, the primary queue-only run means were 1.087873/1.089021/1.087123 ms, with mean-of-means **1.088006 ms** and worst p95 **1.288608 ms**. All three used 300 warm-up plus 600 retained frames, unchanged Medium and the authoritative physical adapter. The working guardrail is unchanged and met. A separate command-coverage diagnostic measures **1.069927 ms mean /1.269472 ms p95**, with two submissions per frame; its queue result is **1.102807/1.298432 ms** and is not pooled with primary acceptance.
+
+Four target full-HD production/frozen snapshots and 63 small target fixtures preserve all four temporal textures and eight counter words exactly. Existing moving numeric stability, rejection and no-double-darkening checks pass. Source/regression and package gates passed 86/86 and18/18 before the Linux-only browser-discovery correction; that correction does not change renderer code, measurement loops or explicitly selected Windows browser settings. Measured runtime identity remains `b1e87b0…`.
+
+Issue #36 and its accepted PR #102 disposition do not introduce an explicit new human approver for this performance-only patch. Exact retained pixel behavior and fresh target checks preserve the accepted visual correctness baseline. The paused checkpoint's conservative wording about additional visual review is historical interpretation, not a new product requirement or a claim that a person viewed the captures. Required CI and verified merge remain mandatory; default-renderer promotion keeps its separate visual gates.

@@ -4,7 +4,7 @@ SM-601 converts the SM-600 correctness prototype into a bounded production-quali
 
 ## Production quality ladder
 
-`engine/webgpu_gtao_stabilization.js` owns the GTAO-specific Low/Medium/High/Ultra mapping. The mapping is intentionally independent of SM-501's still-open whole-renderer target-performance gate, but uses the same quality names so the eventual renderer selector can pass one tier consistently.
+`engine/webgpu_gtao_stabilization.js` owns the GTAO-specific Low/Medium/High/Ultra mapping. The mapping is independent of SM-501's whole-renderer gate, completed by PR #92, and uses the same quality names so the eventual renderer selector can pass one tier consistently.
 
 | Tier | GTAO | Directions | Steps | Radius | Temporal history |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -80,4 +80,6 @@ Retain `queueSpanGpuMs` alongside `commandGpuMs` only where the report proves co
 
 The roadmap's roughly **0.7–1.2 ms** Medium cost is a planning guardrail, not an assumed result. The validator reports whether the measured run means lie within that guardrail but does not convert an over-budget result into a fake pass. A materially over-budget result requires architecture investigation before reducing scene fidelity indiscriminately.
 
-Until that physical GTX1650S report exists, SM-601 must remain open and SM-602 must not assume the stabilization/performance gate is complete.
+The final production-source report now exists at `b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275`: three fresh Chrome runs each retain 600 samples after 300 warm-up frames, with queue means 1.087873/1.089021/1.087123 ms and worst p95 1.288608 ms. Native production/frozen output and counter equality, moving stability, discontinuity rejection and strongest-occluder composition checks pass. The unchanged working mean guardrail is met. The issue-level correctness baseline was already accepted in PR #102; exact output-preserving adoption retains that behavior rather than claiming new human visual sign-off. Broader default-renderer visual release gates remain separate.
+
+PR #110 contains the production adoption and retained evidence. SM-601 remains open and SM-602 blocked until required final-head CI/review passes and the merge is verified on main. See `SM601_MEASURED_ADOPTION.md` for the source-separated acceptance and explicit-command diagnostics; do not pool those distributions.

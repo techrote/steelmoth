@@ -1,5 +1,12 @@
 # GTX 1650 SUPER campaign checkpoint — 2026-10-03
 
+This is the historical user-requested rest checkpoint. The campaign subsequently
+resumed at the user's request; current disposition is recorded in
+`SM601_MEASURED_ADOPTION.md` and PR #110. The earlier conservative visual-review
+wording below did not add a mandatory human approver absent from issue #36;
+preserved accepted visual behavior is supported by exact native equivalence and
+the unchanged moving/rejection/composition checks. No new human sign-off is claimed.
+
 **Status: stopped at the user's request after review and progress recording.**
 No campaign benchmark is running; no follow-up automation was created.
 Production SM-601 code and physical
