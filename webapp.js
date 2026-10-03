@@ -18,7 +18,7 @@
       .then(() => import('./engine/render_transform_integration.js?v=sm101-1'))
       .then(() => import('./engine/render_scene.js?v=sm100-1'))
       .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1')))
-    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm100-1'))
+    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm505-1'))
     .then(() => globalThis.SteelMothWebGL2SceneAdapter?.installWhenGameAvailable?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothRenderSceneBridgeError = String(err?.stack || err);
@@ -39,8 +39,9 @@
   // Fine Grass staging, SM-402 explicit transparent/procedural/post ordering,
   // SM-403 editor invalidation, SM-404 room/resize/backend invalidation, and
   // SM-501 static bounded quality policy against the same production render
-  // state. Auto remains WebGL2 until SM-505; staged WebGPU modules do not
-  // change presentation.
+  // state, then the SM-505 normal-game presentation consumer. Auto remains
+  // WebGL2 until exact-candidate physical acceptance; explicit WebGPU selection
+  // may exercise the bounded release candidate.
   const backendReady = import('./engine/webgpu_device.js?v=sm102-1')
     .then(() => import('./engine/webgpu_resources.js?v=sm103-1'))
     .then(() => import('./engine/pseudo_depth.js?v=sm201-1'))
@@ -66,13 +67,14 @@
     .then(() => globalThis.SteelMothWebGPUQuality?.installRuntimeIntegration?.(globalThis) || null)
     .then(() => import('./engine/webgpu_editor_state.js?v=sm403-1'))
     .then(() => globalThis.SteelMothWebGPUEditorState?.installWhenEditorAvailable?.(globalThis) || null)
-    .then(() => import('./engine/backend_runtime.js?v=sm102-1'))
+    .then(() => import('./engine/webgpu_scene_presenter.js?v=sm505-1'))
+    .then(() => import('./engine/backend_runtime.js?v=sm505-1'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .then(() => import('./engine/webgpu_transition_state.js?v=sm404-1'))
     .then(() => globalThis.SteelMothWebGPUTransitionState?.installRuntimeIntegration?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothBackendRuntimeError = String(err?.stack || err);
-      console.warn('WebGPU staged renderer lifecycle through post/occluder/cluster/dominance/DSO hierarchy/Dark Bloom/temporal/bounded visibility/canonical water/foliage/ordering/editor/transition-state/quality preparation unavailable; continuing with WebGL2.', err);
+      console.warn('WebGPU staged renderer lifecycle through SM-505 normal-game presentation is unavailable; continuing with WebGL2.', err);
       return null;
     });
   globalThis.steelMothBackendReady = backendReady;
