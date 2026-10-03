@@ -82,6 +82,8 @@ jobs:
         run: python tools/validate_webgpu_local_shadows_browser.py --require-webgpu --report artifacts/webgpu-local-shadows-browser.json
       - name: Validate transparent sprite/particle/objective/guide FX blending, atlas sampling and ordering hooks
         run: python tools/validate_webgpu_transparent_fx_browser.py --require-webgpu --report artifacts/webgpu-transparent-fx-browser.json
+      - name: Validate SM-505 normal-game RenderScene presentation and fallback on hosted WebGPU
+        run: python tools/validate_sm505_presentation_browser.py --require-webgpu --report artifacts/sm505-presentation-browser.json
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -97,6 +99,8 @@ jobs:
             artifacts/webgpu-lighting-browser.json
             artifacts/webgpu-local-shadows-browser.json
             artifacts/webgpu-transparent-fx-browser.json
+            artifacts/sm505-presentation-browser.json
+            artifacts/sm505-presentation-browser.png
           if-no-files-found: warn
 
   webgl2-transform-parity:
