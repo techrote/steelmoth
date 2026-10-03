@@ -75,6 +75,12 @@ Use these words consistently:
 - **Blocked** — cannot proceed safely without a named dependency/input.
 - **Deferred** — intentionally postponed and not a blocker for current milestone.
 
+## SM-505 release-gate status
+
+- [`WEBGPU_RELEASE_VALIDATION.md`](WEBGPU_RELEASE_VALIDATION.md) — current final-promotion gate. SM-405 and SM-501 evidence are accepted, but `Auto` remains unpromoted because normal gameplay still presents through WebGL2 and exact-candidate physical WebGPU presentation evidence is therefore missing.
+- [`PERFORMANCE_REPORT_WEBGPU_PRIMARY.md`](PERFORMANCE_REPORT_WEBGPU_PRIMARY.md) — accepted GTX 1650 SUPER Medium/GTAO-off timing reconciliation and source-identity boundary.
+- [`RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md`](RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md) — accepted renderer-owned descriptor accounting and evidence boundary.
+
 ## Current repository state
 
 The repository is no longer source-blocked. SM-000 imported and provenance-verified the authoritative v1.2.3 WebGL2/Material-v2 baseline. SM-001/002 established the visual fixture corpus and deterministic capture/diagnostics harness; SM-004 audited the imported implementation, and SM-005 established repository-native automated verification.
