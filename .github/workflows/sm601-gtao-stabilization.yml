@@ -5,22 +5,37 @@ on:
     paths:
       - 'engine/webgpu_gtao.js'
       - 'engine/webgpu_gtao_stabilization.js'
+      - 'engine/webgpu_gtao_readback.js'
+      - 'engine/webgpu_resources.js'
       - 'engine/webgpu_depth_hierarchy.js'
       - 'engine/webgpu_visibility.js'
       - 'webgpu-gtao-stabilization-smoke.html'
+      - 'webgpu-gtao-adoption-smoke.html'
       - 'tools/validate_webgpu_gtao_stabilization.js'
       - 'tools/validate_webgpu_gtao_stabilization_browser.py'
+      - 'tools/validate_sm601_gtao_readback.js'
+      - 'tools/validate_sm601_gtao_adoption_contract.py'
+      - 'tools/validate_sm601_gtao_adoption_browser.py'
+      - 'tools/validate_webgpu_gtao_reference_browser.py'
+      - 'tools/experiments/frozen_sm601_readback.js'
+      - 'tools/experiments/frozen_sm601_counter.js'
       - 'tools/validate_sm601_target_report.py'
       - 'docs/WEBGPU_GTAO_SM601.md'
+      - 'docs/SM601_MEASURED_ADOPTION.md'
+      - 'sw.js'
       - '.github/workflows/sm601-gtao-stabilization.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: sm601-gtao-stabilization-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   stabilize:
-    name: deterministic + real-browser GTAO stabilization
+    name: GTAO stabilization + software adoption correctness
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -38,8 +53,11 @@ jobs:
       - name: Validate deterministic SM-601 contracts
         run: |
           node --check engine/webgpu_gtao_stabilization.js
+          node --check engine/webgpu_gtao_readback.js
           node tools/validate_webgpu_gtao_stabilization.js
-          python -m py_compile tools/validate_webgpu_gtao_stabilization_browser.py tools/validate_sm601_target_report.py
+          node tools/validate_sm601_gtao_readback.js
+          python tools/validate_sm601_gtao_adoption_contract.py
+          python -m py_compile tools/validate_webgpu_gtao_stabilization_browser.py tools/validate_sm601_gtao_adoption_browser.py tools/validate_sm601_target_report.py
       - name: Verify Chrome/Chromium availability
         run: |
           if command -v google-chrome >/dev/null 2>&1; then google-chrome --version; \
@@ -48,10 +66,14 @@ jobs:
           else echo 'Chrome/Chromium required for SM-601 browser validation' >&2; exit 1; fi
       - name: Exercise real WebGPU temporal stabilization
         run: python tools/validate_webgpu_gtao_stabilization_browser.py --report artifacts/sm601-gtao-stabilization-browser.json
+      - name: Exact production adoption outputs and counters on software WebGPU
+        run: python tools/validate_sm601_gtao_adoption_browser.py --timeout 180 --report artifacts/sm601-gtao-adoption-browser.json
       - name: Upload SM-601 hosted evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sm601-gtao-stabilization-${{ github.run_id }}
-          path: artifacts/sm601-gtao-stabilization-browser.json
+          path: |
+            artifacts/sm601-gtao-stabilization-browser.json
+            artifacts/sm601-gtao-adoption-browser.json
           if-no-files-found: warn

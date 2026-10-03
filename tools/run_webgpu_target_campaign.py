@@ -204,7 +204,7 @@ def sm601_report(rows: list[dict], source: dict, gpu: dict, warmup: int, samples
     return {
         "schema": "steelmoth-sm601-target-report/v1", "source": source, "environment": {"adapter": {**first["adapter"], "name": gpu["name"], "fallback": first["adapter"]["isFallbackAdapter"]}, "display": {"width": 1920, "height": 1080, "devicePixelRatio": 1}, "os": platform.platform(), "driver": gpu["driver"]},
         "quality": "Medium", "methodology": {"warmupFrames": warmup, "measuredFrames": samples, "timestampQuery": True, "movingActor": True, "freshRuns": True},
-        "runs": [{"measuredFrames": samples, "gtaoGpuMs": {"mean": stats(r["gpuRendererMs"])["mean"], "p50": stats(r["gpuRendererMs"])["p50"], "p95": stats(r["gpuRendererMs"])["p95"]}, "rawGpuMs": r["gpuRendererMs"], "validation": r["validation"], "browser": r["run"], "adapter": r["adapter"]} for r in rows],
+        "runs": [{"measuredFrames": samples, "gtaoGpuMs": {"mean": stats(r["gpuRendererMs"])["mean"], "p50": stats(r["gpuRendererMs"])["p50"], "p95": stats(r["gpuRendererMs"])["p95"]}, "rawGpuMs": r["gpuRendererMs"], "validation": r["validation"], "browser": r["run"], "adapter": r["adapter"], "timingSemantics": r.get("timingSemantics"), "timingCoverage": r.get("timingCoverage"), "diagnosticDelivery": r.get("gtaoDiagnosticDelivery"), "diagnosticRows": r.get("gtaoDiagnosticRows")} for r in rows],
         "validation": {"movingSceneStable": all(v.get("movingSceneStable") is True for v in validations), "historyRejection": all(v.get("historyRejection") is True for v in validations), "noDoubleDarkening": all(v.get("noDoubleDarkening") is True for v in validations)},
     }
 
