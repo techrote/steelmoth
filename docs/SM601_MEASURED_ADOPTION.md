@@ -1,14 +1,14 @@
 # SM-601 measured readback/counter adoption
 
-**Current disposition — recovery/cleanup, 2026-10-03:** live main is `d642b4b9973ae629e28bf5f15ac3c6659e1eafcb`; PR #110 is open/unmerged. Its pre-cleanup head `b334e1210eb42d3f5dbb1b0dd065b19c21ae2bc5` has 23/23 successful hosted checks. Issue #36 remains open and SM-602 remains blocked. This document is the current status authority; earlier checkpoint/resume instructions are historical and do not authorize a merge or further implementation in this pass.
+**Final disposition — accepted, 2026-10-03:** PR #110 merged to `main` as `826a378581eb678c3f704c4e827c461563d938bc` after a criterion-by-criterion review of #36. Existing retained GTX 1650 SUPER evidence satisfies the moving-scene stability, target-cost, explicit-tier and temporal-rejection criteria; no fresh GPU run was required. #36 is ready for closure and SM-602 is dependency-ready. Earlier checkpoint/recovery instructions are historical and their temporary "leave unmerged" wording no longer controls this completed review.
 
-The retained production measurement is **1.088006 ms queue-span mean / 1.288608 ms worst run p95**, at `b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275` (approximately 1088/1289 microseconds, not milliseconds). It meets the unchanged working mean guardrail. The separate arithmetic/cache controls do **not** justify adopting any arithmetic candidate; this conclusion does not invalidate or pool the separate production readback/counter measurements. The readback/counter proposal remains unmerged, and passing CI or the mean guardrail alone is not issue completion. Stop after cleanup; do not merge #110, close #36, or start SM-602.
+The retained production measurement is **1.088006 ms queue-span mean / 1.288608 ms worst run p95**, at `b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275` (approximately 1088/1289 microseconds, not milliseconds). It meets the unchanged working mean guardrail. The separate arithmetic/cache controls do **not** justify adopting any arithmetic candidate; this conclusion does not invalidate or pool the separate production readback/counter measurements. The readback/counter proposal is now adopted by PR #110. CI and the mean guardrail alone did not establish acceptance: the final review also verified measured-source equivalence plus the issue's stability, tier and rejection criteria.
 
-## Requirement and unmerged proposal
+## Requirement and adopted production path
 
 The authoritative target is the local NVIDIA GeForce GTX 1650 SUPER, 4 GB, at native 1920×1080 attachments, DPR 1 and Medium GTAO with genuine timestamp queries. The approximately 0.7–1.2 ms Medium value remains a **working planning guardrail**. It has not been weakened or reinterpreted as a measured result.
 
-**Proposal in unmerged PR #110:** integrate the measured deferred diagnostic scheduling plus workgroup counter aggregation as an explicit production adapter. Keep its compatibility defaults blocking/baseline and select deferred/aggregated explicitly in the SM-601 acceptance harness. The proposed combination has retained production-source equivalence and the unchanged acceptance campaign, detailed below; it is not adopted on main. Research PRs #104/#105/#106 are not merged wholesale.
+**Adopted by PR #110:** integrate the measured deferred diagnostic scheduling plus workgroup counter aggregation as an explicit production adapter. Its compatibility defaults remain blocking/baseline and the SM-601 acceptance harness selects deferred/aggregated explicitly. The adopted combination has retained production-source equivalence and the unchanged acceptance campaign detailed below. Research PRs #104/#105/#106 remain unmerged.
 
 Medium remains 6 directions × 4 steps, radius 12, intensity 1.0 and temporal weight 0.55. Higher/Low tiers, object/depth/normal/room/device/backend history rejection, delta/neighborhood constraints, minimum-resource portability and strongest-occluder Material-AO/GTAO composition remain unchanged. The raw/reconstruction shaders retain the authoritative strict binary32 `0.000001` support cutoff, nearest raw fallback and zero fallback confidence; see [`GTAO_REFERENCE_POLICY.md`](GTAO_REFERENCE_POLICY.md).
 
@@ -59,7 +59,7 @@ Reproduce using a new output path:
 python tools/run_sm601_adoption_comparison.py --browser "C:\Program Files\Google\Chrome\Application\chrome.exe" --runs 3 --warmup 300 --samples 600 --timeout 1800 --report <new-native-comparison.json>
 ```
 
-## Production verification and remaining acceptance
+## Production verification and final acceptance
 
 `engine/webgpu_gtao_readback.js` contains the production implementation. Frozen research generators/adapters remain unchanged under `tools/experiments/` for comparison only, and production code does not import them. Three 32-byte diagnostic slots are bounded; pending, skipped, stale, failed and evicted delivery is explicit. Diagnostic delivery cannot determine visible output or gameplay-authoritative state. Offline cache revision includes the production base/stabilization/readback dependency closure without changing `Auto` backend policy.
 
@@ -80,7 +80,7 @@ python tools/run_webgpu_target_campaign.py --phase sm601 --sessions 3 --warmup 3
 python tools/validate_sm601_target_report.py <new-production-report.json>
 ```
 
-Final evidence must retain exact production SHA, browser/driver/GPU identity, fresh processes, raw samples, unscaled Medium attachments and honest queue/command coverage. Moving actor/light, disocclusion/history rejection, room/backend/device discontinuities and no Material-AO/GTAO double-darkening require the actual issue criteria, including human review where specified. An over-guardrail result requires architectural attribution; a schema-valid report or automated numeric comparison alone does not close #36. SM-602 remains blocked until legitimate completion.
+Final evidence must retain exact production SHA, browser/driver/GPU identity, fresh processes, raw samples, unscaled Medium attachments and honest queue/command coverage. Moving actor/light stability, disocclusion/history rejection, room/backend/device discontinuities and no Material-AO/GTAO double-darkening remain the actual issue-level correctness requirements. The final review confirmed these conditions from retained evidence; #36 does not specify a separate human approver, and exact output equivalence preserves the accepted PR #102 visual/correctness baseline. SM-602 is dependency-ready once #36 is closed.
 
 ## Completed production-source verification
 
@@ -88,4 +88,4 @@ At `b1e87b0…`, the primary queue-only run means were 1.087873/1.089021/1.08712
 
 Four target full-HD production/frozen snapshots and 63 small target fixtures preserve all four temporal textures and eight counter words exactly. Existing moving numeric stability, rejection and no-double-darkening checks pass. Source/regression and package gates passed 86/86 and18/18 before the Linux-only browser-discovery correction; that correction does not change renderer code, measurement loops or explicitly selected Windows browser settings. Measured runtime identity remains `b1e87b0…`.
 
-Issue #36 and its accepted PR #102 disposition do not introduce an explicit new human approver for this performance-only patch. Exact retained pixel behavior and fresh target checks preserve the accepted visual correctness baseline. The paused checkpoint's conservative wording about additional visual review is historical interpretation, not a new product requirement or a claim that a person viewed the captures. Required CI and verified merge remain mandatory; default-renderer promotion keeps its separate visual gates.
+Issue #36 and its accepted PR #102 disposition do not introduce an explicit new human approver for this performance-only patch. Exact retained pixel behavior and fresh target checks preserve the accepted visual correctness baseline. The paused checkpoint's conservative wording about additional visual review is historical interpretation, not a new product requirement or a claim that a person viewed the captures. Required CI and verified merge were satisfied by PR #110 at `826a378581eb678c3f704c4e827c461563d938bc`; default-renderer promotion keeps its separate visual gates.
