@@ -15,11 +15,11 @@ def main()->int:
     require("webgl2-until-sm505" in device,'Auto policy must name the SM-505 gate',errors)
     for token in ['requestAdapter','requestDevice','adapter.features','adapter.limits','getPreferredCanvasFormat','pushErrorScope','popErrorScope','uncapturederror','device.lost','context.configure','unconfigure','resize']:
         require(token in device,f'missing lifecycle contract token: {token}',errors)
-    for token in ["requestedBackend","activeBackend","presentationBackend","fallbackReason","WebGPU (device test)","device-lost"]:
+    for token in ["requestedBackend","activeBackend","presentationBackend","fallbackReason","WebGPU (release candidate)","device-lost"]:
         require(token in runtime,f'missing backend runtime contract token: {token}',errors)
     require("import('./engine/webgpu_device.js?v=sm102-1')" in webapp,'webapp must load WebGPU device module',errors)
-    require("import('./engine/backend_runtime.js?v=sm102-1')" in webapp,'webapp must load backend runtime module',errors)
-    require('engine/webgpu_device.js?v=sm102-1' in sw and 'engine/backend_runtime.js?v=sm102-1' in sw,'offline core must include SM-102 modules',errors)
+    require("import('./engine/backend_runtime.js?v=sm505-1')" in webapp,'webapp must load backend runtime module',errors)
+    require('engine/webgpu_device.js?v=sm102-1' in sw and 'engine/backend_runtime.js?v=sm505-1' in sw,'offline core must include SM-102 modules',errors)
     require('validate_webgpu_lifecycle.js' in checks,'normal regression gate must execute lifecycle tests',errors)
     require('validate_webgpu_contract.py' in checks,'normal regression gate must execute source contract test',errors)
     for heading in ['Staged backend policy','Device and context lifecycle','Failure isolation','Diagnostics','Verification']:
