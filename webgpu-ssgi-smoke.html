@@ -1,0 +1,222 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Steel Moth SM-602 diffuse SSGI prototype acceptance</title>
+<style>
+body{margin:24px;background:#161c24;color:#edf0f3;font:16px system-ui}h1{font-size:24px}main{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:18px;max-width:1200px}figure{margin:0}canvas{width:100%;image-rendering:pixelated;background:#000}figcaption{padding:7px 0}pre{white-space:pre-wrap;font-size:12px}#status{color:#a6d4fa}
+</style>
+<h1>SM-602 diffuse SSGI prototype</h1>
+<p>Actual WebGPU readbacks from a canonical synthetic machinery/floor fixture. Off/on RGB is linear HDR presented with Reinhard + IEC sRGB. The quarter-resolution indirect figure is incident diffuse irradiance before native per-pixel albedo/metalness, with 4× exposure for inspection. Rejection shows the moving-object ownership test: red = temporal reason code / 4, green = rejected donor fraction, blue = valid ray-hit fraction.</p>
+<p>This prototype is disabled by default. These captures and optional initial timings do not promote the effect or record a human visual judgment.</p>
+<p id="status">Preparing actual GPU fixture…</p><main id="figures"></main>
+<details><summary>Readback assertions, GPU identity and timing evidence</summary><pre id="webgpuSSGIResult">running</pre></details>
+<script src="engine/webgpu_resources.js"></script>
+<script src="engine/pseudo_depth.js"></script>
+<script src="engine/webgpu_depth_hierarchy.js"></script>
+<script src="engine/webgpu_performance.js"></script>
+<script src="engine/webgpu_gtao_stabilization.js"></script>
+<script src="engine/webgpu_ssgi.js"></script>
+<script src="tools/sm602_ssgi_fixtures.js"></script>
+<script>
+(async()=>{
+  'use strict';
+  const S=SteelMothWebGPUSSGI,F=SteelMothSM602Fixtures,D=SteelMothWebGPUDepthHierarchy;
+  const query=new URLSearchParams(location.search),checks=[],validationErrors=[],uncapturedErrors=[],captures={};
+  const report={schema:'steelmoth-sm602-browser-smoke/v1',ok:false,checks,validationErrors,uncapturedErrors,captures,captureMetadata:{},gpu:{realWebGPU:false},targetAcceptance:false,humanVisualJudgment:'pending'};
+  const progress=phase=>{globalThis.SM602Progress={phase};document.getElementById('status').textContent=phase;};
+  const check=(condition,name,detail={})=>{checks.push({ok:!!condition,name,...detail});if(!condition)throw new Error(name);};
+  const maxDiff=(a,b)=>a.length===b.length?a.reduce((v,x,i)=>Math.max(v,Math.abs(x-b[i])),0):Infinity;
+  const capture=r=>({width:r.width,height:r.height,data:Array.from(r.data)});
+  let device=null;
+  const owned=[];
+  async function scoped(label,callback){device.pushErrorScope('validation');device.pushErrorScope('internal');device.pushErrorScope('out-of-memory');let result,error;try{result=await callback();await device.queue.onSubmittedWorkDone();}catch(e){error=e;}for(let i=0;i<3;i++){const problem=await device.popErrorScope();if(problem)validationErrors.push({label,message:problem.message});}if(error)throw error;if(validationErrors.length)throw new Error(JSON.stringify(validationErrors));return result;}
+  function f16(value){if(!Number.isFinite(value)||Math.abs(value)>65504)throw new RangeError('Fixture value must be finite binary16');const u=new Uint32Array(new Float32Array([value]).buffer)[0],sign=(u>>>16)&0x8000;let e=((u>>>23)&255)-127+15,m=u&0x7fffff;if(e<=0){if(e< -10)return sign;m|=0x800000;const shift=14-e,base=m>>>shift,rem=m&((1<<shift)-1),tie=1<<(shift-1);return sign|(base+((rem>tie||(rem===tie&&(base&1)))?1:0));}let base=m>>>13,rem=m&8191;if(rem>4096||(rem===4096&&(base&1)))base++;if(base===1024){e++;base=0;}return sign|(e<<10)|base;}
+  function from16(value){const sign=value&0x8000?-1:1,e=(value>>>10)&31,m=value&1023;return e===0?sign*2**(-14)*(m/1024):e===31?(m?NaN:sign*Infinity):sign*2**(e-15)*(1+m/1024);}
+  function quantized(f){for(const key of ['normal','albedo','material','colour'])for(let i=0;i<f[key].length;i++)f[key][i]=from16(f16(f[key][i]));return f;}
+  async function module(label,code){const mod=device.createShaderModule({label,code});const info=await mod.getCompilationInfo();const messages=Array.from(info.messages).map(m=>({type:m.type,message:m.message,lineNum:m.lineNum,linePos:m.linePos}));report.fixtureCompilation??=[];report.fixtureCompilation.push({label,messages});check(!messages.some(m=>m.type==='error'),label+' WGSL compiles');return mod;}
+  function write(texture,array,width,height,bpp){const bpr=Math.ceil(width*bpp/256)*256,raw=new Uint8Array(bpr*height),src=new Uint8Array(array.buffer,array.byteOffset,array.byteLength);for(let y=0;y<height;y++)raw.set(src.subarray(y*width*bpp,(y+1)*width*bpp),y*bpr);device.queue.writeTexture({texture},raw,{bytesPerRow:bpr,rowsPerImage:height},{width,height,depthOrArrayLayers:1});}
+  async function bytes(texture,width,height,bpp){const bpr=Math.ceil(width*bpp/256)*256,b=device.createBuffer({size:bpr*height,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ}),encoder=device.createCommandEncoder();encoder.copyTextureToBuffer({texture},{buffer:b,bytesPerRow:bpr,rowsPerImage:height},{width,height,depthOrArrayLayers:1});device.queue.submit([encoder.finish()]);await b.mapAsync(GPUMapMode.READ);const mapped=new Uint8Array(b.getMappedRange()),out=new Uint8Array(width*height*bpp);for(let y=0;y<height;y++)out.set(mapped.subarray(y*bpr,y*bpr+width*bpp),y*width*bpp);b.unmap();b.destroy();return out;}
+  async function createGPUFixture(f){
+    const width=f.width,height=f.height,usage=GPUTextureUsage.COPY_DST|GPUTextureUsage.COPY_SRC|GPUTextureUsage.TEXTURE_BINDING;
+    const texture=(name,format)=>{const t=device.createTexture({label:'SM602 fixture '+name,size:[width,height],format,usage});owned.push(t);return t;};
+    const depthSource=texture('canonical depth upload','r32float'),object=texture('canonical ownership','r32uint'),normal=texture('G1','rgba16float'),albedo=texture('G0 linear albedo','rgba16float'),material=texture('G2 numeric local height','rgba16float'),colour=texture('direct-only linear HDR','rgba16float');
+    const depth=device.createTexture({label:'SM602 canonical ownership depth attachment',size:[width,height],format:'depth32float',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_SRC});owned.push(depth);
+    const shader=await module('fixture depth attachment writer',`@group(0) @binding(0) var src:texture_2d<f32>;@vertex fn vs(@builtin(vertex_index) i:u32)->@builtin(position) vec4f{let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[i],0,1);}@fragment fn fs(@builtin(position) p:vec4f)->@builtin(frag_depth) f32{return textureLoad(src,vec2i(p.xy),0).x;}`);
+    const pipeline=device.createRenderPipeline({layout:'auto',vertex:{module:shader,entryPoint:'vs'},fragment:{module:shader,entryPoint:'fs',targets:[]},depthStencil:{format:'depth32float',depthWriteEnabled:true,depthCompare:'always'},primitive:{topology:'triangle-list'}}),bind=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:depthSource.createView()}]});
+    const hierarchy=new D.WebGPUDepthHierarchy({device,width,height}),ssgi=new S.WebGPUSSGI({device,width,height,enabled:false,quality:'Medium'});owned.push({destroy:()=>hierarchy.close()},{destroy:()=>ssgi.close()});
+    async function upload(frame){
+      write(depthSource,Float32Array.from({length:width*height},(_,i)=>frame.depth[i*2]),width,height,4);write(object,frame.object,width,height,4);
+      for(const [t,key] of [[normal,'normal'],[albedo,'albedo'],[material,'material'],[colour,'colour']])write(t,Uint16Array.from(frame[key],f16),width,height,8);
+      const encoder=device.createCommandEncoder(),pass=encoder.beginRenderPass({colorAttachments:[],depthStencilAttachment:{view:depth.createView(),depthClearValue:1,depthLoadOp:'clear',depthStoreOp:'store'}});pass.setPipeline(pipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();device.queue.submit([encoder.finish()]);await hierarchy.build({width,height,depthTexture:depth,objectIdTexture:object});
+    }
+    await upload(f);
+    const source={width,height,depthHierarchy:hierarchy,depthRangeView:hierarchy.levelView(0),coarseDepthRangeView:hierarchy.levelView(hierarchy.levelForFootprint(8)),normalView:normal.createView(),albedoView:albedo.createView(),materialView:material.createView(),objectView:object.createView(),currentResolvedColourView:colour.createView()};
+    return{width,height,hierarchy,ssgi,source,upload,colour,object,depthSource,normal,material,albedo};
+  }
+  function show(name,r){const figure=document.createElement('figure'),canvas=document.createElement('canvas'),caption=document.createElement('figcaption');canvas.width=r.width;canvas.height=r.height;const context=canvas.getContext('2d'),im=context.createImageData(r.width,r.height),srgb=x=>x<=.0031308?12.92*x:1.055*x**(1/2.4)-.055;for(let i=0;i<r.width*r.height;i++){for(let c=0;c<3;c++){let v=Math.max(0,r.data[i*4+c]);if(name==='rejection'){v=c===0?v/4:v;}else{v*=name==='indirect'?4:1;v=srgb(v/(1+v));}im.data[i*4+c]=Math.round(Math.min(1,v)*255);}im.data[i*4+3]=255;}context.putImageData(im,0,0);caption.textContent=name+' — '+r.width+'×'+r.height+' actual GPU readback — '+report.captureMetadata[name].testCase;figure.append(canvas,caption);document.getElementById('figures').append(figure);}
+  try{
+    progress('requesting WebGPU adapter');if(!navigator.gpu)throw new Error('navigator.gpu unavailable');
+    const adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});if(!adapter)throw new Error('no WebGPU adapter');
+    const requested=query.get('timing')==='1',available=adapter.features.has('timestamp-query');
+    device=await adapter.requestDevice({requiredFeatures:requested&&available?['timestamp-query']:[]});device.addEventListener('uncapturederror',e=>uncapturedErrors.push(e.error.message));
+    report.gpu={realWebGPU:true,isFallbackAdapter:!!(adapter.info?.isFallbackAdapter??adapter.isFallbackAdapter),adapterInfo:adapter.info?{vendor:adapter.info.vendor,architecture:adapter.info.architecture,device:adapter.info.device,description:adapter.info.description}:null,adapterFeatures:Array.from(adapter.features),deviceFeatures:Array.from(device.features),userAgent:navigator.userAgent};
+    if(requested)check(devicePixelRatio===1,'unscaled timing fixture uses DPR 1',{dpr:devicePixelRatio});
+    if(query.get('hardware')==='1'&&(report.gpu.isFallbackAdapter||/swiftshader|llvmpipe|software/i.test(JSON.stringify(report.gpu.adapterInfo))))throw new Error('Physical hardware requested; exposed adapter is software/fallback');
+    await scoped('production shader compilation',async()=>{for(const key of ['TRACE_WGSL','RESOLVE_WGSL','COMPOSE_WGSL','SNAPSHOT_WGSL'])await module('SM602 '+key,S[key]);});
+    progress('odd-extent colour-bounce fixture');
+    const fixture=quantized(F.createFixture()),gpu=await scoped('create fixture',()=>createGPUFixture(fixture)),meta={...F.META};report.scene=fixture.metadata;
+    const before={};for(const [name,t,bpp]of [['colour',gpu.colour,8],['depth',gpu.depthSource,4],['object',gpu.object,4],['normal',gpu.normal,8],['material',gpu.material,8]])before[name]=await bytes(t,fixture.width,fixture.height,bpp);
+    let previous=F.copy(fixture),previousIndirect=null;
+    async function run(frame=fixture,options={}){await gpu.upload(frame);await scoped('SSGI update',()=>gpu.ssgi.update(gpu.source,{enabled:true,quality:'Medium',meta,...options}));return{raw:await gpu.ssgi.readback('raw'),indirect:await gpu.ssgi.readback('indirect'),rejection:await gpu.ssgi.readback('rejection'),composed:await gpu.ssgi.readback('composed')};}
+    let r=await run();
+    check(r.indirect.width===Math.ceil(fixture.width/4)&&r.indirect.height===Math.ceil(fixture.height/4),'quarter dimensions ceil odd extent');
+    check(F.rgbMax(r.indirect.data)===0,'cold history produces exact zero indirect');
+    check(r.rejection.data.every((v,i)=>i%4!==0||v===4),'cold history globally rejects');
+    previousIndirect=r.indirect.data.slice();r=await run();
+    const reference=S.referenceSSGI(F.input(fixture,previous,{previousIndirect}),{enabled:true,quality:'Medium'});
+    check(F.rgbMax(r.raw.data)>0,'nearby bright direct surface produces diffuse bounce',{maxRaw:F.rgbMax(r.raw.data)});
+    check(F.finiteRGB(r.indirect.data),'indirect is finite and nonnegative');
+    check(maxDiff(r.raw.data,reference.raw)<.0015,'GPU raw matches deterministic CPU fixture',{maxDifference:maxDiff(r.raw.data,reference.raw)});
+    check(maxDiff(r.indirect.data,reference.indirect)<.0015,'GPU temporal matches deterministic CPU fixture',{maxDifference:maxDiff(r.indirect.data,reference.indirect)});
+    check(r.rejection.data.some((v,i)=>i%4===0&&v===0),'stable geometry accepts temporal history');
+    check(F.rgbMax(r.indirect.data)<=S.normalizeOptions({enabled:true,quality:'Medium'}).energyMax+.001,'energy clamp bounds indirect');
+    for(let i=0;i<24;i++)r=await run();
+    captures.on=capture(r.composed);captures.indirect=capture(r.indirect);
+    report.captureSettings={...gpu.ssgi.diagnostics().options};
+    report.captureMetadata.on={testCase:'steady normal machinery/floor after 26 updates',units:'linear HDR composed colour',exposure:1,settings:{...report.captureSettings}};
+    report.captureMetadata.indirect={testCase:'steady normal incident diffuse irradiance before native material response',units:'linear HDR incident diffuse irradiance',exposure:4,settings:{...report.captureSettings}};
+    check(F.rgbMax(r.indirect.data)>0,'stable prior-frame bounce remains visible in captured buffer');
+    const directExpected=fixture.colour;
+    check(r.composed.data.some((v,i)=>i%4!==3&&v>directExpected[i]+.0001),'on composition adds indirect to receiver');
+    const brightRaw=F.rgbMax(r.raw.data),dark=F.copy(fixture);
+    for(let i=0;i<dark.object.length;i++)if(dark.object[i]===8)dark.colour.set([0,0,0,1],i*4);
+    await run(dark);r=await run(dark);
+    check(F.rgbMax(r.raw.data)<brightRaw*.5,'darkening only prior donor radiance causally reduces bounce',{brightRaw,darkRaw:F.rgbMax(r.raw.data)});
+    const geometryReasons=[['object',2],['depth',1],['normal',3]];
+    for(const [kind,reason]of geometryReasons){
+      const changed=F.copy(fixture);const x=18,y=22,index=y*changed.width+x;
+      if(kind==='object')changed.object[index]=77;
+      if(kind==='depth'){changed.depth[index*2]-=.05;changed.depth[index*2+1]-=.05;}
+      if(kind==='normal')changed.normal.set([1,.5,.5,.6],index*4);
+      await run(fixture);r=await run(changed);
+      const qi=(Math.floor(y/4)*r.rejection.width+Math.floor(x/4))*4;
+      check(r.rejection.data[qi]===reason,kind+' receiver discontinuity rejects history',{actual:r.rejection.data[qi]});
+      const changedDonor=F.copy(fixture);
+      for(let j=0;j<changedDonor.object.length;j++)if(changedDonor.object[j]===8){if(kind==='object')changedDonor.object[j]=9;if(kind==='depth'){changedDonor.depth[j*2]-=.05;changedDonor.depth[j*2+1]-=.05;}if(kind==='normal')changedDonor.normal.set([1,.5,.5,.6],j*4);}
+      await run(fixture);r=await run(changedDonor);
+      check(F.rgbMax(r.raw.data)<brightRaw,kind+' changed current donor cannot retain old bounce');
+      r=await run(fixture);
+      check(r.rejection.data.some((v,j)=>j%4===1&&v>0),kind+' restored current donor rejects incompatible previous geometry');
+    }
+    // A moving object is explicit ownership change; every quarter representative changes.
+    const moved=F.copy(fixture);moved.object.fill(99);await run(fixture);r=await run(moved);captures.rejection=capture(r.rejection);
+    report.captureMetadata.rejection={testCase:'moving-object ownership: all IDs 7/8 replaced with 99; temporal reason 2',units:'unitless rejection/ray fractions',temporalReasonCode:2,settings:{...gpu.ssgi.diagnostics().options}};
+    check(r.rejection.data.every((v,i)=>i%4!==0||v===2),'moving object ownership invalidates temporal reuse');
+    for(const key of ['roomId','deviceGeneration','backendGeneration','cameraRevision','lightRevision']){
+      await run(fixture);r=await run(fixture,{meta:{...meta,[key]:key==='roomId'?'changed-room':2}});
+      check(F.rgbMax(r.indirect.data)===0,key+' transition conservatively rejects stale resolved colour');
+      check(r.rejection.data.every((v,i)=>i%4!==0||v===4),key+' transition marks global rejection');
+    }
+    const extreme=F.copy(fixture);for(let i=0;i<extreme.object.length;i++)if(extreme.object[i]===8)extreme.colour.set([10000,0,0,1],i*4);
+    quantized(extreme);await run(extreme);const repeatedEnergy=[];for(let i=0;i<8;i++){r=await run(extreme);repeatedEnergy.push(F.rgbMax(r.indirect.data));}
+    check(F.finiteRGB(r.indirect.data)&&F.rgbMax(r.indirect.data)<=.081,'extreme HDR donor stays finite and energy clamped');
+    check(repeatedEnergy.every(v=>v<=.081),'repeated extreme HDR frames cannot accumulate runaway energy',{maxima:repeatedEnergy});
+    const saturation=S.normalizeOptions({enabled:true}).saturation,redChromaRatio=saturation/(saturation+(1-saturation)*.2126);
+    let saturationOk=true;for(let i=0;i<r.indirect.data.length;i+=4){const rgb=Array.from(r.indirect.data.subarray(i,i+3)),hi=Math.max(...rgb),lo=Math.min(...rgb);if(hi>.00001&&(hi-lo)/hi>redChromaRatio+.003)saturationOk=false;}
+    check(saturationOk,'documented luma-mix saturation clamp bounds a primary-red firefly',{saturationFactor:saturation,maxRedChromaRatio:redChromaRatio});
+    const whiteExtreme=F.copy(extreme);for(let i=0;i<whiteExtreme.object.length;i++)if(whiteExtreme.object[i]===8)whiteExtreme.colour.set([10000,10000,10000,1],i*4);
+    await run(whiteExtreme,{energyMax:.005});r=await run(whiteExtreme,{energyMax:.005});
+    check(F.rgbMax(r.raw.data)>.0049&&F.rgbMax(r.raw.data)<=.00501,'forced low energy cap clips extreme white donor exactly',{rawMaximum:F.rgbMax(r.raw.data),cap:.005});
+    await run(fixture);r=await run(fixture,{enabled:false});captures.off=capture(r.composed);
+    report.captureMetadata.off={testCase:'disabled effect copies baseline direct colour exactly',units:'linear HDR direct colour',exposure:1,settings:{...gpu.ssgi.diagnostics().options}};
+    check(F.rgbMax(r.indirect.data)===0,'off returns exact neutral indirect');
+    const directBytes=await bytes(gpu.colour,fixture.width,fixture.height,8),composedTexture=gpu.ssgi.bindings().composed;
+    check(maxDiff(r.composed.data,fixture.colour)===0,'off composition preserves direct exactly');
+    for(const [name,t,bpp]of [['colour',gpu.colour,8],['depth',gpu.depthSource,4],['object',gpu.object,4],['normal',gpu.normal,8],['material',gpu.material,8]])check(maxDiff(before[name],await bytes(t,fixture.width,fixture.height,bpp))===0,'SSGI never mutates canonical '+name+' input');
+    check(directBytes.length===fixture.width*fixture.height*8&&!!composedTexture,'composition binding available without mutating direct state');
+    gpu.ssgi.invalidate('explicit-fixture-reset');r=await run();check(F.rgbMax(r.indirect.data)===0,'explicit lifecycle invalidation discards previous resolved colour');
+    const crossLayer=F.copy(fixture);for(let i=0;i<crossLayer.object.length;i++)if(crossLayer.object[i]===8){crossLayer.depth[i*2]-=.2;crossLayer.depth[i*2+1]-=.2;}
+    await run(crossLayer);r=await run(crossLayer);check(F.rgbMax(r.raw.data)===0,'foreground layer donor cannot leak world diffuse bounce');
+    progress('empty fixture');const empty=quantized(F.createFixture(9,7,'empty')),eg=await scoped('empty fixture',()=>createGPUFixture(empty));await scoped('empty update',()=>eg.ssgi.update(eg.source,{enabled:true,meta}));let er=await eg.ssgi.readback('indirect');check(F.rgbMax(er.data)===0,'empty occupancy remains exact neutral');
+    progress('dense bounded fixture');const dense=quantized(F.createFixture(128,96,'dense')),dg=await scoped('dense fixture',()=>createGPUFixture(dense));await scoped('dense cold update',()=>dg.ssgi.update(dg.source,{enabled:true,meta}));await scoped('dense stable update',()=>dg.ssgi.update(dg.source,{enabled:true,meta}));let dr=await dg.ssgi.readback('indirect');check(F.finiteRGB(dr.data)&&F.rgbMax(dr.data)<=.081,'dense scene remains finite and bounded');check(F.rgbMax(dr.data)>0,'dense scene produces bounded diffuse response');
+    const thin=quantized(F.coarseBoundaryFixture()),tg=await scoped('coarse boundary fixture',()=>createGPUFixture(thin));await scoped('thin cold update',()=>tg.ssgi.update(tg.source,{enabled:true,meta}));await scoped('thin stable update',()=>tg.ssgi.update(tg.source,{enabled:true,meta}));const tr=await tg.ssgi.readback('raw');check(tr.data[(2*tr.width+2)*4]>0,'early thin donor across coarse cell survives empty endpoint',{scene:thin.metadata,rawRed:tr.data[(2*tr.width+2)*4]});
+    const materials=quantized(F.materialBoundaryFixture()),mg=await scoped('native material fixture',()=>createGPUFixture(materials));await scoped('native material cold update',()=>mg.ssgi.update(mg.source,{enabled:true,meta}));await scoped('native material stable update',()=>mg.ssgi.update(mg.source,{enabled:true,meta}));const mr=await mg.ssgi.readback('composed'),mi=x=>(22*materials.width+x)*4;
+    check([0,1,2].every(k=>mr.data[mi(28)+k]===materials.colour[mi(28)+k]),'native black receiver remains exact direct within quarter cell');check([1,2].every(k=>mr.data[mi(29)+k]===materials.colour[mi(29)+k]),'native red receiver cannot acquire other material channels');check([0,1,2].every(k=>mr.data[mi(30)+k]===materials.colour[mi(30)+k]),'fully metallic native receiver has exact zero diffuse indirect');check(mr.data[mi(31)]>materials.colour[mi(31)],'grey native neighbor retains bounce beside metallic center');
+    progress('smooth moving/ramped donor radiance');
+    const firstLight=quantized(F.movingRadianceFixture(0)),lg=await scoped('moving radiance fixture',()=>createGPUFixture(firstLight));
+    async function motionFrame(g,frame){await g.upload(frame);const diagnostics=await scoped('motion update',()=>g.ssgi.update(g.source,{enabled:true,quality:'Medium',meta}));return{diagnostics,raw:await g.ssgi.readback('raw'),indirect:await g.ssgi.readback('indirect'),rejection:await g.ssgi.readback('rejection'),composed:await g.ssgi.readback('composed')};}
+    await motionFrame(lg,firstLight);let lightResult=await motionFrame(lg,firstLight),previousLight=firstLight,lightPreviousIndirect=lightResult.indirect.data.slice(),causalDifference=0,priorCurrentDifference=0;
+    const lightRows=[];
+    for(let frame=0;frame<9;frame++){
+      const current=quantized(F.movingRadianceFixture(frame));lightResult=await motionFrame(lg,current);
+      const expected=S.referenceSSGI(F.input(current,previousLight,{previousIndirect:lightPreviousIndirect}),{enabled:true});
+      const held=S.referenceSSGI(F.input(current,firstLight,{previousIndirect:lightPreviousIndirect}),{enabled:true});
+      const useCurrent=S.referenceSSGI(F.input(current,current,{previousIndirect:lightPreviousIndirect}),{enabled:true});
+      check(lightResult.diagnostics.snapshot.historyUsed===true,'smooth moving radiance keeps stable metadata/history',{frame});
+      check(F.finiteRGB(lightResult.indirect.data)&&F.rgbMax(lightResult.indirect.data)<=.081,'smooth moving radiance is finite and bounded',{frame});
+      const difference=maxDiff(lightResult.raw.data,expected.raw),heldDifference=maxDiff(expected.raw,held.raw),lagDifference=maxDiff(expected.raw,useCurrent.raw);
+      check(difference<.0015,'moving radiance GPU follows actual previous donor colour',{frame,maxDifference:difference});
+      causalDifference=Math.max(causalDifference,heldDifference);priorCurrentDifference=Math.max(priorCurrentDifference,lagDifference);
+      lightRows.push({frame,lightCenterX:current.metadata.lightCenterX,amplitude:current.metadata.amplitude,rawEnergy:F.rgbEnergy(lightResult.raw.data),indirectMaximum:F.rgbMax(lightResult.indirect.data),historyUsed:lightResult.diagnostics.snapshot.historyUsed,previousRadianceMaxDifference:difference,heldLightControlDifference:heldDifference,currentInsteadOfPreviousDifference:lagDifference});
+      previousLight=current;lightPreviousIndirect=lightResult.indirect.data.slice();
+    }
+    check(causalDifference>1e-4&&priorCurrentDifference>1e-4,'translated/ramped radiance causally changes prior-colour bounce',{heldLightControlDifference:causalDifference,currentInsteadOfPreviousDifference:priorCurrentDifference});
+    captures['moving-light']=capture(lightResult.composed);report.captureMetadata['moving-light']={testCase:'synthetic direct-only light field translated 12 pixels and ramped through 9 frames; fixed geometry/revisions',units:'linear HDR composed colour',exposure:1,settings:{...lg.ssgi.diagnostics().options}};
+    progress('translated donor coverage and disocclusion');
+    let previousObject=quantized(F.translatedDonorFixture(0));const og=await scoped('translated object fixture',()=>createGPUFixture(previousObject));await motionFrame(og,previousObject);let objectResult=await motionFrame(og,previousObject),objectRows=[],totalVacated=0,totalRejectedDonorPixels=0;
+    for(const offset of [4,8,12]){
+      const current=quantized(F.translatedDonorFixture(offset));objectResult=await motionFrame(og,current);
+      check(objectResult.diagnostics.snapshot.historyUsed===true,'translated object keeps revision metadata stable',{offset});
+      check(F.finiteRGB(objectResult.indirect.data)&&F.rgbMax(objectResult.indirect.data)<=.081,'translated object output remains finite and bounded',{offset});
+      let vacated=0,historyRejected=true,currentExact=true,brightnessBounded=true,geometryRestored=true;
+      for(let y=0;y<objectResult.indirect.height;y++)for(let x=0;x<objectResult.indirect.width;x++){
+        const px=Math.min(current.width-1,x*4+2),py=Math.min(current.height-1,y*4+2),i=py*current.width+px,qi=(y*objectResult.indirect.width+x)*4;
+        if(previousObject.object[i]!==8||current.object[i]!==7)continue;
+        vacated++;historyRejected&&=objectResult.rejection.data[qi]===2;
+        geometryRestored&&=current.material[i*4]===0&&previousObject.material[i*4]===.5&&current.depth[i*2]!==previousObject.depth[i*2];
+        for(let k=0;k<3;k++){currentExact&&=objectResult.indirect.data[qi+k]===objectResult.raw.data[qi+k];brightnessBounded&&=objectResult.composed.data[i*4+k]<=current.colour[i*4+k]+.08*current.albedo[i*4+k]+.0005;}
+      }
+      const rejectedDonorPixels=objectResult.rejection.data.filter((v,i)=>i%4===1&&v>0).length;
+      check(vacated>0&&geometryRestored,'translated donor restores actual vacated floor depth/material ownership',{offset,vacated});
+      check(historyRejected&&currentExact,'vacated object pixels reject history and use current irradiance exactly',{offset,vacated});
+      check(brightnessBounded,'vacated donor region cannot retain old bright direct colour',{offset});
+      check(rejectedDonorPixels>0,'translated new donor coverage rejects incompatible old donor colour',{offset,rejectedDonorPixels});
+      totalVacated+=vacated;totalRejectedDonorPixels+=rejectedDonorPixels;objectRows.push({offset,vacatedQuarterPixels:vacated,rejectedDonorQuarterPixels:rejectedDonorPixels,allVacatedHistoryRejected:historyRejected,vacatedCurrentIrradianceExact:currentExact,vacatedBrightnessBounded:brightnessBounded,rawEnergy:F.rgbEnergy(objectResult.raw.data),indirectMaximum:F.rgbMax(objectResult.indirect.data)});previousObject=current;
+    }
+    captures['moving-object']=capture(objectResult.composed);report.captureMetadata['moving-object']={testCase:'same donor object translated 12 pixels; vacated floor has current depth/material/ownership/direct colour',units:'linear HDR composed colour',exposure:1,settings:{...og.ssgi.diagnostics().options}};
+    report.motionValidation={metadata:{...meta},radiance:{rows:lightRows,heldLightControlDifference:causalDifference,currentInsteadOfPreviousDifference:priorCurrentDifference,finalCapture:'moving-light'},object:{rows:objectRows,totalVacatedQuarterPixels:totalVacated,totalRejectedDonorQuarterPixels:totalRejectedDonorPixels,finalCapture:'moving-object'},boundary:'Short deterministic synthetic motion sequences. The light test changes pre-SSGI direct-only donor radiance, not the canonical direct-light pass. The object test translates canonical ownership/depth/material coverage. This does not claim SM-603 comprehensive history/visual acceptance.'};
+    const diagnostics=gpu.ssgi.diagnostics();report.diagnostics=diagnostics;report.hierarchy=gpu.hierarchy.diagnostics();report.denseScene=dense.metadata;
+    check(report.hierarchy.valid&&report.hierarchy.levelCount>1,'prototype reuses real canonical SM-203 hierarchy');
+    report.shaderIdentity={};for(const key of Object.keys(S).filter(k=>k.endsWith('WGSL'))){const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(S[key]));report.shaderIdentity[key]=Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');}
+    for(const name of ['off','on','indirect','rejection','moving-light','moving-object'])show(name,captures[name]);
+    report.timing={requested,available:false,gpuMs:null,cpuSubmitAndMapMs:null,boundary:'No GPU timing was requested or timestamp-query was unavailable.'};
+    if(requested&&available){
+      progress('initial full-HD dense GPU timing');const benchmark=quantized(F.createFixture(1920,1080,'dense')),bg=await scoped('benchmark fixture',()=>createGPUFixture(benchmark));
+      bg.source.pixelScale=benchmark.width/640;
+      const warmup=Math.max(0,Math.min(3000,Number(query.get('warmup')||30))),samples=Math.max(1,Math.min(3000,Number(query.get('samples')||60)));
+      const qs=device.createQuerySet({type:'timestamp',count:8}),resolve=device.createBuffer({size:256,usage:GPUBufferUsage.QUERY_RESOLVE|GPUBufferUsage.COPY_SRC}),map=device.createBuffer({size:256,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});owned.push(qs,resolve,map);
+      const timestamps={},names=['trace','resolve','compose','snapshot'];for(let i=0;i<4;i++)timestamps[names[i]]={querySet:qs,beginningOfPassWriteIndex:i*2,endOfPassWriteIndex:i*2+1};
+      const perf=new SteelMothWebGPUPerformance.WebGPUPerformanceInstrumentation({device,maxPasses:1,maxCommandSpansPerPass:1,maxFrames:samples,readbackRingSize:4,labelPrefix:'SM602 initial timing'});owned.push({destroy:()=>perf.close()});
+      // Establish prior colour once and exercise it once before the declared warm-up window.
+      await bg.ssgi.update(bg.source,{enabled:true,meta});await bg.ssgi.update(bg.source,{enabled:true,meta});const computeGpuMs=[],cpuSubmitAndMapMs=[],passMs={trace:[],resolve:[],compose:[],snapshot:[]},rawNanoseconds=[];
+      await scoped('timing warmup',async()=>{for(let i=0;i<warmup;i++){if(i%30===0)progress('timing warmup '+i+'/'+warmup);await bg.ssgi.update(bg.source,{enabled:true,meta,wait:false});}});
+      const warmRaw=await bg.ssgi.readback('raw');check(F.rgbMax(warmRaw.data)>0,'full-HD production-scale fixture has valid diffuse donor support after warmup',{rawMaximum:F.rgbMax(warmRaw.data),pixelScale:bg.source.pixelScale});
+      const benchmarkSettings={...bg.ssgi.diagnostics().options};
+      device.pushErrorScope('validation');
+      for(let i=0;i<samples;i++){
+        if(i%30===0)progress('timing sample '+i+'/'+samples);const started=performance.now();
+        await perf.beginFrame('sm602-'+i,{extent:[1920,1080],scene:'dense',quality:'Medium'});
+        const timedDiagnostics=await perf.measureGpuPass('ssgi',scope=>bg.ssgi.update(bg.source,{enabled:true,meta,wait:false,timestampWrites:timestamps,performanceTimingScope:scope}),{coverage:'one producer submission; trace + temporal resolve + composition + prior-frame snapshot'});
+        check(timedDiagnostics.snapshot.historyUsed===true,'timing hooks preserve warmed valid history');
+        await perf.endFrame();
+        const encoder=device.createCommandEncoder();encoder.resolveQuerySet(qs,0,8,resolve,0);encoder.copyBufferToBuffer(resolve,0,map,0,64);device.queue.submit([encoder.finish()]);await map.mapAsync(GPUMapMode.READ);const values=Array.from(new BigUint64Array(map.getMappedRange(),0,8));map.unmap();
+        const durations=names.map((_,j)=>Number(values[j*2+1]-values[j*2])/1e6);check(values.every(v=>v>0n)&&durations.every(v=>v>=0),'timestamp queries cover actual production compute commands');computeGpuMs.push(durations.reduce((a,b)=>a+b,0));cpuSubmitAndMapMs.push(performance.now()-started);for(let j=0;j<4;j++)passMs[names[j]].push(durations[j]);rawNanoseconds.push(values.map(String));
+      }
+      const timingError=await device.popErrorScope();if(timingError)validationErrors.push({label:'timing',message:timingError.message});await perf.flush();const perfReport=perf.diagnostics(),gpuMs=perfReport.frames.map(f=>f.passes[0].commandGpuMs),queueSpanGpuMs=perfReport.frames.map(f=>f.passes[0].queueSpanGpuMs);
+      check(gpuMs.length===samples&&gpuMs.every(v=>Number.isFinite(v)&&v>0),'SM-500 explicit command spans retain complete GPU samples');check(perfReport.frames.every(f=>f.passes[0].commandSubmissionCount===1),'SM-500 covers exactly one SSGI producer submission per sample');
+      const ordered=[...gpuMs].sort((a,b)=>a-b);report.timing={requested:true,available:true,extent:{width:1920,height:1080},scene:benchmark.metadata,settings:benchmarkSettings,primingFrames:2,warmup,samples,gpuMs,queueSpanGpuMs,computeGpuMs,passMs,rawNanoseconds,cpuSubmitAndMapMs,sm500:perfReport,meanMs:gpuMs.reduce((a,b)=>a+b,0)/samples,p95Ms:ordered[Math.ceil(samples*.95)-1],boundary:'Primary GPU values are SM-500 explicit command spans around the complete trace + temporal resolve + composition + prior-frame snapshot command-buffer submission. Separate per-pass timestamps record compute only. Full-HD pixelScale=1920/640=3 matches the production source factory; logical radius24 becomes native radius72. Shared hierarchy construction, input uploads, output readback, query resolution and CPU/map latency are excluded. Historical callback queue spans remain separate and may include host gaps. This is initial full-HD synthetic-scene timing, not full renderer or SM-603 acceptance.'};
+    }
+    check(validationErrors.length===0&&uncapturedErrors.length===0,'all WebGPU validation scopes and uncaptured error lists are empty');report.ok=true;progress('complete — human visual judgment pending');
+  }catch(error){report.error=String(error.stack||error);progress('failed');}
+  finally{for(const item of owned.reverse())try{await item.destroy?.();}catch(_e){}device?.destroy();document.getElementById('webgpuSSGIResult').textContent=JSON.stringify(report,null,2);document.body.dataset.webgpuSSGIDone='1';globalThis.SM602Result=report;}
+})();
+</script>

@@ -16,4 +16,4 @@ Serve this folder as static files over HTTP(S). `index.html` is the entry point.
 
 ## Cache note
 
-The service worker cache is `small-machine-web-v1.2.3-r1`. `sw.js`, `index.html`, `engine/*`, and `game_data/*` should not be long-cache immutable at the HTTP layer; `_headers` contains suitable hints for hosts that support it.
+The service worker cache is `small-machine-web-v1.2.3-r27`. `sw.js`, `index.html`, `engine/*`, and `game_data/*` should not be long-cache immutable at the HTTP layer; `_headers` contains suitable hints for hosts that support it.

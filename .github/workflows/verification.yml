@@ -82,6 +82,8 @@ jobs:
         run: python tools/validate_webgpu_local_shadows_browser.py --require-webgpu --report artifacts/webgpu-local-shadows-browser.json
       - name: Validate transparent sprite/particle/objective/guide FX blending, atlas sampling and ordering hooks
         run: python tools/validate_webgpu_transparent_fx_browser.py --require-webgpu --report artifacts/webgpu-transparent-fx-browser.json
+      - name: Validate bounded diffuse SSGI, shared history rejection, clamps and neutral disable
+        run: python tools/validate_webgpu_ssgi_browser.py --report artifacts/webgpu-ssgi-browser.json --out artifacts/webgpu-ssgi
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -97,6 +99,8 @@ jobs:
             artifacts/webgpu-lighting-browser.json
             artifacts/webgpu-local-shadows-browser.json
             artifacts/webgpu-transparent-fx-browser.json
+            artifacts/webgpu-ssgi-browser.json
+            artifacts/webgpu-ssgi/**
           if-no-files-found: warn
 
   webgl2-transform-parity:
