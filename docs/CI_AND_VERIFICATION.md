@@ -225,4 +225,12 @@ The production WGSL inventory is a growing gate. Every issue that adds shaders, 
 
 ## Extending the gate
 
+SM-602 adds `node tools/validate_webgpu_ssgi.js` to the normal runner and
+`python tools/validate_webgpu_ssgi_browser.py` to the required WebGPU job. The
+browser runner fails when WebGPU is unavailable, reads production diffuse and
+history/rejection buffers, validates neutral disable/composition, and saves
+labelled fixture captures. The clean-package gate includes the SSGI module,
+fixture, validators and canonical contract. Optional timestamp measurements
+are prototype evidence with explicit coverage, never hosted target acceptance.
+
 Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness.

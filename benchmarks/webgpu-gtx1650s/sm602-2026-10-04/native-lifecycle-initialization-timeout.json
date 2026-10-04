@@ -1,0 +1,41 @@
+{
+  "actualWebGPUAvailable": true,
+  "actualWebGPUInitialized": false,
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.EXE",
+  "browserCommand": [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.EXE",
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--enable-unsafe-webgpu",
+    "--user-data-dir=C:\\Users\\-\\AppData\\Local\\Temp\\steelmoth-webgpu-chrome-ax3f72zq",
+    "--virtual-time-budget=7000",
+    "--dump-dom",
+    "<local-webgpu-smoke-url>"
+  ],
+  "evidenceBoundary": "Hosted browser API/fallback correctness only; navigator.gpu or a usable adapter may be absent. This is not target-GPU compatibility or performance evidence.",
+  "ok": true,
+  "returncode": 0,
+  "schema": "steelmoth-webgpu-browser-validation/v1",
+  "smoke": {
+    "actual": {
+      "available": true,
+      "fallback": "webgl2",
+      "initialized": false,
+      "status": "initialization-timeout"
+    },
+    "autoPolicy": {
+      "reason": "webgl2-until-sm505",
+      "requested": "auto",
+      "selected": "webgl2"
+    },
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "deliberateFailure": {
+      "message": "deliberate WebGPU adapter failure",
+      "ok": true
+    },
+    "ok": true,
+    "schema": "steelmoth-webgpu-browser-smoke/v1",
+    "secureContext": true
+  }
+}

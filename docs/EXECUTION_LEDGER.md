@@ -189,3 +189,30 @@ The deployment audit also found stale identity metadata: `sw.js` uses cache `sma
 The exact next release-gate work is recorded in `WEBGPU_RELEASE_VALIDATION.md`: implement bounded normal-game WebGPU presentation without altering gameplay authority or accepted core semantics, then obtain exact-candidate physical GTX 1650 SUPER Chrome/Firefox presentation/fallback evidence. Rerun the full SM-501 timing campaign only if source/configuration analysis shows that the integrated candidate changes the measured GPU command/timing path. Reconcile static/PWA cache identity and rerun clean package/extraction on the exact candidate.
 
 No physical GPU work was run at this checkpoint, #50 remains open, and #37 / SM-602 was not started.
+
+## SM-602 native prototype checkpoint — 2026-10-04
+
+The current remote ownership/dependency review selected #37 / SM-602 from
+`fee947782d6068dc077a109a2d63c798072ad648`; no competing active worker was found.
+SteelMoth is the sole mutable source repository. Work is isolated in
+`codex/sm602-diffuse-ssgi` at `.campaign-worktrees/sm602-prototype`; sibling
+source repositories and older SteelMoth worktrees were left untouched.
+
+The disabled-by-default diffuse producer, shared SM-601 validity extraction,
+fixture/readback/lifecycle gates and offline dependency cache are implemented.
+The initial native GTX 1650 SUPER full-HD synthetic measurement and exact
+source closure are recorded in `SM602_PROTOTYPE_REPORT.md` and
+`benchmarks/webgpu-gtx1650s/sm602-2026-10-04/`. Measured runtime commit
+`34b63f0255c53a40485bab66f5b341c150ef2c42` passed the complete motion/correctness
+and initial timing fixture: 1,318 assertions, empty API/JavaScript error lists,
+2.389376 ms complete-command mean and 2.885024 ms p95 (one synthetic run).
+Source/regression and
+clean-package gates passed 90/90 and 20/20 respectively; required hosted
+browser/GLSL gates and PR merge still remain. This checkpoint claims neither
+SM-603 stabilization nor SM-505 normal-game release promotion.
+
+Published review: [PR #113](https://github.com/techrote/steelmoth/pull/113).
+The exact self-contained acceptance file also passes a native Chrome replay
+smoke with GPU disabled and six labelled canvases. No physical action or
+human judgment is currently needed; the merge gate is the required hosted
+checks at the final PR head. No benchmark/browser process is left running.

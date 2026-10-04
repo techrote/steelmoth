@@ -1,6 +1,6 @@
 # SM-601 measured readback/counter adoption
 
-**Final disposition — accepted, 2026-10-03:** PR #110 merged to `main` as `826a378581eb678c3f704c4e827c461563d938bc` after a criterion-by-criterion review of #36. Existing retained GTX 1650 SUPER evidence satisfies the moving-scene stability, target-cost, explicit-tier and temporal-rejection criteria; no fresh GPU run was required. #36 is ready for closure and SM-602 is dependency-ready. Earlier checkpoint/recovery instructions are historical and their temporary "leave unmerged" wording no longer controls this completed review.
+**Final disposition — accepted, 2026-10-03:** PR #110 merged to `main` as `826a378581eb678c3f704c4e827c461563d938bc` after a criterion-by-criterion review of #36. Existing retained GTX 1650 SUPER evidence satisfies the moving-scene stability, target-cost, explicit-tier and temporal-rejection criteria; no fresh GPU run was required. #36 is closed and SM-602 is dependency-ready. Earlier checkpoint/recovery instructions are historical and their temporary "leave unmerged" wording no longer controls this completed review.
 
 The retained production measurement is **1.088006 ms queue-span mean / 1.288608 ms worst run p95**, at `b1e87b0a8e07ac2ca3e240dbec8f2a708eaa5275` (approximately 1088/1289 microseconds, not milliseconds). It meets the unchanged working mean guardrail. The separate arithmetic/cache controls do **not** justify adopting any arithmetic candidate; this conclusion does not invalidate or pool the separate production readback/counter measurements. The readback/counter proposal is now adopted by PR #110. CI and the mean guardrail alone did not establish acceptance: the final review also verified measured-source equivalence plus the issue's stability, tier and rejection criteria.
 
@@ -80,7 +80,7 @@ python tools/run_webgpu_target_campaign.py --phase sm601 --sessions 3 --warmup 3
 python tools/validate_sm601_target_report.py <new-production-report.json>
 ```
 
-Final evidence must retain exact production SHA, browser/driver/GPU identity, fresh processes, raw samples, unscaled Medium attachments and honest queue/command coverage. Moving actor/light stability, disocclusion/history rejection, room/backend/device discontinuities and no Material-AO/GTAO double-darkening remain the actual issue-level correctness requirements. The final review confirmed these conditions from retained evidence; #36 does not specify a separate human approver, and exact output equivalence preserves the accepted PR #102 visual/correctness baseline. SM-602 is dependency-ready once #36 is closed.
+Final evidence must retain exact production SHA, browser/driver/GPU identity, fresh processes, raw samples, unscaled Medium attachments and honest queue/command coverage. Moving actor/light stability, disocclusion/history rejection, room/backend/device discontinuities and no Material-AO/GTAO double-darkening remain the actual issue-level correctness requirements. The final review confirmed these conditions from retained evidence; #36 does not specify a separate human approver, and exact output equivalence preserves the accepted PR #102 visual/correctness baseline. Issue #36 is closed; SM-602 is dependency-ready.
 
 ## Completed production-source verification
 

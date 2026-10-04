@@ -33,7 +33,24 @@
   function pairAt(depth,index,count){if(!depth)return[1,0];if(depth.length>=count*2)return[finite(depth[index*2],1),finite(depth[index*2+1],0)];const d=finite(depth[index],1);return[d,d];}
   function normalAt(normals,index){if(!normals)return[0,0,1];return decodeNormal([normals[index*4],normals[index*4+1],normals[index*4+2]]);}
   function localBounds(current,width,height,x,y){let lo=Infinity,hi=-Infinity;for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const sx=x+ox,sy=y+oy;if(sx<0||sy<0||sx>=width||sy>=height)continue;const v=clamp(finite(current[sy*width+sx],1),0,1);lo=Math.min(lo,v);hi=Math.max(hi,v);}return[Number.isFinite(lo)?lo:1,Number.isFinite(hi)?hi:1];}
-  function globalDiscontinuity(previousMeta,currentMeta){if(!previousMeta)return{reject:true,reason:'history-uninitialized'};for(const key of ['roomId','deviceGeneration','backendGeneration'])if(String(previousMeta?.[key]??'')!==String(currentMeta?.[key]??''))return{reject:true,reason:`${key}-change`};return{reject:false,reason:''};}
+  function globalDiscontinuity(previousMeta,currentMeta,extraKeys=[]){if(!previousMeta)return{reject:true,reason:'history-uninitialized'};for(const key of ['roomId','deviceGeneration','backendGeneration',...extraKeys])if(String(previousMeta?.[key]??'')!==String(currentMeta?.[key]??''))return{reject:true,reason:`${key}-change`};return{reject:false,reason:''};}
+  // Shared SM-601 validity policy. Keep the measured TEMPORAL_WGSL below byte
+  // identical: downstream effects reuse this factored policy without changing
+  // the adopted GTAO kernel or its rejection order/threshold boundaries.
+  function pixelDiscontinuity(currentDepth,previousDepth,currentObject,previousObject,currentNormal,previousNormal,cfg){
+    if(Number(currentObject||0)!==Number(previousObject||0))return{reject:true,reason:'object',code:2};
+    if(Math.abs(currentDepth[0]-previousDepth[0])>cfg.depthThreshold||Math.abs(currentDepth[1]-previousDepth[1])>cfg.depthThreshold)return{reject:true,reason:'depth',code:1};
+    if(currentNormal&&previousNormal&&currentNormal[0]*previousNormal[0]+currentNormal[1]*previousNormal[1]+currentNormal[2]*previousNormal[2]<cfg.normalThreshold)return{reject:true,reason:'normal',code:3};
+    return{reject:false,reason:'',code:0};
+  }
+  const PIXEL_VALIDITY_WGSL=`
+fn smTemporalRejectReason(d:vec2f,pd:vec2f,o:u32,po:u32,n:vec3f,pn:vec3f,depthThreshold:f32,normalThreshold:f32)->u32{
+  if(o!=po){return 2u;}
+  if(any(abs(d-pd)>vec2f(depthThreshold))){return 1u;}
+  if(dot(n,pn)<normalThreshold){return 3u;}
+  return 0u;
+}
+`;
   function temporalReference(input={},options={}){
     const width=Math.max(1,Math.round(input.width||1)),height=Math.max(1,Math.round(input.height||1)),count=width*height;
     const quality=resolveQuality(options.quality||'Medium',options),cfg=quality.temporal;
@@ -47,8 +64,7 @@
       const i=y*width+x,cur=clamp(finite(current[i],1),0,1);let accept=historyValid,why='';
       if(!cfg.enabled){accept=false;why='disabled';}
       else if(!historyValid){accept=false;why='global';}
-      else if(Number(currentObject[i]||0)!==Number(previousObject[i]||0)){accept=false;why='object';}
-      else{const a=pairAt(currentDepth,i,count),b=pairAt(previousDepth,i,count);if(Math.abs(a[0]-b[0])>cfg.depthThreshold||Math.abs(a[1]-b[1])>cfg.depthThreshold){accept=false;why='depth';}else if(currentNormal&&previousNormal){const n=normalAt(currentNormal,i),p=normalAt(previousNormal,i),dot=n[0]*p[0]+n[1]*p[1]+n[2]*p[2];if(dot<cfg.normalThreshold){accept=false;why='normal';}}}
+      else{const pixel=pixelDiscontinuity(pairAt(currentDepth,i,count),pairAt(previousDepth,i,count),currentObject[i],previousObject[i],currentNormal&&previousNormal?normalAt(currentNormal,i):null,currentNormal&&previousNormal?normalAt(previousNormal,i):null,cfg);if(pixel.reject){accept=false;why=pixel.reason;}}
       if(accept){const [lo,hi]=localBounds(current,width,height,x,y),bounded=clamp(finite(previous[i],cur),Math.max(lo,cur-cfg.deltaClamp),Math.min(hi,cur+cfg.deltaClamp));out[i]=cur*(1-cfg.historyWeight)+bounded*cfg.historyWeight;reasons.accepted++;}
       else{out[i]=cur;rejectMask[i]=1;reasons.rejected++;reasons[why]=(reasons[why]||0)+1;}
     }
@@ -101,5 +117,5 @@ fn normalAt(t:texture_2d<f32>,p:vec2i)->vec3f{let n=textureLoad(t,p,0).xyz*2.0-1
     close(){this.registry?.close();this.pipelines?.clear();this.registry=null;this.pipeline=null;this.historyValid=false;this.valid=false;this.closed=true;}
   }
 
-  return{SCHEMA,SNAPSHOT_SCHEMA,QUALITY_NAMES,QUALITY_PRESETS,normalizeQuality,resolveQuality,decodeNormal,pairAt,localBounds,globalDiscontinuity,temporalReference,TEMPORAL_WGSL,parameterBytes,WebGPUGTAOTemporal};
+  return{SCHEMA,SNAPSHOT_SCHEMA,QUALITY_NAMES,QUALITY_PRESETS,normalizeQuality,resolveQuality,decodeNormal,pairAt,localBounds,globalDiscontinuity,pixelDiscontinuity,PIXEL_VALIDITY_WGSL,temporalReference,TEMPORAL_WGSL,parameterBytes,WebGPUGTAOTemporal};
 });

@@ -29,8 +29,10 @@ Do not silently promote a historical suggestion into a requirement.
 - [`SM500_TIMING_BOUNDARY.md`](SM500_TIMING_BOUNDARY.md) — historical queue spans, explicit command coverage, host/readback latency and aligned query resolution.
 - [`WEBGPU_GTAO_SM600.md`](WEBGPU_GTAO_SM600.md) — bounded half-resolution horizon/reconstruction contract and strongest-occluder Material-AO composition.
 - [`GTAO_REFERENCE_POLICY.md`](GTAO_REFERENCE_POLICY.md) — authoritative binary32 reconstruction cutoff and exact nearest-raw fallback policy.
-- [`WEBGPU_GTAO_SM601.md`](WEBGPU_GTAO_SM601.md) — quality/history rejection semantics, proposed bounded readback integration and physical acceptance gate.
+- [`WEBGPU_GTAO_SM601.md`](WEBGPU_GTAO_SM601.md) — quality/history rejection semantics, adopted bounded readback integration and physical acceptance gate.
 - [`SM601_MEASURED_ADOPTION.md`](SM601_MEASURED_ADOPTION.md) — source-separated target measurements, adopted scheduling/counter production path, completed arithmetic rejection, attribution limits and final SM-601 acceptance disposition (#36 complete; SM-602 dependency-ready).
+- [`WEBGPU_SSGI_SM602.md`](WEBGPU_SSGI_SM602.md) — bounded quarter-resolution diffuse prototype, shared depth/history validity, linear colour/feedback boundary and executable verification.
+- [`SM602_PROTOTYPE_REPORT.md`](SM602_PROTOTYPE_REPORT.md) — exact-source native correctness/captures, initial GTX 1650 SUPER timestamps and prototype evidence limits.
 - [`WEBGPU_API_VALIDATION.md`](WEBGPU_API_VALIDATION.md) — SM-104 executable WGSL/pipeline/resource/failure-path inventory, report schemas and evidence boundaries.
 - [`WEBGPU_GBUFFER_SM200.md`](WEBGPU_GBUFFER_SM200.md) — SM-200 production Material-v2 G-buffer formats, atlas semantics, deterministic clears/readbacks and material/object-ID debug contract; its depth-disabled class is retained as a compatibility/control path.
 - [`PSEUDO_DEPTH_MODEL.md`](PSEUDO_DEPTH_MODEL.md) — SM-201 accepted light-independent fragment ownership projection, units/ranges/layers, numeric vectors and rejected alternatives, now mechanically adopted by SM-202.
