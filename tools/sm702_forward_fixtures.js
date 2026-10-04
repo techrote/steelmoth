@@ -37,7 +37,7 @@
     if(state.actor!==false)sprites.push(actor);
     if(kind==='stress')for(let i=0;i<32;i++){const x=(i%8+.5)*width/8,y=(Math.floor(i/8)+.5)*height/4;sprites.push(sprite('sm702:stress:'+i,i%2?'donor':'actor',x,y,width/28,height/10,i%2?32:48));}
     const lights=[],lightCount=kind==='stress'?SETTINGS.caps.lights:2,angle=Number(state.angle??45)*Math.PI/180,intensity=clamp(Number(state.intensity??1),0,8);
-    for(let i=0;i<lightCount;i++){const a=angle+i*2*Math.PI/lightCount;lights.push({id:'light:sm702:'+i,type:'point',group:'sm702',x:px(30)+Math.cos(a)*px(22),y:py(24)+Math.sin(a)*py(20),z:40,radius:Math.max(width,height)*1.7,intensity:(i===0?2.4:.45)*intensity,color:i===0?[1,.95,.85]:[.3,.7,1]});}
+    for(let i=0;i<lightCount;i++){const a=angle+i*2*Math.PI/lightCount;lights.push({id:'light:sm702:'+i,type:'point',group:'sm702',x:px(30)+Math.cos(a)*px(22),y:py(24)+Math.sin(a)*py(20),z:40,radius:Math.max(width,height)*1.7,intensity:(i===0?2.4:.45)*intensity,color:i===0?(state.lightColour||[1,.95,.85]):[.3,.7,1]});}
     const occluders=sprites.filter(s=>s.fixtureWorldZ>0).map(s=>({id:s.id,objectIdBasis:s.id,kind:s.id.includes('actor')?'actor':'machine',source:s.spriteId,majorOccluder:true,rect:[s.transform.x-s.transform.w/2,s.transform.y-s.transform.h/2,s.transform.x+s.transform.w/2,s.transform.y+s.transform.h/2],root:s.root,zRange:[0,s.fixtureWorldZ],sections:[{z:s.fixtureWorldZ}],dynamic:s.category==='dynamic'}));
     const foliage=[],foliageCount=kind==='stress'?SETTINGS.caps.foliage:6;
     const categories=['SHORT_GRASS','FERN','BUSH','BROAD_LEAF','SHORT_GRASS','BUSH'];

@@ -105,18 +105,44 @@ def source_identity():
             'boundary': 'Complete fixture/production/baseline/Python measurement closure; raw bytes before/after plus LF-normalized frozen accepted baselines.'}
 
 
-def save_acceptance(out, payload):
+def save_acceptance(out, payload, report_source=None):
     captures = payload.get('captures') or {}
     (out / 'readbacks.json').write_text(json.dumps(captures, separators=(',', ':')) + '\n', encoding='utf-8', newline='\n')
+    source = report_source or {}
+    forward = payload.get('forward') or {}
+    water, foliage = forward.get('water') or {}, forward.get('ambientOnce') or {}
+    glass = (forward.get('glass') or {}).get('direct') or {}
+    positive = glass.get('positiveWitnesses') or []
+    def pick(value, keys):
+        return {key: value.get(key) for key in keys}
+    summary = {'water': {'indirectMaximum': water.get('indirectMaximum'),
+                   'ambientOnce': pick(water.get('ambientOnce') or {}, ('tested', 'positivePixels', 'maxError', 'tolerance'))},
+               'foliage': {'macroIndirectMax': forward.get('macroIndirectMax'),
+                   'tinyMediumByteUnchanged': forward.get('tinyMediumByteUnchanged'),
+                   'ambientOnce': pick(foliage, ('tested', 'maxError'))},
+               'glass': {'positiveWitnesses': len(positive),
+                   'positiveDirectGRange': [min((r.get('directG', 0) for r in positive), default=0),
+                                           max((r.get('directG', 0) for r in positive), default=0)],
+                   'maximumPositiveContribution': max((r.get('directContribution', 0) for r in positive), default=0),
+                   'hardZero': pick(glass.get('hardZero') or {}, ('angle', 'directG', 'directContribution', 'maxError', 'expected', 'actual')),
+                   'dimmerControls': [pick(r, ('label', 'directG', 'ambientB', 'directRGB', 'expected', 'actual', 'maxError'))
+                                       for r in glass.get('dimmerControls') or []],
+                   **pick(glass, ('movingLightChanged', 'unsaturatedCanonicalRGBChanged', 'maximumError', 'tolerance'))}}
+    provenance = {'commit': source.get('commit'), 'branch': source.get('branch'),
+                  'closureFileCount': len(source.get('fileSha256') or {}),
+                  'baselineCommit': source.get('baselineCommit'),
+                  'baselineLFNormalizedSha256': source.get('baselineLFNormalizedSha256'),
+                  'localReport': source.get('localReport', 'report.json')}
     recorded = json.dumps({'captures': captures, 'captureMetadata': payload.get('captureMetadata', {}),
                            'configuration': payload.get('configuration', {}),
-                           'forwardValidation': payload.get('forwardValidation', {}),
+                           'forwardValidation': summary, 'provenance': provenance,
+                           'ok': payload.get('ok'), 'error': payload.get('error'),
                            'gpu': payload.get('gpu', {})}, separators=(',', ':')).replace('</', r'<\/')
     template = '''<!doctype html><meta charset="utf-8"><title>SM-702 retained GPU readbacks</title>
 <style>body{background:#171c23;color:#eee;font:15px system-ui;padding:22px}main{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:16px}canvas{width:100%;image-rendering:pixelated}figure{margin:0}pre{white-space:pre-wrap}</style>
-<h1>SM-702 recorded GPU evidence</h1><p>These figures replay retained production GPU readbacks. Linear HDR and incident irradiance RGB use Reinhard plus IEC sRGB display transfer at the recorded inspection exposure. Diagnostic RGB uses each recorded channel range directly; the metadata below records physical units and channel meanings. Synthetic forward timings do not establish whole-game performance or human art-direction approval.</p><main></main><pre></pre>
+<h1>SM-702 recorded GPU evidence</h1><p>These figures replay retained production GPU readbacks. Linear HDR and incident irradiance RGB use Reinhard plus IEC sRGB display transfer at the recorded inspection exposure. Diagnostic RGB uses each recorded channel range directly; the metadata below records physical units and channel meanings. Synthetic forward timings do not establish whole-game performance or human art-direction approval.</p><p><a id="raw-report">Full raw report and source closure</a></p><main></main><pre></pre>
 <script>const r=DATA;const transfer=x=>x<=.0031308?12.92*x:1.055*x**(1/2.4)-.055;
-for(const[name,v]of Object.entries(r.captures)){const f=document.createElement('figure'),c=document.createElement('canvas'),l=document.createElement('figcaption');c.width=v.width;c.height=v.height;const ctx=c.getContext('2d'),im=ctx.createImageData(v.width,v.height),meta=r.captureMetadata[name]||{},debug=meta.kind==='debug',exposure=Number(meta.exposure??1);for(let i=0;i<v.width*v.height;i++){for(let j=0;j<3;j++){let x=Math.max(0,v.data[i*4+j]);const range=meta.channelRanges?.[j]||[0,1];x=debug?(x-range[0])/(range[1]-range[0]):transfer(x*exposure/(1+x*exposure));im.data[i*4+j]=Math.round(Math.max(0,Math.min(1,x))*255)}im.data[i*4+3]=255}ctx.putImageData(im,0,0);l.textContent=name+' — '+v.width+'×'+v.height+' actual GPU readback — '+meta.units+' — '+meta.testCase;f.append(c,l);document.querySelector('main').append(f)}document.querySelector('pre').textContent=JSON.stringify({configuration:r.configuration,forwardValidation:r.forwardValidation,captureMetadata:r.captureMetadata,gpu:r.gpu},null,2)</script>'''
+for(const[name,v]of Object.entries(r.captures)){const f=document.createElement('figure'),c=document.createElement('canvas'),l=document.createElement('figcaption');c.width=v.width;c.height=v.height;const ctx=c.getContext('2d'),im=ctx.createImageData(v.width,v.height),meta=r.captureMetadata[name]||{},debug=meta.kind==='debug',exposure=Number(meta.exposure??1);for(let i=0;i<v.width*v.height;i++){for(let j=0;j<3;j++){let x=Math.max(0,v.data[i*4+j]);const range=meta.channelRanges?.[j]||[0,1];x=debug?(x-range[0])/(range[1]-range[0]):transfer(x*exposure/(1+x*exposure));im.data[i*4+j]=Math.round(Math.max(0,Math.min(1,x))*255)}im.data[i*4+3]=255}ctx.putImageData(im,0,0);l.textContent=name+' — '+v.width+'×'+v.height+' actual GPU readback — '+meta.units+' — '+meta.testCase;f.append(c,l);document.querySelector('main').append(f)}document.querySelector('#raw-report').href='./'+r.provenance.localReport;document.querySelector('pre').textContent=JSON.stringify({ok:r.ok,error:r.error,provenance:r.provenance,configuration:r.configuration,forwardValidation:r.forwardValidation,captureMetadata:r.captureMetadata,gpu:r.gpu},null,2)</script>'''
     (out / 'acceptance.html').write_text(template.replace('DATA', recorded), encoding='utf-8', newline='\n')
 
 
@@ -348,7 +374,8 @@ def main():
             execute_firefox(args, url, out, report)
         else:
             execute_chrome(args, url, out, report)
-        save_acceptance(out, report.get('smoke') or {})
+        save_acceptance(out, report.get('smoke') or {}, {**report['source'],
+                        'localReport': Path(os.path.relpath(path, out)).as_posix()})
         report['artifactSha256'] = {name: hashlib.sha256((out / name).read_bytes()).hexdigest()
                                    for name in ('acceptance.html', 'readbacks.json', 'acceptance.png')}
         smoke = report.get('smoke') or {}

@@ -273,6 +273,16 @@ Water, foliage and grass may remain forward/transparent, but must consume canoni
 - resolved scene/depth;
 - shadow visibility where appropriate.
 
+**Decision — SM-702 optional adoption:** staged water, existing macro-eligible
+large foliage and explicitly tagged world-alpha diffuse glass borrow fresh
+canonical ownership/depth/light/SM-307/SM-603 inputs through
+[`WEBGPU_FORWARD_LIGHTING_SM702.md`](WEBGPU_FORWARD_LIGHTING_SM702.md).
+Incident diffuse receives each material response and reconciled ambient B once;
+clear/additive/readability classes remain exempt. Canonical physical surface
+projection and producer resource lifetimes guard overlap/stale use. Defaults
+remain off; the fixture compositor does not establish normal-game WebGPU
+presentation or waive SM-505.
+
 Fine grass remains non-emissive and cheap. Large foliage may become an occluder class; tiny grass should generally receive lighting/occlusion without becoming expensive DSO geometry.
 
 ## Resource/performance rules

@@ -61,7 +61,7 @@ SETTINGS = {
 SCENE_COUNTS = {
     'representative': {'ripples': 2, 'foliage': 6, 'transparent': 5, 'lights': 2},
     'stress': {'ripples': 12, 'foliage': 208, 'transparent': 640, 'lights': 17}}
-CAPTURES = ('baseline-mixed', 'candidate-mixed', 'indirect', 'visibility', 'guard', 'actor-before', 'actor-after')
+CAPTURES = ('baseline-mixed', 'candidate-mixed', 'indirect', 'visibility', 'guard', 'actor-before', 'actor-after', 'water-indirect')
 ARTIFACTS = ('acceptance.html', 'readbacks.json', 'acceptance.png')
 FORMAT_BYTES = {'rgba16float': 8, 'rgba32float': 16, 'rgba32uint': 16,
     'rgba8unorm': 4, 'rg32float': 8, 'r32uint': 4, 'r32float': 4,
@@ -193,6 +193,100 @@ def validate_memory(variant, name, scene):
     return errors
 
 
+def validate_forward_oracles(smoke):
+    errors = []
+    def require(ok, message):
+        if not ok:
+            errors.append(message)
+    def vector(value):
+        return isinstance(value, list) and len(value) == 3 and all(finite(v) for v in value)
+    forward = smoke.get('forward') or {}
+    water = forward.get('water') or {}
+    oracle = water.get('ambientOnce') or {}
+    capture = (smoke.get('captures') or {}).get('water-indirect') or {}
+    width, height, data = capture.get('width'), capture.get('height'), capture.get('data') or []
+    tolerance = oracle.get('tolerance')
+    require(tolerance == .00002 and finite(oracle.get('maxError')) and oracle.get('maxError') < .00002,
+            'water native GI/ambient oracle must meet the fixed actual-readback tolerance')
+    require(type(oracle.get('tested')) is int and oracle.get('tested') == width * height
+            and type(oracle.get('positivePixels')) is int and 0 < oracle.get('positivePixels') <= oracle['tested'],
+            'complete native water oracle scan and positive receiver pixels required')
+    require(finite(water.get('indirectMaximum'), positive=True) and all(finite(x) for x in data)
+            and abs(water['indirectMaximum'] - max((x for i, x in enumerate(data) if i % 4 < 3), default=0)) < 1e-12,
+            'water positive maximum must equal actual native indirect texture')
+    rows = oracle.get('rows') or []
+    require(bool(rows), 'water native B-once receiver witnesses required')
+    ambient_witness = False
+    for row in rows:
+        q = row.get('native') or []
+        b, incident, own = row.get('ambientB'), row.get('incident'), row.get('ownDiffuse')
+        expected, actual = row.get('expected'), row.get('actual')
+        valid = (len(q) == 2 and all(type(x) is int for x in q) and 0 <= q[0] < width and 0 <= q[1] < height
+            and finite(b) and b <= 1 and vector(incident) and own == [.2, .5, .8]
+            and vector(expected) and vector(actual) and row.get('reason') == 0 and row.get('surfaceVisible') is True)
+        require(valid, 'water positive witnesses require native coordinate, own diffuse, support and visible surface')
+        if not valid:
+            continue
+        computed = [min(incident[i], .08) * own[i] * b * .6 for i in range(3)]
+        native = data[(q[1] * width + q[0]) * 4:][:3]
+        require(expected == computed or max(abs(x - y) for x, y in zip(expected, computed)) < 1e-12,
+                'water expected response must use native B exactly once')
+        require(actual == native and max(abs(x - y) for x, y in zip(computed, actual)) < .00002,
+                'water oracle must match the retained native texture readback')
+        ambient_witness |= b < 1 and any(x > 0 for x in computed)
+    require(ambient_witness, 'positive water GI with nonneutral native ambient B required')
+    foliage = forward.get('ambientOnce') or {}
+    require(type(foliage.get('tested')) is int and foliage.get('tested') > 0 and finite(foliage.get('maxError'))
+            and foliage.get('maxError') < .00002, 'positive actual large-foliage B-once oracle required')
+    glass = (forward.get('glass') or {}).get('direct') or {}
+    positive, hard = glass.get('positiveWitnesses') or [], glass.get('hardZero') or {}
+    require(glass.get('tolerance') == .0003 and finite(glass.get('maximumError')) and glass.get('maximumError') < .0003
+            and glass.get('movingLightChanged') is True, 'actual moving-light glass direct/ambient oracle required')
+    require(bool(positive), 'visible glass positive canonical direct G and contribution required')
+    require(hard.get('surfaceVisible') is True and hard.get('directG') == 0 and hard.get('directContribution') == 0,
+            'visible hard DSO G0 glass oracle required')
+    for row in [*positive, hard]:
+        valid = vector(row.get('expected')) and vector(row.get('actual'))
+        require(valid and row.get('surfaceVisible') is True and finite(row.get('maxError')) and row.get('maxError') < .0003,
+                'glass actual RGB oracle incomplete or exceeds fixed tolerance')
+        lights = row.get('canonicalLights') or []
+        require(0 < len(lights) <= 17 and all(vector(light.get('position')) and vector(light.get('color'))
+                and finite(light.get('intensity')) and finite(light.get('radius'), positive=True) for light in lights),
+                'glass oracle requires actual bounded canonical linear light records')
+        if valid:
+            error = max(abs(x - y) for x, y in zip(row['expected'], row['actual']))
+            require(error < .0003 and abs(error - row.get('maxError', math.inf)) < 1e-12,
+                    'glass reported error must equal actual native expected/readback comparison')
+    for row in positive:
+        require(finite(row.get('directG'), positive=True) and row['directG'] <= 1
+                and finite(row.get('directContribution'), positive=True), 'neutral/shadowed glass cannot prove the direct path')
+    require(vector(hard.get('actual')) and any(vector(row.get('actual')) and
+            max(abs(x - y) for x, y in zip(row['actual'], hard['actual'])) > .005 for row in positive),
+            'moving-light positive/hard shadow glass readbacks must differ causally')
+    dim = glass.get('dimmerControls') or []
+    require(len(dim) == 2 and [r.get('label') for r in dim] == ['dim-warm', 'dim-blue']
+            and glass.get('unsaturatedCanonicalRGBChanged') is True, 'two actual unsaturated canonical RGB controls required')
+    for row in dim:
+        state = row.get('state') or {}
+        require(state.get('angle') == 90 and state.get('actorX') == 22 and state.get('intensity') == .04
+                and state.get('lightColour') == ([1, .95, .85] if row.get('label') == 'dim-warm' else [.15, .4, 1]),
+                'dimmer oracle controls must record exact canonical input state separately from benchmark settings')
+        valid = vector(row.get('directRGB')) and vector(row.get('expected')) and vector(row.get('actual'))
+        require(valid and finite(row.get('directG'), positive=True) and row['directG'] <= 1
+                and all(v < .21 for v in row['directRGB']) and any(v > 0 for v in row['directRGB'])
+                and finite(row.get('maxError')) and row['maxError'] < .0003 and bool(row.get('canonicalLights')),
+                'dimmer control must prove positive unsaturated canonical RGB and matching native readback')
+        if valid:
+            error = max(abs(x - y) for x, y in zip(row['expected'], row['actual']))
+            require(error < .0003 and abs(error - row.get('maxError', math.inf)) < 1e-12,
+                    'dimmer actual/error values disagree')
+    if len(dim) == 2 and all(vector(r.get('directRGB')) and vector(r.get('actual')) for r in dim):
+        require(max(abs(x - y) for x, y in zip(dim[0]['directRGB'], dim[1]['directRGB'])) > .001
+                and max(abs(x - y) for x, y in zip(dim[0]['actual'], dim[1]['actual'])) > .001,
+                'unsaturated native glass must follow actual changed canonical RGB')
+    return errors
+
+
 def _validate_browser(report, *, hardware=False, timing=False, clean=False):
     errors = []
     def require(ok, text):
@@ -251,6 +345,7 @@ def _validate_browser(report, *, hardware=False, timing=False, clean=False):
     require(cfg.get('scene') in SCENES, 'unknown scene')
     require((report.get('correctness') or {}).get('fixtureExtents') == {
         n: [c.get('width'), c.get('height')] for n, c in captures.items()}, 'actual correctness extents must be separate from requested timing')
+    errors.extend(validate_forward_oracles(smoke))
     if hardware:
         errors.extend(hardware_errors(report))
     if not timing:
@@ -435,6 +530,27 @@ def self_test():
                        'residentVramMeasured': False, 'sharedUpstreamExcluded': list(UPSTREAM_EXCLUDED)},
             'descriptorMemoryBytes': total, 'meanMs': 4., 'p95Ms': 4.}
     captures = {name: {'width': 1, 'height': 1, 'data': [0, 0, 0, 1]} for name in CAPTURES}
+    water_expected = [.01 * own * .5 * .6 for own in (.2, .5, .8)]
+    captures['water-indirect']['data'] = [*water_expected, 1]
+    light = {'position': [1, 1, 40], 'color': [1, .8, .7], 'intensity': .1, 'radius': 100}
+    hard_glass = {'native': [0, 0], 'surfaceVisible': True, 'directG': 0, 'directContribution': 0,
+        'expected': [.1, .15, .2], 'actual': [.1, .15, .2], 'maxError': 0, 'canonicalLights': [light]}
+    positive_glass = {**copy.deepcopy(hard_glass), 'directG': 1, 'directContribution': .01,
+        'expected': [.11, .16, .21], 'actual': [.11, .16, .21]}
+    forward = {'water': {'indirectMaximum': max(water_expected), 'ambientOnce': {
+        'tested': 1, 'positivePixels': 1, 'maxError': 0, 'tolerance': .00002,
+        'rows': [{'native': [0, 0], 'ambientB': .5, 'incident': [.01, .01, .01],
+                  'ownDiffuse': [.2, .5, .8], 'reason': 0, 'surfaceVisible': True,
+                  'expected': water_expected, 'actual': water_expected}]}},
+        'ambientOnce': {'tested': 1, 'maxError': 0},
+        'glass': {'direct': {'positiveWitnesses': [positive_glass], 'hardZero': hard_glass,
+            'movingLightChanged': True, 'maximumError': 0, 'tolerance': .0003,
+            'unsaturatedCanonicalRGBChanged': True,
+            'dimmerControls': [{'label': label, 'state': {'angle': 90, 'actorX': 22, 'intensity': .04, 'lightColour': colour},
+                'directG': 1, 'directRGB': values, 'expected': values, 'actual': values, 'maxError': 0,
+                'canonicalLights': [light]} for label, colour, values in (
+                    ('dim-warm', [1, .95, .85], [.02, .018, .016]),
+                    ('dim-blue', [.15, .4, 1], [.004, .009, .019]))]}}}
     report = {'schema': 'steelmoth-sm702-forward-browser-report/v1', 'ok': True,
         'runId': 'CPU-STRUCTURAL-WITNESS-NOT-MEASURED', 'targetAcceptance': False,
         'hardwareRequested': True, 'softwareRequested': False, 'timestampQueryRequested': True,
@@ -454,6 +570,7 @@ def self_test():
             'gpu': {'realWebGPU': True, 'isFallbackAdapter': False, 'adapterInfo': {'vendor': 'nvidia', 'architecture': 'turing'}},
             'checks': [{'name': 'CPU schema only', 'ok': True} for _ in range(20)],
             'configuration': {**config, 'dpr': 1}, 'captures': captures,
+            'forward': forward,
             'captureMetadata': {n: {'testCase': 'CPU schema only', 'kind': 'linear', 'units': 'schema-only', 'exposure': 1} for n in CAPTURES},
             'timing': {'requested': True, 'available': True, 'metricSource': 'SM500.commandGpuMs',
                 'compositionIncluded': True, 'upstreamExcluded': list(UPSTREAM_EXCLUDED),
@@ -497,6 +614,20 @@ def self_test():
     mutate('software/fallback adapter', lambda r: r['smoke']['gpu'].update(isFallbackAdapter=True))
     mutate('unknown redacted adapter', lambda r: r['smoke']['gpu'].update(isFallbackAdapter=None, adapterInfo={}))
     mutate('capture missing', lambda r: r['smoke']['captures'].pop('guard'))
+    mutate('water oracle absent', lambda r: r['smoke']['forward'].pop('water'))
+    mutate('water double ambient', lambda r: r['smoke']['forward']['water']['ambientOnce']['rows'][0].update(expected=[v * .5 for v in water_expected]))
+    mutate('water oracle does not use retained capture', lambda r: r['smoke']['captures']['water-indirect']['data'].__setitem__(0, 0))
+    mutate('water no positive pixels', lambda r: r['smoke']['forward']['water']['ambientOnce'].update(positivePixels=0))
+    mutate('water oracle loose tolerance', lambda r: r['smoke']['forward']['water']['ambientOnce'].update(tolerance=.01))
+    mutate('glass no positive G oracle', lambda r: r['smoke']['forward']['glass']['direct'].update(positiveWitnesses=[]))
+    mutate('glass positive path is actually G0', lambda r: r['smoke']['forward']['glass']['direct']['positiveWitnesses'][0].update(directG=0))
+    mutate('glass positive contribution zero', lambda r: r['smoke']['forward']['glass']['direct']['positiveWitnesses'][0].update(directContribution=0))
+    mutate('glass hard zero omitted', lambda r: r['smoke']['forward']['glass']['direct'].pop('hardZero'))
+    mutate('glass moving witness absent', lambda r: r['smoke']['forward']['glass']['direct'].update(movingLightChanged=False))
+    mutate('glass canonical lights missing', lambda r: r['smoke']['forward']['glass']['direct']['positiveWitnesses'][0].update(canonicalLights=[]))
+    mutate('unsaturated colour controls missing', lambda r: r['smoke']['forward']['glass']['direct'].pop('dimmerControls'))
+    mutate('dimmer saturated', lambda r: r['smoke']['forward']['glass']['direct']['dimmerControls'][0].update(directRGB=[.22, .22, .22]))
+    mutate('dimmer RGB noncausal', lambda r: r['smoke']['forward']['glass']['direct'].update(unsaturatedCanonicalRGBChanged=False))
     mutate('API validation record missing', lambda r: r['smoke'].pop('validationErrors'))
     mutate('compiler errors hidden', lambda r: r['smoke']['compilation'][0]['messages'].append({'type': 'error'}))
     mutate('debug units missing', lambda r: r['smoke']['captureMetadata']['guard'].pop('units'))
