@@ -8,6 +8,13 @@ SM-500, SM-502 and SM-601. It adds no glossy GI, gameplay dependency or default
 enablement. Stabilization and target quality characterization belong to
 SM-603; normal renderer promotion remains the separate SM-505 gate.
 
+SM-602 is accepted through PR #113, merged on `main` at
+`0cfc54d07ad03f6619dcbfaea774f493ec296e3f`, with issue #37 closed after merge
+verification. `SM602_PROTOTYPE_REPORT.md` preserves its exact measured source
+and evidence. The current producer's bounded donor-coordinate history and
+optional canonical ambient input are specified in `WEBGPU_SSGI_SM603.md`;
+historical prototype timings remain separate.
+
 The producer is `engine/webgpu_ssgi.js`. The executable fixture and diagnostic
 views are `webgpu-ssgi-smoke.html`. Both consume canonical renderer data;
 the fixture does not redefine sprite placement, ownership or light authority.

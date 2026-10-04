@@ -5,6 +5,7 @@ const Quality=require('../engine/webgpu_quality.js');
 const Local=require('../engine/webgpu_local_shadows.js');
 const Hierarchy=require('../engine/webgpu_dso_hierarchy.js');
 const DarkBloom=require('../engine/webgpu_dark_bloom.js');
+const SSGI=require('../engine/webgpu_ssgi.js');
 
 assert.equal(Quality.SCHEMA,'steelmoth-webgpu-quality/v1');
 assert.deepEqual(Quality.NAMES,['Low','Medium','High','Ultra']);
@@ -42,7 +43,14 @@ for(const name of Quality.NAMES){
   assert.equal(p.reserved.gtao.owner,'SM-601');
   assert.equal(p.reserved.gtao.acceptanceScope,'excluded-from-sm501-initial-release');
   assert.equal(p.reserved.gtao.quality,'off');
-  assert.equal(p.reserved.ssgi.implemented,false);
+  assert.equal(p.reserved.ssgi.implemented,true);
+  assert.equal(p.reserved.ssgi.owner,'SM-603');
+  assert.equal(p.reserved.ssgi.optional,true);
+  assert.equal(p.reserved.ssgi.acceptanceScope,'excluded-from-sm501-initial-release');
+  assert.equal(p.reserved.ssgi.resolutionScale,.25);
+  const ssgi=SSGI.normalizeOptions({quality:name});
+  for(const key of ['rays','steps','radius','historyWeight'])assert.equal(p.reserved.ssgi[key],ssgi[key],`${name} SSGI ${key} must match the production optional tier`);
+  assert.equal(p.reserved.ssgi.quality,name==='Low'?'off':name);
   assert.equal(p.reserved.volumetrics.implemented,false);
   assert.equal(p.reserved.gtao.enabled,false);
   assert.equal(p.reserved.ssgi.enabled,false);

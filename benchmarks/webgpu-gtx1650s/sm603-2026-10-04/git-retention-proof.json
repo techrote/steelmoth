@@ -1,0 +1,107 @@
+{
+  "schema": "steelmoth-sm603-git-retention-proof/v1",
+  "ok": true,
+  "boundary": "SHA256-referenced raw report and saved HTML bytes verified in staged Git index with scoped newline conversion disabled. Does not alter executable measurement source.",
+  "files": [
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Medium/representative/run-1/report.json",
+      "expectedSha256": "6f8590d0126bc392fac7f020f78e3b06665b2f0873debc19c7ba9991af7cc574",
+      "stagedSha256": "6f8590d0126bc392fac7f020f78e3b06665b2f0873debc19c7ba9991af7cc574"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Medium/representative/run-2/report.json",
+      "expectedSha256": "fde388acfe898f20b8ddc6bf983d46fe77008c08b1ec4cd2171d93e43d533665",
+      "stagedSha256": "fde388acfe898f20b8ddc6bf983d46fe77008c08b1ec4cd2171d93e43d533665"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Medium/representative/run-3/report.json",
+      "expectedSha256": "c70571908b180e24e91ecbe7c074f69395bf0f56dbbd66399aed639f4fc566c7",
+      "stagedSha256": "c70571908b180e24e91ecbe7c074f69395bf0f56dbbd66399aed639f4fc566c7"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Medium/dense/run-1/report.json",
+      "expectedSha256": "8c95b668b5fb624bd01cbbccf26c0f415342798aa24aaa7c06d126fde4de35d8",
+      "stagedSha256": "8c95b668b5fb624bd01cbbccf26c0f415342798aa24aaa7c06d126fde4de35d8"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Medium/dense/run-2/report.json",
+      "expectedSha256": "e81dc7fb521244a23031673fd6cee402405cf2130d3ff6024f7512f1b8ec4c45",
+      "stagedSha256": "e81dc7fb521244a23031673fd6cee402405cf2130d3ff6024f7512f1b8ec4c45"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Medium/dense/run-3/report.json",
+      "expectedSha256": "e6f0a0372193eaf34372fffcf5a56806cd692aa01a919f4dcdac6141e763ffa6",
+      "stagedSha256": "e6f0a0372193eaf34372fffcf5a56806cd692aa01a919f4dcdac6141e763ffa6"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/High/representative/run-1/report.json",
+      "expectedSha256": "0348e4b888b23274cc7d11163dd2773c4e7028e8132ca7de2775a30e78acbed3",
+      "stagedSha256": "0348e4b888b23274cc7d11163dd2773c4e7028e8132ca7de2775a30e78acbed3"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/High/representative/run-2/report.json",
+      "expectedSha256": "7a5febcd927db8a1bf51bf937cd880374acc82ed515101ffdc546a1dfd2b69a1",
+      "stagedSha256": "7a5febcd927db8a1bf51bf937cd880374acc82ed515101ffdc546a1dfd2b69a1"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/High/representative/run-3/report.json",
+      "expectedSha256": "c0561b72d64733e4b342b8a8642aeaf7af6ecb1883a19254a2984f99708b981b",
+      "stagedSha256": "c0561b72d64733e4b342b8a8642aeaf7af6ecb1883a19254a2984f99708b981b"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/High/dense/run-1/report.json",
+      "expectedSha256": "462088ebf74933c8aace2f04fdf0f24ae3db956ba35f14f9935dcffa79786955",
+      "stagedSha256": "462088ebf74933c8aace2f04fdf0f24ae3db956ba35f14f9935dcffa79786955"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/High/dense/run-2/report.json",
+      "expectedSha256": "1d48706bd1df3d0988e1dfedaa663eeb8ef83bddab1795e4113064ac75d8a6cb",
+      "stagedSha256": "1d48706bd1df3d0988e1dfedaa663eeb8ef83bddab1795e4113064ac75d8a6cb"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/High/dense/run-3/report.json",
+      "expectedSha256": "050768898ce8f73adc783751ccbd5a33b7669dd32015aa66cd24d70974595b8c",
+      "stagedSha256": "050768898ce8f73adc783751ccbd5a33b7669dd32015aa66cd24d70974595b8c"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Ultra/representative/run-1/report.json",
+      "expectedSha256": "658ec559cc52dec67047a4344d9f745b243e045513d5beac9c2a23ee1776c743",
+      "stagedSha256": "658ec559cc52dec67047a4344d9f745b243e045513d5beac9c2a23ee1776c743"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Ultra/representative/run-2/report.json",
+      "expectedSha256": "8092baf84ffc6311b1a2c4923b7b954cb9024ad188c49c8396214ea4705451e6",
+      "stagedSha256": "8092baf84ffc6311b1a2c4923b7b954cb9024ad188c49c8396214ea4705451e6"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Ultra/representative/run-3/report.json",
+      "expectedSha256": "2b5bcc9ac883742a9b32761589b8c600cc3dd652b267336d638b955c91543918",
+      "stagedSha256": "2b5bcc9ac883742a9b32761589b8c600cc3dd652b267336d638b955c91543918"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Ultra/dense/run-1/report.json",
+      "expectedSha256": "e537344220926056927acaa19df842ea9ff30d845fbb262b0825c6ad7a4cfbf8",
+      "stagedSha256": "e537344220926056927acaa19df842ea9ff30d845fbb262b0825c6ad7a4cfbf8"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Ultra/dense/run-2/report.json",
+      "expectedSha256": "3c18f164e84b2c49ae1f8e308e094316e0240741d444fdc81350967a794c5511",
+      "stagedSha256": "3c18f164e84b2c49ae1f8e308e094316e0240741d444fdc81350967a794c5511"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Ultra/dense/run-3/report.json",
+      "expectedSha256": "6facc616ed28a160596973b8779f1d148e2b780cb7c3f4066641952ff678386b",
+      "stagedSha256": "6facc616ed28a160596973b8779f1d148e2b780cb7c3f4066641952ff678386b"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/firefox/Medium/representative/report.json",
+      "expectedSha256": "63cb4f64903bd4a5d95f89b758e9d48cda82c8d222a86ee7b308d5bc45b21801",
+      "stagedSha256": "63cb4f64903bd4a5d95f89b758e9d48cda82c8d222a86ee7b308d5bc45b21801"
+    },
+    {
+      "path": "benchmarks/webgpu-gtx1650s/sm603-2026-10-04/campaign-237bf76/Medium/representative/run-1/acceptance.html",
+      "expectedSha256": "3593217b659e4ac16c4f7a3e21dec6a1eee3e9d1a585f4739201a784ea4f097a",
+      "stagedSha256": "3593217b659e4ac16c4f7a3e21dec6a1eee3e9d1a585f4739201a784ea4f097a"
+    }
+  ]
+}

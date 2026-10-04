@@ -26,7 +26,7 @@ The local-shadow sample values are the production SM-205 tables, not invented SM
 
 **Medium is the design target**, not an emergency fallback: it retains 12-tap local height self-shadow, two selected self-shadow lights, 8-tap contact, Medium DSO hierarchy and Medium Dark Bloom. It does not reduce any core representation.
 
-GTAO is implemented and owned by SM-600/601, but it is deliberately outside the SM-501 initial WebGPU release scope. Every SM-501 preset therefore reports GTAO as `implemented: true`, `enabled: false`, `quality: off`, owned by `SM-601`, and excluded from the SM-501 acceptance total. SSGI and volumetrics remain unimplemented and disabled reserved slots. Adaptive/p95-driven switching remains exclusively SM-802.
+GTAO is implemented and owned by SM-600/601, but it is deliberately outside the SM-501 initial WebGPU release scope. Every SM-501 preset therefore reports GTAO as `implemented: true`, `enabled: false`, `quality: off`, owned by `SM-601`, and excluded from the SM-501 acceptance total. SM-602/603 implements optional diffuse SSGI; the preset metadata records its explicit quarter-resolution ray/step/radius/history limits but every preset keeps `enabled: false` and excludes it from the historical SM-501 total. Low remains off; Medium/High/Ultra describe the corresponding explicitly enabled SSGI tier. See `WEBGPU_SSGI_SM603.md` for the current evidence and policy. Volumetrics remains unimplemented and disabled. Adaptive/p95-driven switching remains exclusively SM-802.
 
 ## Benchmark protocol
 

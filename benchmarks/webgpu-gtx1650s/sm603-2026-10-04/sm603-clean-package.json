@@ -1,0 +1,221 @@
+{
+  "schema": "steelmoth-clean-package-report/v1",
+  "ok": true,
+  "checks": [
+    {
+      "command": [
+        "node",
+        "tools/validate_webgpu_ssgi_stabilization.js"
+      ],
+      "returncode": 0,
+      "stdout": "SM-603 DETERMINISTIC PASS: 77 assertions; baseline stale=0.00359693 candidate=0.00000000 donor-coordinates, disocclusion, reset, firefly and ambient-once gates\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_sm603_target_report.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "stdout": "{\"ok\": true, \"structuralMutantsRejected\": 18, \"additionalProvenanceCases\": 3, \"boundary\": \"CPU schema self-test only; no browser, GPU or measured performance evidence.\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "tools/validate_webgpu_ssgi.js"
+      ],
+      "returncode": 0,
+      "stdout": "SM-602 DETERMINISTIC PASS: 81 assertions; diffuse bounce, prior colour, clamp, rejection, off, odd/empty/dense fixtures\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "tools/validate_sm602_ssgi_lifecycle.js"
+      ],
+      "returncode": 0,
+      "stdout": "SM-602 LIFECYCLE PASS: 18/18 CPU/API-ordering cases; no GPU execution\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webapp_v123.py"
+      ],
+      "returncode": 0,
+      "stdout": "WEBAPP V1.2.3 PASS: version/cache closure, 9 rooms/27 objectives, Material-v2 assets, staged SM-101 transforms through SM-204 canonical lighting runtime present, 193/257-ray visibility profile declared\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_scene_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "RENDER SCENE CONTRACT PASS: typed schemas, explicit categories, stable identity basis, WebGL2 compatibility bridge, offline module registration, and fail-open authority boundary are present\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_transform_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-101 render-transform source contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_pseudo_depth_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "Pseudo-depth source contract PASS: SM-201 remains the canonical formula; SM-200 is the depth-disabled control and SM-202 is the production ownership adopter.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-102 WEBGPU CONTRACT PASS: staged Auto policy, lifecycle APIs, runtime diagnostics, offline registration and verification wiring present\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_resources_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-103/SM-500 WEBGPU RESOURCE CONTRACT PASS: persistent resources plus optional pass-level timestamp instrumentation, separate CPU phases, workload/memory export and unavailable-feature fallback are wired\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_validation_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-104 WebGPU validation source contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_gbuffer_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-200 WebGPU G-buffer source contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_ownership_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-202 ownership contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_depth_hierarchy_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-203 depth hierarchy contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_lighting_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-204 canonical lighting contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_local_shadows_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-205 local shadow contract: PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_transparent_fx_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-206 transparent FX contract PASS: baseline caps/order/blend, atlas sampling, bounded WebGPU ownership and fallback are coherent\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_occluders_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-300 occluder contract PASS: identity, bounded tile relevance, invalidation and SM-203 boundary are coherent\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_clusters_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-301 cluster contract PASS: deterministic geometry membership, bounded candidate work, perturbation stability and SM-302 boundary are coherent\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_webgpu_dominance_contract.py"
+      ],
+      "returncode": 0,
+      "stdout": "SM-302 dominance contract PASS: directional exposed-silhouette scoring, stable single-owner hysteresis, bounded GPU data and SM-303 boundary are coherent\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_harness.py"
+      ],
+      "returncode": 0,
+      "stdout": "render harness validation: PASS\nfixture: harness-smoke\nangles: 0,45,90,135,180,225,270,315\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "tools/validate_render_fixtures.py",
+        "--repeat",
+        "2"
+      ],
+      "returncode": 0,
+      "stdout": "PASS barrel a9d8b0e2a263e7a4c43da0094d9e60ac405ae7099dd7e126927108741dc13e8b\nPASS binsleft 5492756c8adeca1857d88b17cacabbb1168cd98ee9fa97490eb9bc0ea9db4c4b\nPASS binsright 8714d997396eee58d8391818768b4ddbb4cde02b9164c6b3658ce39b603f8f47\nPASS binsup e636d5d7262a84aba9918066adc95c0feee3e2dae5eea4c1b5368541f65e1349\nPASS binsupleft c07bcbc489b0bce746e26533353b2750f99629e92c970f64938f656af758af31\nPASS box-pair 6f92e7462704df76d94086710753ac5b31d278ae8cf32ab4b538143f65e479b6\nPASS cabinet 2bcac897c569e7a94e061fd3625fb0f86e364a59bfdfac753bf996e17eb990ea\nPASS crate 7172eecca15e82dcb79db62f610f45450ae90d99dd41325d2638442f38f0b47e\nPASS dense-mixed 4dc7b52eff7147e82f97681229ebe752b2c7897c972766288c1b744fc6eac8be\nPASS empty-floor b76ccbc405f0438d013d8066add2a1c939997877aa653eb131604114fadaf836\nPASS foliage-dense 49b67c61b8ac6183a66664c22811eee03522d0d719dfdbcefd01b6353215be42\nPASS lamp-pole d443e23ac379ca54f634f81c30c5fdfb2595a22e7da3604be062c73f5c1416d6\nPASS pipe-bundle e06db8e96cd98a5a8b93a692c1937c41d1c808c5aa6ffebb20ce3586cf4c384c\nPASS robot 081be674a5fc43cfd154575721f071b2f70c658d339226c020855a496cd3b1b9\nPASS single-box 448f734d0e5b47d1546f3458ceb46f355697bc29b7fe6f284e36b2d941466e4d\nPASS water-material 56b48810bf8c0ff808d642bc58ff3f372c2d463d98d18b485b9dd545d9121bf1\nPASS references 8 exact PNGs\nPASS auxiliary fixtures harness-smoke.json\nPASS corpus 16 fixtures; repeated loads=2; gameplay save state=not required\n",
+      "stderr": ""
+    }
+  ],
+  "baseline_sha256_entries_total": 93,
+  "baseline_content_entries_checked": 16,
+  "baseline_evolving_entries_skipped": 77,
+  "baseline_sm503_evolving_paths": [
+    "assets/generated/atlas.json",
+    "assets/generated/material_v2_report.json",
+    "assets/generated/sprite_material_height_material.png",
+    "assets/generated/sprite_material_normal_roughness.png"
+  ],
+  "baseline_crlf_entries_normalized": 9,
+  "baseline_sha256_errors": [],
+  "archive_sha256": "3afef314c760774736351b8c8bffba122f96a3fe18761514f25b1a6a402e1c2e",
+  "archive_bytes": 97550208,
+  "file_count": 968
+}

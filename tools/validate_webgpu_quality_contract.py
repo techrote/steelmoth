@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
+import subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
 errors=[]
@@ -33,10 +35,16 @@ for name in ('Low','Medium','High','Ultra'):
 require('selfShadowSamples:12' in quality and 'contactShadowSamples:8' in quality, 'Medium must retain representative 12/8 local-shadow sampling')
 require("hierarchyQuality:'Medium'" in quality and "quality:'Medium'" in quality, 'Medium must consume Medium DSO/Dark-Bloom policy')
 require("hardCore:'full'" in quality, 'quality policy must preserve full hard DSO ownership')
-require(quality.count('implemented:true') >= 4 and quality.count("owner:'SM-601'") >= 4, 'GTAO must be acknowledged as implemented under SM-601 ownership')
-require(quality.count('implemented:false') >= 8, 'SSGI and volumetrics must not be reported implemented by SM-501')
-require(quality.count('enabled:false') >= 12, 'GTAO, SSGI and volumetrics must remain disabled in SM-501')
-require(quality.count("acceptanceScope:'excluded-from-sm501-initial-release'") >= 4, 'GTAO must be explicitly excluded from the SM-501 initial-release benchmark')
+resolved=json.loads(subprocess.run(['node','-e',
+    "const q=require('./engine/webgpu_quality.js');process.stdout.write(JSON.stringify(q.NAMES.map(q.resolvePreset)))"],
+    cwd=ROOT,check=True,capture_output=True,text=True).stdout)
+for preset in resolved:
+    effects=preset['reserved']
+    require(all(effects[name]['enabled'] is False for name in ('gtao','ssgi','volumetrics')), f"{preset['name']}: secondary slots must stay disabled by default")
+    require(effects['gtao']['implemented'] is True and effects['gtao']['owner']=='SM-601', 'GTAO ownership must remain SM-601')
+    require(effects['ssgi']['implemented'] is True and effects['ssgi']['owner']=='SM-603' and effects['ssgi']['optional'] is True, 'SSGI must acknowledge its implemented optional SM-603 contract')
+    require(effects['volumetrics']['implemented'] is False, 'Volumetrics must remain unimplemented in this scope')
+    require(all(effects[name]['acceptanceScope']=='excluded-from-sm501-initial-release' for name in ('gtao','ssgi')), 'GTAO and SSGI must remain excluded from historical SM-501 acceptance totals')
 require("STORAGE_KEY='steelmoth-webgpu-quality-preset-v1'" in quality, 'static preset selection must have a dedicated persistent key')
 require('webgpuQualitySelect' in quality and 'webgpuQualityStatus' in quality, 'graphics panel quality selector/diagnostics are missing')
 require('webgpuQuality' in quality and 'URLSearchParams' in quality, 'target/diagnostic runs must be able to select an explicit preset by query')

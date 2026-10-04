@@ -51,6 +51,13 @@ The `min` operations mean *strongest overlapping evidence wins* rather than stac
 - B: ambient/AO visibility;
 - A: DSO macro visibility.
 
+SM-603's optional diffuse SSGI composition consumes B at the native receiving
+pixel, once, on its added diffuse term. It leaves the resolved direct input
+unchanged. Material AO and GTAO are already combined by this producer, so the
+consumer must not multiply them independently. See `WEBGPU_SSGI_SM603.md` for
+the producer freshness/extent contract and neutral prototype omission. This
+staged consumer does not change normal game presentation or promote `Auto`.
+
 It also writes an `r32float` debug texture. The available debug modes are:
 
 `combined`, `direct`, `ambient`, `dso`, `self-shadow`, `contact-shadow`, `dark-bloom`, `material-ao`, `gtao`, `macro`, and `local`.

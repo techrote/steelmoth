@@ -1,0 +1,28 @@
+1791074952671	geckodriver	INFO	Listening on 127.0.0.1:58999
+1791074955703	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-profile" "C:\\Users\\-\\AppData\\Local\\Temp\\sm603-firefox-pe15b58q" "--remote-debugging-port" "59000" "--remote-allow-hosts" "localhost" "-no-remote"
+Dynamically enable window occlusion 0
+1791074956070	Marionette	INFO	Marionette enabled
+1791074956167	Marionette	INFO	Listening on port 59009
+WebDriver BiDi listening on ws://127.0.0.1:59000
+Read port: 59009
+[WARN  rkv::backend::impl_safe::environment] `load_ratio()` is irrelevant for this storage backend.
+1791074956328	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+[WARN  webrender::device::gl] Missing optimized shader source for ps_quad_gradient_DITHERING
+[ERROR shell_windows::limited_access_features] Error generating feature token: NS_ERROR_FAILURE
+[ERROR shell_windows::taskbar::shortcut] Error matching shortcut: Error { code: HRESULT(0x80004005), message: "Unspecified error" }
+[ERROR shell_windows::taskbar::shortcut] Error matching shortcut: Error { code: HRESULT(0x80004005), message: "Unspecified error" }
+[ERROR shell_windows::taskbar::shortcut] Error matching shortcut: Error { code: HRESULT(0x80004005), message: "Unspecified error" }
+[WARN  glean_core::error_recording] gfx.adapter.primary.driver_files: Value length 771 exceeds maximum of 255
+console.error: "Experiment desktop-release-rollout-show-relay-to-all-browsers-next-sign-up-modal-cta has unknown featureId: email-autocomplete-relay"
+console.error: "Experiment visual-card-updates has unknown featureId: newtabRefinedCardsLayout"
+console.error: "Experiment enable-nimbus-unenrollment-synchronization has unknown featureId: nimbusStore"
+console.error: "Experiment private-window-visual-refresh-design-change-only has unknown featureId: feltPrivacy"
+[WARN  rkv::backend::impl_safe::environment] `load_ratio()` is irrelevant for this storage backend.
+console.error: "Experiment desktop-release-rollout-show-relay-to-all-browsers-next-sign-up-modal-cta has unknown featureId: email-autocomplete-relay"
+console.error: "Experiment visual-card-updates has unknown featureId: newtabRefinedCardsLayout"
+console.error: "Experiment enable-nimbus-unenrollment-synchronization has unknown featureId: nimbusStore"
+console.error: "Experiment private-window-visual-refresh-design-change-only has unknown featureId: feltPrivacy"
+[WARN  glean_core::upload] Attempted to enqueue a duplicate ping 3430ee1a-eae1-4c33-9d4f-a2847cb05da4 at /submit/firefox-crashreporter/deletion-request/1/3430ee1a-eae1-4c33-9d4f-a2847cb05da4.
+1791075032655	Marionette	INFO	Stopped listening on port 59009
+JavaScript error: resource://gre/modules/PrivateBrowsingUtils.sys.mjs, line 50: TypeError: can't access property "QueryInterface", aWindow.docShell is null
+Dynamically enable window occlusion 1

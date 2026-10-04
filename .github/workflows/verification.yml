@@ -84,6 +84,8 @@ jobs:
         run: python tools/validate_webgpu_transparent_fx_browser.py --require-webgpu --report artifacts/webgpu-transparent-fx-browser.json
       - name: Validate bounded diffuse SSGI, shared history rejection, clamps and neutral disable
         run: python tools/validate_webgpu_ssgi_browser.py --report artifacts/webgpu-ssgi-browser.json --out artifacts/webgpu-ssgi
+      - name: Validate SSGI disocclusion, donor history, energy bounds and canonical ambient composition
+        run: python tools/validate_sm603_ssgi_browser.py --report artifacts/sm603-ssgi-browser.json --out artifacts/sm603-ssgi
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -101,6 +103,8 @@ jobs:
             artifacts/webgpu-transparent-fx-browser.json
             artifacts/webgpu-ssgi-browser.json
             artifacts/webgpu-ssgi/**
+            artifacts/sm603-ssgi-browser.json
+            artifacts/sm603-ssgi/**
           if-no-files-found: warn
 
   webgl2-transform-parity:

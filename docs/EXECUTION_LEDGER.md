@@ -216,3 +216,63 @@ The exact self-contained acceptance file also passes a native Chrome replay
 smoke with GPU disabled and six labelled canvases. No physical action or
 human judgment is currently needed; the merge gate is the required hosted
 checks at the final PR head. No benchmark/browser process is left running.
+
+Acceptance subsequently completed: all 19 required workflows / 23 jobs passed
+at final PR head `812fa3d99a6931d23e000c295847852b8ec23013`. PR #113 merged at
+`0cfc54d07ad03f6619dcbfaea774f493ec296e3f`, independently verified on remote
+`main`; only then was #37 closed. The focused checkout was clean and all native
+browser processes were stopped before starting its same-project successor.
+
+## SM-603 preparation checkpoint — 2026-10-04
+
+Refreshed #38 dependencies, comments, branches, PRs and live workers showed no
+competing owner. The existing local chat claimed #38 on
+`codex/sm603-ssgi-stabilization` from verified merge `0cfc54d`; SteelMoth remains
+the sole mutable source repository in the same focused checkout. Remote
+`techrote/humagent` was refreshed and narrowly reconciled; no local inbox
+checkout is instruction authority and no daemon or duplicate worker was started.
+
+The deterministic frozen-baseline witness records partial-deletion residual
+red irradiance of 0.00359693 while the candidate uses current irradiance exactly.
+This is CPU correctness evidence, not a GPU or visual claim. Bounded donor-set
+history and optional SM-307 ambient integration are specified in
+`WEBGPU_SSGI_SM603.md`. Native readback comparisons, three-process cost/memory
+characterization, Firefox attribution/correctness, repository checks and PR
+acceptance remain outstanding at this preparation checkpoint. Default effect
+enablement and core/full-frame performance claims remain unchanged.
+
+The candidate subsequently passed 49/49 production GPU assertions in native
+Chrome and Firefox: baseline partial-deletion stale red irradiance is
+0.0035762786865234375, candidate residual is exactly zero with reason 6. Firefox
+uses the accepted explicit temporary preferences in a minimized window;
+its actual non-fallback flag plus complete single-controller/native inventory
+establishes target attribution despite privacy-redacted names. Headless probe
+failure is retained separately and is not a default-browser compatibility claim.
+Inherited SM-602 browser readbacks also pass. The normal gate passes 93/93,
+clean package 22/22, and the reconciled SM-501 quality contract passes.
+
+These preliminary GPU checks identify a frozen working-tree source closure
+over `0cfc54d`; they are not timing datasets. Their reports/captures are retained
+under `benchmarks/webgpu-gtx1650s/sm603-2026-10-04/`. Commit the full executable
+closure, leave tracked source clean, then run the serialized three-process
+paired quality/scene campaign and native Firefox spotcheck. Performance,
+enablement rationale, final-head CI, merge and issue closure remain outstanding.
+
+The complete campaign subsequently passed on clean committed runtime
+`237bf7696ffbd177df3743d2d6105ad73c9ed50a`: eighteen fresh native Chrome
+processes, three for each Medium/High/Ultra representative/dense configuration,
+and source-matched native Firefox. All 21,600 retained variant samples and
+before/after executable hashes pass the strict validator; every owned browser
+and driver process exited. The complete four-pass SSGI submission measures
+2.379–3.337 ms mean and 2.405–3.823 ms p95 across process runs, with per-run mean
+stabilization overhead 0.083–0.149 ms. Owned descriptor storage adds 7.910 MiB;
+resident VRAM is not measured. Optional ambient sampling and upstream/full
+renderer costs are excluded from timing, while actual SM-307 B composition
+passes separate native readbacks. `SM603_STABILIZATION_REPORT.md` and the
+retained campaign record exact source, captures, units and limits.
+
+All SSGI tiers remain optional/off by default. The initial PR #114 head passes
+twenty hosted workflows / twenty-four actual jobs. Final evidence-head checks,
+verified main merge and #38 closure still remain at this durable review
+checkpoint; initial CI is not relabelled final acceptance. SteelMoth remains
+the sole mutable source repository and no human action is currently needed.
