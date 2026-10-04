@@ -74,6 +74,7 @@ def main() -> int:
             z.extractall(extract)
         unpack=extract/'steelmoth'
         required=[
+            'engine/webgpu_forward_lighting.js','webgpu-forward-lighting-smoke.html','tools/sm702_forward_fixtures.js','tools/validate_sm702_forward_fixtures.js','tools/validate_sm702_forward_lighting.js','tools/validate_sm702_transparent_materials.js','tools/validate_sm702_forward_browser.py','tools/run_sm702_target_campaign.py','tools/validate_sm702_target_report.py','tools/experiments/sm702_water_baseline.js','tools/experiments/sm702_foliage_baseline.js','tools/experiments/sm702_transparent_fx_baseline.js','docs/WEBGPU_FORWARD_LIGHTING_SM702.md',
             'webgpu-ssgi-stabilization-smoke.html','tools/sm603_ssgi_fixtures.js','tools/validate_webgpu_ssgi_stabilization.js','tools/experiments/sm603_ssgi_baseline.js','tools/validate_sm603_ssgi_browser.py','tools/run_sm603_target_campaign.py','tools/validate_sm603_target_report.py','docs/WEBGPU_SSGI_SM603.md',
             'engine/webgpu_ssgi.js','webgpu-ssgi-smoke.html','tools/validate_webgpu_ssgi.js','tools/validate_sm602_ssgi_lifecycle.js','tools/validate_webgpu_ssgi_browser.py','docs/WEBGPU_SSGI_SM602.md',
             'index.html','engine/game.js','engine/editor.js','engine/surfacefx.js','engine/foliagefx.js',
@@ -115,6 +116,10 @@ def main() -> int:
             checks=[
                 ['node','tools/validate_webgpu_ssgi_stabilization.js'],
                 [sys.executable,'tools/validate_sm603_target_report.py','--self-test'],
+                ['node','tools/validate_sm702_forward_lighting.js'],
+                ['node','tools/validate_sm702_transparent_materials.js'],
+                ['node','tools/validate_sm702_forward_fixtures.js'],
+                [sys.executable,'tools/validate_sm702_target_report.py','--self-test'],
                 ['node','tools/validate_webgpu_ssgi.js'],
                 ['node','tools/validate_sm602_ssgi_lifecycle.js'],
                 [sys.executable,'tools/validate_webapp_v123.py'],

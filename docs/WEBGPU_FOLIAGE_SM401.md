@@ -61,3 +61,11 @@ The compute pass samples canonical visibility and depth at the root and consumes
 - No new gameplay/collision ownership in GPU objects.
 - No final procedural/transparent ordering policy; that is SM-402.
 - No presentation-backend cutover; that remains later programme work.
+
+## SM-702 optional extension
+
+Only existing macro-eligible BUSH/BROAD_LEAF classes consume fresh incident
+diffuse through canonical SM-307 ambient visibility. Caps, rooted deformation,
+non-emissive palette and the 80/48-byte compute ABI remain. The fixture compositor
+consumes actual output; normal-game presentation remains a separate gate. See
+[SM-702 contract](WEBGPU_FORWARD_LIGHTING_SM702.md).

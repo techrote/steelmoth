@@ -1,0 +1,277 @@
+{
+  "schema": "steelmoth-sm702-git-retention/v1",
+  "ok": true,
+  "files": [
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/.gitattributes",
+      "rawSha256": "308a40fa1d89ae5ea4390b4c9b46a0108b09f171f07898f25d451fa0c69c4e9f",
+      "stagedGitBlobSha256": "308a40fa1d89ae5ea4390b4c9b46a0108b09f171f07898f25d451fa0c69c4e9f",
+      "bytes": 72
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/acceptance-replay.json",
+      "rawSha256": "dfe2789fc4529ebc30287da2f1bfbe110986e9525f43cbe35dd2593fe1b12c05",
+      "stagedGitBlobSha256": "dfe2789fc4529ebc30287da2f1bfbe110986e9525f43cbe35dd2593fe1b12c05",
+      "bytes": 2358
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/acceptance-replay.png",
+      "rawSha256": "0d3c82e86c0239531cc6e942624cb2f630ae3d0cd3b4722e33dd829295145dac",
+      "stagedGitBlobSha256": "0d3c82e86c0239531cc6e942624cb2f630ae3d0cd3b4722e33dd829295145dac",
+      "bytes": 434627
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/campaign.json",
+      "rawSha256": "a3073d2f6d63adaffcc1adb4c393c21ca0eda9835f944a39a3ec6d0f7154adfd",
+      "stagedGitBlobSha256": "a3073d2f6d63adaffcc1adb4c393c21ca0eda9835f944a39a3ec6d0f7154adfd",
+      "bytes": 33405
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/firefox/representative/acceptance.html",
+      "rawSha256": "795287c59df0ac145dac5a3d21893a749b1cd62545bdbc9cc4bdcb9cfa6acb88",
+      "stagedGitBlobSha256": "795287c59df0ac145dac5a3d21893a749b1cd62545bdbc9cc4bdcb9cfa6acb88",
+      "bytes": 1029721
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/firefox/representative/acceptance.png",
+      "rawSha256": "6697eee903c7dc4e7597d19f7e60071427104e074e1bf383bd7787797c902ce6",
+      "stagedGitBlobSha256": "6697eee903c7dc4e7597d19f7e60071427104e074e1bf383bd7787797c902ce6",
+      "bytes": 112601
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/firefox/representative/readbacks.json",
+      "rawSha256": "2a3ce0693678ffdcef7cae028ba1dca3ad45bae794f1be86ece1c8dca854421c",
+      "stagedGitBlobSha256": "2a3ce0693678ffdcef7cae028ba1dca3ad45bae794f1be86ece1c8dca854421c",
+      "bytes": 1023172
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/firefox/representative/report.json",
+      "rawSha256": "926dbf3905141dcd021557150eed773e793216b4dfbd89120b71d95f61ba30e8",
+      "stagedGitBlobSha256": "926dbf3905141dcd021557150eed773e793216b4dfbd89120b71d95f61ba30e8",
+      "bytes": 1097571
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-1/acceptance.html",
+      "rawSha256": "8285425f469535ebded23ec42d5110f4c221bb6e13b7dcb39a86fd1e0333c094",
+      "stagedGitBlobSha256": "8285425f469535ebded23ec42d5110f4c221bb6e13b7dcb39a86fd1e0333c094",
+      "bytes": 1030272
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-1/acceptance.png",
+      "rawSha256": "5afa2ce30555fbd7589ea658a9f4d0ecb2927b1f822b23bd1041b0d938dd5278",
+      "stagedGitBlobSha256": "5afa2ce30555fbd7589ea658a9f4d0ecb2927b1f822b23bd1041b0d938dd5278",
+      "bytes": 460189
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-1/readbacks.json",
+      "rawSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "stagedGitBlobSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "bytes": 1023300
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-1/report.json",
+      "rawSha256": "a4c1bdd734deaf37e19539effbcc6ae23e1c283c67327a73680fc56d0faeeec6",
+      "stagedGitBlobSha256": "a4c1bdd734deaf37e19539effbcc6ae23e1c283c67327a73680fc56d0faeeec6",
+      "bytes": 1400113
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-2/acceptance.html",
+      "rawSha256": "d4e33af8f7df9329b93acb5cb236f6b737de24da8ff2c1f6c87208374a407f47",
+      "stagedGitBlobSha256": "d4e33af8f7df9329b93acb5cb236f6b737de24da8ff2c1f6c87208374a407f47",
+      "bytes": 1030272
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-2/acceptance.png",
+      "rawSha256": "c86cd821a71e8bd1c52cd4f6b73bd9d837ee2487b6eb2160d8e4123c7afb890a",
+      "stagedGitBlobSha256": "c86cd821a71e8bd1c52cd4f6b73bd9d837ee2487b6eb2160d8e4123c7afb890a",
+      "bytes": 460238
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-2/readbacks.json",
+      "rawSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "stagedGitBlobSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "bytes": 1023300
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-2/report.json",
+      "rawSha256": "23204934dfeea6485ff0d1a22487147bf8a9a4718dcbb95e817464e02a7e336f",
+      "stagedGitBlobSha256": "23204934dfeea6485ff0d1a22487147bf8a9a4718dcbb95e817464e02a7e336f",
+      "bytes": 1401087
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-3/acceptance.html",
+      "rawSha256": "fd3d13672287667382a87b23c662d1696a166a5cfca4e4d80dd6b3598ae04c15",
+      "stagedGitBlobSha256": "fd3d13672287667382a87b23c662d1696a166a5cfca4e4d80dd6b3598ae04c15",
+      "bytes": 1030272
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-3/acceptance.png",
+      "rawSha256": "4ad21265d95eb55e0038d25539be36dedd5b864759e00e3abe091abfc84a648e",
+      "stagedGitBlobSha256": "4ad21265d95eb55e0038d25539be36dedd5b864759e00e3abe091abfc84a648e",
+      "bytes": 460105
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-3/readbacks.json",
+      "rawSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "stagedGitBlobSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "bytes": 1023300
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-3/report.json",
+      "rawSha256": "73c293826ae1b697453b3a9a4d64d1fb4caf5e218d41a41e0553fd4a06e1c964",
+      "stagedGitBlobSha256": "73c293826ae1b697453b3a9a4d64d1fb4caf5e218d41a41e0553fd4a06e1c964",
+      "bytes": 1401534
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-1/acceptance.html",
+      "rawSha256": "32f40ef2f2283be95f0551d27d3467663d88dc78a1a4fdb93b158285b7a16672",
+      "stagedGitBlobSha256": "32f40ef2f2283be95f0551d27d3467663d88dc78a1a4fdb93b158285b7a16672",
+      "bytes": 1030264
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-1/acceptance.png",
+      "rawSha256": "e1c0efe675201c6f6c166c40ed9c273f22a62c02186eeaa5fcf736a95e30138d",
+      "stagedGitBlobSha256": "e1c0efe675201c6f6c166c40ed9c273f22a62c02186eeaa5fcf736a95e30138d",
+      "bytes": 459607
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-1/readbacks.json",
+      "rawSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "stagedGitBlobSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "bytes": 1023300
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-1/report.json",
+      "rawSha256": "d64a018c68e9ceb722a541b012b10d08856fa82b2a914627eb841bc493cb0672",
+      "stagedGitBlobSha256": "d64a018c68e9ceb722a541b012b10d08856fa82b2a914627eb841bc493cb0672",
+      "bytes": 1402088
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-2/acceptance.html",
+      "rawSha256": "bfd369f3adf2d1206879be6e62c7bf080f4e7f8fd98fb69f9952bd793260dcf9",
+      "stagedGitBlobSha256": "bfd369f3adf2d1206879be6e62c7bf080f4e7f8fd98fb69f9952bd793260dcf9",
+      "bytes": 1030264
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-2/acceptance.png",
+      "rawSha256": "3635d37bad628f08f318b5575f679f476f8c5f6d3c712bd3313a5d1a41dcc0bd",
+      "stagedGitBlobSha256": "3635d37bad628f08f318b5575f679f476f8c5f6d3c712bd3313a5d1a41dcc0bd",
+      "bytes": 460090
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-2/readbacks.json",
+      "rawSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "stagedGitBlobSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "bytes": 1023300
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-2/report.json",
+      "rawSha256": "f035bab8fdb6563657972ba8254869df79b07cbd0adf7bb303710edb40547306",
+      "stagedGitBlobSha256": "f035bab8fdb6563657972ba8254869df79b07cbd0adf7bb303710edb40547306",
+      "bytes": 1402512
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-3/acceptance.html",
+      "rawSha256": "7001876e6f53c9f9cdfdecc5df055d538e493dbbe2a1b9960aa60590766c55a9",
+      "stagedGitBlobSha256": "7001876e6f53c9f9cdfdecc5df055d538e493dbbe2a1b9960aa60590766c55a9",
+      "bytes": 1030264
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-3/acceptance.png",
+      "rawSha256": "0e01a7ac8050049d9ca194c898e6a6194de9a09188383748d192c7501cbf1693",
+      "stagedGitBlobSha256": "0e01a7ac8050049d9ca194c898e6a6194de9a09188383748d192c7501cbf1693",
+      "bytes": 459764
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-3/readbacks.json",
+      "rawSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "stagedGitBlobSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "bytes": 1023300
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/stress/run-3/report.json",
+      "rawSha256": "a146f031fd5c2a76e13756bc55c8f6d1e1fa55d14864f81912dbceecc414f2bb",
+      "stagedGitBlobSha256": "a146f031fd5c2a76e13756bc55c8f6d1e1fa55d14864f81912dbceecc414f2bb",
+      "bytes": 1403726
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/initial-ci-failure.json",
+      "rawSha256": "7b57b579c362d80eb22893747197cee0bcf4690e134ff8b99a1f5515ba36bf30",
+      "stagedGitBlobSha256": "7b57b579c362d80eb22893747197cee0bcf4690e134ff8b99a1f5515ba36bf30",
+      "bytes": 903
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/probes/sm702-native-probe-01/report.json",
+      "rawSha256": "ed47155d3a6ec39c1f0bd299a72f46d1dba4d4f06c2b6d1336ee148f29918059",
+      "stagedGitBlobSha256": "ed47155d3a6ec39c1f0bd299a72f46d1dba4d4f06c2b6d1336ee148f29918059",
+      "bytes": 958150
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/probes/sm702-native-probe-02/acceptance.html",
+      "rawSha256": "ae738f55c3d9470f492953bd984fe8672d13831219ffcae780d1bfdebb22ada8",
+      "stagedGitBlobSha256": "ae738f55c3d9470f492953bd984fe8672d13831219ffcae780d1bfdebb22ada8",
+      "bytes": 1030254
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/probes/sm702-native-probe-02/acceptance.png",
+      "rawSha256": "b09b88e1ad32299a64f7db2ac8bc8fe6787c645f42076b8e41a9cfb31e1c7652",
+      "stagedGitBlobSha256": "b09b88e1ad32299a64f7db2ac8bc8fe6787c645f42076b8e41a9cfb31e1c7652",
+      "bytes": 424161
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/probes/sm702-native-probe-02/readbacks.json",
+      "rawSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "stagedGitBlobSha256": "04d6175f53679297cb7075e68789a7a9c9422132d2bd316713a32dc885e286d0",
+      "bytes": 1023300
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/probes/sm702-native-probe-02/report.json",
+      "rawSha256": "16832a03e24e7aa090fe887f56e3df7e0ee9902654d3d55d5c4732ed3e01d4e1",
+      "stagedGitBlobSha256": "16832a03e24e7aa090fe887f56e3df7e0ee9902654d3d55d5c4732ed3e01d4e1",
+      "bytes": 1095179
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/sm702-final-core.json",
+      "rawSha256": "e63afe102e9172c7dbdcb11c5042c33de5267c9bbac75567020608c1722f9106",
+      "stagedGitBlobSha256": "e63afe102e9172c7dbdcb11c5042c33de5267c9bbac75567020608c1722f9106",
+      "bytes": 53335
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/sm702-final-package.json",
+      "rawSha256": "f6c9c856ab7db80af3b03aac49cbd8ea70da41194cdf10c77c081619fd8e7d56",
+      "stagedGitBlobSha256": "f6c9c856ab7db80af3b03aac49cbd8ea70da41194cdf10c77c081619fd8e7d56",
+      "bytes": 12018
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/sm702-preflight-core-final.json",
+      "rawSha256": "6485394c0fced1bf568627cad57b1d0655f77b2204f7eea2d706a4ba6ad17012",
+      "stagedGitBlobSha256": "6485394c0fced1bf568627cad57b1d0655f77b2204f7eea2d706a4ba6ad17012",
+      "bytes": 51152
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/sm702-preflight-core.json",
+      "rawSha256": "261626b47bbeaf7ae493953b3bd39b6a01824559edd16f345827eba18444fbe5",
+      "stagedGitBlobSha256": "261626b47bbeaf7ae493953b3bd39b6a01824559edd16f345827eba18444fbe5",
+      "bytes": 51565
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/sm702-preflight-package.json",
+      "rawSha256": "673bc0ddd3550ed95116563aa07879dda2e566e23ec212ecd93bfae32b2b3e00",
+      "stagedGitBlobSha256": "673bc0ddd3550ed95116563aa07879dda2e566e23ec212ecd93bfae32b2b3e00",
+      "bytes": 11628
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/source-equivalence.json",
+      "rawSha256": "8e5307daa34e10b0ce21a4bfa31a8ff06b33ce634d8fba391071f9709e27e59e",
+      "stagedGitBlobSha256": "8e5307daa34e10b0ce21a4bfa31a8ff06b33ce634d8fba391071f9709e27e59e",
+      "bytes": 19212
+    },
+    {
+      "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/strict-campaign-validation.json",
+      "rawSha256": "ba59799580f82e65610eb72f8f4ac5a415623649eeabe2c5a33fc2ee0c2a510b",
+      "stagedGitBlobSha256": "ba59799580f82e65610eb72f8f4ac5a415623649eeabe2c5a33fc2ee0c2a510b",
+      "bytes": 178
+    }
+  ],
+  "boundary": "Exact staged Git bytes equal every retained artifact before commit; proof excludes itself. Scoped attributes preserve raw hashes across checkout."
+}

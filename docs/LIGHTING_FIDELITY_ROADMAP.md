@@ -199,6 +199,14 @@ Desired result: faint visible beam in atmosphere with convincing interruption, n
 
 Water, glass and large foliage should consume canonical depth/light/DSO/GTAO/indirect data without forcing every transparent element into the opaque G-buffer.
 
+**Decision — staged SM-702 interface:** the optional fresh borrowed-input path
+and explicit material/depth/energy policy are adopted in
+[`WEBGPU_FORWARD_LIGHTING_SM702.md`](WEBGPU_FORWARD_LIGHTING_SM702.md).
+Native mixed-forward characterization includes equal fixture composition and
+excludes shared upstream generation; it cannot establish the whole-frame
+remaining budget or default enablement. Normal-game presentation remains
+subject to SM-505.
+
 Foliage classification:
 
 - tiny fine grass: receiver only;

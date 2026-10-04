@@ -276,3 +276,39 @@ twenty hosted workflows / twenty-four actual jobs. Final evidence-head checks,
 verified main merge and #38 closure still remain at this durable review
 checkpoint; initial CI is not relabelled final acceptance. SteelMoth remains
 the sole mutable source repository and no human action is currently needed.
+
+## SM-603 accepted / SM-702 preparation — 2026-10-04
+
+SM-603/#38 is complete: PR #114 merged as
+`cb068323a7a93e6273d879126fe261f951d589f7` after all twenty workflows and
+twenty-four actual jobs passed at final head
+`281dc8c9cac3a05e0ace38e781bb7c72d15bbb6f`. Main and both final/evidence runtime
+ancestry were verified before issue closure. The retained eighteen-run GTX
+campaign, source-matched Firefox, raw Git retention and saved-artifact replay
+remain bounded SSGI evidence; optional/default-off and SM-505 limits remain.
+
+The same sole mutable SteelMoth lane continues SM-702/#41 on
+`codex/sm702-forward-lighting` from that accepted main. All five dependencies,
+full issue/comments, current branches/PRs and live workers were reconciled before
+claim comment 5975497963. Water, large foliage and explicit world-alpha glass
+consume shared fresh canonical inputs. Native mixed-scene evidence is being
+prepared; no SM-702 acceptance or performance result is claimed yet.
+
+## SM-702 native evidence checkpoint — 2026-10-04
+
+PR #115 publishes runtime `a0be3ed2194b482374d2e7403e511fd00c3fd698` on
+`codex/sm702-forward-lighting`. Six independent GTX 1650 SUPER Chrome processes
+pass 95/95 checks each with 300 warm-up / 600 retained pairs at native 1080p;
+the source-matched Firefox correctness spot-check passes 87/87. All 33 executable
+closure hashes are unchanged and all owned browsers exited. Strict campaign
+validation and exact GPU-disabled saved-HTML replay pass. Complete-forward mean
+overhead is 0.088–0.104 ms representative / 2.969–3.036 ms stress; world-alpha
+dominates the stress cost. These measurements exclude shared upstream work and
+establish no whole-frame headroom. Defaults remain off.
+
+Raw reports/readbacks/captures, the initial screenshot-export failure and repaired
+probe are retained in `benchmarks/webgpu-gtx1650s/sm702-2026-10-04/`.
+Final source and extraction gates pass 99/99 and 26/26. The initial unchanged
+SM-404 hosted timeout passes on retry; exact evidence-head hosted jobs and
+verified main merge remain required before issue closure. SteelMoth remains the sole mutable source repository;
+siblings and other source checkouts remain read-only.

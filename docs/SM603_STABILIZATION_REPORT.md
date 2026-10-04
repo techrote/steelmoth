@@ -175,10 +175,11 @@ arrays from the actual timestamp records. Deterministic stabilization passes
 
 The normal repository gate passes 93/93 and clean extraction 22/22 at the
 implementation checkpoint; final evidence/package checks are retained as
-`sm603-core-checks-final.json` and `sm603-clean-package-final.json`. The full
-initial hosted inventory is twenty workflows / twenty-four successful jobs.
-[PR #114](https://github.com/techrote/steelmoth/pull/114) still requires the same
-complete hosted inventory at its final evidence head before merge. Hosted
+`sm603-core-checks-final.json` and `sm603-clean-package-final.json`. All twenty workflows / twenty-four actual jobs passed at final head
+`281dc8c9cac3a05e0ace38e781bb7c72d15bbb6f`.
+[PR #114](https://github.com/techrote/steelmoth/pull/114) merged as
+`cb068323a7a93e6273d879126fe261f951d589f7`; main and final/evidence-runtime
+ancestry were verified before #38 closed completed on 4 October 2026. Hosted
 Mesa/EGL and software-browser results are correctness evidence only.
 
 Reproduce into a fresh output folder:
