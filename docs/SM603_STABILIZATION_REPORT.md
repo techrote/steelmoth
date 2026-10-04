@@ -27,6 +27,10 @@ timestamps, readbacks and acceptance files are retained alongside the manifest.
 Later evidence/document changes preserve this executable closure; the
 [source-equivalence proof](../benchmarks/webgpu-gtx1650s/sm603-2026-10-04/source-equivalence.json)
 checks current raw bytes and LF-normalized Git blobs against that runtime.
+Scoped evidence `.gitattributes` disables newline conversion, preserving
+SHA-256-referenced raw reports across Git checkout on Windows and Linux.
+`git-retention-proof.json` verifies all nineteen report blobs and the exact
+acceptance HTML in the staged Git tree against their retained byte hashes.
 
 The comparison is the exact test-only LF-normalized SM-602 production source
 from `34b63f0255c53a40485bab66f5b341c150ef2c42`, SHA-256
