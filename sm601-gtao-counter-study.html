@@ -1,0 +1,151 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SM-601 test-only diagnostic-counter A/B study</title>
+<pre id="status">Running test-only shader comparison...</pre>
+<script src="engine/webgpu_gtao_stabilization.js"></script>
+<script src="tools/sm601_gtao_counter_study.js"></script>
+<script>
+'use strict';
+(async () => {
+  const G=SteelMothWebGPUGTAOStabilization,S=SteelMothGTAOCounterStudy,q=new URLSearchParams(location.search);
+  const software=q.get('hardware')!=='1',benchmark=q.get('benchmark')==='1';
+  const report={schema:S.SCHEMA,ok:false,softwareRequested:software,targetAcceptance:false,benchmark,
+    evidenceBoundary:'Isolated temporal-shader correctness/microbenchmark only; not full GTAO, visual acceptance, or SM-601 closure.',
+    cases:[],uncapturedErrors:[],compilation:[]};
+  let device=null;
+  globalThis.SM601StudyProgress=report;
+  const check=(condition,message)=>{if(!condition)throw new Error(message);};
+  const align=n=>Math.ceil(n/256)*256;
+  const finish=()=>{globalThis.SM601StudyResult=report;document.getElementById('status').textContent=JSON.stringify(report,null,2);};
+  try {
+    check(!software||!benchmark,'Software timing is deliberately unsupported.');
+    report.phase='request-adapter';
+    check(navigator.gpu,'WebGPU unavailable; this is a failure, not a skipped pass.');
+    const adapter=await navigator.gpu.requestAdapter({forceFallbackAdapter:software});
+    check(adapter,'Requested adapter unavailable.');
+    const info=adapter.info||{};
+    report.adapter={vendor:info.vendor||'',architecture:info.architecture||'',device:info.device||'',description:info.description||'',
+      isFallbackAdapter:!!(info.isFallbackAdapter??adapter.isFallbackAdapter),features:[...adapter.features].sort()};
+    if(software)check(report.adapter.isFallbackAdapter||/swiftshader|software/i.test(JSON.stringify(report.adapter)),'Software backend identity not established.');
+    else check(!report.adapter.isFallbackAdapter&&!/swiftshader|llvmpipe/i.test(JSON.stringify(report.adapter)),'Hardware mode acquired software rendering.');
+    if(benchmark)check(adapter.features.has('timestamp-query'),'Timestamp queries unavailable; do not use CPU timing instead.');
+    device=await adapter.requestDevice({requiredFeatures:benchmark?['timestamp-query']:[]});
+    device.addEventListener('uncapturederror',e=>report.uncapturedErrors.push(String(e.error?.message||e.error)));
+    const candidate=await S.createCandidate(G.TEMPORAL_WGSL);
+    report.baselineSha256=S.BASELINE_SHA256;report.candidateSha256=candidate.candidateSha256;
+    const entries=[];
+    for(let binding=0;binding<8;binding++)entries.push({binding,visibility:GPUShaderStage.COMPUTE,
+      texture:{sampleType:binding%4===2?'uint':'unfilterable-float',viewDimension:'2d'}});
+    entries.push({binding:8,visibility:GPUShaderStage.COMPUTE,buffer:{type:'uniform',minBindingSize:32}});
+    const formats=['r32float','rg32float','r32uint','rgba16float'],bpp=[4,8,4,8];
+    for(let i=0;i<4;i++)entries.push({binding:9+i,visibility:GPUShaderStage.COMPUTE,storageTexture:{access:'write-only',format:formats[i]}});
+    entries.push({binding:13,visibility:GPUShaderStage.COMPUTE,buffer:{type:'storage',minBindingSize:32}});
+    const layout=device.createBindGroupLayout({entries}),pipelineLayout=device.createPipelineLayout({bindGroupLayouts:[layout]});
+    report.phase='compile';
+    const pipelines=[];
+    for(const [name,code] of [['baseline',G.TEMPORAL_WGSL],['candidate',candidate.code]]){
+      device.pushErrorScope('validation');
+      const module=device.createShaderModule({label:name,code}),compilation=await module.getCompilationInfo();
+      report.compilation.push({name,messages:compilation.messages.map(m=>({type:m.type,message:m.message,lineNum:m.lineNum}))});
+      check(!compilation.messages.some(m=>m.type==='error'),`${name} WGSL compilation failed.`);
+      pipelines.push(await device.createComputePipelineAsync({label:name,layout:pipelineLayout,compute:{module,entryPoint:'cs_main'}}));
+      const error=await device.popErrorScope();check(!error,`${name} pipeline validation: ${error?.message}`);
+    }
+    // The normal fixture values are exactly representable in binary16; reject accidental additions.
+    const half=x=>{const h=new Map([[0,0],[.5,0x3800],[.75,0x3a00],[1,0x3c00]]);check(h.has(x),'Unsupported half-float fixture value.');return h.get(x);};
+    function resources(f){
+      const {width:w,height:h}=f.input,owned=[],inputTextures=[];
+      const texture=(format,usage)=>{const t=device.createTexture({size:[w,h],format,usage});owned.push(t);return t;};
+      const inputArrays=[f.input.current,f.input.currentDepth,f.input.currentObject,Uint16Array.from(f.input.currentNormal,half),
+        f.input.previous,f.input.previousDepth,f.input.previousObject,Uint16Array.from(f.input.previousNormal,half)];
+      for(let i=0;i<8;i++){
+        const t=texture(formats[i%4],GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST);
+        device.queue.writeTexture({texture:t},inputArrays[i],{bytesPerRow:w*bpp[i%4]},[w,h]);inputTextures.push(t);
+      }
+      const buffer=(size,usage)=>{const b=device.createBuffer({size,usage});owned.push(b);return b;};
+      const params=buffer(32,GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST);
+      const cfg=G.resolveQuality(f.options.quality).temporal,globalReject=G.globalDiscontinuity(f.input.previousMeta,f.input.currentMeta).reject;
+      device.queue.writeBuffer(params,0,G.parameterBytes(w,h,f.input.historyValid&&cfg.enabled,globalReject,cfg));
+      const variants=pipelines.map(pipeline=>{
+        const outputs=formats.map(format=>texture(format,GPUTextureUsage.STORAGE_BINDING|GPUTextureUsage.COPY_SRC));
+        const stats=buffer(32,GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_SRC|GPUBufferUsage.COPY_DST);
+        const bindEntries=inputTextures.map((t,binding)=>({binding,resource:t.createView()}));
+        bindEntries.push({binding:8,resource:{buffer:params}});
+        outputs.forEach((t,i)=>bindEntries.push({binding:9+i,resource:t.createView()}));bindEntries.push({binding:13,resource:{buffer:stats}});
+        return{pipeline,outputs,stats,bind:device.createBindGroup({layout,entries:bindEntries})};
+      });
+      return{w,h,variants,close:()=>owned.reverse().forEach(x=>x.destroy())};
+    }
+    function dispatch(encoder,r,v,timestampWrites){
+      encoder.clearBuffer(v.stats);
+      const pass=encoder.beginComputePass(timestampWrites?{timestampWrites}:{});
+      pass.setPipeline(v.pipeline);pass.setBindGroup(0,v.bind);pass.dispatchWorkgroups(Math.ceil(r.w/8),Math.ceil(r.h/8));pass.end();
+    }
+    async function capture(r,v){
+      let offset=0;
+      const planes=bpp.map(bytes=>{const row=r.w*bytes,pitch=align(row),p={offset,row,pitch};offset+=pitch*r.h;return p;});
+      const statsOffset=align(offset),read=device.createBuffer({size:statsOffset+32,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+      try{
+        const encoder=device.createCommandEncoder();
+        v.outputs.forEach((texture,i)=>encoder.copyTextureToBuffer({texture},{buffer:read,offset:planes[i].offset,bytesPerRow:planes[i].pitch},[r.w,r.h]));
+        encoder.copyBufferToBuffer(v.stats,0,read,statsOffset,32);device.queue.submit([encoder.finish()]);
+        await read.mapAsync(GPUMapMode.READ);
+        const mapped=new Uint8Array(read.getMappedRange()),out=planes.map(p=>{
+          const bytes=new Uint8Array(p.row*r.h);for(let y=0;y<r.h;y++)bytes.set(mapped.subarray(p.offset+y*p.pitch,p.offset+y*p.pitch+p.row),y*p.row);return bytes;
+        });
+        const counters=Array.from(new Uint32Array(mapped.slice(statsOffset,statsOffset+32).buffer));read.unmap();return{out,counters};
+      }finally{read.destroy();}
+    }
+    const equalBytes=(a,b)=>a.length===b.length&&a.every((x,i)=>x===b[i]);
+    for(const [w,h] of [[1,1],[1,9],[7,9],[8,8],[9,17],[65,33],[101,63]]){
+      for(const pattern of ['accepted','depth','object','normal','global','mixed','priority','disabled']){
+        report.phase=`case-${w}x${h}-${pattern}`;
+        const f=S.makeFixture(w,h,pattern,3),r=resources(f),reference=G.temporalReference(f.input,f.options);
+        let maxReferenceError=0;
+        try{
+          // Repeat with reused resources: counters must be reset, not accumulated.
+          for(let repeat=0;repeat<2;repeat++){
+            const encoder=device.createCommandEncoder();for(const v of r.variants)dispatch(encoder,r,v);device.queue.submit([encoder.finish()]);
+            const [a,b]=await Promise.all(r.variants.map(v=>capture(r,v)));
+            for(let i=0;i<4;i++)check(equalBytes(a.out[i],b.out[i]),`${w}x${h} ${pattern}: ${formats[i]} byte mismatch.`);
+            const expected=S.aggregateModel(w,h,f.reasons).direct;
+            check(JSON.stringify(a.counters)===JSON.stringify(expected),'Baseline diagnostic counter mismatch.');
+            check(JSON.stringify(b.counters)===JSON.stringify(expected),'Candidate diagnostic counter mismatch.');
+            check(equalBytes(b.out[1],new Uint8Array(f.input.currentDepth.buffer)),'Canonical depth changed.');
+            check(equalBytes(b.out[2],new Uint8Array(f.input.currentObject.buffer)),'Canonical object identity changed.');
+            const vis=new Float32Array(b.out[0].buffer),norm=new Uint16Array(b.out[3].buffer);
+            for(let i=0;i<w*h;i++){
+              const error=Math.abs(vis[i]-reference.full[i]);check(Number.isFinite(vis[i])&&error<=2e-6,'CPU visibility reference mismatch.');maxReferenceError=Math.max(maxReferenceError,error);
+              for(let j=0;j<3;j++)check(norm[i*4+j]===half(f.input.currentNormal[i*4+j]),'Normal history changed.');
+              check(norm[i*4+3]===(f.reasons[i]?0x3c00:0),'History rejection mask changed.');
+            }
+          }
+          report.cases.push({width:w,height:h,pattern,repeats:2,allFourOutputsByteIdentical:true,allEightCounterWordsExact:true,maxReferenceError});
+        }finally{r.close();}
+      }
+    }
+    if(benchmark){
+      const width=Number(q.get('width')||1920),height=Number(q.get('height')||1080),warmup=Number(q.get('warmup')||300),samples=Number(q.get('samples')||600);
+      S.extent(width,height);check([warmup,samples].every(Number.isSafeInteger)&&warmup>=300&&warmup<=2000&&samples>=600&&samples<=5000,'Invalid bounded benchmark budget.');
+      const r=resources(S.makeFixture(width,height,'mixed',3)),queries=device.createQuerySet({type:'timestamp',count:4});
+      const resolved=device.createBuffer({size:32,usage:GPUBufferUsage.QUERY_RESOLVE|GPUBufferUsage.COPY_SRC});
+      const read=device.createBuffer({size:32,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+      report.microbenchmark={width,height,warmup,samples,pattern:'mixed',alternatingOrder:true,baselineKernelMs:[],candidateKernelMs:[],
+        timingBoundary:'Compute-pass timestamps only; excludes raw GTAO, upscale, CPU preparation/readback gaps. Never substitute for the existing acceptance queue span.'};
+      try{
+        for(let frame=0;frame<warmup+samples;frame++){
+          const encoder=device.createCommandEncoder(),order=frame%2?[1,0]:[0,1];
+          for(const i of order)dispatch(encoder,r,r.variants[i],{querySet:queries,beginningOfPassWriteIndex:i*2,endOfPassWriteIndex:i*2+1});
+          encoder.resolveQuerySet(queries,0,4,resolved,0);encoder.copyBufferToBuffer(resolved,0,read,0,32);device.queue.submit([encoder.finish()]);
+          await read.mapAsync(GPUMapMode.READ);const times=Array.from(new BigUint64Array(read.getMappedRange().slice(0)));read.unmap();
+          const pair=[Number(times[1]-times[0])/1e6,Number(times[3]-times[2])/1e6];
+          check(pair.every(x=>Number.isFinite(x)&&x>0),'Invalid/zero timestamp sample; report failed, do not silently filter it.');
+          if(frame>=warmup){report.microbenchmark.baselineKernelMs.push(pair[0]);report.microbenchmark.candidateKernelMs.push(pair[1]);}
+        }
+      }finally{read.destroy();resolved.destroy();queries.destroy();r.close();}
+    }
+    await device.queue.onSubmittedWorkDone();check(report.uncapturedErrors.length===0,'Uncaptured WebGPU errors.');report.ok=true;
+  }catch(error){report.error=String(error.stack||error);}
+  finally{device?.destroy();finish();}
+})();
+</script>

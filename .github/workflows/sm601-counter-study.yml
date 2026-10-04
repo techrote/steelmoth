@@ -1,0 +1,47 @@
+name: SM-601 counter study (software correctness)
+
+on:
+  pull_request:
+    paths:
+      - 'engine/webgpu_gtao_stabilization.js'
+      - 'tools/sm601_gtao_counter_study.js'
+      - 'tools/validate_sm601_gtao_counter_study.js'
+      - 'tools/run_sm601_gtao_counter_study.py'
+      - 'sm601-gtao-counter-study.html'
+      - '.github/workflows/sm601-counter-study.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  counter-study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install existing browser-driver dependency
+        run: python -m pip install --disable-pip-version-check 'websocket-client>=1.8'
+      - name: CPU reference and source-preservation tests
+        run: |
+          node --check tools/sm601_gtao_counter_study.js
+          node --check tools/validate_sm601_gtao_counter_study.js
+          python -m py_compile tools/run_sm601_gtao_counter_study.py
+          node tools/validate_sm601_gtao_counter_study.js --report artifacts/sm601-counter-cpu.json
+      - name: Real WGSL A/B on software WebGPU (not target timing)
+        run: python tools/run_sm601_gtao_counter_study.py --timeout 180 --report artifacts/sm601-counter-browser.json
+      - name: Retain exact-run evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm601-counter-study-${{ github.run_id }}
+          path: |
+            artifacts/sm601-counter-cpu.json
+            artifacts/sm601-counter-browser.json
+          if-no-files-found: warn
