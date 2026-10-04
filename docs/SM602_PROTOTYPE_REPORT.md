@@ -82,6 +82,9 @@ transfer. The [PNG capture](../benchmarks/webgpu-gtx1650s/sm602-2026-10-04/chrom
 and [raw readbacks](../benchmarks/webgpu-gtx1650s/sm602-2026-10-04/chrome-initial/readbacks.json)
 are retained. These synthetic figures establish prototype response and debug
 behavior; no separate human visual judgment is recorded or required by #37.
+The exact saved file route was smoke-tested in a fresh native Chrome process
+with GPU disabled: all six labelled canvases rendered, with no JavaScript
+exceptions. `replay-smoke.json` and `acceptance-replay.png` retain that result.
 
 ## Initial measured GPU cost
 

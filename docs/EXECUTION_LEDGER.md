@@ -210,3 +210,9 @@ Source/regression and
 clean-package gates passed 90/90 and 20/20 respectively; required hosted
 browser/GLSL gates and PR merge still remain. This checkpoint claims neither
 SM-603 stabilization nor SM-505 normal-game release promotion.
+
+Published review: [PR #113](https://github.com/techrote/steelmoth/pull/113).
+The exact self-contained acceptance file also passes a native Chrome replay
+smoke with GPU disabled and six labelled canvases. No physical action or
+human judgment is currently needed; the merge gate is the required hosted
+checks at the final PR head. No benchmark/browser process is left running.
