@@ -276,3 +276,20 @@ twenty hosted workflows / twenty-four actual jobs. Final evidence-head checks,
 verified main merge and #38 closure still remain at this durable review
 checkpoint; initial CI is not relabelled final acceptance. SteelMoth remains
 the sole mutable source repository and no human action is currently needed.
+
+## SM-603 accepted / SM-702 preparation — 2026-10-04
+
+SM-603/#38 is complete: PR #114 merged as
+`cb068323a7a93e6273d879126fe261f951d589f7` after all twenty workflows and
+twenty-four actual jobs passed at final head
+`281dc8c9cac3a05e0ace38e781bb7c72d15bbb6f`. Main and both final/evidence runtime
+ancestry were verified before issue closure. The retained eighteen-run GTX
+campaign, source-matched Firefox, raw Git retention and saved-artifact replay
+remain bounded SSGI evidence; optional/default-off and SM-505 limits remain.
+
+The same sole mutable SteelMoth lane continues SM-702/#41 on
+`codex/sm702-forward-lighting` from that accepted main. All five dependencies,
+full issue/comments, current branches/PRs and live workers were reconciled before
+claim comment 5975497963. Water, large foliage and explicit world-alpha glass
+consume shared fresh canonical inputs. Native mixed-scene evidence is being
+prepared; no SM-702 acceptance or performance result is claimed yet.

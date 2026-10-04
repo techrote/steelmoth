@@ -19,8 +19,8 @@ required={
   'bounded role classification':("receiver-only" in foliage and "contact-receiver" in foliage and "macro-eligible" in foliage and "CLASS_FLAGS" in foliage),
   'root lock preserved':("Foliage.RootedDeformation.weight" in foliage),
   'SM-402 boundary documented':("SM-402" in doc and "ordering" in doc.lower()),
-  'staged module import':("webgpu_foliage.js?v=sm401-1" in webapp),
-  'offline cache membership':("webgpu_foliage.js?v=sm401-1" in sw),
+  'staged module import':("webgpu_foliage.js?v=sm702-1" in webapp),
+  'offline cache membership':("webgpu_foliage.js?v=sm702-1" in sw),
   'dedicated browser gate':("validate_webgpu_foliage_browser.py --require-webgpu" in workflow),
   'normal verification membership':("js-webgpu-foliage" in checks and "webgpu-foliage-contract" in checks and "webgpu-foliage" in checks),
 }

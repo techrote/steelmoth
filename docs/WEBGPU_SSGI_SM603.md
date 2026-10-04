@@ -109,5 +109,6 @@ prototype. Exact source, captures, raw samples, attribution, optional/off
 enablement rationale and evidence limits are in `SM603_STABILIZATION_REPORT.md`.
 Timing omits the optional ambient input; actual SM-307 composition is verified
 separately. These effect measurements do not establish a current whole-frame
-budget or default promotion. Final-head hosted checks and verified merge remain
-the PR acceptance gate.
+budget or default promotion. All twenty workflows / twenty-four actual final-head
+jobs passed at `281dc8c9`; PR #114 merged as `cb068323`, with main and
+evidence/runtime ancestry verified before #38 closed completed.

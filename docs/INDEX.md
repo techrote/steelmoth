@@ -85,6 +85,10 @@ Use these words consistently:
 - [`PERFORMANCE_REPORT_WEBGPU_PRIMARY.md`](PERFORMANCE_REPORT_WEBGPU_PRIMARY.md) — accepted GTX 1650 SUPER Medium/GTAO-off timing reconciliation and source-identity boundary.
 - [`RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md`](RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md) — accepted renderer-owned descriptor accounting and evidence boundary.
 
+## SM-702 forward lighting
+
+- [`WEBGPU_FORWARD_LIGHTING_SM702.md`](WEBGPU_FORWARD_LIGHTING_SM702.md) — optional fresh canonical inputs, explicit transparent material policy, depth guards, staged composition and native mixed-forward measurement boundary.
+
 ## Current repository state
 
 The repository is no longer source-blocked. SM-000 imported and provenance-verified the authoritative v1.2.3 WebGL2/Material-v2 baseline. SM-001/002 established the visual fixture corpus and deterministic capture/diagnostics harness; SM-004 audited the imported implementation, and SM-005 established repository-native automated verification.

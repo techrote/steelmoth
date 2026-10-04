@@ -99,3 +99,12 @@ SM-206 establishes functional/API/data parity for this transparent-feedback surf
 - subjective final visual approval.
 
 A failure in this staged path must remain renderer-cosmetic and preserve the WebGL2 fallback/gameplay state boundary.
+
+## SM-702 explicit world-alpha materials
+
+Optional prepared world-alpha material vertices preserve one ordered batch.
+Clear glass has zero indirect response; explicit frosted/diffuse surfaces use
+fresh incident diffuse and canonical ambient visibility once. Additive/top/guide
+readability stages remain exempt. Legacy 36-byte vertices remain; optional
+68-byte vertices carry canonical surface and material data. See
+[SM-702 contract](WEBGPU_FORWARD_LIGHTING_SM702.md).

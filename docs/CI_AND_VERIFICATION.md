@@ -242,3 +242,13 @@ deletion and canonical ambient integration reproducible before/after tests.
 `tools/run_sm603_target_campaign.py` and its strict report validator handle
 physical target characterization separately; hosted software correctness cannot
 substitute for those native three-process datasets or Firefox spot-check.
+
+## SM-702 mixed forward gate
+
+The normal source gate includes forward/material/fixture CPU contracts and
+strict report-provenance mutation tests. Clean extraction repeats these tests
+and requires all baseline modules, runners and canonical contract. The WebGPU
+browser job executes the production mixed-forward readback page. Hosted software
+renderer success is correctness evidence only. Native paired process campaigns,
+source/hash retention and the exact timing exclusions are specified in
+[SM-702](WEBGPU_FORWARD_LIGHTING_SM702.md).

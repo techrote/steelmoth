@@ -69,3 +69,10 @@ The deterministic validator covers shoreline encoding, 12-ripple bounding, eight
 The dedicated Chrome/WebGPU gate compiles and executes the production shader and validates eight 45-degree point-light positions against the CPU reference, measurable angular response, transparent-black dark-water output, canonical-depth/refraction reads, direct-light suppression by SM-307 visibility, bounded ripple response, stale-room rejection followed by a successful new-room render, and canonical-authority diagnostics.
 
 The normal repository verification still runs the inherited SurfaceFX/WebGL2 coherence tests. Since SM-400 does not alter `engine/surfacefx.js` or gameplay interaction code, WebGL2 compatibility behavior remains the regression reference.
+
+## SM-702 optional extension
+
+The advanced opt-in borrows fresh canonical incident diffuse and reconciled
+ambient visibility, adds a bounded own-palette response and requires an explicit
+canonical physical surface for actor occlusion. The compatibility path remains
+the default. See [SM-702 contract](WEBGPU_FORWARD_LIGHTING_SM702.md).
