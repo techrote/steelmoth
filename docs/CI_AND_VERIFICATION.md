@@ -251,4 +251,5 @@ and requires all baseline modules, runners and canonical contract. The WebGPU
 browser job executes the production mixed-forward readback page. Hosted software
 renderer success is correctness evidence only. Native paired process campaigns,
 source/hash retention and the exact timing exclusions are specified in
-[SM-702](WEBGPU_FORWARD_LIGHTING_SM702.md).
+[SM-702](WEBGPU_FORWARD_LIGHTING_SM702.md). The retained native results and
+performance limitations are in [the measured report](SM702_FORWARD_LIGHTING_REPORT.md).

@@ -128,6 +128,10 @@ and raw artifact hashes must be retained before any measured result is adopted.
 
 ## Current evidence state
 
-Implementation and CPU contract preparation are in progress. No SM-702 native
-measurement, browser compatibility, human visual acceptance or default promotion
-is claimed by this preparation document.
+The source-matched native GTX 1650 SUPER campaign passes six Chrome timing
+processes and one Firefox correctness spot-check. The [measured report](SM702_FORWARD_LIGHTING_REPORT.md)
+records all raw evidence, costs, material witnesses and limitations. Representative
+mean overhead is 0.088–0.104 ms; capped stress overhead is 2.969–3.036 ms, dominated
+by advanced world-alpha lighting. Defaults remain off. Final exact-head CI and
+verified main merge remain required; no whole-frame budget, normal-game
+presentation, default Firefox compatibility or human visual acceptance is inferred.

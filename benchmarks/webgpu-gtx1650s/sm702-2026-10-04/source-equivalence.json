@@ -1,0 +1,273 @@
+{
+  "schema": "steelmoth-sm702-source-equivalence/v1",
+  "ok": true,
+  "runtimeCommit": "a0be3ed2194b482374d2e7403e511fd00c3fd698",
+  "evidenceBaseHead": "a0be3ed2194b482374d2e7403e511fd00c3fd698",
+  "files": [
+    {
+      "file": "webgpu-forward-lighting-smoke.html",
+      "rawMeasuredSha256": "2aa0407ac7fe413fa3e6adb67dcfa7916ca95376ce5199dd24e7ee9dec1da5d0",
+      "currentRawSha256": "2aa0407ac7fe413fa3e6adb67dcfa7916ca95376ce5199dd24e7ee9dec1da5d0",
+      "runtimeGitLFNormalizedSha256": "2aa0407ac7fe413fa3e6adb67dcfa7916ca95376ce5199dd24e7ee9dec1da5d0",
+      "currentHeadGitLFNormalizedSha256": "2aa0407ac7fe413fa3e6adb67dcfa7916ca95376ce5199dd24e7ee9dec1da5d0",
+      "stagedGitLFNormalizedSha256": "2aa0407ac7fe413fa3e6adb67dcfa7916ca95376ce5199dd24e7ee9dec1da5d0"
+    },
+    {
+      "file": "tools/sm702_forward_fixtures.js",
+      "rawMeasuredSha256": "27a94526dd14b195b42acb221f94297368bb314f6ff3fb72b8908ac32c36cc2d",
+      "currentRawSha256": "27a94526dd14b195b42acb221f94297368bb314f6ff3fb72b8908ac32c36cc2d",
+      "runtimeGitLFNormalizedSha256": "27a94526dd14b195b42acb221f94297368bb314f6ff3fb72b8908ac32c36cc2d",
+      "currentHeadGitLFNormalizedSha256": "27a94526dd14b195b42acb221f94297368bb314f6ff3fb72b8908ac32c36cc2d",
+      "stagedGitLFNormalizedSha256": "27a94526dd14b195b42acb221f94297368bb314f6ff3fb72b8908ac32c36cc2d"
+    },
+    {
+      "file": "tools/experiments/sm702_water_baseline.js",
+      "rawMeasuredSha256": "542b9a63da85c3e4577286d9beb6590312a95fe6e1bbcd5d1671c3d5e7c3f80d",
+      "currentRawSha256": "542b9a63da85c3e4577286d9beb6590312a95fe6e1bbcd5d1671c3d5e7c3f80d",
+      "runtimeGitLFNormalizedSha256": "542b9a63da85c3e4577286d9beb6590312a95fe6e1bbcd5d1671c3d5e7c3f80d",
+      "currentHeadGitLFNormalizedSha256": "542b9a63da85c3e4577286d9beb6590312a95fe6e1bbcd5d1671c3d5e7c3f80d",
+      "stagedGitLFNormalizedSha256": "542b9a63da85c3e4577286d9beb6590312a95fe6e1bbcd5d1671c3d5e7c3f80d"
+    },
+    {
+      "file": "tools/experiments/sm702_foliage_baseline.js",
+      "rawMeasuredSha256": "32f85778d29f780023572f7da894116a043ccd9f723c82eec9e1e9593c15343a",
+      "currentRawSha256": "32f85778d29f780023572f7da894116a043ccd9f723c82eec9e1e9593c15343a",
+      "runtimeGitLFNormalizedSha256": "32f85778d29f780023572f7da894116a043ccd9f723c82eec9e1e9593c15343a",
+      "currentHeadGitLFNormalizedSha256": "32f85778d29f780023572f7da894116a043ccd9f723c82eec9e1e9593c15343a",
+      "stagedGitLFNormalizedSha256": "32f85778d29f780023572f7da894116a043ccd9f723c82eec9e1e9593c15343a"
+    },
+    {
+      "file": "tools/experiments/sm702_transparent_fx_baseline.js",
+      "rawMeasuredSha256": "c32a7e75a2de7a6997568201cdb21ea16e4bd72bb5232ee97c51e3a65af242e7",
+      "currentRawSha256": "c32a7e75a2de7a6997568201cdb21ea16e4bd72bb5232ee97c51e3a65af242e7",
+      "runtimeGitLFNormalizedSha256": "c32a7e75a2de7a6997568201cdb21ea16e4bd72bb5232ee97c51e3a65af242e7",
+      "currentHeadGitLFNormalizedSha256": "c32a7e75a2de7a6997568201cdb21ea16e4bd72bb5232ee97c51e3a65af242e7",
+      "stagedGitLFNormalizedSha256": "c32a7e75a2de7a6997568201cdb21ea16e4bd72bb5232ee97c51e3a65af242e7"
+    },
+    {
+      "file": "tools/validate_sm702_forward_browser.py",
+      "rawMeasuredSha256": "53894843316e4c1258c4557013b2d1e5545456440f0394865b55e6c3963320ad",
+      "currentRawSha256": "53894843316e4c1258c4557013b2d1e5545456440f0394865b55e6c3963320ad",
+      "runtimeGitLFNormalizedSha256": "53894843316e4c1258c4557013b2d1e5545456440f0394865b55e6c3963320ad",
+      "currentHeadGitLFNormalizedSha256": "53894843316e4c1258c4557013b2d1e5545456440f0394865b55e6c3963320ad",
+      "stagedGitLFNormalizedSha256": "53894843316e4c1258c4557013b2d1e5545456440f0394865b55e6c3963320ad"
+    },
+    {
+      "file": "tools/run_sm702_target_campaign.py",
+      "rawMeasuredSha256": "3800422237bc926f47c8dec8af24123b74dd7a62c8fae2e25225f80441f894ab",
+      "currentRawSha256": "3800422237bc926f47c8dec8af24123b74dd7a62c8fae2e25225f80441f894ab",
+      "runtimeGitLFNormalizedSha256": "3800422237bc926f47c8dec8af24123b74dd7a62c8fae2e25225f80441f894ab",
+      "currentHeadGitLFNormalizedSha256": "3800422237bc926f47c8dec8af24123b74dd7a62c8fae2e25225f80441f894ab",
+      "stagedGitLFNormalizedSha256": "3800422237bc926f47c8dec8af24123b74dd7a62c8fae2e25225f80441f894ab"
+    },
+    {
+      "file": "tools/validate_sm702_target_report.py",
+      "rawMeasuredSha256": "a124a2ded89317a2d134bfb8e0c251535ea7f644b3b08ac28a176f39beac95b6",
+      "currentRawSha256": "a124a2ded89317a2d134bfb8e0c251535ea7f644b3b08ac28a176f39beac95b6",
+      "runtimeGitLFNormalizedSha256": "a124a2ded89317a2d134bfb8e0c251535ea7f644b3b08ac28a176f39beac95b6",
+      "currentHeadGitLFNormalizedSha256": "a124a2ded89317a2d134bfb8e0c251535ea7f644b3b08ac28a176f39beac95b6",
+      "stagedGitLFNormalizedSha256": "a124a2ded89317a2d134bfb8e0c251535ea7f644b3b08ac28a176f39beac95b6"
+    },
+    {
+      "file": "tools/validate_webgpu_ssgi_browser.py",
+      "rawMeasuredSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "currentRawSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "runtimeGitLFNormalizedSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "currentHeadGitLFNormalizedSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "stagedGitLFNormalizedSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c"
+    },
+    {
+      "file": "tools/validate_sm603_target_report.py",
+      "rawMeasuredSha256": "9f30eb8083ea4650f049a1a63abd9d688efaf2efa9ec5aeac54889304acd593b",
+      "currentRawSha256": "9f30eb8083ea4650f049a1a63abd9d688efaf2efa9ec5aeac54889304acd593b",
+      "runtimeGitLFNormalizedSha256": "9f30eb8083ea4650f049a1a63abd9d688efaf2efa9ec5aeac54889304acd593b",
+      "currentHeadGitLFNormalizedSha256": "9f30eb8083ea4650f049a1a63abd9d688efaf2efa9ec5aeac54889304acd593b",
+      "stagedGitLFNormalizedSha256": "9f30eb8083ea4650f049a1a63abd9d688efaf2efa9ec5aeac54889304acd593b"
+    },
+    {
+      "file": "engine/webgpu_resources.js",
+      "rawMeasuredSha256": "46a11fbf2f3a3bf5af9ca5426ab9e10450e6e64cbac535bd671f0bb8bb660e2e",
+      "currentRawSha256": "46a11fbf2f3a3bf5af9ca5426ab9e10450e6e64cbac535bd671f0bb8bb660e2e",
+      "runtimeGitLFNormalizedSha256": "07b1353c89fbf88ca10b0b84eddb265ce5480427381d5fb015a9eda3dedb08c8",
+      "currentHeadGitLFNormalizedSha256": "07b1353c89fbf88ca10b0b84eddb265ce5480427381d5fb015a9eda3dedb08c8",
+      "stagedGitLFNormalizedSha256": "07b1353c89fbf88ca10b0b84eddb265ce5480427381d5fb015a9eda3dedb08c8"
+    },
+    {
+      "file": "engine/webgpu_performance.js",
+      "rawMeasuredSha256": "14aacc9e9ec27bd9417230661e2eeae7c652c60b147b41d272188194f7c2325e",
+      "currentRawSha256": "14aacc9e9ec27bd9417230661e2eeae7c652c60b147b41d272188194f7c2325e",
+      "runtimeGitLFNormalizedSha256": "682aecb7732826b14e9265724b8fbef1347f8025ed594171c8c32957f4cf2c2c",
+      "currentHeadGitLFNormalizedSha256": "682aecb7732826b14e9265724b8fbef1347f8025ed594171c8c32957f4cf2c2c",
+      "stagedGitLFNormalizedSha256": "682aecb7732826b14e9265724b8fbef1347f8025ed594171c8c32957f4cf2c2c"
+    },
+    {
+      "file": "engine/pseudo_depth.js",
+      "rawMeasuredSha256": "39f52ab28a93886278edf959bcfdc4ce47d7130ad7151fd28b10662b89e057d8",
+      "currentRawSha256": "39f52ab28a93886278edf959bcfdc4ce47d7130ad7151fd28b10662b89e057d8",
+      "runtimeGitLFNormalizedSha256": "056ef5829322a4c0f89d49d60a1a6074a3f59108e0bf36b08e2be2c3d26b173a",
+      "currentHeadGitLFNormalizedSha256": "056ef5829322a4c0f89d49d60a1a6074a3f59108e0bf36b08e2be2c3d26b173a",
+      "stagedGitLFNormalizedSha256": "056ef5829322a4c0f89d49d60a1a6074a3f59108e0bf36b08e2be2c3d26b173a"
+    },
+    {
+      "file": "engine/foliagefx.js",
+      "rawMeasuredSha256": "60ce441bb5eababfab7223ddcd7f3f0fd485fafad1e2acdac59419e15eab3023",
+      "currentRawSha256": "60ce441bb5eababfab7223ddcd7f3f0fd485fafad1e2acdac59419e15eab3023",
+      "runtimeGitLFNormalizedSha256": "ad7c3e419cfd36c02ec592070091575c381760017c6b5ad6080cf61482b96a5e",
+      "currentHeadGitLFNormalizedSha256": "ad7c3e419cfd36c02ec592070091575c381760017c6b5ad6080cf61482b96a5e",
+      "stagedGitLFNormalizedSha256": "ad7c3e419cfd36c02ec592070091575c381760017c6b5ad6080cf61482b96a5e"
+    },
+    {
+      "file": "engine/webgpu_gbuffer.js",
+      "rawMeasuredSha256": "8c4f6a2b33c6aa1a247364d8cba0ea6bda124a165d3d4fb5583a583ace51a43c",
+      "currentRawSha256": "8c4f6a2b33c6aa1a247364d8cba0ea6bda124a165d3d4fb5583a583ace51a43c",
+      "runtimeGitLFNormalizedSha256": "3c9a310d8918fa9b6de901500842e469455e074ca5081207fc5b2ce4284dc90d",
+      "currentHeadGitLFNormalizedSha256": "3c9a310d8918fa9b6de901500842e469455e074ca5081207fc5b2ce4284dc90d",
+      "stagedGitLFNormalizedSha256": "3c9a310d8918fa9b6de901500842e469455e074ca5081207fc5b2ce4284dc90d"
+    },
+    {
+      "file": "engine/webgpu_ownership.js",
+      "rawMeasuredSha256": "708faaaaa722d5ca6c2f8e2b79cbecd143256655fc47f7901baea0fd9d8022c0",
+      "currentRawSha256": "708faaaaa722d5ca6c2f8e2b79cbecd143256655fc47f7901baea0fd9d8022c0",
+      "runtimeGitLFNormalizedSha256": "7f9d3d6b551c9609f0023b28411ffe7243ae947aef6e74b780102057c3b1eab1",
+      "currentHeadGitLFNormalizedSha256": "7f9d3d6b551c9609f0023b28411ffe7243ae947aef6e74b780102057c3b1eab1",
+      "stagedGitLFNormalizedSha256": "7f9d3d6b551c9609f0023b28411ffe7243ae947aef6e74b780102057c3b1eab1"
+    },
+    {
+      "file": "engine/webgpu_depth_hierarchy.js",
+      "rawMeasuredSha256": "614be97bff48fc98df6f8dabe15594c1174b6fa2a666d943e7b9f173f249aa33",
+      "currentRawSha256": "614be97bff48fc98df6f8dabe15594c1174b6fa2a666d943e7b9f173f249aa33",
+      "runtimeGitLFNormalizedSha256": "d19f5d843dd1662591d3c93eb5e4dbfc12c963d24ec7ffe1af21229aaaff2d6d",
+      "currentHeadGitLFNormalizedSha256": "d19f5d843dd1662591d3c93eb5e4dbfc12c963d24ec7ffe1af21229aaaff2d6d",
+      "stagedGitLFNormalizedSha256": "d19f5d843dd1662591d3c93eb5e4dbfc12c963d24ec7ffe1af21229aaaff2d6d"
+    },
+    {
+      "file": "engine/webgpu_lighting.js",
+      "rawMeasuredSha256": "71284f9cf69e9f2d9c0b59f269692324020a8c5adf6df1ea4781eb824f54c631",
+      "currentRawSha256": "71284f9cf69e9f2d9c0b59f269692324020a8c5adf6df1ea4781eb824f54c631",
+      "runtimeGitLFNormalizedSha256": "7a6cfc4baa5a3524e998ba0c7d2c26d3e4c729d1199b24916ac3b19e75ef19dc",
+      "currentHeadGitLFNormalizedSha256": "7a6cfc4baa5a3524e998ba0c7d2c26d3e4c729d1199b24916ac3b19e75ef19dc",
+      "stagedGitLFNormalizedSha256": "7a6cfc4baa5a3524e998ba0c7d2c26d3e4c729d1199b24916ac3b19e75ef19dc"
+    },
+    {
+      "file": "engine/webgpu_occluders.js",
+      "rawMeasuredSha256": "760017e2de7afeece5a19ca7f6c02c1323781baa285ec17035f5dd817cf1cbae",
+      "currentRawSha256": "760017e2de7afeece5a19ca7f6c02c1323781baa285ec17035f5dd817cf1cbae",
+      "runtimeGitLFNormalizedSha256": "37d809f3c66c9248c50d024ecb4de773144c44a82497d6f42c0bb634282d55ec",
+      "currentHeadGitLFNormalizedSha256": "37d809f3c66c9248c50d024ecb4de773144c44a82497d6f42c0bb634282d55ec",
+      "stagedGitLFNormalizedSha256": "37d809f3c66c9248c50d024ecb4de773144c44a82497d6f42c0bb634282d55ec"
+    },
+    {
+      "file": "engine/webgpu_clusters.js",
+      "rawMeasuredSha256": "3214e19b79a4712107e1bf23411e4eef3f7ee406ecc70d4e36563009bcef45e1",
+      "currentRawSha256": "3214e19b79a4712107e1bf23411e4eef3f7ee406ecc70d4e36563009bcef45e1",
+      "runtimeGitLFNormalizedSha256": "f998ca3df1da1b6bd2d1ac7c28a5d61324d599867f772fc6165923393e5f3f56",
+      "currentHeadGitLFNormalizedSha256": "f998ca3df1da1b6bd2d1ac7c28a5d61324d599867f772fc6165923393e5f3f56",
+      "stagedGitLFNormalizedSha256": "f998ca3df1da1b6bd2d1ac7c28a5d61324d599867f772fc6165923393e5f3f56"
+    },
+    {
+      "file": "engine/webgpu_dominance.js",
+      "rawMeasuredSha256": "4b6fbd0cbc7bb7ed77ba596a26093c3b0c1fd06e9bc76115ff89ae6387e6771b",
+      "currentRawSha256": "4b6fbd0cbc7bb7ed77ba596a26093c3b0c1fd06e9bc76115ff89ae6387e6771b",
+      "runtimeGitLFNormalizedSha256": "2a59ea9c646e4522bd3d9f2eba754ecaea2831b40ef3c6c6a0fa16bb90ade423",
+      "currentHeadGitLFNormalizedSha256": "2a59ea9c646e4522bd3d9f2eba754ecaea2831b40ef3c6c6a0fa16bb90ade423",
+      "stagedGitLFNormalizedSha256": "2a59ea9c646e4522bd3d9f2eba754ecaea2831b40ef3c6c6a0fa16bb90ade423"
+    },
+    {
+      "file": "engine/webgpu_dso.js",
+      "rawMeasuredSha256": "d2d34f665bfb194e93284a0146bc578b3ccac462a4db0b5ee8c10c88efd3d365",
+      "currentRawSha256": "d2d34f665bfb194e93284a0146bc578b3ccac462a4db0b5ee8c10c88efd3d365",
+      "runtimeGitLFNormalizedSha256": "a128c3aac46d3ea7ad5f7424854155e9d4c7199631fe025916810138854f27d6",
+      "currentHeadGitLFNormalizedSha256": "a128c3aac46d3ea7ad5f7424854155e9d4c7199631fe025916810138854f27d6",
+      "stagedGitLFNormalizedSha256": "a128c3aac46d3ea7ad5f7424854155e9d4c7199631fe025916810138854f27d6"
+    },
+    {
+      "file": "engine/webgpu_dso_hierarchy.js",
+      "rawMeasuredSha256": "536ef118b8d158ac5cbb8e281be0e462a5b5f2f85ad8f9295bbc8ab8706183a1",
+      "currentRawSha256": "536ef118b8d158ac5cbb8e281be0e462a5b5f2f85ad8f9295bbc8ab8706183a1",
+      "runtimeGitLFNormalizedSha256": "e6f6cce2c774bd94eaef403b8f0d77f34b158fd3ee71bb86654f41c8a1d53945",
+      "currentHeadGitLFNormalizedSha256": "e6f6cce2c774bd94eaef403b8f0d77f34b158fd3ee71bb86654f41c8a1d53945",
+      "stagedGitLFNormalizedSha256": "e6f6cce2c774bd94eaef403b8f0d77f34b158fd3ee71bb86654f41c8a1d53945"
+    },
+    {
+      "file": "engine/webgpu_gtao.js",
+      "rawMeasuredSha256": "277d621f189a8ecdd68d05697bcad16f35e65424a5de71020f4752819cf3811c",
+      "currentRawSha256": "277d621f189a8ecdd68d05697bcad16f35e65424a5de71020f4752819cf3811c",
+      "runtimeGitLFNormalizedSha256": "3806c9fdf589514ae41324e2f5ea66646349b4ad3a40dcc1ab1ae51bcd54e771",
+      "currentHeadGitLFNormalizedSha256": "3806c9fdf589514ae41324e2f5ea66646349b4ad3a40dcc1ab1ae51bcd54e771",
+      "stagedGitLFNormalizedSha256": "3806c9fdf589514ae41324e2f5ea66646349b4ad3a40dcc1ab1ae51bcd54e771"
+    },
+    {
+      "file": "engine/webgpu_gtao_stabilization.js",
+      "rawMeasuredSha256": "b595afe8836eaeec6d5457d5801689d80df2faf166ef3e10408071cba98a6580",
+      "currentRawSha256": "b595afe8836eaeec6d5457d5801689d80df2faf166ef3e10408071cba98a6580",
+      "runtimeGitLFNormalizedSha256": "f41a946b3cedad96d76738a0af2fe5c194da7069ed3d06825bf32f198ffa30a5",
+      "currentHeadGitLFNormalizedSha256": "f41a946b3cedad96d76738a0af2fe5c194da7069ed3d06825bf32f198ffa30a5",
+      "stagedGitLFNormalizedSha256": "f41a946b3cedad96d76738a0af2fe5c194da7069ed3d06825bf32f198ffa30a5"
+    },
+    {
+      "file": "engine/webgpu_gtao_readback.js",
+      "rawMeasuredSha256": "84423ad12a593997955e45760a8ff41c4a1cf99ffc05458031420ee1ee44874f",
+      "currentRawSha256": "84423ad12a593997955e45760a8ff41c4a1cf99ffc05458031420ee1ee44874f",
+      "runtimeGitLFNormalizedSha256": "734984d46d64eb7c8f60498825db0754fb67716644a8244a4d6e8c427b418558",
+      "currentHeadGitLFNormalizedSha256": "734984d46d64eb7c8f60498825db0754fb67716644a8244a4d6e8c427b418558",
+      "stagedGitLFNormalizedSha256": "734984d46d64eb7c8f60498825db0754fb67716644a8244a4d6e8c427b418558"
+    },
+    {
+      "file": "engine/webgpu_visibility.js",
+      "rawMeasuredSha256": "c262fb86b53a97c50acdbe781c151af4c2cef570486c41b76cffb2cd7320a204",
+      "currentRawSha256": "c262fb86b53a97c50acdbe781c151af4c2cef570486c41b76cffb2cd7320a204",
+      "runtimeGitLFNormalizedSha256": "fc6e0fe37ac0736bcdc6f2234fabe89c5a75aab63f24ee446cf387cd6ebf291f",
+      "currentHeadGitLFNormalizedSha256": "fc6e0fe37ac0736bcdc6f2234fabe89c5a75aab63f24ee446cf387cd6ebf291f",
+      "stagedGitLFNormalizedSha256": "fc6e0fe37ac0736bcdc6f2234fabe89c5a75aab63f24ee446cf387cd6ebf291f"
+    },
+    {
+      "file": "engine/webgpu_ssgi.js",
+      "rawMeasuredSha256": "24d343fad6dc6e8a8e2b936acf5a72aad4ac1c182374aa23a809291761990ea6",
+      "currentRawSha256": "24d343fad6dc6e8a8e2b936acf5a72aad4ac1c182374aa23a809291761990ea6",
+      "runtimeGitLFNormalizedSha256": "24d343fad6dc6e8a8e2b936acf5a72aad4ac1c182374aa23a809291761990ea6",
+      "currentHeadGitLFNormalizedSha256": "24d343fad6dc6e8a8e2b936acf5a72aad4ac1c182374aa23a809291761990ea6",
+      "stagedGitLFNormalizedSha256": "24d343fad6dc6e8a8e2b936acf5a72aad4ac1c182374aa23a809291761990ea6"
+    },
+    {
+      "file": "engine/webgpu_ordering.js",
+      "rawMeasuredSha256": "a977616e4efe339a5eb7fb157cb96734381efa3e878341a529a1810a78373c73",
+      "currentRawSha256": "a977616e4efe339a5eb7fb157cb96734381efa3e878341a529a1810a78373c73",
+      "runtimeGitLFNormalizedSha256": "a7624c10f4dea76515d70a6fd443e4707dca970085443088b3c0dbee74d89f60",
+      "currentHeadGitLFNormalizedSha256": "a7624c10f4dea76515d70a6fd443e4707dca970085443088b3c0dbee74d89f60",
+      "stagedGitLFNormalizedSha256": "a7624c10f4dea76515d70a6fd443e4707dca970085443088b3c0dbee74d89f60"
+    },
+    {
+      "file": "engine/webgpu_forward_lighting.js",
+      "rawMeasuredSha256": "4b9f744fc4b84c953ebd7f49f42417ba2c4e25318b12b4da04cc70c6e34460cb",
+      "currentRawSha256": "4b9f744fc4b84c953ebd7f49f42417ba2c4e25318b12b4da04cc70c6e34460cb",
+      "runtimeGitLFNormalizedSha256": "4b9f744fc4b84c953ebd7f49f42417ba2c4e25318b12b4da04cc70c6e34460cb",
+      "currentHeadGitLFNormalizedSha256": "4b9f744fc4b84c953ebd7f49f42417ba2c4e25318b12b4da04cc70c6e34460cb",
+      "stagedGitLFNormalizedSha256": "4b9f744fc4b84c953ebd7f49f42417ba2c4e25318b12b4da04cc70c6e34460cb"
+    },
+    {
+      "file": "engine/webgpu_water.js",
+      "rawMeasuredSha256": "02d0463eea51e030fbfdb53d55d618b9cfa4a182f86cdf2346010a1f24d3eae2",
+      "currentRawSha256": "02d0463eea51e030fbfdb53d55d618b9cfa4a182f86cdf2346010a1f24d3eae2",
+      "runtimeGitLFNormalizedSha256": "e603d137cf00eb717187be0306c0578424abf897c0988fd6ade96c1fa14da298",
+      "currentHeadGitLFNormalizedSha256": "e603d137cf00eb717187be0306c0578424abf897c0988fd6ade96c1fa14da298",
+      "stagedGitLFNormalizedSha256": "e603d137cf00eb717187be0306c0578424abf897c0988fd6ade96c1fa14da298"
+    },
+    {
+      "file": "engine/webgpu_foliage.js",
+      "rawMeasuredSha256": "791191ea8b24364ff55490a302bd9b7772d6ad016e877d8b81ef6f769540624b",
+      "currentRawSha256": "791191ea8b24364ff55490a302bd9b7772d6ad016e877d8b81ef6f769540624b",
+      "runtimeGitLFNormalizedSha256": "781483cc60e91c49216e1c80ee9822bb5b31530ddce6289cef62d57496c5fc95",
+      "currentHeadGitLFNormalizedSha256": "781483cc60e91c49216e1c80ee9822bb5b31530ddce6289cef62d57496c5fc95",
+      "stagedGitLFNormalizedSha256": "781483cc60e91c49216e1c80ee9822bb5b31530ddce6289cef62d57496c5fc95"
+    },
+    {
+      "file": "engine/webgpu_transparent_fx.js",
+      "rawMeasuredSha256": "595314389482898cdd22dc2575d27de9d4bc0099b52b1e66c4e9e54406ca0743",
+      "currentRawSha256": "595314389482898cdd22dc2575d27de9d4bc0099b52b1e66c4e9e54406ca0743",
+      "runtimeGitLFNormalizedSha256": "595314389482898cdd22dc2575d27de9d4bc0099b52b1e66c4e9e54406ca0743",
+      "currentHeadGitLFNormalizedSha256": "595314389482898cdd22dc2575d27de9d4bc0099b52b1e66c4e9e54406ca0743",
+      "stagedGitLFNormalizedSha256": "595314389482898cdd22dc2575d27de9d4bc0099b52b1e66c4e9e54406ca0743"
+    }
+  ],
+  "boundary": "All33 measured executable paths retain exact current working bytes and identical LF-normalized Git blobs. Later evidence/docs only; raw evidence retention is checked separately."
+}

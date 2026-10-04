@@ -88,6 +88,7 @@ Use these words consistently:
 ## SM-702 forward lighting
 
 - [`WEBGPU_FORWARD_LIGHTING_SM702.md`](WEBGPU_FORWARD_LIGHTING_SM702.md) — optional fresh canonical inputs, explicit transparent material policy, depth guards, staged composition and native mixed-forward measurement boundary.
+- [`SM702_FORWARD_LIGHTING_REPORT.md`](SM702_FORWARD_LIGHTING_REPORT.md) — source-matched GTX mixed-forward correctness, paired timing, descriptor accounting and retained acceptance views; advanced defaults remain off.
 
 ## Current repository state
 

@@ -1,0 +1,77 @@
+{
+  "schema": "steelmoth-sm702-acceptance-replay/v1",
+  "ok": true,
+  "createdAt": "2026-10-04T02:51:23.858269+00:00",
+  "file": "benchmarks/webgpu-gtx1650s/sm702-2026-10-04/campaign-a0be3ed/representative/run-1/acceptance.html",
+  "fileSha256": "8285425f469535ebded23ec42d5110f4c221bb6e13b7dcb39a86fd1e0333c094",
+  "boundary": "Exact retained GPU readbacks replayed with GPU disabled; no new renderer timing or human acceptance.",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/154.0.8037.93",
+    "revision": "@f89f3a4363808e117c592adedcf9947882ac3b79",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "jsVersion": "15.4.80.19"
+  },
+  "processId": 18816,
+  "state": {
+    "ready": "complete",
+    "canvases": [
+      {
+        "width": 67,
+        "height": 51,
+        "pixels": 13668
+      },
+      {
+        "width": 67,
+        "height": 51,
+        "pixels": 13668
+      },
+      {
+        "width": 67,
+        "height": 51,
+        "pixels": 13668
+      },
+      {
+        "width": 17,
+        "height": 13,
+        "pixels": 884
+      },
+      {
+        "width": 67,
+        "height": 51,
+        "pixels": 13668
+      },
+      {
+        "width": 67,
+        "height": 51,
+        "pixels": 13668
+      },
+      {
+        "width": 67,
+        "height": 51,
+        "pixels": 13668
+      },
+      {
+        "width": 67,
+        "height": 51,
+        "pixels": 13668
+      }
+    ],
+    "report": "./report.json"
+  },
+  "javascriptExceptions": [],
+  "provenance": {
+    "commit": "a0be3ed2194b482374d2e7403e511fd00c3fd698",
+    "branch": "codex/sm702-forward-lighting",
+    "closureFileCount": 33,
+    "baselineCommit": "cb068323a7a93e6273d879126fe261f951d589f7",
+    "baselineLFNormalizedSha256": {
+      "tools/experiments/sm702_water_baseline.js": "542b9a63da85c3e4577286d9beb6590312a95fe6e1bbcd5d1671c3d5e7c3f80d",
+      "tools/experiments/sm702_foliage_baseline.js": "32f85778d29f780023572f7da894116a043ccd9f723c82eec9e1e9593c15343a",
+      "tools/experiments/sm702_transparent_fx_baseline.js": "c32a7e75a2de7a6997568201cdb21ea16e4bd72bb5232ee97c51e3a65af242e7"
+    },
+    "localReport": "report.json"
+  },
+  "screenshotSha256": "0d3c82e86c0239531cc6e942624cb2f630ae3d0cd3b4722e33dd829295145dac",
+  "browserProcessExited": true
+}

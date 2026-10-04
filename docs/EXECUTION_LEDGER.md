@@ -293,3 +293,22 @@ full issue/comments, current branches/PRs and live workers were reconciled befor
 claim comment 5975497963. Water, large foliage and explicit world-alpha glass
 consume shared fresh canonical inputs. Native mixed-scene evidence is being
 prepared; no SM-702 acceptance or performance result is claimed yet.
+
+## SM-702 native evidence checkpoint — 2026-10-04
+
+PR #115 publishes runtime `a0be3ed2194b482374d2e7403e511fd00c3fd698` on
+`codex/sm702-forward-lighting`. Six independent GTX 1650 SUPER Chrome processes
+pass 95/95 checks each with 300 warm-up / 600 retained pairs at native 1080p;
+the source-matched Firefox correctness spot-check passes 87/87. All 33 executable
+closure hashes are unchanged and all owned browsers exited. Strict campaign
+validation and exact GPU-disabled saved-HTML replay pass. Complete-forward mean
+overhead is 0.088–0.104 ms representative / 2.969–3.036 ms stress; world-alpha
+dominates the stress cost. These measurements exclude shared upstream work and
+establish no whole-frame headroom. Defaults remain off.
+
+Raw reports/readbacks/captures, the initial screenshot-export failure and repaired
+probe are retained in `benchmarks/webgpu-gtx1650s/sm702-2026-10-04/`.
+Final source and extraction gates pass 99/99 and 26/26. The initial unchanged
+SM-404 hosted timeout passes on retry; exact evidence-head hosted jobs and
+verified main merge remain required before issue closure. SteelMoth remains the sole mutable source repository;
+siblings and other source checkouts remain read-only.

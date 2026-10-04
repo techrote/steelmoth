@@ -1,0 +1,22 @@
+{
+  "head": "a0be3ed2194b482374d2e7403e511fd00c3fd698",
+  "workflowRun": 37172084606,
+  "jobId": 111346928889,
+  "jobURL": "https://github.com/techrote/steelmoth/actions/runs/37172084606/job/111346928889",
+  "result": "failure",
+  "reason": "SM-404 transition page did not publish before timeout (120s)",
+  "deterministicAssertionsPassed": 191,
+  "loadedClosureUnchanged": true,
+  "comparisonHeads": [
+    "cb068323a7a93e6273d879126fe261f951d589f7",
+    "12559124e64dbac686cca9f496a0c8490ce2be12"
+  ],
+  "disposition": "Unchanged retry passed. Original timeout retained as an unclassified hosted browser liveness failure; final evidence-head CI remains independently required.",
+  "retry": {
+    "jobId": 111348332777,
+    "result": "success",
+    "jobURL": "https://github.com/techrote/steelmoth/actions/runs/37172084606/job/111348332777",
+    "sourceChanged": false,
+    "timeoutChanged": false
+  }
+}
