@@ -1,2 +1,2 @@
 # Retained byte hashes must survive Windows and Linux Git checkout unchanged.
-* -text
+* -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
