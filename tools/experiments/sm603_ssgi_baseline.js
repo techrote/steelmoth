@@ -13,9 +13,6 @@
   if(!Resources||!Validity?.pixelDiscontinuity||!Depth||!PseudoDepth)throw new Error('SM-602 requires resources, SM-601 validity, SM-203 hierarchy and canonical pseudo-depth');
   const SCHEMA='steelmoth-webgpu-ssgi/v1';
   const OUTPUT_FORMAT='rgba16float';
-  const DONOR_FORMAT='rgba32uint';
-  const DONOR_RECORDS=8;
-  const NO_DONOR=0xffffffff;
   const DEBUG_MODES=Object.freeze(['indirect','raw','history-rejection']);
   const EXTRA_META_KEYS=Object.freeze(['cameraRevision','lightRevision']);
   const DEPTH_SPAN=PseudoDepth.DEPTH_KEY_MAX-PseudoDepth.DEPTH_KEY_MIN;
@@ -61,17 +58,14 @@
   function intersects(range,lo,hi){return Depth.rangeOccupied(range)&&range[0]<=hi&&range[1]>=lo;}
   function referenceSSGI(input={},options={}){
     const width=extent(input.width),height=extent(input.height),count=width*height,qw=quarter(width),qh=quarter(height),o=normalizeOptions(options);
-    const raw=new Float32Array(qw*qh*4),indirect=new Float32Array(raw.length),rejection=new Float32Array(raw.length),composed=new Float32Array(count*4),donorCoordinates=new Uint32Array(qw*qh*DONOR_RECORDS).fill(NO_DONOR);
+    const raw=new Float32Array(qw*qh*4),indirect=new Float32Array(raw.length),rejection=new Float32Array(raw.length),composed=new Float32Array(count*4);
     const global=Validity.globalDiscontinuity(input.previousMeta,input.currentMeta,EXTRA_META_KEYS),valid=o.enabled&&input.historyValid===true&&!global.reject;
     const depths=new Float32Array(count);for(let i=0;i<count;i++)depths[i]=pairAt(input.currentDepth,i,count)[0];
     const radius=o.radius*o.pixelScale,levels=Depth.buildCPUHierarchy(depths,input.currentObject,width,height),level=Depth.chooseLevelForFootprint(radius/o.steps,levels.length-1),coarse=levels[level];
     for(let y=0;y<qh;y++)for(let x=0;x<qw;x++){
       const px=Math.min(width-1,x*4+2),py=Math.min(height-1,y*4+2),i=py*width+px,qi=(y*qw+x)*4,c=pairAt(input.currentDepth,i,count),owner=input.currentObject?.[i]||0;
       let donors=0,rejected=0;const sum=[0,0,0],n=normalAt(input.currentNormal,i),centerLayer=layerAt(c[0],py,input.currentMaterial?.[i*4]);
-      // Geometric donor records are written even on a cold enabled frame. The
-      // first resolved-colour sample remains cold/neutral; the next frame can
-      // reuse history only when this exact bounded donor set is unchanged.
-      if(o.enabled&&owner!==0&&Depth.rangeOccupied(c))for(let ray=0;ray<o.rays;ray++){
+      if(valid&&owner!==0&&Depth.rangeOccupied(c))for(let ray=0;ray<o.rays;ray++){
         const angle=2*Math.PI*(ray+.5)/o.rays,dx=Math.cos(angle),dy=Math.sin(angle),stepDistance=radius/o.steps;let done=false;
         for(let step=0;step<o.steps&&!done;step++){
           const distance=(step+1)*stepDistance;
@@ -84,8 +78,6 @@
             if(!id||id===owner||!intersects(d,rd-o.thickness,rd+o.thickness))continue;
             if(layerAt(d[0],qy,input.currentMaterial?.[j*4])!==centerLayer)continue;
             done=true;
-            donorCoordinates[(y*qw+x)*DONOR_RECORDS+ray]=j;
-            if(!valid)break;
             if(pixelAt(input,j,count,o).reject){rejected++;break;}
             const donorNormal=normalAt(input.currentNormal,j),receive=Math.max(0,n[0]*dx-n[1]*dy+n[2]*.5),emit=Math.max(0,-donorNormal[0]*dx+donorNormal[1]*dy+donorNormal[2]*.5),weight=receive*emit/(1+distance2/radius);
             for(let k=0;k<3;k++)sum[k]+=clamp(finite(input.previousColour?.[j*4+k]),0,o.donorMax)*weight;
@@ -101,12 +93,6 @@
       const qi=(y*qw+x)*4,px=Math.min(width-1,x*4+2),py=Math.min(height-1,y*4+2),i=py*width+px;
       let reason=!valid?4:pixelAt(input,i,count,o).code;
       if(!reason&&(!input.currentObject?.[i]||rejection[qi+1]>0||raw[qi+3]===0))reason=5;
-      if(!reason){
-        const previousCoordinates=input.previousDonorCoordinates,base=(y*qw+x)*DONOR_RECORDS;
-        // Missing previous records provide no authority for irradiance reuse.
-        if(!previousCoordinates||previousCoordinates.length!==donorCoordinates.length)reason=6;
-        else for(let ray=0;ray<DONOR_RECORDS;ray++)if(donorCoordinates[base+ray]!==previousCoordinates[base+ray]){reason=6;break;}
-      }
       rejection[qi]=reason;
       for(let k=0;k<3;k++){
         let value=raw[qi+k];
@@ -122,14 +108,13 @@
       const i=y*width+x,qi=(Math.floor(y/4)*qw+Math.floor(x/4))*4,px=Math.min(width-1,Math.floor(x/4)*4+2),py=Math.min(height-1,Math.floor(y/4)*4+2),j=py*width+px;
       const compatible=!Validity.pixelDiscontinuity(pairAt(input.currentDepth,i,count),pairAt(input.currentDepth,j,count),input.currentObject?.[i],input.currentObject?.[j],normalAt(input.currentNormal,i),normalAt(input.currentNormal,j),o).reject;
       const diffuse=1-clamp(finite(input.currentMaterial?.[i*4+1]),0,1);
-      const ambient=input.currentAmbientVisibility?clamp(finite(input.currentAmbientVisibility[i]),0,1):input.currentVisibility?clamp(finite(input.currentVisibility[i*4+2]),0,1):1;
-      for(let k=0;k<4;k++){const direct=input.currentColour?.[i*4+k]??(k===3?1:0);composed[i*4+k]=direct+(k<3&&o.enabled&&input.currentObject?.[i]&&compatible?indirect[qi+k]*clamp(finite(input.currentAlbedo?.[i*4+k],1),0,1)*diffuse*ambient:0);}
+      for(let k=0;k<4;k++){const direct=input.currentColour?.[i*4+k]??(k===3?1:0);composed[i*4+k]=direct+(k<3&&o.enabled&&input.currentObject?.[i]&&compatible?indirect[qi+k]*clamp(finite(input.currentAlbedo?.[i*4+k],1),0,1)*diffuse:0);}
     }
-    return{schema:SCHEMA,width,height,quarterWidth:qw,quarterHeight:qh,raw,indirect,rejection,composed,donorCoordinates,options:o,globalReject:global};
+    return{schema:SCHEMA,width,height,quarterWidth:qw,quarterHeight:qh,raw,indirect,rejection,composed,options:o,globalReject:global};
   }
 
   const COMMON_WGSL=`
-struct Params{extent:vec4u,flags:vec4u,trace:vec4f,energy:vec4f,validity:vec4f,integration:vec4u};
+struct Params{extent:vec4u,flags:vec4u,trace:vec4f,energy:vec4f,validity:vec4f};
 const SM_DEPTH_SPAN:f32=${DEPTH_SPAN.toFixed(1)};
 const SM_DEPTH_KEY_MAX:f32=${Number(PseudoDepth.DEPTH_KEY_MAX).toFixed(1)};
 const SM_LAYER_STRIDE:f32=${Number(PseudoDepth.LAYER_STRIDE).toFixed(1)};
@@ -159,15 +144,13 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
 @group(0) @binding(9) var<uniform> params:Params;
 @group(0) @binding(10) var rawOut:texture_storage_2d<rgba16float,write>;
 @group(0) @binding(11) var donorOut:texture_storage_2d<rgba16float,write>;
-@group(0) @binding(12) var coordinatesOut:texture_storage_2d_array<rgba32uint,write>;
 @compute @workgroup_size(8,8) fn cs_main(@builtin(global_invocation_id) gid:vec3u){
   if(any(gid.xy>=params.extent.zw)){return;}
   let p=min(vec2i(gid.xy)*4+vec2i(2),vec2i(params.extent.xy)-vec2i(1));
   let c=textureLoad(depthRange,p,0).rg;let owner=textureLoad(objectTex,p,0).x;
   let n=normalAt(normalTex,p);let m=textureLoad(materialTex,p,0);
   let centerLayer=layerAt(c.x,p.y,m.r);var sum=vec3f(0);var donors=0u;var rejected=0u;
-  var coordinates=array<u32,8>(0xffffffffu,0xffffffffu,0xffffffffu,0xffffffffu,0xffffffffu,0xffffffffu,0xffffffffu,0xffffffffu);
-  if(params.flags.x!=0u&&owner!=0u&&smDepthRangeOccupied(c)){
+  if(params.flags.x!=0u&&params.flags.y!=0u&&owner!=0u&&smDepthRangeOccupied(c)){
     let rays=params.flags.w;let steps=u32(params.validity.w);let stepDistance=params.trace.x/f32(steps);
     for(var ray:u32=0u;ray<8u;ray++){
       if(ray>=rays){break;}let angle=6.28318530718*(f32(ray)+0.5)/f32(rays);let dir=vec2f(cos(angle),sin(angle));var done=false;
@@ -184,8 +167,6 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
           if(id==0u||id==owner||!intersects(d,rd-params.trace.z,rd+params.trace.z)){continue;}
           if(layerAt(d.x,hit.y,textureLoad(materialTex,hit,0).r)!=centerLayer){continue;}
           done=true;
-          coordinates[ray]=u32(hit.y)*params.extent.x+u32(hit.x);
-          if(params.flags.y==0u){break;}
           let donorNormal=normalAt(normalTex,hit);
           let reason=smTemporalRejectReason(d,textureLoad(previousDepth,hit,0).rg,id,textureLoad(previousObject,hit,0).x,donorNormal,normalAt(previousNormal,hit),params.validity.x,params.validity.y);
           if(reason!=0u){rejected++;break;}
@@ -202,8 +183,6 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
   let bounded=indirectClamp(colour,params.energy.y,params.energy.z);
   textureStore(rawOut,vec2i(gid.xy),vec4f(bounded,f32(donors)/f32(params.flags.w)));
   textureStore(donorOut,vec2i(gid.xy),vec4f(f32(rejected)/f32(params.flags.w),0,0,1));
-  textureStore(coordinatesOut,vec2i(gid.xy),0,vec4u(coordinates[0],coordinates[1],coordinates[2],coordinates[3]));
-  textureStore(coordinatesOut,vec2i(gid.xy),1,vec4u(coordinates[4],coordinates[5],coordinates[6],coordinates[7]));
 }`;
 
   const RESOLVE_WGSL=COMMON_WGSL+`
@@ -219,16 +198,11 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
 @group(0) @binding(9) var<uniform> params:Params;
 @group(0) @binding(10) var indirectOut:texture_storage_2d<rgba16float,write>;
 @group(0) @binding(11) var rejectionOut:texture_storage_2d<rgba16float,write>;
-@group(0) @binding(12) var currentCoordinates:texture_2d_array<u32>;
-@group(0) @binding(13) var previousCoordinates:texture_2d_array<u32>;
 @compute @workgroup_size(8,8) fn cs_main(@builtin(global_invocation_id) gid:vec3u){
   if(any(gid.xy>=params.extent.zw)){return;}let q=vec2i(gid.xy);let p=min(q*4+vec2i(2),vec2i(params.extent.xy)-vec2i(1));
   let cur=textureLoad(rawTex,q,0);let donorReject=textureLoad(donorTex,q,0).x;let owner=textureLoad(objectTex,p,0).x;var reason=4u;
   if(params.flags.x!=0u&&params.flags.y!=0u){reason=smTemporalRejectReason(textureLoad(depthRange,p,0).rg,textureLoad(previousDepth,p,0).rg,owner,textureLoad(previousObject,p,0).x,normalAt(normalTex,p),normalAt(previousNormal,p),params.validity.x,params.validity.y);}
   if(reason==0u&&(owner==0u||donorReject>0.0||cur.a==0.0)){reason=5u;}
-  if(reason==0u){
-    if(any(textureLoad(currentCoordinates,q,0,0)!=textureLoad(previousCoordinates,q,0,0))||any(textureLoad(currentCoordinates,q,1,0)!=textureLoad(previousCoordinates,q,1,0))){reason=6u;}
-  }
   var value=cur.rgb;
   if(reason==0u){var lo=vec3f(params.energy.y);var hi=vec3f(0);
     for(var oy:i32=-1;oy<=1;oy++){for(var ox:i32=-1;ox<=1;ox++){let h=q+vec2i(ox,oy);if(any(h<vec2i(0))||any(h>=vec2i(params.extent.zw))){continue;}let v=textureLoad(rawTex,h,0).rgb;lo=min(lo,v);hi=max(hi,v);}}
@@ -250,17 +224,13 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
 @group(0) @binding(6) var materialTex:texture_2d<f32>;
 @group(0) @binding(7) var<uniform> params:Params;
 @group(0) @binding(8) var composedOut:texture_storage_2d<rgba16float,write>;
-@group(0) @binding(9) var ambientVisibility:texture_2d<f32>;
 @compute @workgroup_size(8,8) fn cs_main(@builtin(global_invocation_id) gid:vec3u){
   if(any(gid.xy>=params.extent.xy)){return;}let p=vec2i(gid.xy);let direct=textureLoad(directTex,p,0);
   // Exact pass-through avoids even an addition of zero when disabled.
   if(params.flags.x==0u){textureStore(composedOut,p,direct);return;}
   let q=p/4;let center=min(q*4+vec2i(2),vec2i(params.extent.xy)-vec2i(1));let owner=textureLoad(objectTex,p,0).x;
   let reason=smTemporalRejectReason(textureLoad(depthRange,p,0).rg,textureLoad(depthRange,center,0).rg,owner,textureLoad(objectTex,center,0).x,normalAt(normalTex,p),normalAt(normalTex,center),params.validity.x,params.validity.y);
-  var ambient=1.0;if(params.integration.x!=0u){ambient=finitePositive(vec3f(textureLoad(ambientVisibility,p,0).b),1.0).x;}
-  // SM-307 already combines Material AO/GTAO with strongest-occluder semantics.
-  // Its B channel weights this diffuse addition once, never the direct input.
-  var indirect=vec3f(0);if(owner!=0u&&reason==0u){let albedo=clamp(textureLoad(albedoTex,p,0).rgb,vec3f(0),vec3f(1));let diffuse=1.0-clamp(textureLoad(materialTex,p,0).g,0.0,1.0);indirect=textureLoad(indirectTex,q,0).rgb*albedo*diffuse*ambient;}
+  var indirect=vec3f(0);if(owner!=0u&&reason==0u){let albedo=clamp(textureLoad(albedoTex,p,0).rgb,vec3f(0),vec3f(1));let diffuse=1.0-clamp(textureLoad(materialTex,p,0).g,0.0,1.0);indirect=textureLoad(indirectTex,q,0).rgb*albedo*diffuse;}
   textureStore(composedOut,p,vec4f(direct.rgb+indirect,direct.a));
 }`;
 
@@ -283,11 +253,10 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
   textureStore(previousObject,p,textureLoad(objectTex,p,0));
 }`;
 
-  function parameterBytes(width,height,options={},historyValid=false,coverage=1,ambientPresent=false){
-    const o=normalizeOptions(options),buf=new ArrayBuffer(96),u=new Uint32Array(buf),f=new Float32Array(buf);
+  function parameterBytes(width,height,options={},historyValid=false,coverage=1){
+    const o=normalizeOptions(options),buf=new ArrayBuffer(80),u=new Uint32Array(buf),f=new Float32Array(buf);
     u.set([width,height,quarter(width),quarter(height),o.enabled?1:0,historyValid?1:0,coverage,o.rays]);
     f.set([o.radius*o.pixelScale,o.depthSlope/o.pixelScale,o.thickness,o.strength,o.donorMax,o.energyMax,o.saturation,o.historyWeight,o.depthThreshold,o.normalThreshold,o.deltaClamp,o.steps],8);
-    u[20]=ambientPresent?1:0;
     return new Uint8Array(buf);
   }
   function halfToFloat(v){const s=(v&0x8000)?-1:1,e=(v>>10)&31,m=v&1023;return e===0?s*m*2**-24:e===31?(m?NaN:s*Infinity):s*(1+m/1024)*2**(e-15);}
@@ -309,12 +278,9 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
       this.registry=new Resources.ResourceRegistry({device:this.device,queue:this.queue,width,height,labelPrefix:'SteelMothSSGI'});
       const usage=textureUsage(['TEXTURE_BINDING','STORAGE_BINDING','COPY_SRC']);
       for(const name of ['raw','donor','indirect0','indirect1','rejection'])this.registry.defineTexture(this._name(name),{format:OUTPUT_FORMAT,usage,size:{width:this.quarterWidth,height:this.quarterHeight,depthOrArrayLayers:1},resizeDependent:false,lifetime:'persistent'});
-      for(const name of ['donorCoordinates0','donorCoordinates1'])this.registry.defineTexture(this._name(name),{format:DONOR_FORMAT,usage,size:{width:this.quarterWidth,height:this.quarterHeight,depthOrArrayLayers:2},resizeDependent:false,lifetime:'persistent'});
       for(const [name,format]of [['composed',OUTPUT_FORMAT],['previousColour',OUTPUT_FORMAT],['previousDepth','rg32float'],['previousNormal',OUTPUT_FORMAT],['previousObject','r32uint']])this.registry.defineTexture(this._name(name),{format,usage,size:'surface'});
-      this.registry.defineBuffer(this._name('params'),{size:96,usage:bufferUsage(['UNIFORM','COPY_DST'])});
+      this.registry.defineBuffer(this._name('params'),{size:80,usage:bufferUsage(['UNIFORM','COPY_DST'])});
       this.views={};for(const name of ['raw','donor','indirect0','indirect1','rejection','composed','previousColour','previousDepth','previousNormal','previousObject'])this.views[name]=this.registry.require(this._name(name)).handle.createView();
-      for(const name of ['donorCoordinates0','donorCoordinates1'])this.views[name]=this.registry.require(this._name(name)).handle.createView({dimension:'2d-array'});
-      this._visibilityCache=new WeakMap();
       this.bindCache={};this.historyIndex=0;this.generation++;this.invalidate('configure');return true;
     }
     resize(width,height){return this.configure(width,height);}
@@ -337,7 +303,7 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
       for(const [name,code]of [['trace',TRACE_WGSL],['resolve',RESOLVE_WGSL],['compose',COMPOSE_WGSL],['snapshot',SNAPSHOT_WGSL]]){
         if(this.compute[name])continue;
         const generation=this.generation,device=this.device,cache=this.pipelines;
-        const pipeline=await cache.getCompute(`ssgi-${name}-v2`,async(device,label)=>{
+        const pipeline=await cache.getCompute(`ssgi-${name}-v1`,async(device,label)=>{
           const module=device.createShaderModule({label:`${label}:wgsl`,code});
           if(typeof module.getCompilationInfo==='function'){const info=await module.getCompilationInfo(),errors=(info.messages||[]).filter(m=>m.type==='error');if(errors.length)throw new Error(`SM-602 ${name} WGSL compilation failed: ${errors.map(e=>e.message).join('; ')}`);}
           return device.createComputePipeline({label,layout:'auto',compute:{module,entryPoint:'cs_main'}});
@@ -346,31 +312,12 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
         this.compute[name]=pipeline;
       }
     }
-    _visibilitySource(source,width,height){
-      const producer=source.visibilityProducer;
-      if(!producer)return source.ambientVisibilityView||null;
-      if(producer.valid!==true||producer.closed||producer.deviceLost)throw new Error('SM-603 refuses stale SM-307 visibility producer');
-      if(typeof producer.bindings!=='function'||!Number.isInteger(producer.generation)||producer.generation<0)throw new Error('SM-603 visibility producer requires canonical bindings and generation');
-      if(producer.width!==width||producer.height!==height)throw new Error('SM-603 visibility extent differs from canonical source');
-      if(producer.device&&producer.device!==this.device)throw new Error('SM-603 visibility producer belongs to another device');
-      const generation=producer.generation,cached=this._visibilityCache.get(producer);
-      if(cached&&cached.generation===generation)return cached.view;
-      const binding=producer.bindings();
-      if(!binding?.visibility||binding.format&&binding.format!==OUTPUT_FORMAT)throw new Error('SM-603 requires the canonical SM-307 RGBA visibility output');
-      if(binding.channels?.b&&binding.channels.b!=='ambient')throw new Error('SM-603 visibility B channel must contain canonical ambient visibility');
-      this._visibilityCache.set(producer,{generation,view:binding.visibility});return binding.visibility;
-    }
-    sourceFromPaths(depthHierarchy,gbuffer,currentResolvedColourView,visibility=null){
+    sourceFromPaths(depthHierarchy,gbuffer,currentResolvedColourView){
       if(typeof depthHierarchy?.levelView!=='function')throw new Error('SM-602 requires the shared SM-203 hierarchy');
       if(gbuffer?.normalEncoding&&gbuffer.normalEncoding!=='xyz')throw new Error('SM-602 prototype requires canonical xyz Material-v2 normals');
       const g=typeof gbuffer?._views==='function'?gbuffer._views():null;
       if(!g?.g0||!g?.g1||!g?.g2||!g?.objectId||!currentResolvedColourView)throw new Error('SM-602 source requires G0/G1/G2/object and pre-indirect resolved linear colour');
-      // A view-only caller owns SM-307 freshness/extent/channel validity. A
-      // producer supplies those checks here and again at every update. Omission
-      // keeps the standalone SM-602 prototype's ambient response neutral.
-      const source={width:depthHierarchy.width,height:depthHierarchy.height,pixelScale:depthHierarchy.width/640,depthHierarchy,depthRangeView:depthHierarchy.levelView(0),normalView:g.g1,albedoView:g.g0,materialView:g.g2,objectView:g.objectId,currentResolvedColourView};
-      if(visibility){if(typeof visibility.bindings==='function')source.visibilityProducer=visibility;else source.ambientVisibilityView=visibility;}
-      source.ambientVisibilityView=this._visibilitySource(source,source.width,source.height);return source;
+      return{width:depthHierarchy.width,height:depthHierarchy.height,pixelScale:depthHierarchy.width/640,depthHierarchy,depthRangeView:depthHierarchy.levelView(0),normalView:g.g1,albedoView:g.g0,materialView:g.g2,objectView:g.objectId,currentResolvedColourView};
     }
     _bind(name,resources){
       const old=this.bindCache[name];if(old&&resources.length===old.resources.length&&resources.every((r,i)=>r===old.resources[i]))return old.bind;
@@ -391,25 +338,22 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
       if(source.depthHierarchy.width!==width||source.depthHierarchy.height!==height)throw new Error('SM-602 hierarchy extent differs from canonical source');
       // The hierarchy is authoritative even if a caller supplies a stale alias.
       source={...source,depthRangeView:source.depthHierarchy.levelView(0)};
-      source.ambientVisibilityView=this._visibilitySource(source,width,height);
       if(source.currentResolvedColourView===this.views.composed||source.currentResolvedColourView===this.views.previousColour)throw new Error('SM-602 resolved colour input must precede this effect, never its composed/history output');
       const generation=this.generation,validityEpoch=this.invalidationCount;await this._pipelines();
       if(this.closed||this.deviceLost||this.generation!==generation||this.invalidationCount!==validityEpoch)throw new Error('SM-602 lifecycle/history invalidated during update');
       if(source.depthHierarchy.valid===false)throw new Error('SM-602 shared hierarchy invalidated during update');
-      source.ambientVisibilityView=this._visibilitySource(source,width,height);
       const requestedQuality=resolveQuality(options.quality??this.options.quality);
       const base=requestedQuality.name===this.options.quality?this.options:{...this.options,...QUALITY_PRESETS[requestedQuality.name],enabled:this.options.enabled};
       const cfg=normalizeOptions({...base,pixelScale:source.pixelScale??base.pixelScale,...options}),global=Validity.globalDiscontinuity(this.previousMeta,options.meta||{},EXTRA_META_KEYS);
       if(this.historyValid&&JSON.stringify(cfg)!==JSON.stringify(this.options)){global.reject=true;global.reason='quality-or-settings-change';}
       const historyValid=this.historyValid&&cfg.enabled&&!global.reject;
       const level=source.depthHierarchy.levelForFootprint(cfg.radius*cfg.pixelScale/cfg.steps),coarse=source.depthHierarchy.levelView(level),coverage=source.depthHierarchy.levelInfo(level).coverage;
-      const params=this.registry.require(this._name('params')).handle;this.queue.writeBuffer(params,0,parameterBytes(width,height,cfg,historyValid,coverage,!!source.ambientVisibilityView));
+      const params=this.registry.require(this._name('params')).handle;this.queue.writeBuffer(params,0,parameterBytes(width,height,cfg,historyValid,coverage));
       const v=this.views,p=this._paramsBinding||(this._paramsBinding={buffer:params});if(p.buffer!==params)this._paramsBinding={buffer:params};const uniform=this._paramsBinding;
       const prev=`indirect${this.historyIndex}`,next=`indirect${1-this.historyIndex}`;
-      const previousCoordinates=v[`donorCoordinates${this.historyIndex}`],currentCoordinates=v[`donorCoordinates${1-this.historyIndex}`];
-      const trace=this._bind(`trace:${this.historyIndex}`,[source.depthRangeView,coarse,source.normalView,source.objectView,source.materialView,v.previousColour,v.previousDepth,v.previousNormal,v.previousObject,uniform,v.raw,v.donor,currentCoordinates]);
-      const resolve=this._bind(`resolve:${this.historyIndex}`,[v.raw,v.donor,source.depthRangeView,source.normalView,source.objectView,v[prev],v.previousDepth,v.previousNormal,v.previousObject,uniform,v[next],v.rejection,currentCoordinates,previousCoordinates]);
-      const compose=this._bind(`compose:${this.historyIndex}`,[source.currentResolvedColourView,v[next],source.depthRangeView,source.normalView,source.objectView,source.albedoView,source.materialView,uniform,v.composed,source.ambientVisibilityView||source.materialView]);
+      const trace=this._bind('trace',[source.depthRangeView,coarse,source.normalView,source.objectView,source.materialView,v.previousColour,v.previousDepth,v.previousNormal,v.previousObject,uniform,v.raw,v.donor]);
+      const resolve=this._bind(`resolve:${this.historyIndex}`,[v.raw,v.donor,source.depthRangeView,source.normalView,source.objectView,v[prev],v.previousDepth,v.previousNormal,v.previousObject,uniform,v[next],v.rejection]);
+      const compose=this._bind(`compose:${this.historyIndex}`,[source.currentResolvedColourView,v[next],source.depthRangeView,source.normalView,source.objectView,source.albedoView,source.materialView,uniform,v.composed]);
       const snapshot=this._bind('snapshot',[source.currentResolvedColourView,source.depthRangeView,source.normalView,source.objectView,uniform,v.previousColour,v.previousDepth,v.previousNormal,v.previousObject]);
       const encoder=this.device.createCommandEncoder({label:'SteelMothSSGI:encoder'});
       for(const [name,bind,w,h]of [['trace',trace,this.quarterWidth,this.quarterHeight],['resolve',resolve,this.quarterWidth,this.quarterHeight],['compose',compose,width,height],['snapshot',snapshot,width,height]]){
@@ -421,36 +365,24 @@ fn indirectClamp(v0:vec3f,cap:f32,saturation:f32)->vec3f{let v=finitePositive(v0
       // No normal-frame diagnostic mapping or onSubmittedWorkDone host wait.
       if(options.wait===true&&typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();
       if(this.closed||this.deviceLost||this.generation!==generation||this.invalidationCount!==validityEpoch)throw new Error('SM-602 lifecycle/history invalidated before update completion');
-      try{
-        if(this._visibilitySource(source,width,height)!==source.ambientVisibilityView)throw new Error('SM-603 visibility producer changed during update');
-      }catch(error){
-        // The submitted snapshot pass has already replaced previous geometry
-        // and colour. An old CPU history index/meta cannot remain authoritative
-        // when this completion loses its visibility producer's freshness.
-        this.invalidate('visibility-invalid-after-submit');throw error;
-      }
       this.historyIndex=1-this.historyIndex;this.historyValid=cfg.enabled;this.valid=true;this.previousMeta={...(options.meta||{})};this.options=cfg;this.updateCount++;this.lastInvalidationReason='';
-      this.snapshot={options:{...cfg},historyUsed:historyValid,globalReject:global,coarseLevel:level,coarseCoverage:coverage,ambientVisibility:{present:!!source.ambientVisibilityView,channel:'b',absent:'neutral',composition:'native diffuse addition once'}};return this.diagnostics();
+      this.snapshot={options:{...cfg},historyUsed:historyValid,globalReject:global,coarseLevel:level,coarseCoverage:coverage};return this.diagnostics();
     }
     bindings(){
       if(this.deviceLost||!this.valid)throw new Error(`SM-602 SSGI is invalid: ${this.lastInvalidationReason}`);
-      return{indirectQuarter:this.views[`indirect${this.historyIndex}`],rawQuarter:this.views.raw,rejectionQuarter:this.views.rejection,donorCoordinatesQuarter:this.views[`donorCoordinates${this.historyIndex}`],composed:this.views.composed,format:OUTPUT_FORMAT,donorFormat:DONOR_FORMAT,donorRecords:DONOR_RECORDS,quarterWidth:this.quarterWidth,quarterHeight:this.quarterHeight,generation:this.generation};
+      return{indirectQuarter:this.views[`indirect${this.historyIndex}`],rawQuarter:this.views.raw,rejectionQuarter:this.views.rejection,composed:this.views.composed,format:OUTPUT_FORMAT,quarterWidth:this.quarterWidth,quarterHeight:this.quarterHeight,generation:this.generation};
     }
     async readback(kind='indirect'){
-      this.bindings();const names={indirect:`indirect${this.historyIndex}`,raw:'raw',rejection:'rejection',composed:'composed',donors:`donorCoordinates${this.historyIndex}`},name=names[kind];if(!name)throw new Error(`unknown SM-602 readback: ${kind}`);
-      const full=kind==='composed',donors=kind==='donors',width=full?this.width:this.quarterWidth,height=full?this.height:this.quarterHeight,row=width*(donors?16:8),bpr=Math.ceil(row/256)*256,layers=donors?2:1;
-      const buffer=this.device.createBuffer({label:`SteelMothSSGI:${kind}-diagnostic`,size:bpr*height*layers,usage:bufferUsage(['COPY_DST','MAP_READ'])}),encoder=this.device.createCommandEncoder();
-      encoder.copyTextureToBuffer({texture:this.registry.require(this._name(name)).handle},{buffer,bytesPerRow:bpr,rowsPerImage:height},{width,height,depthOrArrayLayers:layers});this.queue.submit([encoder.finish()]);
-      try{await buffer.mapAsync(Number(root?.GPUMapMode?.READ??1));const bytes=new Uint8Array(buffer.getMappedRange()),dv=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),data=donors?new Uint32Array(width*height*DONOR_RECORDS):new Float32Array(width*height*4);
-        for(let y=0;y<height;y++)for(let x=0;x<width;x++)for(let k=0;k<(donors?DONOR_RECORDS:4);k++){
-          if(donors)data[(y*width+x)*DONOR_RECORDS+k]=dv.getUint32(Math.floor(k/4)*bpr*height+y*bpr+x*16+(k%4)*4,true);
-          else data[(y*width+x)*4+k]=halfToFloat(dv.getUint16(y*bpr+x*8+k*2,true));
-        }
-        buffer.unmap();return{width,height,data,...(donors?{recordsPerPixel:DONOR_RECORDS,noDonor:NO_DONOR}:{})};
+      this.bindings();const names={indirect:`indirect${this.historyIndex}`,raw:'raw',rejection:'rejection',composed:'composed'},name=names[kind];if(!name)throw new Error(`unknown SM-602 readback: ${kind}`);
+      const full=kind==='composed',width=full?this.width:this.quarterWidth,height=full?this.height:this.quarterHeight,row=width*8,bpr=Math.ceil(row/256)*256;
+      const buffer=this.device.createBuffer({label:`SteelMothSSGI:${kind}-diagnostic`,size:bpr*height,usage:bufferUsage(['COPY_DST','MAP_READ'])}),encoder=this.device.createCommandEncoder();
+      encoder.copyTextureToBuffer({texture:this.registry.require(this._name(name)).handle},{buffer,bytesPerRow:bpr,rowsPerImage:height},{width,height,depthOrArrayLayers:1});this.queue.submit([encoder.finish()]);
+      try{await buffer.mapAsync(Number(root?.GPUMapMode?.READ??1));const bytes=new Uint8Array(buffer.getMappedRange()),dv=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),data=new Float32Array(width*height*4);
+        for(let y=0;y<height;y++)for(let x=0;x<width;x++)for(let k=0;k<4;k++)data[(y*width+x)*4+k]=halfToFloat(dv.getUint16(y*bpr+x*8+k*2,true));buffer.unmap();return{width,height,data};
       }finally{buffer.destroy?.();}
     }
-    diagnostics(){return{schema:SCHEMA,valid:this.valid,historyValid:this.historyValid,deviceLost:this.deviceLost,generation:this.generation,updateCount:this.updateCount,invalidationCount:this.invalidationCount,lastInvalidationReason:this.lastInvalidationReason,extent:{width:this.width,height:this.height,quarterWidth:this.quarterWidth,quarterHeight:this.quarterHeight},options:{...this.options},snapshot:this.snapshot,debugModes:[...DEBUG_MODES],rejectionCodes:{accepted:0,depth:1,object:2,normal:3,global:4,donorOrNoHit:5,donorSetChanged:6},historyPolicy:'SM-601 pixel/global validity plus explicit camera/light revisions; every colour donor separately validated against previous geometry and all eight ordered geometric donor coordinates unchanged before irradiance history reuse.',colourPolicy:'Previous direct-only resolved linear HDR; quarter incident diffuse irradiance with bounded energy/saturation; native albedo*(1-metalness) receiving response and optional SM-307 ambient B once, separate linear addition before post.',donorHistory:{format:DONOR_FORMAT,recordsPerPixel:DONOR_RECORDS,arrayLayers:2,noDonor:NO_DONOR,coldFrames:'geometry recorded; colour neutral'},maxTraversal:{rays:8,steps:8,finePerStep:3,coarseQueriesPerRay:24},storageTextureCount:4,normalFrameMapping:false,targetHardwareEvidence:false,resourceDiagnostics:this.registry?.diagnostics?.()||null,pipelineDiagnostics:this.pipelines.diagnostics()};}
-    close(){this.registry?.close();this.pipelines.clear();this.registry=null;this.views={};this.bindCache={};this.compute={};this._visibilityCache=new WeakMap();this.valid=false;this.historyValid=false;this.closed=true;this._deviceEpoch++;}
+    diagnostics(){return{schema:SCHEMA,valid:this.valid,historyValid:this.historyValid,deviceLost:this.deviceLost,generation:this.generation,updateCount:this.updateCount,invalidationCount:this.invalidationCount,lastInvalidationReason:this.lastInvalidationReason,extent:{width:this.width,height:this.height,quarterWidth:this.quarterWidth,quarterHeight:this.quarterHeight},options:{...this.options},snapshot:this.snapshot,debugModes:[...DEBUG_MODES],rejectionCodes:{accepted:0,depth:1,object:2,normal:3,global:4,donorOrNoHit:5},historyPolicy:'SM-601 pixel/global validity plus explicit camera/light revisions; every colour donor separately validated against previous geometry.',colourPolicy:'Previous direct-only resolved linear HDR; quarter incident diffuse irradiance with bounded energy/saturation; native albedo*(1-metalness) receiving response and separate linear addition before post.',maxTraversal:{rays:8,steps:8,finePerStep:3,coarseQueriesPerRay:24},storageTextureCount:4,normalFrameMapping:false,targetHardwareEvidence:false,resourceDiagnostics:this.registry?.diagnostics?.()||null,pipelineDiagnostics:this.pipelines.diagnostics()};}
+    close(){this.registry?.close();this.pipelines.clear();this.registry=null;this.views={};this.bindCache={};this.compute={};this.valid=false;this.historyValid=false;this.closed=true;this._deviceEpoch++;}
   }
-  return{SCHEMA,OUTPUT_FORMAT,DONOR_FORMAT,DONOR_RECORDS,NO_DONOR,DEBUG_MODES,EXTRA_META_KEYS,DEFAULTS,LIMITS,QUALITY_PRESETS,resolveQuality,normalizeOptions,clampIndirect,layerAt,rayDepth,referenceSSGI,TRACE_WGSL,RESOLVE_WGSL,COMPOSE_WGSL,SNAPSHOT_WGSL,parameterBytes,halfToFloat,WebGPUSSGI};
+  return{SCHEMA,OUTPUT_FORMAT,DEBUG_MODES,EXTRA_META_KEYS,DEFAULTS,LIMITS,QUALITY_PRESETS,resolveQuality,normalizeOptions,clampIndirect,layerAt,rayDepth,referenceSSGI,TRACE_WGSL,RESOLVE_WGSL,COMPOSE_WGSL,SNAPSHOT_WGSL,parameterBytes,halfToFloat,WebGPUSSGI};
 });

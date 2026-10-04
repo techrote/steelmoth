@@ -48,7 +48,7 @@
     return f;
   }
   const copy=f=>({...f,depth:f.depth.slice(),object:f.object.slice(),normal:f.normal.slice(),albedo:f.albedo.slice(),material:f.material.slice(),colour:f.colour.slice()});
-  function input(current,previous=current,options={}){return{width:current.width,height:current.height,currentDepth:current.depth,currentObject:current.object,currentNormal:current.normal,currentAlbedo:current.albedo,currentMaterial:current.material,currentColour:current.colour,previousDepth:previous.depth,previousObject:previous.object,previousNormal:previous.normal,previousColour:previous.colour,previousIndirect:options.previousIndirect,historyValid:options.historyValid??true,currentMeta:options.currentMeta||{...META},previousMeta:options.previousMeta||{...META}};}
+  function input(current,previous=current,options={}){return{width:current.width,height:current.height,currentDepth:current.depth,currentObject:current.object,currentNormal:current.normal,currentAlbedo:current.albedo,currentMaterial:current.material,currentColour:current.colour,previousDepth:previous.depth,previousObject:previous.object,previousNormal:previous.normal,previousColour:previous.colour,previousIndirect:options.previousIndirect,previousDonorCoordinates:options.previousDonorCoordinates,historyValid:options.historyValid??true,currentMeta:options.currentMeta||{...META},previousMeta:options.previousMeta||{...META}};}
   const rgbMax=data=>{let v=0;for(let i=0;i<data.length;i++)if(i%4!==3)v=Math.max(v,data[i]);return v;};
   const rgbEnergy=data=>{let sum=0;for(let i=0;i<data.length;i++)if(i%4!==3)sum+=data[i];return sum;};
   const finiteRGB=data=>Array.from(data).every(Number.isFinite)&&Array.from(data).every(v=>v>=0);

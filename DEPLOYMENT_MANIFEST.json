@@ -7,7 +7,7 @@
   "entry_point": "index.html",
   "server_side_runtime_required": false,
   "service_worker": "sw.js",
-  "service_worker_cache": "small-machine-web-v1.2.3-r27",
+  "service_worker_cache": "small-machine-web-v1.2.3-r28",
   "pwa_manifest": "manifest.webmanifest",
   "editor_static_save_mode": "download-json-fallback",
   "mouse_light_cone": true,

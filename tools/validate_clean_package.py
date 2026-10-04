@@ -74,6 +74,7 @@ def main() -> int:
             z.extractall(extract)
         unpack=extract/'steelmoth'
         required=[
+            'webgpu-ssgi-stabilization-smoke.html','tools/sm603_ssgi_fixtures.js','tools/validate_webgpu_ssgi_stabilization.js','tools/experiments/sm603_ssgi_baseline.js','tools/validate_sm603_ssgi_browser.py','tools/run_sm603_target_campaign.py','tools/validate_sm603_target_report.py','docs/WEBGPU_SSGI_SM603.md',
             'engine/webgpu_ssgi.js','webgpu-ssgi-smoke.html','tools/validate_webgpu_ssgi.js','tools/validate_sm602_ssgi_lifecycle.js','tools/validate_webgpu_ssgi_browser.py','docs/WEBGPU_SSGI_SM602.md',
             'index.html','engine/game.js','engine/editor.js','engine/surfacefx.js','engine/foliagefx.js',
             'engine/render_transform.js','engine/render_transform_integration.js','engine/render_scene.js','engine/pseudo_depth.js',
@@ -112,6 +113,8 @@ def main() -> int:
             report['baseline_crlf_entries_normalized']=sum_normalized
             report['baseline_sha256_errors']=sum_errors
             checks=[
+                ['node','tools/validate_webgpu_ssgi_stabilization.js'],
+                [sys.executable,'tools/validate_sm603_target_report.py','--self-test'],
                 ['node','tools/validate_webgpu_ssgi.js'],
                 ['node','tools/validate_sm602_ssgi_lifecycle.js'],
                 [sys.executable,'tools/validate_webapp_v123.py'],

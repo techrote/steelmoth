@@ -234,3 +234,11 @@ fixture, validators and canonical contract. Optional timestamp measurements
 are prototype evidence with explicit coverage, never hosted target acceptance.
 
 Future issues should add deterministic checks to `tools/run_checks.py` when fast and repository-native. Retained historical regression scripts must validate retained contracts rather than obsolete intermediate version strings. Browser/hardware tests should remain separate jobs when their environment/evidence semantics differ from source correctness.
+
+SM-603 retains the inherited SSGI checks and adds the deterministic stabilization
+oracle plus required `tools/validate_sm603_ssgi_browser.py` production readbacks
+to the same WebGPU job. The frozen test-only SM-602 source makes partial donor
+deletion and canonical ambient integration reproducible before/after tests.
+`tools/run_sm603_target_campaign.py` and its strict report validator handle
+physical target characterization separately; hosted software correctness cannot
+substitute for those native three-process datasets or Firefox spot-check.

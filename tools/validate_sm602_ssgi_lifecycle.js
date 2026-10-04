@@ -142,14 +142,19 @@ function test(name, run) { tests.push({ name, run }); }
 test('normal frames reuse resources, pipelines and bounded bind groups without diagnostic waits', async () => {
   const { device, state } = mockDevice(), producer = new SSGI.WebGPUSSGI({ device, width: 20, height: 16 }), input = source(device);
   for (let frame = 0; frame < 40; frame++) await producer.update(input, enabled);
-  assert.equal(state.textures.length, 10);
+  assert.equal(state.textures.length, 12);
   assert.equal(state.buffers.length, 1);
   assert.equal(state.pipelines.length, 4);
-  assert.equal(state.bindGroups.length, 6);
+  assert.equal(state.bindGroups.length, 7);
   assert.equal(state.waits, 0);
-  assert.equal(producer.diagnostics().resourceDiagnostics.resourceCount, 11);
+  assert.equal(producer.diagnostics().resourceDiagnostics.resourceCount, 13);
+  assert.equal(state.buffers[0].descriptor.size, 96);
+  assert.equal(state.buffers[0].descriptor.size, SSGI.parameterBytes(20, 16, enabled).byteLength, 'Uniform allocation exactly fits the producer parameters');
+  const donorCoordinates = state.textures.filter(texture => texture.descriptor.format === 'rgba32uint');
+  assert.equal(donorCoordinates.length, 2);
+  assert.ok(donorCoordinates.every(texture => texture.descriptor.size.depthOrArrayLayers === 2), 'Bounded eight-slot donor coordinates use two array layers');
   assert.equal(producer.snapshot.historyUsed, true);
-  const trace = state.bindGroups.find(bind => bind.descriptor.label.includes('trace-bind'));
+  const trace = state.bindGroups.find(bind => /trace(?::[01])?-bind/.test(bind.descriptor.label));
   assert.equal(trace.descriptor.entries[0].resource, input.depthHierarchy.levelView(0), 'Hierarchy L0 overrides a caller alias');
   producer.close();
   assert.ok([...state.textures, ...state.buffers].every(item => item.destroyed === 1));
@@ -214,7 +219,7 @@ test('resize during deferred compilation rejects stale publication and recovers 
   await producer.update(source(device, 32, 24), enabled);
   assert.equal(producer.valid, true);
   assert.equal(producer.snapshot.historyUsed, false);
-  assert.equal(producer.diagnostics().resourceDiagnostics.resourceCount, 11);
+  assert.equal(producer.diagnostics().resourceDiagnostics.resourceCount, 13);
   producer.close();
 });
 
@@ -314,6 +319,75 @@ test('stale hierarchy and recursive colour inputs invalidate output instead of e
   assert.equal(producer.valid, false);
   producer.close();
 });
+
+function visibilityProducer(device) {
+  const state = { calls: 0, view: { device, label: 'canonical ambient visibility generation0' } };
+  const producer = {
+    device, width: 20, height: 16, generation: 0, valid: true, closed: false, deviceLost: false,
+    bindings() { state.calls++; return { visibility: state.view, format: 'rgba16float', channels: { b: 'ambient' } }; },
+    reconfigure() { this.generation++; state.view = { device, label: `canonical ambient visibility generation${this.generation}` }; }
+  };
+  return { producer, state };
+}
+
+test('canonical visibility view is reused by generation and rebinds only after producer reconfiguration', async () => {
+  const { device, state } = mockDevice(), producer = new SSGI.WebGPUSSGI({ device, width: 20, height: 16 });
+  const visibility = visibilityProducer(device), input = { ...source(device), visibilityProducer: visibility.producer };
+  for (let frame = 0; frame < 24; frame++) await producer.update(input, enabled);
+  assert.equal(visibility.state.calls, 1, 'Stable canonical producer must not allocate a fresh view every frame');
+  assert.equal(state.bindGroups.length, 7);
+  visibility.producer.reconfigure();
+  await producer.update(input, enabled);
+  await producer.update(input, enabled);
+  assert.equal(visibility.state.calls, 2);
+  assert.equal(Object.keys(producer.bindCache).length, 7, 'Reconfigured views replace bounded cache entries');
+  assert.ok(state.bindGroups.filter(bind => bind.descriptor.label.includes('compose:')).slice(-2)
+    .every(bind => bind.descriptor.entries.some(entry => entry.resource === visibility.state.view)));
+  producer.close();
+});
+
+test('canonical visibility invalidated during deferred compilation cannot be submitted', async () => {
+  const { device, state } = mockDevice(); state.compilation = deferred();
+  const gate = state.compilation, producer = new SSGI.WebGPUSSGI({ device, width: 20, height: 16 });
+  const visibility = visibilityProducer(device), input = { ...source(device), visibilityProducer: visibility.producer };
+  const pending = producer.update(input, enabled);
+  await until(() => state.compileCalls > 0, 'visibility deferred compilation');
+  visibility.producer.valid = false;
+  gate.resolve({ messages: [] });
+  await assert.rejects(pending, /visibility|stale/i);
+  assert.equal(state.submits.length, 0);
+  assert.equal(producer.historyValid, false);
+  visibility.producer.valid = true;
+  await producer.update(input, enabled);
+  assert.equal(producer.snapshot.historyUsed, false);
+  producer.close();
+});
+
+for (const change of ['invalidate', 'reconfigure']) {
+  test(`canonical visibility ${change} during a submitted queue wait clears overwritten snapshots before cold recovery`, async () => {
+    const { device, state } = mockDevice(), producer = new SSGI.WebGPUSSGI({ device, width: 20, height: 16 });
+    const visibility = visibilityProducer(device), input = { ...source(device), visibilityProducer: visibility.producer };
+    await producer.update(input, enabled);
+    await producer.update(input, enabled);
+    assert.equal(producer.snapshot.historyUsed, true);
+    state.completion = deferred();
+    const pending = producer.update(input, { ...enabled, wait: true });
+    await until(() => state.waits > 0, 'submitted visibility queue wait');
+    if (change === 'invalidate') visibility.producer.valid = false;
+    else visibility.producer.reconfigure();
+    state.completion.resolve();
+    await assert.rejects(pending, /visibility|stale|changed/i);
+    assert.equal(producer.valid, false);
+    assert.equal(producer.historyValid, false);
+    assert.equal(producer.previousMeta, null);
+    assert.throws(() => producer.bindings(), /invalid/i);
+    state.completion = null;
+    visibility.producer.valid = true;
+    await producer.update(input, enabled);
+    assert.equal(producer.snapshot.historyUsed, false, 'Overwritten snapshot textures must never reuse old history state');
+    producer.close();
+  });
+}
 
 test('device loss rejects output while obsolete device-loss callbacks cannot invalidate a reset device', async () => {
   const original = mockDevice('original'), replacement = mockDevice('replacement');

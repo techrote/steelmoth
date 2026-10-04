@@ -71,8 +71,8 @@ body{margin:24px;background:#161c24;color:#edf0f3;font:16px system-ui}h1{font-si
     check(r.indirect.width===Math.ceil(fixture.width/4)&&r.indirect.height===Math.ceil(fixture.height/4),'quarter dimensions ceil odd extent');
     check(F.rgbMax(r.indirect.data)===0,'cold history produces exact zero indirect');
     check(r.rejection.data.every((v,i)=>i%4!==0||v===4),'cold history globally rejects');
-    previousIndirect=r.indirect.data.slice();r=await run();
-    const reference=S.referenceSSGI(F.input(fixture,previous,{previousIndirect}),{enabled:true,quality:'Medium'});
+    previousIndirect=r.indirect.data.slice();const previousDonorCoordinates=(await gpu.ssgi.readback('donors')).data;r=await run();
+    const reference=S.referenceSSGI(F.input(fixture,previous,{previousIndirect,previousDonorCoordinates}),{enabled:true,quality:'Medium'});
     check(F.rgbMax(r.raw.data)>0,'nearby bright direct surface produces diffuse bounce',{maxRaw:F.rgbMax(r.raw.data)});
     check(F.finiteRGB(r.indirect.data),'indirect is finite and nonnegative');
     check(maxDiff(r.raw.data,reference.raw)<.0015,'GPU raw matches deterministic CPU fixture',{maxDifference:maxDiff(r.raw.data,reference.raw)});
