@@ -257,3 +257,22 @@ under `benchmarks/webgpu-gtx1650s/sm603-2026-10-04/`. Commit the full executable
 closure, leave tracked source clean, then run the serialized three-process
 paired quality/scene campaign and native Firefox spotcheck. Performance,
 enablement rationale, final-head CI, merge and issue closure remain outstanding.
+
+The complete campaign subsequently passed on clean committed runtime
+`237bf7696ffbd177df3743d2d6105ad73c9ed50a`: eighteen fresh native Chrome
+processes, three for each Medium/High/Ultra representative/dense configuration,
+and source-matched native Firefox. All 21,600 retained variant samples and
+before/after executable hashes pass the strict validator; every owned browser
+and driver process exited. The complete four-pass SSGI submission measures
+2.379–3.337 ms mean and 2.405–3.823 ms p95 across process runs, with per-run mean
+stabilization overhead 0.083–0.149 ms. Owned descriptor storage adds 7.910 MiB;
+resident VRAM is not measured. Optional ambient sampling and upstream/full
+renderer costs are excluded from timing, while actual SM-307 B composition
+passes separate native readbacks. `SM603_STABILIZATION_REPORT.md` and the
+retained campaign record exact source, captures, units and limits.
+
+All SSGI tiers remain optional/off by default. The initial PR #114 head passes
+twenty hosted workflows / twenty-four actual jobs. Final evidence-head checks,
+verified main merge and #38 closure still remain at this durable review
+checkpoint; initial CI is not relabelled final acceptance. SteelMoth remains
+the sole mutable source repository and no human action is currently needed.

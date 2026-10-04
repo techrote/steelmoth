@@ -100,8 +100,14 @@ possible game scene. Firefox receives a native correctness spot-check.
 
 ## Current evidence state
 
-Implementation and physical acceptance are in progress on
-`codex/sm603-ssgi-stabilization`. No SM-603 target timing, cross-browser pass or
-merge is claimed at this preparation checkpoint. Final source identity,
-resource accounting, captures, measured results and enablement rationale will
-be recorded in `SM603_STABILIZATION_REPORT.md` before acceptance.
+The clean runtime `237bf7696ffbd177df3743d2d6105ad73c9ed50a` passes eighteen
+fresh native Chrome runs (three per tier/scene) and a source-matched native
+Firefox correctness spot-check. Complete SSGI submission means span
+2.379–3.337 ms; per-process mean stabilization overhead spans 0.083–0.149 ms.
+Owned descriptor storage is 88,128,096 bytes, 7.910 MiB above the frozen
+prototype. Exact source, captures, raw samples, attribution, optional/off
+enablement rationale and evidence limits are in `SM603_STABILIZATION_REPORT.md`.
+Timing omits the optional ambient input; actual SM-307 composition is verified
+separately. These effect measurements do not establish a current whole-frame
+budget or default promotion. Final-head hosted checks and verified merge remain
+the PR acceptance gate.
