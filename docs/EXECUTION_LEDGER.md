@@ -202,8 +202,11 @@ The disabled-by-default diffuse producer, shared SM-601 validity extraction,
 fixture/readback/lifecycle gates and offline dependency cache are implemented.
 The initial native GTX 1650 SUPER full-HD synthetic measurement and exact
 source closure are recorded in `SM602_PROTOTYPE_REPORT.md` and
-`benchmarks/webgpu-gtx1650s/sm602-2026-10-04/`. Final moving-light/object
-coverage is being completed before issue acceptance. Source/regression and
+`benchmarks/webgpu-gtx1650s/sm602-2026-10-04/`. Measured runtime commit
+`34b63f0255c53a40485bab66f5b341c150ef2c42` passed the complete motion/correctness
+and initial timing fixture: 1,318 assertions, empty API/JavaScript error lists,
+2.389376 ms complete-command mean and 2.885024 ms p95 (one synthetic run).
+Source/regression and
 clean-package gates passed 90/90 and 20/20 respectively; required hosted
 browser/GLSL gates and PR merge still remain. This checkpoint claims neither
 SM-603 stabilization nor SM-505 normal-game release promotion.

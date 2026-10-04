@@ -1,0 +1,89 @@
+{
+  "schema": "steelmoth-sm602-measured-source-equivalence/v1",
+  "ok": true,
+  "measuredCommit": "34b63f0255c53a40485bab66f5b341c150ef2c42",
+  "beforeAfterMeasuredHashesEqual": true,
+  "method": "Compare raw current bytes to native before/after hashes, and CRLF-to-LF normalized current content to measured commit Git blobs. No renderer mutation.",
+  "files": [
+    {
+      "path": "engine/pseudo_depth.js",
+      "measuredRawSha256": "39f52ab28a93886278edf959bcfdc4ce47d7130ad7151fd28b10662b89e057d8",
+      "workingRawSha256": "39f52ab28a93886278edf959bcfdc4ce47d7130ad7151fd28b10662b89e057d8",
+      "gitBlobSha256": "056ef5829322a4c0f89d49d60a1a6074a3f59108e0bf36b08e2be2c3d26b173a",
+      "workingLFNormalizedSha256": "056ef5829322a4c0f89d49d60a1a6074a3f59108e0bf36b08e2be2c3d26b173a",
+      "gitLFNormalizedSha256": "056ef5829322a4c0f89d49d60a1a6074a3f59108e0bf36b08e2be2c3d26b173a"
+    },
+    {
+      "path": "engine/webgpu_depth_hierarchy.js",
+      "measuredRawSha256": "614be97bff48fc98df6f8dabe15594c1174b6fa2a666d943e7b9f173f249aa33",
+      "workingRawSha256": "614be97bff48fc98df6f8dabe15594c1174b6fa2a666d943e7b9f173f249aa33",
+      "gitBlobSha256": "d19f5d843dd1662591d3c93eb5e4dbfc12c963d24ec7ffe1af21229aaaff2d6d",
+      "workingLFNormalizedSha256": "d19f5d843dd1662591d3c93eb5e4dbfc12c963d24ec7ffe1af21229aaaff2d6d",
+      "gitLFNormalizedSha256": "d19f5d843dd1662591d3c93eb5e4dbfc12c963d24ec7ffe1af21229aaaff2d6d"
+    },
+    {
+      "path": "engine/webgpu_gtao_stabilization.js",
+      "measuredRawSha256": "b595afe8836eaeec6d5457d5801689d80df2faf166ef3e10408071cba98a6580",
+      "workingRawSha256": "b595afe8836eaeec6d5457d5801689d80df2faf166ef3e10408071cba98a6580",
+      "gitBlobSha256": "f41a946b3cedad96d76738a0af2fe5c194da7069ed3d06825bf32f198ffa30a5",
+      "workingLFNormalizedSha256": "f41a946b3cedad96d76738a0af2fe5c194da7069ed3d06825bf32f198ffa30a5",
+      "gitLFNormalizedSha256": "f41a946b3cedad96d76738a0af2fe5c194da7069ed3d06825bf32f198ffa30a5"
+    },
+    {
+      "path": "engine/webgpu_performance.js",
+      "measuredRawSha256": "14aacc9e9ec27bd9417230661e2eeae7c652c60b147b41d272188194f7c2325e",
+      "workingRawSha256": "14aacc9e9ec27bd9417230661e2eeae7c652c60b147b41d272188194f7c2325e",
+      "gitBlobSha256": "682aecb7732826b14e9265724b8fbef1347f8025ed594171c8c32957f4cf2c2c",
+      "workingLFNormalizedSha256": "682aecb7732826b14e9265724b8fbef1347f8025ed594171c8c32957f4cf2c2c",
+      "gitLFNormalizedSha256": "682aecb7732826b14e9265724b8fbef1347f8025ed594171c8c32957f4cf2c2c"
+    },
+    {
+      "path": "engine/webgpu_resources.js",
+      "measuredRawSha256": "46a11fbf2f3a3bf5af9ca5426ab9e10450e6e64cbac535bd671f0bb8bb660e2e",
+      "workingRawSha256": "46a11fbf2f3a3bf5af9ca5426ab9e10450e6e64cbac535bd671f0bb8bb660e2e",
+      "gitBlobSha256": "07b1353c89fbf88ca10b0b84eddb265ce5480427381d5fb015a9eda3dedb08c8",
+      "workingLFNormalizedSha256": "07b1353c89fbf88ca10b0b84eddb265ce5480427381d5fb015a9eda3dedb08c8",
+      "gitLFNormalizedSha256": "07b1353c89fbf88ca10b0b84eddb265ce5480427381d5fb015a9eda3dedb08c8"
+    },
+    {
+      "path": "engine/webgpu_ssgi.js",
+      "measuredRawSha256": "5108e3de85daab4a3fcd4e248c8254bb3913a2ecbc5d2999c2068c56fb4ddf48",
+      "workingRawSha256": "5108e3de85daab4a3fcd4e248c8254bb3913a2ecbc5d2999c2068c56fb4ddf48",
+      "gitBlobSha256": "5108e3de85daab4a3fcd4e248c8254bb3913a2ecbc5d2999c2068c56fb4ddf48",
+      "workingLFNormalizedSha256": "5108e3de85daab4a3fcd4e248c8254bb3913a2ecbc5d2999c2068c56fb4ddf48",
+      "gitLFNormalizedSha256": "5108e3de85daab4a3fcd4e248c8254bb3913a2ecbc5d2999c2068c56fb4ddf48"
+    },
+    {
+      "path": "tools/sm602_ssgi_fixtures.js",
+      "measuredRawSha256": "5d9282514b391ccf61f490950cacb1be9c51b3ea9123b28abbe44dfb424ae06a",
+      "workingRawSha256": "5d9282514b391ccf61f490950cacb1be9c51b3ea9123b28abbe44dfb424ae06a",
+      "gitBlobSha256": "5d9282514b391ccf61f490950cacb1be9c51b3ea9123b28abbe44dfb424ae06a",
+      "workingLFNormalizedSha256": "5d9282514b391ccf61f490950cacb1be9c51b3ea9123b28abbe44dfb424ae06a",
+      "gitLFNormalizedSha256": "5d9282514b391ccf61f490950cacb1be9c51b3ea9123b28abbe44dfb424ae06a"
+    },
+    {
+      "path": "tools/validate_webgpu_ssgi.js",
+      "measuredRawSha256": "2f2a8fc6e9b50f290d275d0f653132701923676f11808412779ae9c4b7a980ab",
+      "workingRawSha256": "2f2a8fc6e9b50f290d275d0f653132701923676f11808412779ae9c4b7a980ab",
+      "gitBlobSha256": "2f2a8fc6e9b50f290d275d0f653132701923676f11808412779ae9c4b7a980ab",
+      "workingLFNormalizedSha256": "2f2a8fc6e9b50f290d275d0f653132701923676f11808412779ae9c4b7a980ab",
+      "gitLFNormalizedSha256": "2f2a8fc6e9b50f290d275d0f653132701923676f11808412779ae9c4b7a980ab"
+    },
+    {
+      "path": "tools/validate_webgpu_ssgi_browser.py",
+      "measuredRawSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "workingRawSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "gitBlobSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "workingLFNormalizedSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c",
+      "gitLFNormalizedSha256": "e2d9c1b48e781a0fe352d92d58a89ec916fdce944b7668e6865c521ec8b13c4c"
+    },
+    {
+      "path": "webgpu-ssgi-smoke.html",
+      "measuredRawSha256": "7938ebeceed79074dcb2a9dc10003bf988aeb17ad83319d62450270dfe1efb48",
+      "workingRawSha256": "7938ebeceed79074dcb2a9dc10003bf988aeb17ad83319d62450270dfe1efb48",
+      "gitBlobSha256": "7938ebeceed79074dcb2a9dc10003bf988aeb17ad83319d62450270dfe1efb48",
+      "workingLFNormalizedSha256": "7938ebeceed79074dcb2a9dc10003bf988aeb17ad83319d62450270dfe1efb48",
+      "gitLFNormalizedSha256": "7938ebeceed79074dcb2a9dc10003bf988aeb17ad83319d62450270dfe1efb48"
+    }
+  ]
+}
