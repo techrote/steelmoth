@@ -4,7 +4,27 @@ Date: 2026-10-03
 Issue: #50 / SM-505  
 Evaluated source: `19cca285fe7a3ae902626aa2e54c534dff5603ce`
 
-## Disposition
+## Latest source and issue reconciliation — 2026-10-18
+
+**STILL BLOCKED — no `Auto` promotion.** Live [issue #50](https://github.com/techrote/steelmoth/issues/50) is open; reviewed `main` is `f0813d06946970c33ccbd7c5ac6e95f84c8dbdc4` (PR #115). `engine/webgpu_device.js` retains `AUTO_WEBGPU_ENABLED=false`, and `engine/backend_runtime.js` still exposes `presentationBackend=webgl2` when WebGPU is initialized. The ordinary `RenderSceneBridge` continues to replay through `WebGL2SceneAdapter`. There is still no accepted normal-game WebGPU presentation consumer and no source-matched physical game-presentation/fallback campaign.
+
+**Changed since the October 3 checkpoint:** [PR #115](https://github.com/techrote/steelmoth/pull/115) reconciled the **repository source** cache identity. `sw.js`, `DEPLOYMENT_MANIFEST.json`, `DEPLOY.md` and `README_WEBAPP.md` now say `small-machine-web-v1.2.3-r29`, and the service-worker asset inventory includes the new SM-702 modules. Accordingly, the r26/r1 source-document conflict in the dated October 3 table below is **historical, not a present source-level failure**. No live-deployment cache migration, update-in-place/PWA, CDN/server headers, or clean-profile static-origin acceptance was performed in this reconciliation: Gate 5 remains **pending exact-candidate deployment verification**, not proven passed.
+
+| Current release requirement | 2026-10-18 status |
+| --- | --- |
+| SM-405 functional/cross-browser staged parity | Accepted (PR #90); does not cover promoted normal-game presentation |
+| SM-501 Medium/GTAO-off staged GTX1650S queue-span and source identity | Accepted (PR #92); must re-evaluate equivalence on a presentation candidate |
+| `Auto` WebGPU selection **and** normal-game WebGPU presentation | **Missing / blocked** |
+| Actual normal-game fallback, fresh-profile Chrome/Firefox on exact candidate | **Missing / blocked** |
+| Source SW/deployment cache version consistency | Reconciled to r29 by PR #115 |
+| Deployed/PWA cache update, final asset revisions and clean extraction | **Pending on exact presentation/release candidate** |
+| First WebGPU-primary release / `Auto` promotion | **Not accepted** |
+
+**Next release candidate must:** implement a normal-game WebGPU `RenderScene` consumer without altering gameplay authority, show actual WebGPU frame presentation in diagnostics and pixel/capture evidence, exercise true WebGL2 fallback, and retain physical GTX1650S Chrome/Firefox normal-app evidence for the same source. Compare the candidate's GPU commands, formats, quality and timing semantics to SM-501 source `2e4d490...`; rerun three-session/eight-scene performance if they change, otherwise record source equivalence. Then verify deployed SW/PWA update and static asset identity plus clean package/extraction and required CI at the exact candidate head. [PROJECT_STATUS_2026-10-18.md](PROJECT_STATUS_2026-10-18.md) has the parallel M6–M8 status. SSGI and forward lighting added by PRs #113–#115 remain optional/off and are not silently part of the initial-release performance budget.
+
+The remaining sections document the **2026-10-03** gate audit at its then-current source. Statements below that `r26` conflicts with `r1` are historical evidence, not today's assertion.
+
+## Historical 2026-10-03 disposition
 
 **BLOCKED — do not promote `Auto`.**
 
@@ -14,7 +34,7 @@ A second independent release blocker exists in deployment identity: the live ser
 
 No physical-GPU run was performed during this review. `AUTO_WEBGPU_ENABLED` remains false.
 
-## Gate reconciliation
+## Gate reconciliation at 2026-10-03 source (historical)
 
 | SM-505 criterion | Disposition | Evidence |
 | --- | --- | --- |
@@ -37,7 +57,7 @@ The accepted SM-501 reconciliation source is `2e4d490f7af21a4b21a1e8e3e8c392e039
 
 The benchmark harness is therefore not byte-identical to the measured source, but the accepted Medium/GTAO-off renderer kernels and quality configuration remain the relevant retained performance authority. That is sufficient to preserve the SM-501 result; it is **not** sufficient to certify a normal-game WebGPU presentation path that does not exist at the measured source.
 
-## Exact missing evidence
+## Missing evidence identified at the 2026-10-03 checkpoint (historical)
 
 Before #50 can close:
 
