@@ -1,6 +1,6 @@
 # Steel Moth documentation index
 
-This directory is the repository source of truth for the WebGPU migration and subsequent lighting-quality programme.
+This directory is the repository source of truth for the WebGPU migration and subsequent lighting-quality programme. **Live task authority** is in [programme tracker #51](https://github.com/techrote/steelmoth/issues/51) and linked individual issues; the [dated 2026-10-18 project snapshot](PROJECT_STATUS_2026-10-18.md) reconciles issue/PR state to `main` `f0813d0` (46/50 tasks closed). Normal game presentation remains WebGL2; SM-505 is not yet accepted.
 
 ## Authority order
 
@@ -17,6 +17,7 @@ Do not silently promote a historical suggestion into a requirement.
 
 ## Canonical documents
 
+- [`PROJECT_STATUS_2026-10-18.md`](PROJECT_STATUS_2026-10-18.md) — dated main/issue/PR reconciliation, accepted evidence boundaries, remaining dependencies and release blockers.
 - [`RAG_REFERENCE_STEELMOTH.md`](RAG_REFERENCE_STEELMOTH.md) — reconciled prior-development context, known baseline history, provenance and unresolved facts.
 - [`BASELINE_V123_AUDIT.md`](BASELINE_V123_AUDIT.md) — SM-004 source-level classification of the imported v1.2.3 renderer contracts and migration implications.
 - [`MASTER_WEBGPU_PROGRAMME.md`](MASTER_WEBGPU_PROGRAMME.md) — programme goals, M0–M8 decomposition, task codes and release gates.
@@ -44,8 +45,8 @@ Do not silently promote a historical suggestion into a requirement.
 - [`WEBGPU_LOCAL_SHADOWS_SM205.md`](WEBGPU_LOCAL_SHADOWS_SM205.md) — SM-205 bounded local Material-v2 height self-shadow and half-resolution/depth-aware contact-shadow parity, debug/readback, disable semantics and timing-evidence boundary.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
-- [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md)
-- [`COLOUR_PIPELINE.md`](COLOUR_PIPELINE.md) — canonical WebGPU source/linear-HDR/display colour-space contract and numeric fixtures. — post-migration lighting/material/indirect-light development sequence.
+- [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
+- [`COLOUR_PIPELINE.md`](COLOUR_PIPELINE.md) — canonical WebGPU source/linear-HDR/display colour-space contract and numeric fixtures.
 - [`DEPENDENCY_AND_CONCURRENCY.md`](DEPENDENCY_AND_CONCURRENCY.md) — dependency graph, serialization points and safe parallel lanes.
 - [`RESEARCH_AND_DECISIONS.md`](RESEARCH_AND_DECISIONS.md) — external research findings, assumptions, ADR-style decisions and unresolved questions.
 - [`ISSUE_MAP.md`](ISSUE_MAP.md) — canonical task-code → GitHub issue-number map. Task codes/dependency docs define order; issue-number order does not.
@@ -81,7 +82,7 @@ Use these words consistently:
 
 ## SM-505 release-gate status
 
-- [`WEBGPU_RELEASE_VALIDATION.md`](WEBGPU_RELEASE_VALIDATION.md) — current final-promotion gate. SM-405 and SM-501 evidence are accepted, but `Auto` remains unpromoted because normal gameplay still presents through WebGL2 and exact-candidate physical WebGPU presentation evidence is therefore missing.
+- [`WEBGPU_RELEASE_VALIDATION.md`](WEBGPU_RELEASE_VALIDATION.md) — open final-promotion gate: SM-405 and SM-501 staged evidence accepted; normal-game WebGPU presentation and exact-candidate physical acceptance missing. Historical r26/r1 source-cache mismatch was reconciled to r29 by PR #115; deployed/PWA acceptance remains unverified.
 - [`PERFORMANCE_REPORT_WEBGPU_PRIMARY.md`](PERFORMANCE_REPORT_WEBGPU_PRIMARY.md) — accepted GTX 1650 SUPER Medium/GTAO-off timing reconciliation and source-identity boundary.
 - [`RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md`](RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md) — accepted renderer-owned descriptor accounting and evidence boundary.
 
@@ -90,7 +91,9 @@ Use these words consistently:
 - [`WEBGPU_FORWARD_LIGHTING_SM702.md`](WEBGPU_FORWARD_LIGHTING_SM702.md) — optional fresh canonical inputs, explicit transparent material policy, depth guards, staged composition and native mixed-forward measurement boundary.
 - [`SM702_FORWARD_LIGHTING_REPORT.md`](SM702_FORWARD_LIGHTING_REPORT.md) — source-matched GTX mixed-forward correctness, paired timing, descriptor accounting and retained acceptance views; advanced defaults remain off.
 
-## Current repository state
+## Implementation history and architectural contracts
+
+The paragraphs below trace foundational implementation decisions; they are not a current milestone checklist. For the completed M0–M6 and remaining M5/M7/M8 work, use [PROJECT_STATUS_2026-10-18.md](PROJECT_STATUS_2026-10-18.md).
 
 The repository is no longer source-blocked. SM-000 imported and provenance-verified the authoritative v1.2.3 WebGL2/Material-v2 baseline. SM-001/002 established the visual fixture corpus and deterministic capture/diagnostics harness; SM-004 audited the imported implementation, and SM-005 established repository-native automated verification.
 
@@ -116,7 +119,7 @@ SM-204 adds one persistent canonical light buffer for all staged opaque WebGPU d
 
 SM-205 adds bounded local Material-v2 height visibility without changing the ownership-depth or light contracts. Full-resolution self visibility preserves the 0/8/12/16/28 sample tiers and selected-light cap; raw contact visibility remains half resolution with 0/4/8/12 samples and a short 4–36 logical-pixel range, then reconstructs to full resolution through the retained 3×3 local-height-aware filter. The pass deliberately does not substitute SM-203 ownership depth for G2 local height because those representations have different semantics. Self/contact debug views are independent, disabled passes clear fully visible, and final bounded multi-shadow composition remains owned by SM-307. Initial timing records CPU submit/wait wall time explicitly and makes no GPU-timing claim.
 
-SM-500 layers optional measurement on the stable SM-102/103 platform without altering render output. It records pass-level GPU timestamps only when `timestamp-query` is negotiated, keeps CPU scene preparation/encoding in distinct fields, exports workload and renderer-owned texture/buffer/history estimates, and uses a bounded asynchronous readback ring. Unsupported adapters retain full non-query diagnostics with explicit null GPU times. The accepted SM-405 GTX 1650 SUPER record proves target capability exposure; actual performance acceptance remains SM-501.
+SM-500 layers optional measurement on the stable SM-102/103 platform without altering render output. It records pass-level GPU timestamps only when `timestamp-query` is negotiated, keeps CPU scene preparation/encoding in distinct fields, exports workload and renderer-owned texture/buffer/history estimates, and uses a bounded asynchronous readback ring. Unsupported adapters retain full non-query diagnostics with explicit null GPU times. SM-501 subsequently accepted staged Medium/GTAO-off physical target performance; this remains distinct from the outstanding SM-505 normal-game presentation release gate.
 
 The root/foot authority, per-pixel ownership representation, shared depth hierarchy, canonical opaque light representation and local self/contact visibility are therefore implemented prerequisites for later shadow and clustering/DSO work. Downstream systems must consume the resolved ownership/depth/light contracts rather than treating G2.R local height as ownership depth or inventing independent light conventions.
 

@@ -1,6 +1,6 @@
 # Dependency and concurrency plan
 
-Task codes refer to `MASTER_WEBGPU_PROGRAMME.md`; issue-number mapping is in `EXECUTION_LEDGER.md`.
+Task codes refer to `MASTER_WEBGPU_PROGRAMME.md`; current task-code/issue-number status is in [ISSUE_MAP.md](ISSUE_MAP.md), with a dated GitHub/PR reconciliation in [PROJECT_STATUS_2026-10-18.md](PROJECT_STATUS_2026-10-18.md). The graph below records required **ordering**, including historical paths that have now been completed. As of 2026-10-18, 46/50 tasks are closed. Outstanding independent lanes: SM-505 normal WebGPU presentation/release gate; SM-700 (subject to known remaining current Medium frame budget) → SM-701 volumetrics; then SM-802 adaptive quality. An accepted SM-603 dependency does not, by itself, prove the spare GPU budget for SM-700.
 
 ## Root implementation dependency
 

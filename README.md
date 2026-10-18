@@ -1,82 +1,56 @@
 # Steel Moth
 
-Steel Moth is the current engine/game codebase for **The Small Machine at the Edge of Night**. This repository is being prepared for a WebGPU-primary renderer migration and a long-horizon lighting-quality programme.
+Steel Moth is the browser game and engine codebase for **The Small Machine at the Edge of Night**. The shipped gameplay path is a v1.2.3 WebGL2/Material-v2 compatibility renderer; development is adding a raw WebGPU/WGSL renderer with per-pixel ownership, deeper occlusion and bounded lighting effects.
 
-## Repository status
+## Current status (18 October 2026)
 
-The verified **v1.2.3 WebGL2/Material-v2 source baseline is now on `main`**, merged by PR #52 at commit `089d7a34ceae1b12c72b6426b38be410e087d50e`. It was imported from the exact delivered webapp/source ZIP. The recovered archive SHA-256 is `2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`; its internal release checks verified 93/93 listed files, and the repository import report records 94 release files copied and verified. See [`docs/BASELINE_V123_PROVENANCE.md`](docs/BASELINE_V123_PROVENANCE.md).
+**46 of 50 task issues are closed; the WebGPU-primary release has not yet passed its final gate.** The authoritative [programme tracker is #51](https://github.com/techrote/steelmoth/issues/51); see the [dated project-state audit](docs/PROJECT_STATUS_2026-10-18.md) and [live issue map](docs/ISSUE_MAP.md). The repository's latest reviewed `main` is `f0813d0` (merged [PR #115](https://github.com/techrote/steelmoth/pull/115)).
 
-SM-004 has reconciled the historical renderer claims against the imported source. The current WebGL2 baseline is documented in [`docs/BASELINE_V123_AUDIT.md`](docs/BASELINE_V123_AUDIT.md).
+- **Normal gameplay:** `Auto` uses **WebGL2**. `AUTO_WEBGPU_ENABLED` remains `false`. Explicit WebGPU device selection initializes a platform/test stack, but normal game frames still present through the WebGL2 `RenderSceneBridge`. Do not mistake staged WebGPU smoke tests for a WebGPU-presented playable application.
+- **Implemented and merged:** M0–M4 baseline, platform, Material-v2 ownership/depth, lighting/DSO/Dark Bloom, procedural/editor integration and staged cross-browser functional qualification; SM-500–504 instrumentation, quality and colour/material/culling foundations; M6 GTAO/SSGI; SM-702 optional forward lighting; SM-800/801/803 studies and soak coverage.
+- **Physically qualified:** SM-501's native GTX 1650 SUPER Medium, 1080p, DPR 1, **GTAO-off** staged core met the ≤12 ms mean/≤14.5 ms p95 GPU queue-span targets across eight Chrome scenes with a Firefox representative. Its worst observed scene mean/p95 were 6.411803/8.190048 ms. This is *not* measured normal-game WebGPU presentation or a combined all-effects budget.
+- **Optional effects:** SM-601 GTAO met its retained Medium working budget (1.088006 ms queue mean, worst run p95 1.288608 ms). SM-603 SSGI and SM-702 canonical forward water/large-foliage/tagged-glass lighting have bounded native evidence but remain **off by default**; their isolated pass costs are not whole-frame measurements.
 
-No WebGPU implementation or GTX 1650 Super performance result should be inferred from the baseline import. Those remain later programme tasks with explicit validation gates.
+Four tasks remain: [SM-505 / #50](https://github.com/techrote/steelmoth/issues/50) (normal-game WebGPU presentation and release acceptance), [SM-700 / #39](https://github.com/techrote/steelmoth/issues/39) and [SM-701 / #40](https://github.com/techrote/steelmoth/issues/40) (budgeted volumetric scattering), and [SM-802 / #44](https://github.com/techrote/steelmoth/issues/44) (late adaptive quality). Five older/study PRs remain open; none is an accepted substitute for the merged production state. See the [full PR reconciliation](docs/PROJECT_STATUS_2026-10-18.md#open-pull-requests--not-accepted-mainline).
 
-The complete autonomous execution workflow is represented by **50 task issues** plus programme tracker **#51**. Task-code order, not GitHub issue-number order, is authoritative; see [`docs/ISSUE_MAP.md`](docs/ISSUE_MAP.md).
+## Run the game and inspect the renderer
+
+This is a static web application: serve the repository root over HTTP(S), then open `index.html`. The included `0Play-Webapp-v1.2.3.bat` is the historical Windows launcher; [DEPLOY.md](DEPLOY.md) describes static hosting and caching. The game does not require a server-side application or a JavaScript bundler.
+
+`render-test.html` provides deterministic fixtures/capture metadata for renderer regression work. Dedicated `webgpu-*-smoke.html`, `webgpu-target-benchmark.html` and diagnostic pages exercise the staged WebGPU passes. Their output is validation/benchmark evidence, **not** the ordinary game presentation path. See [RENDER_CAPTURE_HARNESS.md](docs/RENDER_CAPTURE_HARNESS.md), [VISUAL_FIXTURE_CATALOG.md](docs/VISUAL_FIXTURE_CATALOG.md) and [CI_AND_VERIFICATION.md](docs/CI_AND_VERIFICATION.md).
 
 ## Verification
 
-Install Python validation dependencies:
+Install the Python test dependencies (Node.js is also needed for JavaScript checks):
 
-```text
+```sh
 python -m pip install -r tools/requirements-ci.txt
-```
-
-Run the standard source + deterministic regression gate:
-
-```text
 python tools/run_checks.py
-```
-
-Validate clean source packaging/extraction:
-
-```text
 python tools/validate_clean_package.py --report artifacts/clean-package.json
 ```
 
-The GitHub Actions workflow mirrors these repository-native entrypoints and also runs production GLSL/MRT validation under Mesa software rendering. See [`docs/CI_AND_VERIFICATION.md`](docs/CI_AND_VERIFICATION.md) for scope and limitations. Hosted CI is correctness evidence only; it is not GTX 1650 Super performance or human visual evidence.
+The hosted verification workflow also runs software GLSL/MRT, browser and WebGPU tests. Use [CI_AND_VERIFICATION.md](docs/CI_AND_VERIFICATION.md) for the complete gate and hardware requirements. A hosted check or descriptor-based memory estimate does not establish GTX 1650 SUPER frame timing, human visual parity, normal-game WebGPU presentation or resident VRAM.
 
-## Architectural direction
+## Architecture and performance policy
 
-- Raw **WebGPU/WGSL** becomes the primary future renderer.
-- The proven WebGL2 renderer remains a compatibility fallback at the v1.2.x visual tier.
-- Preserve Material v2, gameplay/editor behaviour, pixel-art presentation, deterministic root/foot anchoring, and procedural-system coherence.
-- Replace whole-sprite overlap assumptions with per-pixel pseudo-depth ownership.
-- Build GPU occluder clustering, Deep Silhouette Occlusion (DSO), dominant-occluder ownership, and Dark Bloom natively on the WebGPU path.
-- Reuse the resulting depth/material/light infrastructure for later GTAO, low-resolution temporally accumulated SSGI, and volumetric flashlight scattering.
-- Primary performance reference: **GTX 1650 Super 4 GB, 1920×1080, 60 FPS**. The programme target is mean renderer GPU time ≤12 ms and p95 ≤14.5 ms; these are acceptance targets, not measured facts.
+- **Raw WebGPU/WGSL**, with WebGL2 retained as the v1.2.x compatibility fallback. No substitute game/rendering framework or converted polygonal-sprite assets.
+- One backend-neutral `RenderScene`, shared sprite root/foot authority, Material-v2 G-buffer, canonical pseudo-depth and object ownership, reusable depth hierarchy and light buffer.
+- Clustered occluders, Deep Silhouette Occlusion (DSO), dominant ownership, Dark Bloom, local/contact visibility, then GTAO and optional diffuse SSGI; later subtle flashlight volumetrics.
+- Keep pixel-art albedo sharp, gameplay/editor state authoritative, temporal/resource ownership explicit, and secondary effect resolution/sample counts bounded.
+- Primary acceptance machine: **GTX 1650 SUPER 4 GB, native 1920×1080, 60 FPS**. Whole staged-core GPU target: mean ≤12 ms, p95 ≤14.5 ms. Qualify each materially different render workload on its own evidence.
 
-## Canonical documentation
+The v1.2.3 baseline itself was recovered verbatim from a verified archive (SHA-256 `2399a50d08785211470a2af86bf693bff71f5d622d717432a595295a23208727`) and imported by [PR #52](https://github.com/techrote/steelmoth/pull/52). Its WebGL2 G2.R stores **local material pseudo-height**, not the later WebGPU per-fragment ownership depth. Provenance and audit: [BASELINE_V123_PROVENANCE.md](docs/BASELINE_V123_PROVENANCE.md), [BASELINE_V123_AUDIT.md](docs/BASELINE_V123_AUDIT.md).
 
-Read in this order:
+## Documentation and continuation
 
-1. [`AGENTS.md`](AGENTS.md) — execution rules for autonomous coding agents.
-2. [`docs/INDEX.md`](docs/INDEX.md) — documentation map and source-of-truth rules.
-3. [`docs/RAG_REFERENCE_STEELMOTH.md`](docs/RAG_REFERENCE_STEELMOTH.md) — reconciled historical context and provenance.
-4. [`docs/MASTER_WEBGPU_PROGRAMME.md`](docs/MASTER_WEBGPU_PROGRAMME.md) — canonical milestone/task decomposition.
-5. [`docs/WEBGPU_ARCHITECTURE.md`](docs/WEBGPU_ARCHITECTURE.md) — renderer architecture and invariants.
-6. [`docs/WEBGPU_VALIDATION_PLAN.md`](docs/WEBGPU_VALIDATION_PLAN.md) — correctness, visual, editor, browser, and performance gates.
-7. [`docs/LIGHTING_FIDELITY_ROADMAP.md`](docs/LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting-quality roadmap.
-8. [`docs/DEPENDENCY_AND_CONCURRENCY.md`](docs/DEPENDENCY_AND_CONCURRENCY.md) — task graph and safe parallelism.
-9. [`docs/ISSUE_MAP.md`](docs/ISSUE_MAP.md) — task-code ↔ GitHub issue mapping.
-10. [`docs/CI_AND_VERIFICATION.md`](docs/CI_AND_VERIFICATION.md) — repository-native verification/CI commands and evidence boundaries.
-11. [`docs/ISSUE_SET_REVIEW_2026-09-16.md`](docs/ISSUE_SET_REVIEW_2026-09-16.md) — independent review/correction record.
-12. [`docs/EXECUTION_LEDGER.md`](docs/EXECUTION_LEDGER.md) — durable planning/execution ledger.
+The **50 task issues** span M0–M8, with [#51](https://github.com/techrote/steelmoth/issues/51) tracking the overall programme. Work should follow issue dependencies, not issue-number order.
 
-## Milestone hierarchy
+1. [AGENTS.md](AGENTS.md) — issue/PR workflow, evidence rules and stop conditions.
+2. [docs/INDEX.md](docs/INDEX.md) — canonical documentation authority and subsystem index.
+3. [docs/PROJECT_STATUS_2026-10-18.md](docs/PROJECT_STATUS_2026-10-18.md) — issue/PR reconciliation, physical evidence, outstanding gates and current state.
+4. [docs/MASTER_WEBGPU_PROGRAMME.md](docs/MASTER_WEBGPU_PROGRAMME.md) — original 50-task architecture and acceptance programme.
+5. [docs/DEPENDENCY_AND_CONCURRENCY.md](docs/DEPENDENCY_AND_CONCURRENCY.md) — serialization, parallel lanes and blockers.
+6. [docs/WEBGPU_RELEASE_VALIDATION.md](docs/WEBGPU_RELEASE_VALIDATION.md) — SM-505 release qualification, including historical and current status.
+7. [docs/EXECUTION_LEDGER.md](docs/EXECUTION_LEDGER.md) — chronological, source-separated implementation and review checkpoints.
 
-- **M0 — Baseline acquisition, evidence harness, and CI**
-- **M1 — Backend abstraction and WebGPU infrastructure**
-- **M2 — Material-v2 parity, pseudo-depth ownership, and complete frame parity**
-- **M3 — Overlap/occlusion architecture: clustering, DSO, Dark Bloom**
-- **M4 — Procedural/editor integration and cross-browser functional parity**
-- **M5 — Performance/foundation work and first WebGPU-primary release gate**
-- **M6 — GTAO and indirect diffuse lighting**
-- **M7 — Volumetric/advanced transparent lighting integration**
-- **M8 — Bandwidth, quality scaling, soak testing, and long-term optimization**
-
-## Current execution state
-
-**SM-000 / #1, SM-001 / #2, SM-002 / #3, and SM-004 / #5 are complete.** SM-003 / #4 remains a GTX 1650 Super hardware measurement lane. Migration work may advance only according to `docs/DEPENDENCY_AND_CONCURRENCY.md`.
-
-## Autonomous continuation
-
-Start from programme tracker **#51** and select the earliest unblocked task allowed by `docs/DEPENDENCY_AND_CONCURRENCY.md`. Implementation PRs should use `.github/PULL_REQUEST_TEMPLATE.md`; future tasks should use the autonomous implementation issue template. `Auto` must not become WebGPU-first until **SM-505 / #50** passes the functional, performance, fallback, deployment, and clean-package release gates.
+**Release rule:** [SM-505 / #50](https://github.com/techrote/steelmoth/issues/50) alone may promote `Auto` to WebGPU. A normal-game WebGPU presentation consumer, exact-candidate physical Chrome/Firefox presentation/fallback evidence, source/timing equivalence or repeated performance campaign, deployed PWA/cache validation and clean-package checks are still required. The repository's source cache declarations have been reconciled to `small-machine-web-v1.2.3-r29` by PR #115; deployment acceptance is not implied.

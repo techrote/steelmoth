@@ -2,6 +2,19 @@
 
 This ledger records the repository-planning operation requested on 2026-09-16 and provides durable checkpoints for future implementation.
 
+## Current reconciliation checkpoint — 2026-10-18
+
+GitHub task and PR state was reconciled against `main` `f0813d06946970c33ccbd7c5ac6e95f84c8dbdc4` (PR #115 merged on 2026-10-04). **46/50 implementation/research task issues are closed; four remain open (#50, #39, #40, #44); programme tracker #51 remains open.** Full task/PR matrix, subsystem evidence and status boundaries: [PROJECT_STATUS_2026-10-18.md](PROJECT_STATUS_2026-10-18.md). [ISSUE_MAP.md](ISSUE_MAP.md) now reflects actual closures instead of the original one-complete snapshot.
+
+- **SM-505 / #50:** PR #112's release audit established that normal `RenderScene` still presents via WebGL2 even after WebGPU device selection. `AUTO_WEBGPU_ENABLED=false` remains authoritative; no WebGPU-first game release is accepted. SM-405 and SM-501 staged acceptance remains valid. PR #115 reconciled source cache manifests and deployment docs to `small-machine-web-v1.2.3-r29` (superseding the Oct 3 r26/r1 mismatch), but exact-candidate deployed/PWA behavior, WebGPU normal presentation/fallback and target GPU presentation evidence remain missing.
+- **SM-601 / #36:** PR #110 and review/record PR #111 completed the adopted readback/counter path; measured medium GTAO queue mean/p95 and caveats are in `SM601_MEASURED_ADOPTION.md`. Frozen/research PRs #104–#106 and earlier #102 remain open and are not production authority.
+- **SM-602/603 / #37/#38:** PRs #113/#114 are merged; SSGI history correctness and bounded source-matched GPU costs are accepted for optional/off-by-default tiers. No whole-renderer/normal-game performance is implied.
+- **SM-702 / #41:** PR #115 merged; native GTX forward-lighting correctness and paired isolated cost evidence are retained, with optional defaults off. Its measurements exclude shared upstream lighting and do not provide the spare total Medium budget for volumetrics.
+- **SM-700/#39 → SM-701/#40:** the SSGI dependency is complete, but a known current total Medium budget is still needed to qualify volumetric work. **SM-802/#44** remains deferred until SM-701 produces stable tiers.
+- **Open PR housekeeping:** #101 and #102 remain open non-draft; #104, #105 and #106 remain open drafts. These must not be counted as mainline implementations or regress completed #36 acceptance.
+
+This was a source/issue/document reconciliation only. No new GPU run, deployed PWA check, release promotion or post-change hosted CI result is claimed. The chronological text below is retained as dated evidence; older headings describing “current blockers” refer to that historical checkpoint, not this one.
+
 ## Planning/reconciliation pass
 
 | Stage | Status | Result |
@@ -106,7 +119,7 @@ Principal reconciliations recorded in `docs/BASELINE_V123_AUDIT.md`:
 
 These findings confirm rather than reorder the SM-100 → SM-101/SM-200 → SM-201/202 dependency rationale.
 
-## Current blockers
+## Baseline-audit blockers — historical (2026-09-17)
 
 ### B-001 — baseline source import
 

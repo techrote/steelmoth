@@ -1,6 +1,6 @@
 # Steel Moth WebGPU programme
 
-This is the canonical implementation decomposition for the WebGPU migration and lighting-quality programme.
+This is the canonical implementation decomposition for the WebGPU migration and lighting-quality programme. It defines **tasks and dependencies**, not their current completion state. For verified 2026-10-18 status (46 of 50 closed, SM-505 still blocked), use [PROJECT_STATUS_2026-10-18.md](PROJECT_STATUS_2026-10-18.md), [ISSUE_MAP.md](ISSUE_MAP.md) and live programme tracker [#51](https://github.com/techrote/steelmoth/issues/51).
 
 ## Programme objective
 
