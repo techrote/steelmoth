@@ -1,0 +1,411 @@
+{
+  "browserExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "browserVersion": {
+    "jsVersion": "15.3.76.12",
+    "product": "Chrome/153.0.8010.48",
+    "protocolVersion": "1.3",
+    "revision": "@199a3a541d76237379e353b348e64045584db057",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+  },
+  "error": "[WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\-\\\\AppData\\\\Local\\\\Temp\\\\steelmoth-sm601-chrome-wf865z1n\\\\Default\\\\Cache\\\\No_Vary_Search\\\\journal.baj'",
+  "evidenceBoundary": "Hosted WebGPU validates temporal execution, lifecycle/history rejection and bounded quality controls. It is not GTX 1650 SUPER timing or final target-hardware acceptance.",
+  "ok": true,
+  "schema": "steelmoth-sm601-browser-report/v1",
+  "smoke": {
+    "checks": [
+      {
+        "name": "first frame rejects uninitialized history",
+        "ok": true,
+        "stats": {
+          "accepted": 0,
+          "depthRejected": 0,
+          "globalRejected": 64,
+          "normalRejected": 0,
+          "objectRejected": 0,
+          "rejected": 64
+        }
+      },
+      {
+        "name": "first frame is current-frame exact",
+        "ok": true
+      },
+      {
+        "name": "stable frame accepts history",
+        "ok": true,
+        "stats": {
+          "accepted": 64,
+          "depthRejected": 0,
+          "globalRejected": 0,
+          "normalRejected": 0,
+          "objectRejected": 0,
+          "rejected": 0
+        }
+      },
+      {
+        "name": "stable temporal result remains bounded",
+        "ok": true
+      },
+      {
+        "name": "object ownership discontinuity rejects history",
+        "ok": true,
+        "stats": {
+          "accepted": 63,
+          "depthRejected": 0,
+          "globalRejected": 0,
+          "normalRejected": 0,
+          "objectRejected": 1,
+          "rejected": 1
+        }
+      },
+      {
+        "name": "rejected object pixel uses current frame",
+        "ok": true
+      },
+      {
+        "name": "room transition rejects complete history",
+        "ok": true,
+        "stats": {
+          "accepted": 0,
+          "depthRejected": 0,
+          "globalRejected": 64,
+          "normalRejected": 0,
+          "objectRejected": 0,
+          "rejected": 64
+        }
+      },
+      {
+        "name": "room transition produces current frame without ghosting",
+        "ok": true
+      },
+      {
+        "name": "explicit lifecycle invalidation rejects history",
+        "ok": true
+      },
+      {
+        "name": "diagnostics publish rejection policy",
+        "ok": true
+      },
+      {
+        "name": "Medium production profile is explicit",
+        "ok": true
+      },
+      {
+        "name": "Low tier explicitly disables GTAO history",
+        "ok": true
+      }
+    ],
+    "diagnostics": {
+      "consumer": "SM-307 gtaoVisibilityView",
+      "extent": {
+        "height": 8,
+        "width": 8
+      },
+      "generation": 1,
+      "historyPolicy": "Depth/object/normal/room/device/backend discontinuities reject history; accepted history is neighborhood and delta clamped.",
+      "historyValid": true,
+      "invalidationCount": 2,
+      "lastInvalidationReason": "",
+      "lastStats": {
+        "accepted": 0,
+        "depthRejected": 0,
+        "globalRejected": 64,
+        "normalRejected": 0,
+        "objectRejected": 0,
+        "rejected": 64
+      },
+      "pipelineDiagnostics": {
+        "clearCount": 0,
+        "count": 1,
+        "generation": 1,
+        "hits": 0,
+        "keys": [
+          "compute:gtao-temporal-v2"
+        ],
+        "misses": 1,
+        "schema": "steelmoth-webgpu-pipeline-cache/v1"
+      },
+      "previousMeta": {
+        "backendGeneration": 1,
+        "deviceGeneration": 1,
+        "roomId": "room-b"
+      },
+      "quality": {
+        "gtao": {
+          "directions": 6,
+          "enabled": true,
+          "intensity": 1,
+          "radius": 12,
+          "steps": 4
+        },
+        "name": "Medium",
+        "schema": "steelmoth-webgpu-gtao-stabilization/v1/quality",
+        "temporal": {
+          "deltaClamp": 0.14,
+          "depthThreshold": 0.012,
+          "enabled": true,
+          "historyWeight": 0.55,
+          "normalThreshold": 0.84
+        }
+      },
+      "resourceDiagnostics": {
+        "createCount": 11,
+        "definitionCount": 11,
+        "destroyCount": 0,
+        "dynamicArenas": [],
+        "estimatedBytes": 3168,
+        "extent": {
+          "height": 8,
+          "width": 8
+        },
+        "frameIndex": 0,
+        "generation": 1,
+        "rebuildCount": 0,
+        "resizeCount": 0,
+        "resourceCount": 11,
+        "resources": [
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 512,
+            "format": "rg32float",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:depth0",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 512,
+            "format": "rg32float",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:depth1",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 512,
+            "format": "rgba16float",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:normal0",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 512,
+            "format": "rgba16float",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:normal1",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 256,
+            "format": "r32uint",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:object0",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 256,
+            "format": "r32uint",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:object1",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 32,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm601:params",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 32,
+            "usage": 72,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 32,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm601:stats",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 32,
+            "usage": 140,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": null,
+            "estimatedBytes": 32,
+            "format": null,
+            "generation": 1,
+            "height": null,
+            "kind": "buffer",
+            "lifetime": "persistent",
+            "name": "sm601:statsReadback",
+            "rebuildCount": 0,
+            "resizeDependent": false,
+            "size": 32,
+            "usage": 9,
+            "width": null
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 256,
+            "format": "r32float",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:vis0",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          },
+          {
+            "createCount": 1,
+            "depthOrArrayLayers": 1,
+            "estimatedBytes": 256,
+            "format": "r32float",
+            "generation": 1,
+            "height": 8,
+            "kind": "texture",
+            "lifetime": "persistent",
+            "name": "sm601:vis1",
+            "rebuildCount": 0,
+            "resizeDependent": true,
+            "size": null,
+            "usage": 13,
+            "width": 8
+          }
+        ],
+        "schema": "steelmoth-webgpu-resources/v1",
+        "uploads": {
+          "dynamic": {
+            "bytes": 0,
+            "count": 0
+          },
+          "static": {
+            "bytes": 0,
+            "count": 0
+          }
+        }
+      },
+      "schema": "steelmoth-webgpu-gtao-stabilization/v1",
+      "storageTextureCount": 4,
+      "targetHardwareEvidence": false,
+      "updateCount": 5,
+      "valid": true
+    },
+    "gpu": {
+      "adapterInfo": {
+        "architecture": "turing",
+        "description": "",
+        "device": "",
+        "vendor": "nvidia"
+      },
+      "realWebGPU": true
+    },
+    "ok": true,
+    "quality": {
+      "low": {
+        "gtao": {
+          "directions": 4,
+          "enabled": false,
+          "intensity": 0.85,
+          "radius": 8,
+          "steps": 2
+        },
+        "name": "Low",
+        "schema": "steelmoth-webgpu-gtao-stabilization/v1/quality",
+        "temporal": {
+          "deltaClamp": 0.18,
+          "depthThreshold": 0.018,
+          "enabled": false,
+          "historyWeight": 0,
+          "normalThreshold": 0.78
+        }
+      },
+      "medium": {
+        "gtao": {
+          "directions": 6,
+          "enabled": true,
+          "intensity": 1,
+          "radius": 12,
+          "steps": 4
+        },
+        "name": "Medium",
+        "schema": "steelmoth-webgpu-gtao-stabilization/v1/quality",
+        "temporal": {
+          "deltaClamp": 0.14,
+          "depthThreshold": 0.012,
+          "enabled": true,
+          "historyWeight": 0.55,
+          "normalThreshold": 0.84
+        }
+      }
+    },
+    "schema": "steelmoth-sm601-browser-smoke/v1"
+  }
+}

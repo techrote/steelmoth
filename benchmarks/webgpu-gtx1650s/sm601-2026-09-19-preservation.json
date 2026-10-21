@@ -1,0 +1,31 @@
+{
+  "schema": "steelmoth-evidence-preservation/v1",
+  "recorded_on": "2026-10-21",
+  "source_pull_request": 102,
+  "source_commit": "39bb68ec652640fa83fa04c76c332df0abbbd781",
+  "measured_product_commit": "5d1258032b27af270a925e29379e01bc84acf1d7",
+  "archive_path": "benchmarks/webgpu-gtx1650s/sm601-2026-09-19",
+  "source_tree_sha": "5320682dd6942ef30ea6ba4a96fdc1729c45c785",
+  "file_count": 16,
+  "total_size_bytes": 1410027,
+  "interpretation": "Historical 2026-09-19 over-budget queue-span/correctness evidence, not current acceptance. Original bytes and historical wording remain unchanged; see docs/PR_RECONCILIATION_2026-10-21.md and docs/SM601_MEASURED_ADOPTION.md.",
+  "preservation_method": "Reuse the complete original Git tree object at the same path; no benchmark tooling, renderer, shader, or workflow changes are imported.",
+  "files": [
+    {"path": "SUMMARY.md", "mode": "100644", "git_blob_sha": "cee9b262aec9e3cde28820d1431f673df286ddab", "size_bytes": 2638},
+    {"path": "correctness/sm600-gtao-browser.json", "mode": "100644", "git_blob_sha": "030209c6b2091e37a29799d1ef8e50bccd71123e", "size_bytes": 9880},
+    {"path": "correctness/sm601-gtao-stabilization-browser.json", "mode": "100644", "git_blob_sha": "dba18ddff7c9778f81caf9ffae09f3ee2407d489", "size_bytes": 11529},
+    {"path": "correctness/webgpu-visibility-browser.json", "mode": "100644", "git_blob_sha": "c321c0c1e299d540331dec3a7ab17affc33f8c01", "size_bytes": 13798},
+    {"path": "correctness/webgpu-visibility-browser.png", "mode": "100644", "git_blob_sha": "9ce0f6a5d067fc4d39b22063a7c71f2e34f4d0f5", "size_bytes": 29114},
+    {"path": "raw/chrome/session-01/dynamic-robot.json", "mode": "100644", "git_blob_sha": "5d96a20944aa150f0902392c68d481c1e6736c83", "size_bytes": 43877},
+    {"path": "raw/chrome/session-01/dynamic-robot.png", "mode": "100644", "git_blob_sha": "1fc52f1be65e3b3116400520e6f2898cad9d1f8b", "size_bytes": 374384},
+    {"path": "raw/chrome/session-02/dynamic-robot.json", "mode": "100644", "git_blob_sha": "29002092974a5250823f832831f68fae1b3304b0", "size_bytes": 43211},
+    {"path": "raw/chrome/session-02/dynamic-robot.png", "mode": "100644", "git_blob_sha": "eedcd4f44db4288afac6ef3e144dc3c53c037962", "size_bytes": 374571},
+    {"path": "raw/chrome/session-03/dynamic-robot.json", "mode": "100644", "git_blob_sha": "512bcbe02a9827c5bd9254c9d4536e6b8d0d511c", "size_bytes": 43951},
+    {"path": "raw/chrome/session-03/dynamic-robot.png", "mode": "100644", "git_blob_sha": "d989a71e2716fea772a41fdfc462e0eda84f72d6", "size_bytes": 374230},
+    {"path": "repository-checks/branch-checks.json", "mode": "100644", "git_blob_sha": "a4d931c7396a8c21a7d1fa0f196f85f87ea42387", "size_bytes": 31720},
+    {"path": "repository-checks/pseudo-depth-debug.json", "mode": "100644", "git_blob_sha": "16f6e6bd1e1b94941539237f39c5e78b3e958155", "size_bytes": 5378},
+    {"path": "repository-checks/pseudo-depth-fixtures.svg", "mode": "100644", "git_blob_sha": "3f32fa9ff5c03dd8f8d4c82b8ea8482a166ef638", "size_bytes": 4774},
+    {"path": "target-report.json", "mode": "100644", "git_blob_sha": "c1d2e60f76039c72954b7334a7ea26a12b3343bb", "size_bytes": 46575},
+    {"path": "validator.log", "mode": "100644", "git_blob_sha": "743f0089e07a0a4d34a879bb6558759af70f52b9", "size_bytes": 397}
+  ]
+}

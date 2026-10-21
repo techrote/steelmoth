@@ -1,6 +1,6 @@
 # Steel Moth documentation index
 
-This directory is the repository source of truth for the WebGPU migration and subsequent lighting-quality programme. **Live task authority** is in [programme tracker #51](https://github.com/techrote/steelmoth/issues/51) and linked individual issues; the [dated 2026-10-18 project snapshot](PROJECT_STATUS_2026-10-18.md) reconciles issue/PR state to `main` `f0813d0` (46/50 tasks closed). Normal game presentation remains WebGL2; SM-505 is not yet accepted.
+This directory is the repository source of truth for the WebGPU migration and subsequent lighting-quality programme. **Live task authority** is in [programme tracker #51](https://github.com/techrote/steelmoth/issues/51) and linked individual issues; the [dated 2026-10-18 project snapshot](PROJECT_STATUS_2026-10-18.md) reconciles issue/PR state to `main` `f0813d0` (46/50 tasks closed). Normal game presentation remains WebGL2; SM-505 is not yet accepted. The [2026-10-21 PR reconciliation](PR_RECONCILIATION_2026-10-21.md) records subsequent archive preservation and supersession dispositions for #101/#102/#104–106.
 
 ## Authority order
 
@@ -17,6 +17,7 @@ Do not silently promote a historical suggestion into a requirement.
 
 ## Canonical documents
 
+- [`PR_RECONCILIATION_2026-10-21.md`](PR_RECONCILIATION_2026-10-21.md) — exact PR #102 archive preservation, immutable #104–106 study links, adopted versus rejected findings, and explicit supersession/closure dispositions; no new performance acceptance.
 - [`PROJECT_STATUS_2026-10-18.md`](PROJECT_STATUS_2026-10-18.md) — dated main/issue/PR reconciliation, accepted evidence boundaries, remaining dependencies and release blockers.
 - [`RAG_REFERENCE_STEELMOTH.md`](RAG_REFERENCE_STEELMOTH.md) — reconciled prior-development context, known baseline history, provenance and unresolved facts.
 - [`BASELINE_V123_AUDIT.md`](BASELINE_V123_AUDIT.md) — SM-004 source-level classification of the imported v1.2.3 renderer contracts and migration implications.

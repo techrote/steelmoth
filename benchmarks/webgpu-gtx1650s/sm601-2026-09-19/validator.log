@@ -1,0 +1,13 @@
+{
+  "meanOfRunMeansMs": 2.8794997155555557,
+  "note": "0.7-1.2 ms is a planning guardrail, not fabricated acceptance. Results above it require architecture investigation before visual weakening.",
+  "ok": true,
+  "planningGuardrailMs": [
+    0.7,
+    1.2
+  ],
+  "runCount": 3,
+  "schema": "steelmoth-sm601-target-validation/v1",
+  "withinWorkingMeanGuardrail": false,
+  "worstRunP95Ms": 3.81568
+}
