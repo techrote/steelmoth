@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1090" viewBox="0 0 760 1090">
+<rect width="100%" height="100%" fill="#101418"/>
+<style>text{font:12px monospace;fill:#e8edf2}.muted{fill:#94a3ad}.root{fill:#fff}.vert{stroke:#76b7ff;stroke-width:2}.guide{stroke:#3d4952;stroke-width:1}</style>
+<text x="16" y="30" font-weight="bold">binsright · light 0° · front→back bin-front &gt; bin-rear &gt; bin-side</text>
+<line class="guide" x1="16" y1="195" x2="744" y2="195"/>
+<line class="vert" x1="145.60" y1="133.80" x2="145.60" y2="96.00"/>
+<circle class="root" cx="145.60" cy="133.80" r="4"/>
+<text x="152.60" y="128.80">bin-rear K=166.00</text>
+<text class="muted" x="152.60" y="98.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="219.20" y1="100.80" x2="219.20" y2="63.00"/>
+<circle class="root" cx="219.20" cy="100.80" r="4"/>
+<text x="226.20" y="95.80">bin-front K=181.00</text>
+<text class="muted" x="226.20" y="65.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="280.00" y1="160.20" x2="280.00" y2="125.90"/>
+<circle class="root" cx="280.00" cy="160.20" r="4"/>
+<text x="287.00" y="155.20">bin-side K=154.00</text>
+<text class="muted" x="287.00" y="127.90">screenY↓ + worldZ↑ = same K</text>
+<text x="16" y="240" font-weight="bold">binsleft · light 180° · front→back bin-front &gt; bin-rear &gt; bin-side</text>
+<line class="guide" x1="16" y1="405" x2="744" y2="405"/>
+<line class="vert" x1="145.60" y1="343.80" x2="145.60" y2="306.00"/>
+<circle class="root" cx="145.60" cy="343.80" r="4"/>
+<text x="152.60" y="338.80">bin-rear K=166.00</text>
+<text class="muted" x="152.60" y="308.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="219.20" y1="310.80" x2="219.20" y2="273.00"/>
+<circle class="root" cx="219.20" cy="310.80" r="4"/>
+<text x="226.20" y="305.80">bin-front K=181.00</text>
+<text class="muted" x="226.20" y="275.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="280.00" y1="370.20" x2="280.00" y2="335.90"/>
+<circle class="root" cx="280.00" cy="370.20" r="4"/>
+<text x="287.00" y="365.20">bin-side K=154.00</text>
+<text class="muted" x="287.00" y="337.90">screenY↓ + worldZ↑ = same K</text>
+<text x="16" y="450" font-weight="bold">binsup · light 270° · front→back bin-front &gt; bin-rear &gt; bin-side</text>
+<line class="guide" x1="16" y1="615" x2="744" y2="615"/>
+<line class="vert" x1="145.60" y1="553.80" x2="145.60" y2="516.00"/>
+<circle class="root" cx="145.60" cy="553.80" r="4"/>
+<text x="152.60" y="548.80">bin-rear K=166.00</text>
+<text class="muted" x="152.60" y="518.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="219.20" y1="520.80" x2="219.20" y2="483.00"/>
+<circle class="root" cx="219.20" cy="520.80" r="4"/>
+<text x="226.20" y="515.80">bin-front K=181.00</text>
+<text class="muted" x="226.20" y="485.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="280.00" y1="580.20" x2="280.00" y2="545.90"/>
+<circle class="root" cx="280.00" cy="580.20" r="4"/>
+<text x="287.00" y="575.20">bin-side K=154.00</text>
+<text class="muted" x="287.00" y="547.90">screenY↓ + worldZ↑ = same K</text>
+<text x="16" y="660" font-weight="bold">binsupleft · light 225° · front→back bin-front &gt; bin-rear &gt; bin-side</text>
+<line class="guide" x1="16" y1="825" x2="744" y2="825"/>
+<line class="vert" x1="145.60" y1="763.80" x2="145.60" y2="726.00"/>
+<circle class="root" cx="145.60" cy="763.80" r="4"/>
+<text x="152.60" y="758.80">bin-rear K=166.00</text>
+<text class="muted" x="152.60" y="728.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="219.20" y1="730.80" x2="219.20" y2="693.00"/>
+<circle class="root" cx="219.20" cy="730.80" r="4"/>
+<text x="226.20" y="725.80">bin-front K=181.00</text>
+<text class="muted" x="226.20" y="695.00">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="280.00" y1="790.20" x2="280.00" y2="755.90"/>
+<circle class="root" cx="280.00" cy="790.20" r="4"/>
+<text x="287.00" y="785.20">bin-side K=154.00</text>
+<text class="muted" x="287.00" y="757.90">screenY↓ + worldZ↑ = same K</text>
+<text x="16" y="870" font-weight="bold">box-pair · light 0° · front→back box-a &gt; box-b</text>
+<line class="guide" x1="16" y1="1035" x2="744" y2="1035"/>
+<line class="vert" x1="148.80" y1="973.80" x2="148.80" y2="938.80"/>
+<circle class="root" cx="148.80" cy="973.80" r="4"/>
+<text x="155.80" y="968.80">box-a K=166.00</text>
+<text class="muted" x="155.80" y="940.80">screenY↓ + worldZ↑ = same K</text>
+<line class="vert" x1="219.20" y1="993.60" x2="219.20" y2="958.60"/>
+<circle class="root" cx="219.20" cy="993.60" r="4"/>
+<text x="226.20" y="988.60">box-b K=157.00</text>
+<text class="muted" x="226.20" y="960.60">screenY↓ + worldZ↑ = same K</text>
+</svg>
