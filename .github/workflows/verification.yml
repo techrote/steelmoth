@@ -88,6 +88,8 @@ jobs:
         run: python tools/validate_sm603_ssgi_browser.py --report artifacts/sm603-ssgi-browser.json --out artifacts/sm603-ssgi
       - name: Validate production forward materials against canonical depth, ambient visibility and incident diffuse
         run: python tools/validate_sm702_forward_browser.py --report artifacts/sm702-forward-browser.json --out artifacts/sm702-forward
+      - name: Validate SM-505 normal-game RenderScene presentation and fallback on hosted WebGPU
+        run: python tools/validate_sm505_presentation_browser.py --require-webgpu --report artifacts/sm505-presentation-browser.json
       - name: Upload WebGPU browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -109,6 +111,8 @@ jobs:
             artifacts/sm603-ssgi/**
             artifacts/sm702-forward-browser.json
             artifacts/sm702-forward/**
+            artifacts/sm505-presentation-browser.json
+            artifacts/sm505-presentation-browser.png
           if-no-files-found: warn
 
   webgl2-transform-parity:

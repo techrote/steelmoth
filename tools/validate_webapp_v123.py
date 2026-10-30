@@ -6,7 +6,7 @@ required=[
  'index.html','style.css','webapp.js','sw.js','manifest.webmanifest','game_manifest.json','DEPLOYMENT_MANIFEST.json',
  'engine/game.js','engine/editor.js','engine/surfacefx.js','engine/foliagefx.js',
  'engine/render_transform.js','engine/render_transform_integration.js','engine/render_scene.js','engine/render_transform_scene_adapter.js','engine/webgl2_scene_adapter.js',
- 'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/pseudo_depth.js','engine/webgpu_gbuffer.js','engine/webgpu_ownership.js','engine/webgpu_depth_hierarchy.js','engine/webgpu_lighting.js','engine/backend_runtime.js',
+ 'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/pseudo_depth.js','engine/webgpu_gbuffer.js','engine/webgpu_ownership.js','engine/webgpu_depth_hierarchy.js','engine/webgpu_lighting.js','engine/webgpu_scene_presenter.js','engine/backend_runtime.js',
  'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html','webgpu-ownership-smoke.html','webgpu-depth-hierarchy-smoke.html','webgpu-lighting-smoke.html',
  'game_data/maps.json','game_data/story.json','game_data/sprites.json','game_data/luts.json','game_data/effects.json',
  'assets/generated/atlas.json','assets/generated/sprite_runtime_atlas.png','assets/generated/sprite_material_normal_roughness.png','assets/generated/sprite_material_height_material.png',
@@ -31,10 +31,10 @@ assert re.search(r"const CACHE = 'small-machine-web-v1\.2\.3-r[1-9][0-9]*'",sw)
 assert 'sw.js?v=1.2.3' in web
 assert "localPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1'" in web
 assert "k.startsWith('small-machine-web-')" in web and 'clearLocalPreviewCaches' in web
-for token in ['engine/game.js?v=1.2.3','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3']:
+for token in ['engine/game.js?v=sm505-1','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3']:
     assert token in h, token
 # Runtime modules must be loaded by the app and included in the offline core.
-for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','pseudo_depth.js?v=sm201-1','webgpu_gbuffer.js?v=sm200-1','webgpu_ownership.js?v=sm202-1','webgpu_depth_hierarchy.js?v=sm203-1','webgpu_lighting.js?v=sm204-1','backend_runtime.js?v=sm102-1']:
+for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','pseudo_depth.js?v=sm201-1','webgpu_gbuffer.js?v=sm200-1','webgpu_ownership.js?v=sm202-1','webgpu_depth_hierarchy.js?v=sm203-1','webgpu_lighting.js?v=sm204-1','webgpu_scene_presenter.js?v=sm505-1','backend_runtime.js?v=sm505-1']:
     assert token in web and token in sw, token
 # SM-104's validation module is intentionally test-only: existence and its smoke
 # entrypoint are required, but normal gameplay/offline bootstrap must not load it.
