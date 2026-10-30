@@ -21,14 +21,22 @@
     Ordering:root?.SteelMothWebGPUOrdering,Quality:root?.SteelMothWebGPUQuality
   });
 
-  function scaleScene(scene,width,height,pseudo=null){
+  function scaleScene(scene,width,height,pseudo=null,lighting=null){
     const out=clone(scene),logical=scene?.frame?.logicalSize||[640,360],sx=width/Math.max(1,finite(logical[0],640)),sy=height/Math.max(1,finite(logical[1],360)),ss=Math.min(sx,sy);
     out.frame={...(out.frame||{}),logicalSize:[width,height]};
     for(const s of out.sprites||[]){const t=s.transform||{},rx=s.root?finite(s.root.x,finite(t.x)):null,ry=s.root?finite(s.root.y,finite(t.y)):null;t.x=finite(t.x)*sx;t.y=finite(t.y)*sy;if(t.w!=null)t.w=finite(t.w)*sx;if(t.h!=null)t.h=finite(t.h)*sy;if(s.root){s.root.x=rx*sx;s.root.y=ry*sy}if(pseudo?.projectSpriteFragment){const p=pseudo.projectSpriteFragment(s,{u:.5,v:1,localHeight:0,alpha:s.style?.alpha??1});if(Number.isFinite(p?.depth01))s.depth01=p.depth01}}
-    for(const l of out.lights||[]){l.x*=sx;l.y*=sy;if(l.z!=null)l.z*=ss;if(l.radius!=null)l.radius*=ss}
+    // Cone lights carry their reach in `range`, while point lights use `radius`.
+    // Both are logical world distances and must follow the derived native extent.
+    // Resolve omitted elevations through SM-204 while they are still in logical
+    // units. Deferring the default until after scaling leaves e.g. cone Z at 22
+    // native pixels while its position/range/material height use scaled units.
+    // The optional API preserves existing utility callers without duplicating
+    // SM-204's group/cone defaults in this presentation adapter.
+    const scaleLight=l=>{const z=typeof lighting?.lightElevation==='function'?lighting.lightElevation(l):l.z;l.x*=sx;l.y*=sy;if(z!=null)l.z=z*ss;if(l.radius!=null)l.radius*=ss;if(l.range!=null)l.range*=ss};
+    for(const l of out.lights||[])scaleLight(l);
     for(const o of out.occluders||[]){if(Array.isArray(o.bounds))o.bounds=[o.bounds[0]*sx,o.bounds[1]*sy,o.bounds[2]*sx,o.bounds[3]*sy];if(Array.isArray(o.rect))o.rect=[o.rect[0]*sx,o.rect[1]*sy,o.rect[2]*sx,o.rect[3]*sy];if(o.root){o.root.x*=sx;o.root.y*=sy}if(o.x!=null)o.x*=sx;if(o.contactY!=null)o.contactY*=sy;if(Array.isArray(o.sections))for(const q of o.sections)if(q.z!=null)q.z*=ss}
     const scaleOverlay=o=>{if(o){if(o.x!=null)o.x*=sx;if(o.y!=null)o.y*=sy}};
-    scaleOverlay(out.overlays?.guide);scaleOverlay(out.overlays?.objectiveMarker);if(out.playerCone){out.playerCone.x*=sx;out.playerCone.y*=sy;if(out.playerCone.radius!=null)out.playerCone.radius*=ss}
+    scaleOverlay(out.overlays?.guide);scaleOverlay(out.overlays?.objectiveMarker);if(out.playerCone)scaleLight(out.playerCone);
     for(const p of out.proceduralLayers||[])if(p.kind==='effects'&&Array.isArray(p.descriptor))for(const e of p.descriptor){if(e.x!=null)e.x*=sx;if(e.y!=null)e.y*=sy;for(const k of ['radius','size','length'])if(e[k]!=null)e[k]*=ss}
     return{scene:out,scale:{x:sx,y:sy,uniform:ss}};
   }
@@ -83,6 +91,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       if(!this.game?.renderer||!this.manager?.device)throw new Error('SM-505 presenter requires game renderer and initialized WebGPU manager');
       this.api=options.api||required();this.device=this.manager.device;this.queue=this.device.queue;this.canvas=null;this.context=null;this.width=0;this.height=0;this.ready=false;this.closed=false;this.pending=null;this.rendering=false;this.presentedFrames=0;this.droppedFrames=0;this.lastRoomId=null;this.lastError=null;this.lastPlan=null;this.lastSourceRevision={background:null,water:null};this.resources=[];
     }
+    _assertOpen(){if(this.closed){const error=new Error('SM-505 presenter is closed');error.name='SM505PresenterClosedError';throw error}}
     _assertApi(){for(const [name,value] of Object.entries(this.api))if(!value)throw new Error(`SM-505 missing staged renderer dependency: ${name}`)}
     _extent(){const r=this.game.renderer;return{width:Math.max(2,Math.round(r.nativeW||this.game.canvas?.width||640)),height:Math.max(2,Math.round(r.nativeH||this.game.canvas?.height||360))}}
     _makeCanvas(){
@@ -90,25 +99,44 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       const frame=this.game.canvas?.parentNode;if(!frame?.insertBefore)throw new Error('SM-505 game frame unavailable');frame.insertBefore(c,this.game.canvas.nextSibling);return c;
     }
     async initialize(){
-      this._assertApi();const e=this._extent();this.width=e.width;this.height=e.height;this.canvas=this._makeCanvas();this.canvas.width=this.width;this.canvas.height=this.height;this.context=this.canvas.getContext?.('webgpu');if(!this.context)throw new Error('SM-505 WebGPU presentation context unavailable');
-      this.context.configure({device:this.device,format:this.manager.format,alphaMode:'opaque'});await this._buildResources();this.ready=true;return this;
+      this._assertOpen();
+      try{
+        this._assertApi();const e=this._extent();this.width=e.width;this.height=e.height;this.canvas=this._makeCanvas();this.canvas.width=this.width;this.canvas.height=this.height;this.context=this.canvas.getContext?.('webgpu');if(!this.context)throw new Error('SM-505 WebGPU presentation context unavailable');
+        await this._buildValidatedResources();this._assertOpen();this.ready=true;return this;
+      }catch(error){
+        // An awaited producer may finish allocating after close(); clean it again.
+        if(this.closed)this._closeResources();else this.close();throw error;
+      }
+    }
+    async _buildValidatedResources(){
+      this._assertOpen();const scoped=typeof this.device.pushErrorScope==='function'&&typeof this.device.popErrorScope==='function';let buildError=null,validationError=null;
+      if(scoped)this.device.pushErrorScope('validation');
+      try{this.context.configure({device:this.device,format:this.manager.format,alphaMode:'opaque',colorSpace:'srgb'});await this._buildResources()}
+      catch(error){buildError=error}
+      // Pop even when an awaited producer fails or close() cancels construction.
+      // A successful JS callback is insufficient: invalid GPU objects can report
+      // errors asynchronously through the scope instead of throwing immediately.
+      if(scoped)try{validationError=await this.device.popErrorScope()}catch(error){if(!buildError)buildError=error}
+      if(buildError)throw buildError;
+      if(validationError)throw new Error(`SM-505 presenter resource validation failed: ${validationError.message||validationError}`);
+      this._assertOpen();
     }
     async _buildResources(){
-      const A=this.api,d=this.device,w=this.width,h=this.height,q=this.queue,manifest=this.game.art?.manifest||{};
-      this.gb=new A.Ownership.WebGPUOwnershipGBuffer({device:d,width:w,height:h,maxInstances:4096,labelPrefix:'SM505GBuffer'});await this.gb.setAtlases({albedo:this.game.art.img,normalRoughness:this.game.art.materialNRImg,heightMaterial:this.game.art.materialHMImg,meta:manifest});
+      this._assertOpen();const A=this.api,d=this.device,w=this.width,h=this.height,q=this.queue,manifest=this.game.art?.manifest||{};
+      this.gb=new A.Ownership.WebGPUOwnershipGBuffer({device:d,width:w,height:h,maxInstances:4096,labelPrefix:'SM505GBuffer'});await this.gb.setAtlases({albedo:this.game.art.img,normalRoughness:this.game.art.materialNRImg,heightMaterial:this.game.art.materialHMImg,meta:manifest});this._assertOpen();
       this.depth=new A.Depth.WebGPUDepthHierarchy({device:d,queue:q,width:w,height:h,labelPrefix:'SM505Depth'});
       this.shadows=new A.Shadows.WebGPULocalShadows({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Shadows'});
-      this.lighting=new A.Lighting.WebGPUDeferredLighting({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Lighting'});await this.shadows.initialize();await this.lighting.initialize();
+      this.lighting=new A.Lighting.WebGPUDeferredLighting({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Lighting'});await this.shadows.initialize();this._assertOpen();await this.lighting.initialize();this._assertOpen();
       this.occ=new A.Occluders.WebGPUOccluderBins({device:d,width:w,height:h,maxOccluders:512,maxPerTile:32,maxTileRefs:16384});
       this.clusters=new A.Clusters.WebGPUOccluderClusters({device:d,width:w,height:h,maxClusters:512,maxMembers:512,maxCandidatePairs:4096,maxCandidatePerTile:32});
       this.dominance=new A.Dominance.WebGPUDominantOccluders({device:d,maxDominanceRecords:512});
       this.dso=new A.DSO.WebGPUDSOHardCore({device:d,width:w,height:h,maxJobs:512,maxMembers:512,maxTileRefs:16384});
       this.dsoHierarchy=new A.DSOHierarchy.WebGPUDSOHierarchy({device:d,width:w,height:h,maxJobs:512,maxMembers:512,maxTileRefs:16384});
       this.bloom=new A.Bloom.WebGPUDarkBloom({device:d,width:w,height:h,quality:'Medium'});this.bloomTemporal=new A.BloomTemporal.WebGPUDarkBloomTemporal({device:d,width:w,height:h});this.visibility=new A.Visibility.WebGPUVisibilityComposition({device:d,width:w,height:h});
-      this.water=new A.Water.WebGPUWaterPass({device:d,queue:q,width:w,height:h});await this.water.initialize();
+      this.water=new A.Water.WebGPUWaterPass({device:d,queue:q,width:w,height:h});await this.water.initialize();this._assertOpen();
       this.foliageAuthority=new A.Foliage.FoliageFrameAuthority(manifest);this.foliage=new A.Foliage.WebGPUFoliagePass(d,{width:w,height:h,label:'SM505Foliage'});
-      this.post=new A.Post.WebGPUPost({device:d,width:w,height:h,intermediateFormat:WORLD_FORMAT,outputFormat:this.manager.format,labelPrefix:'SM505Post'});await this.post.initialize();
-      this.fx={worldLegacy:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:WORLD_FORMAT,labelPrefix:'SM505WorldLegacy'}),worldHd:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:WORLD_FORMAT,labelPrefix:'SM505WorldHD'}),topLegacy:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505TopLegacy'}),topHd:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505TopHD'}),overlay:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505Overlay'})};await Promise.all(Object.values(this.fx).map(x=>x.initialize()));
+      this.post=new A.Post.WebGPUPost({device:d,width:w,height:h,intermediateFormat:WORLD_FORMAT,outputFormat:this.manager.format,labelPrefix:'SM505Post'});await this.post.initialize();this._assertOpen();
+      this.fx={worldLegacy:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:WORLD_FORMAT,labelPrefix:'SM505WorldLegacy'}),worldHd:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:WORLD_FORMAT,labelPrefix:'SM505WorldHD'}),topLegacy:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505TopLegacy'}),topHd:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505TopHD'}),overlay:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505Overlay'})};for(const x of Object.values(this.fx)){try{await x.initialize();this._assertOpen()}catch(error){try{x.close?.()}catch(_e){}throw error}}
       this.world=d.createTexture({label:'SM505:world',size:{width:w,height:h},format:WORLD_FORMAT,usage:usage('GPUTextureUsage','RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC')});this.resources.push(this.world);
       this._buildCompositePipelines();this._buildFoliageRaster();this._uploadLegacyAtlas();this._uploadBackdrop(true);
     }
@@ -124,11 +152,11 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       this.foliageDepthPipeline=d.createRenderPipeline(desc(true));this.foliageFrontPipeline=d.createRenderPipeline(desc(false));this.resources.push(this.foliageRaster,...this.foliageParams);
     }
     _uploadLegacyAtlas(){
-      const src=this.game.atlas?.canvas;if(!src)throw new Error('SM-505 legacy atlas unavailable');this.legacyMeta=atlasMetaFromLegacy(this.game.atlas);this.legacyTexture=this.device.createTexture({label:'SM505:legacy-atlas',size:{width:src.width,height:src.height},format:'rgba8unorm-srgb',usage:usage('GPUTextureUsage','TEXTURE_BINDING','COPY_DST')});this.queue.copyExternalImageToTexture({source:src},{texture:this.legacyTexture},{width:src.width,height:src.height});this.resources.push(this.legacyTexture);
+      const src=this.game.atlas?.canvas;if(!src)throw new Error('SM-505 legacy atlas unavailable');this.legacyMeta=atlasMetaFromLegacy(this.game.atlas);this.legacyTexture=this.device.createTexture({label:'SM505:legacy-atlas',size:{width:src.width,height:src.height},format:'rgba8unorm-srgb',usage:usage('GPUTextureUsage','TEXTURE_BINDING','COPY_DST','RENDER_ATTACHMENT')});this.resources.push(this.legacyTexture);this.queue.copyExternalImageToTexture({source:src},{texture:this.legacyTexture,colorSpace:'srgb'},{width:src.width,height:src.height});
     }
     _uploadBackdrop(force=false){
       const source=this.game.renderer.webgpuPresentationSources?.background,revision=this.game.renderer.webgpuPresentationSources?.backgroundRevision??0;if(!force&&revision===this.lastSourceRevision.background)return;
-      try{this.backdrop?.destroy?.()}catch(_e){};const sw=source?.width||1,sh=source?.height||1;this.backdrop=this.device.createTexture({label:'SM505:backdrop',size:{width:sw,height:sh},format:'rgba8unorm-srgb',usage:usage('GPUTextureUsage','TEXTURE_BINDING','COPY_DST')});if(source)this.queue.copyExternalImageToTexture({source},{texture:this.backdrop},{width:sw,height:sh});else this.queue.writeTexture({texture:this.backdrop},new Uint8Array([0,0,0,255]),{bytesPerRow:4},{width:1,height:1});this.lastSourceRevision.background=revision;
+      try{this.backdrop?.destroy?.()}catch(_e){};const sw=source?.width||1,sh=source?.height||1;this.backdrop=this.device.createTexture({label:'SM505:backdrop',size:{width:sw,height:sh},format:'rgba8unorm-srgb',usage:usage('GPUTextureUsage','TEXTURE_BINDING','COPY_DST','RENDER_ATTACHMENT')});if(source)this.queue.copyExternalImageToTexture({source},{texture:this.backdrop,colorSpace:'srgb'},{width:sw,height:sh});else this.queue.writeTexture({texture:this.backdrop},new Uint8Array([0,0,0,255]),{bytesPerRow:4},{width:1,height:1});this.lastSourceRevision.background=revision;
     }
     _updateWaterField(roomId){
       const s=this.game.renderer.webgpuPresentationSources||{},mask=s.waterMask,revision=s.waterRevision??0;if(!mask||revision===this.lastSourceRevision.water)return;
@@ -154,14 +182,14 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       if(this.lastRoomId==null){this.lastRoomId=roomId;return}if(roomId===this.lastRoomId)return;for(const r of [this.water,this.bloom,this.bloomTemporal,this.dsoHierarchy,this.visibility])try{r?.invalidate?.('room-change')}catch(_e){}this.lastRoomId=roomId;this.lastSourceRevision.water=null;
     }
     async _render(scene){
-      this.api.Scene.validateRenderScene(scene);const e=this._extent();if(e.width!==this.width||e.height!==this.height){await this._rebuild(e.width,e.height)}
-      this._uploadBackdrop();const scaled=scaleScene(scene,this.width,this.height,this.api.Pseudo),s=scaled.scene,quality=this.root?.steelMothWebGPUQualityRuntime?.preset||this.game.graphics?.webgpuQualityPreset||'Medium',Q=this.api.Quality;
+      this._assertOpen();this.api.Scene.validateRenderScene(scene);const e=this._extent();if(e.width!==this.width||e.height!==this.height){await this._rebuild(e.width,e.height);this._assertOpen()}
+      this._uploadBackdrop();const scaled=scaleScene(scene,this.width,this.height,this.api.Pseudo,this.api.Lighting),s=scaled.scene,quality=this.root?.steelMothWebGPUQualityRuntime?.preset||this.game.graphics?.webgpuQualityPreset||'Medium',Q=this.api.Quality;
       this._invalidateForRoom(String(s.frame?.roomId||'unknown-room'));const shadowSettings=Q.localShadowSettings(quality,s.settings||{});
-      await this.gb.renderScene(s,this.game.art.manifest,{wait:false});await this.depth.buildFromOwnership(this.gb,{wait:false});await this.shadows.render(this.gb,s,shadowSettings,{wait:false});await this.occ.update(s,{wait:false});await this.clusters.update(this.occ,{wait:false});await this.dominance.update(this.clusters,this.occ,s.lights,{wait:false});
-      const lightId=s.lights?.[0]?.id||'light:0';await this.dso.update(this.clusters,this.occ,this.dominance,{lightId,wait:false});await this.dsoHierarchy.update(this.dso,{quality,wait:false});await this.bloom.update(this.bloom.sourceFromPaths(this.dsoHierarchy,this.depth),{quality,wait:false});await this.bloomTemporal.update(this.bloomTemporal.sourceFromPaths(this.bloom,this.depth,this.gb,this.dsoHierarchy,s.lights?.[0]||{}),{wait:false});await this.visibility.update(this.visibility.sourceFromPaths(this.gb,this.shadows,this.dsoHierarchy,this.bloomTemporal,null),{gtao:false,wait:false});await this.lighting.render(this.gb,s,shadowSettings,{wait:false});
+      await this.gb.renderScene(s,this.game.art.manifest,{wait:false});this._assertOpen();await this.depth.buildFromOwnership(this.gb,{wait:false});this._assertOpen();await this.shadows.render(this.gb,s,shadowSettings,{wait:false});this._assertOpen();await this.occ.update(s,{wait:false});this._assertOpen();await this.clusters.update(this.occ,{wait:false});this._assertOpen();await this.dominance.update(this.clusters,this.occ,s.lights,{wait:false});this._assertOpen();
+      const lightId=s.lights?.[0]?.id||'light:0';await this.dso.update(this.clusters,this.occ,this.dominance,{lightId,wait:false});this._assertOpen();await this.dsoHierarchy.update(this.dso,{quality,wait:false});this._assertOpen();await this.bloom.update(this.bloom.sourceFromPaths(this.dsoHierarchy,this.depth),{quality,wait:false});this._assertOpen();await this.bloomTemporal.update(this.bloomTemporal.sourceFromPaths(this.bloom,this.depth,this.gb,this.dsoHierarchy,s.lights?.[0]||{}),{wait:false});this._assertOpen();await this.visibility.update(this.visibility.sourceFromPaths(this.gb,this.shadows,this.dsoHierarchy,this.bloomTemporal,null),{gtao:false,wait:false});this._assertOpen();await this.lighting.render(this.gb,s,shadowSettings,{wait:false});this._assertOpen();
       this._opaqueComposite();this._updateWaterField(String(s.frame.roomId||'unknown-room'));
       const frames=this._sourceFrames(s),depthView=this.gb._views().depth,enc=this.device.createCommandEncoder({label:'SM505:forward-compose'}),worldView=this.world.createView();
-      const waterDesc=(s.proceduralLayers||[]).find(p=>p.kind==='water')?.descriptor;if(waterDesc&&this.water.fieldTexture){const source=this.water.sourceFromPaths(this.lighting,this.gb,this.visibility);source.sceneView=worldView;await this.water.render(source,s,{...(s.settings||{}),...waterDesc},{wait:false,time:(s.frame.timeMs||0)/1000,ripples:this.game.renderer.surfaceFX?.water?.sources?.items||[]});this._blendTexture(enc,this.water.outputTexture().createView(),worldView)}
+      const waterDesc=(s.proceduralLayers||[]).find(p=>p.kind==='water')?.descriptor;if(waterDesc&&this.water.fieldTexture){const source=this.water.sourceFromPaths(this.lighting,this.gb,this.visibility);source.sceneView=worldView;await this.water.render(source,s,{...(s.settings||{}),...waterDesc},{wait:false,time:(s.frame.timeMs||0)/1000,ripples:this.game.renderer.surfaceFX?.water?.sources?.items||[]});this._assertOpen();this._blendTexture(enc,this.water.outputTexture().createView(),worldView)}
       const foliageDesc=this.game.renderer.webgpuPresentationSources?.foliageDescriptor;if(foliageDesc){this.foliageAuthority.setDescriptor(foliageDesc,s.settings||{});const fa=this.foliageAuthority.update(0,this.game.foliageInteractionSources?.()||[],s.settings||{},(scene.frame?.timeMs||0)/1000),instances=scaleFoliageInstances(fa.instances,scaled.scale);this.foliage.upload(instances);this.queue.writeBuffer(this.foliageRaster,0,this._packFoliageRaster(instances));this.foliage.encode(enc,this.foliage.sourceFromPaths(this.lighting,this.gb,this.visibility),s.settings||{},(s.frame.timeMs||0)/1000,'final');this._renderFoliageStage(enc,0,instances.length,depthView);this._renderFoliageStage(enc,1,instances.length,depthView)}
       this.fx.worldLegacy.uploadFrame(frames.legacy);this.fx.worldHd.uploadFrame(frames.hd);for(const stage of ['world-alpha','world-additive']){this.fx.worldLegacy.renderStage(stage,{encoder:enc,targetView:worldView,frame:frames.legacy,atlasView:this.legacyTexture.createView(),depthView});this.fx.worldHd.renderStage(stage,{encoder:enc,targetView:worldView,frame:frames.hd,atlasView:this.gb.atlas.albedo.createView(),depthView})}
       if(foliageDesc)this._renderFoliageStage(enc,2,this.foliage.count,depthView);
@@ -171,14 +199,17 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       this.lastPlan=this.api.Ordering.buildFramePlan({water:!!waterDesc,foliage:{instances:this.foliageAuthority?.instances||[]},transparentFrame:frames.overlay});this.queue.submit([enc.finish()]);this.presentedFrames++;
     }
     async _rebuild(width,height){
-      this._closeResources();this.width=width;this.height=height;this.canvas.width=width;this.canvas.height=height;this.context.configure({device:this.device,format:this.manager.format,alphaMode:'opaque'});this.resources=[];this.lastSourceRevision={background:null,water:null};await this._buildResources();
+      this._assertOpen();
+      try{
+        this._closeResources();this.width=width;this.height=height;this.canvas.width=width;this.canvas.height=height;this.resources=[];this.lastSourceRevision={background:null,water:null};await this._buildValidatedResources();this._assertOpen();
+      }catch(error){this.ready=false;this._closeResources();throw error}
     }
     consume(scene){
       if(!this.ready||this.closed)return false;if(this.rendering){this.pending=scene;this.droppedFrames++;return true}this.rendering=true;this._drain(scene);return true;
     }
     async _drain(scene){
       try{let next=scene;while(next&&!this.closed){this.pending=null;await this._render(next);next=this.pending}}
-      catch(error){this.lastError=String(error?.stack||error);this.ready=false;try{this.onFailure(error,this)}catch(_e){}}
+      catch(error){if(this.closed){this._closeResources();return}this.lastError=String(error?.stack||error);this.ready=false;try{this.onFailure(error,this)}catch(_e){}}
       finally{this.rendering=false}
     }
     diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds one rgba16float world target, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}

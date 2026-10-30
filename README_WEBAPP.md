@@ -143,7 +143,7 @@ F2 still opens the editor. A static host cannot overwrite `game_data/maps.json`,
 
 ## PWA / offline behavior
 
-`manifest.webmanifest`, `webapp.js` and `sw.js` provide installable/offline behavior on supporting HTTPS hosts. Application shell and JSON data are pre-cached; large atlas PNGs cache on demand. v1.2.3 distribution revision r30 uses `small-machine-web-v1.2.3-r30`. The SM-505 normal-game WebGPU presentation candidate is asset revision `sm505-1`; normal `Auto` remains WebGL2 pending exact-candidate physical acceptance.
+`manifest.webmanifest`, `webapp.js` and `sw.js` provide installable/offline behavior on supporting HTTPS hosts. Application shell and JSON data are pre-cached; large atlas PNGs cache on demand. v1.2.3 distribution revision r30 uses `small-machine-web-v1.2.3-r30`. The SM-505 normal-game WebGPU presentation candidate is asset revision `sm505-2`; normal `Auto` remains WebGL2 pending exact-candidate physical acceptance.
 
 ### v1.1.1 terrain audit artifacts
 

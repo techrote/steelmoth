@@ -19,7 +19,7 @@
       this.managerFactory=options.managerFactory||((opts)=>new Device.WebGPUDeviceManager(opts));this.infrastructureFactory=options.infrastructureFactory||((opts)=>new Resources.WebGPUInfrastructure(opts));this.canvasFactory=options.canvasFactory||(()=>this.documentRef?.createElement?.('canvas')||null);
       this.presenterFactory=options.presenterFactory||((opts)=>this.root?.SteelMothWebGPUScenePresenter?.create?.(opts)||null);
       this.requestedBackend=Device.BACKENDS.AUTO;this.activeBackend=Device.BACKENDS.WEBGL2;this.presentationBackend=Device.BACKENDS.WEBGL2;
-      this.selectionSource='default';this.policy=Device.resolveBackendPolicy(Device.BACKENDS.AUTO);this.manager=null;this.infrastructure=null;this.presenter=null;this.probeCanvas=null;this.status='idle';this.fallbackReason='';this.lastError=null;this.lastTransitionAt=0;this._generation=0;this._attachedGame=null;this._originalDiagnostics=null;this._controlsInstalled=false;this._readyPromise=null;
+      this.selectionSource='default';this.policy=Device.resolveBackendPolicy(Device.BACKENDS.AUTO);this.manager=null;this.infrastructure=null;this.presenter=null;this._pendingPresenter=null;this.probeCanvas=null;this.status='idle';this.fallbackReason='';this.lastError=null;this.lastTransitionAt=0;this._generation=0;this._attachedGame=null;this._originalDiagnostics=null;this._controlsInstalled=false;this._readyPromise=null;
     }
     _query(){try{return new URLSearchParams(this.locationRef?.search||'')}catch(_error){return new URLSearchParams()}}
     initialSelection(){
@@ -30,7 +30,7 @@
     _failureStage(){const q=this._query(),renderTest=/^(1|true|yes|on)$/i.test(q.get('renderTest')||q.get('render_test')||''),dev=/^(1|true|yes|on)$/i.test(q.get('devWebGPU')||''),local=['localhost','127.0.0.1'].includes(this.locationRef?.hostname||'');return (renderTest||dev||local)?String(q.get('webgpuFail')||''):''}
     _persist(mode){try{this.storage?.setItem?.(STORAGE_KEY,mode)}catch(_error){}}
     _setStatus(status){this.status=status;this.lastTransitionAt=Date.now();this.updateControls()}
-    _closePresenter(){const p=this.presenter;this.presenter=null;try{p?.close?.()}catch(_error){}if(this.presentationBackend===Device.BACKENDS.WEBGPU)this.presentationBackend=Device.BACKENDS.WEBGL2}
+    _closePresenter(){const owned=new Set([this.presenter,this._pendingPresenter]);this.presenter=null;this._pendingPresenter=null;for(const p of owned)try{p?.close?.()}catch(_error){}if(this.presentationBackend===Device.BACKENDS.WEBGPU)this.presentationBackend=Device.BACKENDS.WEBGL2}
     _closeInfrastructure(){try{this.infrastructure?.close?.()}catch(_error){}this.infrastructure=null}
     _recordError(error){this.lastError={name:String(error?.name||'Error'),message:String(error?.message||error)};this.fallbackReason=this.lastError.message}
     _fallback(error,status='fallback'){
@@ -41,20 +41,29 @@
       this._closePresenter();const manager=this.manager;
       const presenter=this.presenterFactory({root:this.root,game:this._attachedGame,manager,infrastructure:this.infrastructure,onFailure:(error,source)=>this._presenterFailed(source,error)});
       if(!presenter)throw new Error('SM-505 WebGPU presentation consumer is unavailable');
-      await presenter.initialize?.();
-      if(generation!==this._generation||manager!==this.manager){try{presenter.close?.()}catch(_error){}return false}
-      if(presenter.ready===false)throw new Error('SM-505 WebGPU presentation consumer did not become ready');
-      this.presenter=presenter;this.presentationBackend=Device.BACKENDS.WEBGPU;this._setStatus('ready');return true;
+      // Own partial initialization so switching/fallback can retire its canvas and resources.
+      // Readiness and presentation ownership remain separate until initialization succeeds.
+      this._pendingPresenter=presenter;
+      try{
+        await presenter.initialize?.();
+        if(generation!==this._generation||manager!==this.manager||this._pendingPresenter!==presenter){try{presenter.close?.()}catch(_error){}return false}
+        if(presenter.ready===false)throw new Error('SM-505 WebGPU presentation consumer did not become ready');
+        this._pendingPresenter=null;this.presenter=presenter;this.presentationBackend=Device.BACKENDS.WEBGPU;this._setStatus('ready');return true;
+      }catch(error){
+        const current=generation===this._generation&&manager===this.manager&&this._pendingPresenter===presenter;
+        if(this._pendingPresenter===presenter)this._pendingPresenter=null;
+        try{presenter.close?.()}catch(_error){}if(!current)return false;throw error;
+      }
     }
     _presenterFailed(source,error){
-      if(source&&source!==this.presenter)return;this._fallback(error||new Error('WebGPU presentation consumer failed'),'fallback-runtime');
+      if(source&&source!==this.presenter&&source!==this._pendingPresenter)return;this._fallback(error||new Error('WebGPU presentation consumer failed'),'fallback-runtime');
     }
     async select(mode,options={}){
       const persist=options.persist!==false;mode=Device.normalizeBackend(mode);const generation=++this._generation;
       this._closePresenter();this._closeInfrastructure();try{this.manager?.close?.()}catch(_error){}this.manager=null;this.probeCanvas=null;this.requestedBackend=mode;this.policy=Device.resolveBackendPolicy(mode);this.fallbackReason='';this.lastError=null;if(persist)this._persist(mode);
       if(this.policy.selected===Device.BACKENDS.WEBGL2){this.activeBackend=Device.BACKENDS.WEBGL2;this.presentationBackend=Device.BACKENDS.WEBGL2;this._setStatus('ready');return this.diagnostics()}
       this._setStatus('initializing');
-      const manager=this.managerFactory({navigatorRef:this.navigatorRef,failureStage:this._failureStage(),onDeviceLost:info=>this._deviceLost(manager,info),onUncapturedError:record=>this._uncaptured(record)});this.manager=manager;
+      const manager=this.managerFactory({navigatorRef:this.navigatorRef,failureStage:this._failureStage(),onDeviceLost:info=>this._deviceLost(manager,info),onUncapturedError:record=>this._uncaptured(record,manager)});this.manager=manager;
       const canvas=this.canvasFactory();this.probeCanvas=canvas;if(canvas){canvas.width=2;canvas.height=2;if(canvas.style)canvas.style.display='none'}
       try{
         await manager.initialize({canvas,width:2,height:2,dpr:1});if(generation!==this._generation){manager.close?.();return this.diagnostics()}
@@ -67,7 +76,7 @@
       }
     }
     _deviceLost(manager,info){if(manager!==this.manager)return;this._fallback(new Error(`device-lost:${info?.reason||'unknown'}${info?.message?`: ${info.message}`:''}`),'fallback-device-lost')}
-    _uncaptured(record){const error=new Error(String(record?.message||'uncaptured WebGPU error'));if(this.presentationBackend===Device.BACKENDS.WEBGPU)this._fallback(error,'fallback-runtime');else{this.lastError={name:'GPUUncapturedError',message:error.message};this.updateControls()}}
+    _uncaptured(record,manager=this.manager){if(manager!==this.manager)return;const error=new Error(String(record?.message||'uncaptured WebGPU error'));if(this.presentationBackend===Device.BACKENDS.WEBGPU||this._pendingPresenter)this._fallback(error,'fallback-runtime');else{this.lastError={name:'GPUUncapturedError',message:error.message};this.updateControls()}}
     async resizeProbe(width,height,dpr=1){if(this.activeBackend!==Device.BACKENDS.WEBGPU||this.manager?.status!=='ready')return null;const config=await this.manager.resize(width,height,dpr);const rebuilt=this.infrastructure?.resize?.(config.width,config.height)||false;return {...config,infrastructureResized:!!rebuilt}}
     consumeScene(scene){
       if(this.presentationBackend!==Device.BACKENDS.WEBGPU||!this.presenter?.ready)return false;
