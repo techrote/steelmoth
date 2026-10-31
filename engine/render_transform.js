@@ -25,6 +25,15 @@
     return {left:x-w*.5,top,right:x+w*.5,bottom:top+h,width:w,height:h,centerX:x,centerY:top+h*.5,anchorMode:String(anchor||'center')};
   }
 
+  // Raster geometry is distinct from the unrotated ordering/contact root.
+  // Translate the authored anchored rectangle into a centre-based GPU quad,
+  // retaining rotation about the original draw anchor. Flip affects UVs only;
+  // subrect sampling does not change the explicitly supplied draw rectangle.
+  function rasterCenter(opts={}){
+    const x=finite(opts.x),y=finite(opts.y),b=frameBounds({...opts,x,y}),rotation=finite(opts.rotation),co=Math.cos(rotation),si=Math.sin(rotation),dx=b.centerX-x,dy=b.centerY-y;
+    return{x:x+dx*co-dy*si,y:y+dx*si+dy*co};
+  }
+
   // Root/foot semantics deliberately preserve the accepted v1.2.3 placement contract.
   // Rotation and horizontal flip change texel orientation, not the ground-contact root.
   // The historical material-subrect path treated x/y as the subrect centre even when
@@ -98,5 +107,5 @@
     return{x0:b.left,y0:b.top,x1:b.right,y1:b.bottom,w,h,root:resolve(art,name,{x,y,w,h,anchor:bottomAnchor?'bottom':'center'}).root};
   }
 
-  return{SCHEMA,rootMetadata,sourceRegion,frameBounds,resolve,legacyFootAnchor,shadowFootRect,shadowSections,shadowPlacement,editorBounds};
+  return{SCHEMA,rootMetadata,sourceRegion,frameBounds,rasterCenter,quadCenter:rasterCenter,resolve,legacyFootAnchor,shadowFootRect,shadowSections,shadowPlacement,editorBounds};
 });

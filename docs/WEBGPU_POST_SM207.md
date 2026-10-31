@@ -14,11 +14,11 @@ Material-v2 already performs direct lighting before post. The WebGPU post module
 
 ## Grade and output equation
 
-The shader preserves the established operation order: bloom, saturation, grade mix, temperature/tint, shadow lift/highlight gain, vignette, exponential exposure, contrast/brightness, gamma, deterministic grain, then the compatibility `0.96` output power.
+The shader preserves the established operation order: bloom, saturation, grade mix, temperature/tint, shadow lift/highlight gain, vignette, exponential exposure, contrast/brightness, gamma and deterministic grain. The subsequently adopted [SM-502 colour contract](COLOUR_PIPELINE.md) replaces the historical compatibility `0.96` output power with exactly one IEC sRGB display transfer. Internal scene/bloom/grading values are linear HDR.
 
 ## Raw/debug bypass
 
-Raw/debug output is a distinct pipeline using `textureLoad()`. It copies the already-lit scene directly to the output attachment and skips bloom, grade, exposure, vignette, grain, gamma, and the remaining post chain. This is intentionally stronger than merely neutralizing controls.
+Raw/debug output is a distinct pipeline using `textureLoad()`. It skips bloom, grade, exposure, vignette, grain and gamma, while applying the SM-502 final linear-to-sRGB display transfer. It is not an untransformed copy of linear values into a display attachment.
 
 ## Browser presentation
 
@@ -26,7 +26,9 @@ Raw/debug output is a distinct pipeline using `textureLoad()`. It copies the alr
 
 ## Colour-space boundary
 
-SM-207 conservatively retains the v1.2.3 transfer behavior. It does not add sRGB/linear reinterpretation, display-P3 behavior, HDR display semantics, or a new tone mapper. That work belongs to SM-502, and diagnostics state the deferral explicitly.
+The original SM-207 transfer description was superseded by the adopted SM-502 contract. Source albedo and authored colour inputs are decoded at their documented boundaries; scene/bloom/grading are linear, and final/raw display output encodes once. Display-P3 and HDR display semantics are not introduced.
+
+The [2026-10-31 native SM-505 checkpoint](SM505_OVERNIGHT_2026-10-30.md) exposes a release-blocking compatibility problem in the unchanged artistic equation: negative shadow lift and contrast clamp low linear values before display encoding. The neutral default cutoff is approximately 0.12650575 linear, and production CPU/GPU replay reproduces the opaque blackout. This is a known visual failure, not accepted grading calibration. Defaults, saved control semantics and the linear contract remain unchanged pending a reviewed decision; raw output is diagnostic, never a repair or release bypass.
 
 ## Verification
 

@@ -225,6 +225,37 @@ The production WGSL inventory is a growing gate. Every issue that adds shaders, 
 
 ## Extending the gate
 
+SM-505 adds deterministic normal-presenter routing, canonical native light units,
+external-image usage/validation scopes, asynchronous cancellation, exclusive
+opaque/forward ownership, stage ordering, sampling and watchdog refusal tests to
+the native source runner and clean extraction. The hosted normal-game browser
+gate retains visible WebGPU and fallback/failure captures and browser logs.
+These checks do not waive the [known native post visual failure](SM505_OVERNIGHT_2026-10-30.md).
+`tools/diagnose_sm505_presentation.py` retains normal `index.html` stage readbacks;
+`tools/sm505_physical_guard.py` must wrap physical use to provide serial execution,
+telemetry and deadlines. Diagnostic completion is not physical acceptance or a
+GPU performance measurement. Never count the tooling tests' explicitly marked
+mock transport artifacts as gameplay screenshots.
+
+The b5 hosted browser failure exposed shared-image/context loss; the underlying
+cause remains unknown. First-failure snapshots now preserve the initial renderer,
+presenter and device state before fallback replaces that state. The presenter
+also bounds work to one in-flight GPU frame plus one latest pending scene and
+counts completion only after the queue promise succeeds. These are evidence and
+boundedness improvements, not a proven fix for the hosted failure. A fresh
+exact-head CI run remains required; its result must be recorded independently
+from native hardware diagnostics and from the original failed attempt.
+
+The [normal-presentation benchmark contract](SM505_NORMAL_PRESENTATION_BENCHMARK.md)
+adds JavaScript syntax, mocked normal-path scheduling and Python source/
+qualification/watchdog/report mutation checks to the source runner and clean
+extraction. `python tools/benchmark_sm505_normal.py --plan --campaign` is CPU-only.
+Actual timing refuses execution until exact-source normal presentation and visual
+correctness explicitly pass, with hash-valid evidence and an active owned physical
+watchdog. CI never launches that target campaign or generates qualification from
+diagnostic success. The total-only observer leaves uncovered command GPU time
+null and records per-pass, pure-encoding and residency limitations explicitly.
+
 SM-602 adds `node tools/validate_webgpu_ssgi.js` to the normal runner and
 `python tools/validate_webgpu_ssgi_browser.py` to the required WebGPU job. The
 browser runner fails when WebGPU is unavailable, reads production diffuse and

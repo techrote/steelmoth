@@ -1,0 +1,25 @@
+1970114 docs: preserve historical SM601 evidence and reconcile superseded PRs (#117)
+9ad695d docs: reconcile Steel Moth project and release status (#116)
+f0813d0 Merge pull request #115 from techrote/codex/sm702-forward-lighting
+bf45bbc Retain SM-702 native mixed-forward evidence and measured opt-in policy
+a0be3ed Verify actual forward material radiance and retain compact acceptance views
+1255912 Integrate optional canonical forward lighting for water foliage and glass
+cb06832 Merge pull request #114 from techrote/codex/sm603-ssgi-stabilization
+281dc8c SM-603: recognize retained CRLF evidence line endings
+de518c3 SM-603: preserve raw evidence hashes through Git checkout
+f4056b0 SM-603: retain source-matched target campaign and optional enablement decision
+237bf76 Stabilize optional SSGI donor history and canonical ambient composition
+0cfc54d Merge SM-602 bounded diffuse SSGI prototype (#113)
+812fa3d docs: record tested SSGI acceptance replay and PR checkpoint
+04f76cf docs: retain exact SM-602 native prototype evidence and checkpoint
+34b63f0 feat: add bounded diffuse SSGI prototype and native fixtures (SM-602)
+fee9477 Merge pull request #112 from techrote/sm-505/release-gate-checkpoint-50
+d87a5ac docs: record SM-505 blocked release-gate checkpoint
+19cca28 Merge pull request #111 from techrote/chore/sm601-final-status
+ba3bf2c docs: update SM-601 index status
+ae45d30 docs: mark SM-601 accepted
+65cdd57 docs: record final SM-601 acceptance
+826a378 Merge pull request #110 from techrote/codex/sm601-measured-adoption
+4de86db docs: reconcile SM-601 recovery and unmerged disposition
+b334e12 SM-601: reconcile completed acceptance and portable browser discovery
+b89e223 docs: checkpoint reviewed GTX 1650 SUPER campaign at user-requested rest

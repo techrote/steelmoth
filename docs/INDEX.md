@@ -1,6 +1,6 @@
 # Steel Moth documentation index
 
-This directory is the repository source of truth for the WebGPU migration and subsequent lighting-quality programme. **Live task authority** is in [programme tracker #51](https://github.com/techrote/steelmoth/issues/51) and linked individual issues; the [dated 2026-10-18 project snapshot](PROJECT_STATUS_2026-10-18.md) reconciles issue/PR state to `main` `f0813d0` (46/50 tasks closed). Normal game presentation remains WebGL2; SM-505 is not yet accepted. The [2026-10-21 PR reconciliation](PR_RECONCILIATION_2026-10-21.md) records subsequent archive preservation and supersession dispositions for #101/#102/#104–106.
+This directory is the repository source of truth for the WebGPU migration and subsequent lighting-quality programme. **Live task authority** is in [programme tracker #51](https://github.com/techrote/steelmoth/issues/51) and linked individual issues; the [dated 2026-10-18 project snapshot](PROJECT_STATUS_2026-10-18.md) reconciles issue/PR state to `main` `f0813d0` (46/50 tasks closed). Normal Auto presentation remains WebGL2; the explicit SM-505 presenter candidate is implemented but visually blocked and unaccepted. The [overnight engineering checkpoint](SM505_OVERNIGHT_2026-10-30.md) records native diagnostics and exact limitations. The [2026-10-21 PR reconciliation](PR_RECONCILIATION_2026-10-21.md) records subsequent archive preservation and supersession dispositions for #101/#102/#104–106.
 
 ## Authority order
 
@@ -29,6 +29,11 @@ Do not silently promote a historical suggestion into a requirement.
 - [`WEBGPU_RESOURCE_INFRASTRUCTURE.md`](WEBGPU_RESOURCE_INFRASTRUCTURE.md) — SM-103 persistent resource registry, bounded upload arenas, explicit frame graph, pipeline cache, invalidation and diagnostics contract.
 - [`WEBGPU_PERFORMANCE_INSTRUMENTATION_SM500.md`](WEBGPU_PERFORMANCE_INSTRUMENTATION_SM500.md) — SM-500 optional pass-level timestamp-query instrumentation, separate CPU phases, workload/memory accounting, bounded JSON distributions and benchmark evidence boundaries.
 - [`SM500_TIMING_BOUNDARY.md`](SM500_TIMING_BOUNDARY.md) — historical queue spans, explicit command coverage, host/readback latency and aligned query resolution.
+- [`SM505_NORMAL_PRESENTATION_BENCHMARK.md`](SM505_NORMAL_PRESENTATION_BENCHMARK.md) — actual-index eight-scene timing tooling, exact-source visual qualification gate, watchdog/provenance, null uncovered command timings and explicit measurement limits; no physical timing acceptance yet.
+- [`SM505_OPAQUE_VISIBILITY.md`](SM505_OPAQUE_VISIBILITY.md) — candidate per-light opaque visibility consumption, bounded direct accumulation, single ambient/AO resolve, shared light-buffer queue ordering and outstanding native/performance qualification.
+- [`SM505_NATIVE_UNITS.md`](SM505_NATIVE_UNITS.md) — internal material/depth/trace/DSO/cluster coordinate consistency, retained mixed-unit failures and evidence boundaries; WebGL2 visual parity is not the acceptance criterion.
+- [`SM505_FRAME_COMPLETION.md`](SM505_FRAME_COMPLETION.md) — bounded in-flight/latest-scene scheduling, completed-command counters, host completion wait semantics and unresolved hosted context-loss attribution.
+- [`SM505_LIFECYCLE_PROBE.md`](SM505_LIFECYCLE_PROBE.md) — bounded actual-presenter lifecycle diagnostic, source-matched capture custody, deliberate fallback/loss controls and limits on acceptance claims.
 - [`WEBGPU_GTAO_SM600.md`](WEBGPU_GTAO_SM600.md) — bounded half-resolution horizon/reconstruction contract and strongest-occluder Material-AO composition.
 - [`GTAO_REFERENCE_POLICY.md`](GTAO_REFERENCE_POLICY.md) — authoritative binary32 reconstruction cutoff and exact nearest-raw fallback policy.
 - [`WEBGPU_GTAO_SM601.md`](WEBGPU_GTAO_SM601.md) — quality/history rejection semantics, adopted bounded readback integration and physical acceptance gate.
@@ -83,7 +88,9 @@ Use these words consistently:
 
 ## SM-505 release-gate status
 
-- [`WEBGPU_RELEASE_VALIDATION.md`](WEBGPU_RELEASE_VALIDATION.md) — open final-promotion gate: SM-405 and SM-501 staged evidence accepted; normal-game WebGPU presentation and exact-candidate physical acceptance missing. Historical r26/r1 source-cache mismatch was reconciled to r29 by PR #115; deployed/PWA acceptance remains unverified.
+- [`SM505_OVERNIGHT_2026-10-30.md`](SM505_OVERNIGHT_2026-10-30.md) — provenance-preserving presenter integration, native light/upload/lifecycle/ownership/order repairs, actual GTX 1650 SUPER stage captures, established canonical-post blackout, and blocked qualification matrix.
+- [`SM505_BACKGROUND_RECEIVER.md`](SM505_BACKGROUND_RECEIVER.md) — material-only background receiving, unchanged ownership, and the user-requested broad, visible development inspection preset; separate native engineering controls.
+- [`WEBGPU_RELEASE_VALIDATION.md`](WEBGPU_RELEASE_VALIDATION.md) — open final-promotion gate: SM-405 and SM-501 staged evidence accepted; explicit normal-game presenter implemented as a candidate, visual gate failed, full exact-candidate physical acceptance missing. Combined candidate source-cache identity is r30/sm505-7; deployed/PWA acceptance remains unverified.
 - [`PERFORMANCE_REPORT_WEBGPU_PRIMARY.md`](PERFORMANCE_REPORT_WEBGPU_PRIMARY.md) — accepted GTX 1650 SUPER Medium/GTAO-off timing reconciliation and source-identity boundary.
 - [`RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md`](RENDERER_MEMORY_REPORT_WEBGPU_PRIMARY.md) — accepted renderer-owned descriptor accounting and evidence boundary.
 

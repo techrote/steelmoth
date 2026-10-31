@@ -1,0 +1,14 @@
+{
+  "schema": "steelmoth-sm505-evidence-custody/v1",
+  "runDirectory": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z",
+  "publishedOriginalArchive": "originals/run-evidence.zip",
+  "includedOriginalFiles": 143,
+  "includedOriginalByteCount": 259712915,
+  "sourceArchiveRetainedLocally": {
+    "path": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\integrated-ca60b95-source.zip",
+    "sha256": "2288a6863052365ffca32fe5cee02296803b8144a0ffbf707c539d21058f344a",
+    "commit": "ca60b9546e426d9caa5ac6fc05909a733571fbe2",
+    "reason": "110549794-byte source archive is retained locally and exactly reconstructable from the preserved Git commit; it is not duplicated into Git. Extracted source is also retained locally."
+  },
+  "boundary": "Original per-attempt reports/manifests are unmodified. The direct report/capture copies are for inspection; full raw .bin/PNG/log/check/analysis bytes are in the archive. Browser-runner mock-* fixtures are explicitly synthetic tooling artifacts, never gameplay evidence."
+}

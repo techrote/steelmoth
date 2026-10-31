@@ -83,3 +83,41 @@ The inherited renderer/material/fixture/GLSL/package gates remain mandatory.
 ## Downstream contract
 
 SM-201 may derive light-independent fragment-ownership depth from this root plus local Material-v2 height, layer/bias and the projection adopted there. It must consume this shared root rather than create another static/dynamic/editor/shadow-specific anchor formula. WebGL2 and WebGPU may differ in rendering fidelity, but neither backend owns sprite-root semantics.
+
+
+## SM-505 correction of anchored WebGPU raster geometry
+
+**Decision:** WebGPU presentation derives raster quad centres through
+`SteelMothRenderTransform.rasterCenter(options)` (alias `quadCenter`) from the
+existing `frameBounds` anchor authority. Inputs are the explicit destination
+`x/y/w/h`, `anchor` and `rotation`. The returned `x/y` is the centre required by a
+centre-based GPU quad. A bottom-anchored source rectangle has an unrotated centre
+offset `(0, -h/2)`; rotate that offset around the original source draw anchor
+before adding it to `x/y`. Top anchors analogously use `(0, +h/2)`. Horizontal flip
+changes UV orientation only. An atlas subrect changes sampled texels, while its
+explicit destination extent and draw anchor determine this raster rectangle.
+
+This fixes a known inherited raster defect: static background art was drawn with
+a bottom anchor, then a material quad incorrectly treated the same source `x/y`
+as its centre, producing visibly doubled prop shapes. The WebGPU derived quad
+must coincide with the authored rectangle instead of preserving that defect.
+Simply subtracting half-height after rotation is insufficient because it moves
+the quad about the wrong pivot. Root/foot metadata, ordering roots, historical
+subrect root reconstruction, editor geometry, gameplay and source descriptors
+remain unchanged. Raster centre and contact root are deliberately separate
+outputs from this same authority.
+
+The earlier SM-101 placement-preservation statement remains applicable to the
+accepted WebGL2 fallback and archived evidence. SM-505 explicitly corrects this
+anchored raster bug in the derived WebGPU presentation only; it does not patch
+WebGL2 `materialDescriptorVertices`, redefine either backend's root metadata or
+require WebGPU to reproduce the fallback's visual limitations. Previous captures
+remain historical failed evidence, separate from corrected-source captures.
+
+`tools/validate_sm505_raster_anchor.js` compares all four GPU-quad corners with
+independent Canvas2D affine-matrix evaluation for centre/bottom/top anchors,
+full/subrect destination geometry, rotation and horizontal flip. It retains
+negative witnesses for ignoring the anchor and for subtracting half-height
+without rotating the pivot offset. Existing root/foot compatibility regressions
+continue to apply; native captures are still required to verify the integrated
+normal-game placement and exclusion of duplicate prop shapes.

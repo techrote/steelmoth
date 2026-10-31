@@ -1,0 +1,147 @@
+{
+  "schema": "steelmoth-sm505-host-telemetry-summary/v1",
+  "createdAtUtc": "2026-10-31T00:02:54.956707+00:00",
+  "runs": [
+    {
+      "guardDirectory": "physical-prefix-ca60b95-guard",
+      "sourceCommit": "ca60b9546e426d9caa5ac6fc05909a733571fbe2",
+      "sourceTree": "84475cb8cd13e411866e18078f0ab0e3cdb2456e",
+      "guardOk": false,
+      "workloadReturncode": 1,
+      "failure": {
+        "type": "RuntimeError",
+        "message": "workload-exit-1",
+        "at": "2026-10-30T23:53:45.428984+00:00"
+      },
+      "startedAt": "2026-10-30T23:53:33.215872+00:00",
+      "endedAt": "2026-10-30T23:53:45.430185+00:00",
+      "elapsedHostSeconds": 12.214318700000035,
+      "telemetrySampleCount": 12,
+      "guardDeclaredSampleCount": 12,
+      "sampleCountsMatch": true,
+      "metrics": {
+        "temperatureC": {
+          "min": 32.0,
+          "max": 34.0,
+          "samples": 12
+        },
+        "powerW": {
+          "min": 5.39,
+          "max": 24.86,
+          "samples": 12
+        },
+        "graphicsClockMHz": {
+          "min": 300.0,
+          "max": 1530.0,
+          "samples": 12
+        },
+        "memoryClockMHz": {
+          "min": 405.0,
+          "max": 6000.0,
+          "samples": 12
+        },
+        "memoryUsedMiB": {
+          "min": 425.0,
+          "max": 1676.0,
+          "samples": 12
+        },
+        "gpuUtilizationPct": {
+          "min": 0.0,
+          "max": 23.0,
+          "samples": 12
+        }
+      },
+      "thermalStopRecorded": false,
+      "deadlineStopRecorded": false,
+      "cleanupErrorRecorded": null,
+      "maxTemperatureBelow82C": true,
+      "identityConstant": true,
+      "gpuIdentity": {
+        "name": "NVIDIA GeForce GTX 1650 SUPER",
+        "uuid": "GPU-f2d0eee8-2045-6c99-f33e-4c04636acdf7",
+        "driver": "616.92",
+        "memoryTotalMiB": 4096.0
+      },
+      "originalEvidenceSha256": {
+        "guard.json": "41df71a409a3fb3ca3dfa63b76670889a0546e02657b3bedf020da15177fcbbe",
+        "telemetry.jsonl": "5b98bb343a702f29c0de664149b96bd5d69ebad158c8a728ace06c4c0bbb95e5"
+      },
+      "disposition": "Failed original baseline workload; guard correctly retained workload-exit-1. This is not a thermal, deadline or cleanup failure."
+    },
+    {
+      "guardDirectory": "physical-8285c61-guard",
+      "sourceCommit": "8285c6131eb88e74e2e2da10cf7be02909eb4a6d",
+      "sourceTree": "a73c2c1dfac63aabedbfef3d059f33b64edfe86b",
+      "guardOk": true,
+      "workloadReturncode": 0,
+      "failure": null,
+      "startedAt": "2026-10-30T23:58:52.324622+00:00",
+      "endedAt": "2026-10-30T23:59:57.275130+00:00",
+      "elapsedHostSeconds": 64.95050930000002,
+      "telemetrySampleCount": 62,
+      "guardDeclaredSampleCount": 62,
+      "sampleCountsMatch": true,
+      "metrics": {
+        "temperatureC": {
+          "min": 32.0,
+          "max": 34.0,
+          "samples": 62
+        },
+        "powerW": {
+          "min": 5.23,
+          "max": 22.24,
+          "samples": 62
+        },
+        "graphicsClockMHz": {
+          "min": 300.0,
+          "max": 1530.0,
+          "samples": 62
+        },
+        "memoryClockMHz": {
+          "min": 405.0,
+          "max": 6000.0,
+          "samples": 62
+        },
+        "memoryUsedMiB": {
+          "min": 425.0,
+          "max": 1918.0,
+          "samples": 62
+        },
+        "gpuUtilizationPct": {
+          "min": 0.0,
+          "max": 27.0,
+          "samples": 62
+        }
+      },
+      "thermalStopRecorded": false,
+      "deadlineStopRecorded": false,
+      "cleanupErrorRecorded": null,
+      "maxTemperatureBelow82C": true,
+      "identityConstant": true,
+      "gpuIdentity": {
+        "name": "NVIDIA GeForce GTX 1650 SUPER",
+        "uuid": "GPU-f2d0eee8-2045-6c99-f33e-4c04636acdf7",
+        "driver": "616.92",
+        "memoryTotalMiB": 4096.0
+      },
+      "originalEvidenceSha256": {
+        "guard.json": "618b8b6926f3dd419f996c011f5e05facfef126dbd9902d426342a0e267d45b9",
+        "telemetry.jsonl": "85420af5def9cc8db4e5fb09953e7b2790a2bd7f95a747400621a54c984b57fc"
+      },
+      "disposition": "Successful diagnostic execution only; visual acceptance remains failed and physical release/performance qualification is not claimed."
+    }
+  ],
+  "processInspection": {
+    "inspectedAtUtc": "2026-10-31T00:02:39.6035185Z",
+    "method": "Read-only Win32_Process snapshot: recorded guard child PID and exact isolated Chrome user-data-dir strings from original reports.",
+    "recordedPid": 7764,
+    "isolatedProfiles": [
+      "C:\\Users\\-\\AppData\\Local\\Temp\\sm505-diagnostic-8hjo5pgc",
+      "C:\\Users\\-\\AppData\\Local\\Temp\\sm505-diagnostic-hx8dyf7o"
+    ],
+    "matchingProcesses": [],
+    "finding": "No recorded child PID or Chrome process matching either isolated profile remains. Descendant enumeration is not a historical process-tree trace; PID alone is never ownership proof because PIDs can be reused. No process was terminated by this analysis."
+  },
+  "memoryBoundary": "nvidia-smi memoryUsedMiB is sampled device-wide driver-visible allocation, including desktop/unrelated applications, both retained rendering backends, browser allocation/cache and diagnostic observer resources. It is not renderer-owned descriptor bytes, production peak working set, a leak measurement, or a source-isolated production delta. Successful stage capture allocates transient texture-readback staging buffers and replay post/depth targets; it also retains returned CPU arrays/PNGs. No production memory conclusion follows from these device-wide maxima.",
+  "performanceBoundary": "Elapsed seconds, power/utilization and clocks are host telemetry only. These diagnostics are not the required 300+600 x3 eight-scene performance campaign. No GPU queue/command time is inferred."
+}

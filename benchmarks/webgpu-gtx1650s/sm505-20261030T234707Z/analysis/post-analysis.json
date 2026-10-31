@@ -1,0 +1,360 @@
+{
+  "schema": "steelmoth-sm505-post-analysis/v1",
+  "source": "8285c6131eb88e74e2e2da10cf7be02909eb4a6d",
+  "inputReport": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-8285c61\\report.json",
+  "inputReportSha256": "686f2b10775f20bcc761d9c8b2507079cb4a215bbb0e3626132001727893da76",
+  "productionPostSourceSha256": "c1152f8867a98555e29fdc5c61c992b22e9e445f332c8021530402ab12ee830f",
+  "productionSourceMatches": true,
+  "boundary": "Offline CPU analysis of original native GPU readbacks. No additional GPU workload, performance claim, visual acceptance, altered original evidence or changed production settings.",
+  "probe": {
+    "rows": [
+      {
+        "inputHalfWord": 11878,
+        "inputLinear": 0.0999755859375,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "finalMaximumAbsoluteError": 0,
+        "cpuRaw": [
+          0.34914909334547867,
+          0.34914909334547867,
+          0.34914909334547867
+        ],
+        "gpuRaw": [
+          0.3490196168422699,
+          0.3490196168422699,
+          0.3490196168422699
+        ],
+        "rawMaximumAbsoluteError": 0.0001294765032087697
+      },
+      {
+        "inputHalfWord": 12288,
+        "inputLinear": 0.125,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "finalMaximumAbsoluteError": 0,
+        "cpuRaw": [
+          0.3885728590463344,
+          0.3885728590463344,
+          0.3885728590463344
+        ],
+        "gpuRaw": [
+          0.38823530077934265,
+          0.38823530077934265,
+          0.38823530077934265
+        ],
+        "rawMaximumAbsoluteError": 0.0003375582669917221
+      },
+      {
+        "inputHalfWord": 12329,
+        "inputLinear": 0.1300048828125,
+        "cpuFinal": [
+          0.07262305066796881,
+          0.07262305066796881,
+          0.07262305066796881
+        ],
+        "gpuFinal": [
+          0.07058823853731155,
+          0.07058823853731155,
+          0.07058823853731155
+        ],
+        "finalMaximumAbsoluteError": 0.0020348121306572597,
+        "cpuRaw": [
+          0.3958883210942131,
+          0.3958883210942131,
+          0.3958883210942131
+        ],
+        "gpuRaw": [
+          0.3960784375667572,
+          0.3960784375667572,
+          0.3960784375667572
+        ],
+        "rawMaximumAbsoluteError": 0.00019011647254407738
+      },
+      {
+        "inputHalfWord": 12739,
+        "inputLinear": 0.1800537109375,
+        "cpuFinal": [
+          0.3363299878678535,
+          0.3363299878678535,
+          0.3363299878678535
+        ],
+        "gpuFinal": [
+          0.33725491166114807,
+          0.33725491166114807,
+          0.33725491166114807
+        ],
+        "finalMaximumAbsoluteError": 0.0009249237932945631,
+        "cpuRaw": [
+          0.46142032292277296,
+          0.46142032292277296,
+          0.46142032292277296
+        ],
+        "gpuRaw": [
+          0.4627451002597809,
+          0.4627451002597809,
+          0.4627451002597809
+        ],
+        "rawMaximumAbsoluteError": 0.0013247773370079208
+      },
+      {
+        "inputHalfWord": 14336,
+        "inputLinear": 0.5,
+        "cpuFinal": [
+          0.8160821918959679,
+          0.8160821918959679,
+          0.8160821918959679
+        ],
+        "gpuFinal": [
+          0.8156862854957581,
+          0.8156862854957581,
+          0.8156862854957581
+        ],
+        "finalMaximumAbsoluteError": 0.00039590640020981116,
+        "cpuRaw": [
+          0.7353569830524495,
+          0.7353569830524495,
+          0.7353569830524495
+        ],
+        "gpuRaw": [
+          0.7372549176216125,
+          0.7372549176216125,
+          0.7372549176216125
+        ],
+        "rawMaximumAbsoluteError": 0.0018979345691630956
+      },
+      {
+        "inputHalfWord": 15360,
+        "inputLinear": 1,
+        "cpuFinal": [
+          1.0032834683736263,
+          1.0032834683736263,
+          1.0032834683736263
+        ],
+        "gpuFinal": [
+          1,
+          1,
+          1
+        ],
+        "finalMaximumAbsoluteError": 0,
+        "cpuRaw": [
+          0.9999999999999999,
+          0.9999999999999999,
+          0.9999999999999999
+        ],
+        "gpuRaw": [
+          1,
+          1,
+          1
+        ],
+        "rawMaximumAbsoluteError": 1.1102230246251565e-16
+      },
+      {
+        "inputHalfWord": 0,
+        "inputLinear": 0,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "finalMaximumAbsoluteError": 0,
+        "cpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "gpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "rawMaximumAbsoluteError": 0
+      },
+      {
+        "inputHalfWord": 0,
+        "inputLinear": 0,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "finalMaximumAbsoluteError": 0,
+        "cpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "gpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "rawMaximumAbsoluteError": 0
+      }
+    ],
+    "tolerance": 0.00392156862745098,
+    "allWithinOneOutputCode": true
+  },
+  "neutralDefaultZeroCutoff": {
+    "linearInput": 0.12650575128413377,
+    "conditions": "neutral RGB/grade1, no vignette, no grain, no bloom contribution; preL below .18 so full shadowLift applies",
+    "derivation": "grade gain1.0625; subtract .10; exposure=1-exp(-max(c,0)*1.60); contrast1.12 introduces -.06; clamp to0 before OETF",
+    "requirement": "No default change or display-space grading adopted."
+  },
+  "occupiedPostComparison": {
+    "mask": "authoritative object-ID != 0",
+    "count": 120753,
+    "expectedBlack": 120500,
+    "actualBlack": 120500,
+    "expectedBlackFraction": 0.9979048139590735,
+    "actualBlackFraction": 0.9979048139590735,
+    "blackClassificationAgreement": 1,
+    "exactBytePixelFraction": 0.9999089049547423,
+    "withinOneOutputCodePixelFraction": 1,
+    "maximumAbsoluteByteError": 1,
+    "meanAbsoluteByteError": 3.0365015085891586e-05,
+    "maximumRawAbsoluteByteError": 1,
+    "examplesOverOneCode": [],
+    "bloomAssumption": "Measured pre-post luminance never reaches .7; linear bright extraction produces zero, so reference bloom input is zero."
+  },
+  "recommendedDecision": "Keep SM-502 linear HDR lighting/bloom/grade and exactly one final sRGB transfer; retain current saved/default controls unchanged in this candidate. Record default shadow-lift/contrast clipping as an unresolved visual gate. A separate reviewed colour/grading decision must define control value units, intended black/grey reference outputs and compatibility mapping before modifying the artistic operator. Do not compensate lighting, bypass post, or accept black frames.",
+  "originalManifestVerification": {
+    "files": 30,
+    "allMatch": true,
+    "manifestSha256": "8ce6fa9e9829eda1e84c7d30fe5207fb98d1ac7299ac2ac9e63e9f0e91cc9410"
+  },
+  "stageDecomposition": {
+    "mask": "authoritative object-ID !=0",
+    "occupiedPixels": 120753,
+    "quantiles": [
+      0,
+      0.5,
+      0.9,
+      0.95,
+      0.99,
+      1
+    ],
+    "rawLightingMaxRGBQuantiles": [
+      0.0,
+      0.0096893310546875,
+      0.0233612060546875,
+      0.03049316406249991,
+      0.05133056640625,
+      0.6337890625
+    ],
+    "prePostMaxRGBQuantiles": [
+      0.0,
+      0.022613525390625,
+      0.039154052734375,
+      0.06016235351562482,
+      0.0897192382812495,
+      0.43798828125
+    ],
+    "fullPrePostMaximumRGB": 0.47265625,
+    "fullPrePostMaximumLuminance": 0.45376523437499994,
+    "bloomAboveThresholdPixels": 0,
+    "occupiedMeanLightingPerChannel": [
+      0.00958691120293813,
+      0.010963753546353327,
+      0.007981897864492937
+    ],
+    "reconstructedMeanAmbientPerChannel": [
+      0.007343248818647605,
+      0.0074494099277585225,
+      0.005284293588688235
+    ],
+    "reconstructedMeanBoundedDirectPerChannel": [
+      0.0022436623842886005,
+      0.0035143436185924863,
+      0.002697604275803817
+    ],
+    "reconstructedMeanEmissivePerChannel": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "reconstructionLimit": "Ambient/emissive evaluated using captured quantized G0/G2, recorded settings and the production SM-204 equation. Direct is the residual; small negative values are binary16 rounding, not negative physical light.",
+    "ambientFractionOfSummedLighting": 0.703650513515412,
+    "pixelsWithGeometricDirectInfluenceFraction": 0.3625499987577948,
+    "directInfluenceMethod": "Per-pixel captured normal/material height, pixel centers and recorded canonical light radius/cone/NoL conditions; threshold boundaries inherit binary16 source quantization.",
+    "occupiedPixelsChangedByForwardCompositionFraction": 0.8892035808634154,
+    "emptyRawLightingRGBMaximum": 0.0,
+    "emptyRawLightingAlphaMaximum": 0.0,
+    "emptyOpaqueCompositionMeanPerChannel": [
+      0.02447803219894107,
+      0.021998824287153735,
+      0.017319952158960497
+    ]
+  },
+  "sourceFindings": [
+    {
+      "status": "CONFIRMED SOURCE CONTRACT GAP",
+      "finding": "Opaque SM-307 masks execute but do not feed the opaque scene",
+      "evidence": "presenter _render visibility.update then lighting.render; SM-204 bind layout contains only G0/G1/G2/lights/frame; opaque composite binds only backdrop and lit output",
+      "implication": "DSO/local/contact/Dark Bloom do not affect opaque output. This omission cannot explain excessive darkening because it omits attenuation. Separate direct/ambient resolve is required; do not multiply the combined debug envelope universally."
+    },
+    {
+      "status": "CONFIRMED SOURCE CONTRACT GAP",
+      "finding": "Painted floor/background bypasses deferred lighting",
+      "evidence": "WebGL2 renderGBuffer draws gbufferBackgroundProg across the full surface; WebGPU gb.renderScene consumes only HD sprite records. Presenter composite returns lit.rgb+bg.rgb*(1-lit.a), without canonical light/visibility sampling on bg.",
+      "nativeObservation": "Outside object ownership, raw lighting RGB and alpha are exactly0 but opaque composition contains nonzero backdrop values.",
+      "implication": "WebGL2/WebGPU floor/light response is not equivalent; brightness tuning post cannot restore the missing lighting dependency."
+    },
+    {
+      "status": "CONFIRMED SOURCE EXTRACTION OVERLAP",
+      "finding": "Opaque-cutout records are also selected for world-alpha replay",
+      "recordCounts": {
+        "opaqueCutoutSprites": 133,
+        "alsoTransparentEligible": 132,
+        "staticAlpha094": 114,
+        "staticAlpha092": 17,
+        "dynamicAlpha0995": 1
+      },
+      "evidence": "Gbuffer eligibility HD, non-glow, alpha>=.5; transparent spriteEligible includes alpha<.999 regardless coverageClass; presenter sourceFrames passes all HD records.",
+      "implication": "Exclusive ownership needs an explicit predicate before generic world-alpha extraction. Native prepost differs from opaque composition at88.920% of occupied pixels, including the forward path; current capture alone cannot attribute every differing pixel to replay rather than procedural contributions."
+    },
+    {
+      "status": "SOURCE ORDER MISMATCH; NOT EXERCISED BY THIS FRAME",
+      "finding": "Presenter emits post-effects after top-additive/top-alpha, while SM-402 requires post-effects before top stages.",
+      "evidence": "presenter _render loops top stages then overlay stages post-effects/objective/guide; docs/WEBGPU_ORDERING_SM402.md stages9-11 require opposite tail.",
+      "implication": "Fix actual execution order; recording an Ordering.buildFramePlan does not execute or enforce that plan."
+    },
+    {
+      "status": "SOURCE SEMANTICS; NATIVE FOREGROUND NOT RUN",
+      "finding": "HD foreground enters canonical foreground ownership; transparent eligibility can select it again, while procedural foreground is separately classifier-controlled.",
+      "evidence": "Gbuffer allowed categories include foreground; ownership layerFor foreground=1. scaleScene baseline transparent depth uses localHeight0 and per-quad depth. Foliage raster mode2 bypasses depth only for frontBlend>=.5.",
+      "implication": "This native frame contains0 foreground sprites/top sprites, so no physical foreground ordering or occlusion acceptance is established."
+    }
+  ],
+  "unresolved": [
+    "Default post artistic-control domain/black-point decision; correct implementation matches destructive existing equation.",
+    "Opaque canonical visibility integration, background/floor light response and exclusive opaque-versus-forward ownership.",
+    "Foreground/UI/water/foliage/transparent visual correctness beyond this single frame.",
+    "Human visual parity and full exact-candidate physical performance acceptance remain blocked."
+  ]
+}

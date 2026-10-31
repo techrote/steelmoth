@@ -1,0 +1,115 @@
+{
+  "schema": "steelmoth-sm505-wrap-checkpoint/v1",
+  "capturedSource": "62e7856cf1dca1d0b21d0f1301260ab1a6ffcc88",
+  "capturedTree": "bf4a123b8504581cba812db30c30afc46b684e4f",
+  "sourceClosureUnchanged": true,
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/156.0.8078.74",
+    "revision": "@d331de35ca8ab1358c7a17e4bd41627d55eaef51",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "jsVersion": "15.6.75.25"
+  },
+  "configuration": {
+    "fixture": "dense-mixed",
+    "angle": 0,
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "quality": "Medium",
+    "gtao": false,
+    "receiverProbe": true,
+    "visibilityProbe": true,
+    "selfReconstructionProbe": true,
+    "emissiveProbe": true,
+    "lifecycleProbe": true,
+    "inspection": "development"
+  },
+  "ok": true,
+  "releaseAcceptance": false,
+  "performanceAcceptance": false,
+  "visualAcceptance": "FAIL: user review of exact reconstructed capture: They look a bit too weak/blurry now.",
+  "probeChecks": {
+    "receiverProbe": {
+      "ok": true,
+      "passed": 12,
+      "total": 12
+    },
+    "visibilityProbe": {
+      "ok": true,
+      "passed": 5,
+      "total": 5
+    },
+    "selfReconstructionProbe": {
+      "ok": true,
+      "passed": 11,
+      "total": 11
+    },
+    "emissiveProbe": {
+      "ok": true,
+      "passed": 14,
+      "total": 14
+    },
+    "lifecycleProbe": {
+      "ok": true,
+      "passed": 39,
+      "total": 39
+    }
+  },
+  "selfReconstruction": {
+    "finite": true,
+    "minimum": 0.249267578125,
+    "maximum": 1,
+    "rawOcclusionMass": 214962.84497070312,
+    "filteredOcclusionMass": 215002.78454589844,
+    "relativeMassDrift": 0.0001857975744634185,
+    "maxCPUAbsError": 0.0004882570915119011,
+    "nearPixels": 14250,
+    "nearByteValueMismatches": 0,
+    "outsideDriverPixels": 1171514,
+    "outsideDriverMismatches": 0,
+    "receiverBoundaryPixels": 150139,
+    "receiverBoundaryMaxCPUAbsError": 0.0004880509075492201,
+    "farFloorHFSamples": 765776,
+    "rawHFPower": 11820.831751051359,
+    "filteredHFPower": 321.5081538632512,
+    "hfReduction": 0.9728015624759522
+  },
+  "telemetry": {
+    "temperatureC": {
+      "minimum": 31.0,
+      "maximum": 34.0
+    },
+    "powerW": {
+      "minimum": 5.07,
+      "maximum": 22.23
+    },
+    "graphicsClockMHz": {
+      "minimum": 300.0,
+      "maximum": 1530.0
+    },
+    "memoryClockMHz": {
+      "minimum": 405.0,
+      "maximum": 6000.0
+    },
+    "memoryUsedMiB": {
+      "minimum": 349.0,
+      "maximum": 1848.0
+    }
+  },
+  "telemetrySamples": 200,
+  "lifecycleNotRun": {
+    "actualDeviceLoss": "NOT RUN: no device.destroy/loss/driver-reset injection; only controlled runtime presenter failure",
+    "roomEditor": "NOT RUN: separate public editor/room mutation contract required"
+  },
+  "notRun": [
+    "physical renderer-GPU performance matrix",
+    "physical Firefox",
+    "actual device loss",
+    "normal-game emissive material coverage",
+    "full room/editor undo-redo campaign",
+    "soak/leak qualification"
+  ],
+  "failedCliAttempt": "First62e guard launch rejected --timeout840 before browser/GPUwork; originals retained separately; corrected bounded run is not a retry of a failed GPUworkload.",
+  "nextAction": "Repair distant self-shadow detail/strength retention; add complementary quality metrics; requalify source before performance campaign."
+}

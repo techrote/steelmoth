@@ -82,6 +82,36 @@ Failure paths include:
 
 The graphics menu receives a migration-backend selector plus a status line. Selection persists through local storage except URL test overrides.
 
+### SM-505 first-failure custody
+
+The runtime records synchronous `firstFailure` and `lastFailure` snapshots before
+its failure teardown closes the current presenter, infrastructure or manager.
+The first record lasts for the entire runtime instance, including later explicit
+selections and `close()`; creating a new runtime starts a new session. The last
+record updates on subsequent captures. `failureSnapshotCount` counts captured
+snapshots, not distinct physical faults: initialization can capture both the
+pre-presenter-close state and the later generic fallback state.
+
+Snapshots contain backend/generation state, source/surface extent, canvas count,
+exposed frame/pending counters, native-unit/opaque-light plans and read-only
+manager/resource/pipeline diagnostics. Missing submitted, completed or in-flight
+counters remain `null`; the legacy `presentedFrames` counter represents CPU
+submission rather than proven GPU completion. Device-loss and uncaptured-error
+details are retained before their owners are cleared. No GPU command, readback,
+completion wait or diagnostic screenshot is issued by snapshot collection.
+
+History holds plain JSON copies only. Circular references, shared resource aliases, opaque objects,
+unreadable fields and throwing producer diagnostics receive explicit markers.
+Each snapshot is bounded to 65,536 serialized characters, with depth/node/key,
+string and array caps; at most 16 uncaptured-error entries plus truncation metadata
+are copied. Snapshot failures cannot prevent the existing fallback. Public
+diagnostics return copies, so consumers cannot rewrite retained evidence.
+
+This improves failure evidence; it does not establish the cause of the retained
+hosted Chrome swapbuffer/shared-image loss or turn any loss into PASS.
+`tools/validate_sm505_failure_snapshots.js` exercises these contracts using CPU
+fakes only. Native and hosted execution remain separate evidence.
+
 ## Verification
 
 Repository verification adds three evidence layers:

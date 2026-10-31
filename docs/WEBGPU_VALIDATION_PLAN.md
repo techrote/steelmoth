@@ -118,6 +118,15 @@ Extreme scale/flip/rotation/subrect/DPR must not leak albedo or material channel
 
 ## 7. Deterministic visual fixture harness
 
+For each visible issue encountered during qualification, post the actual
+source-matched screenshot with: observed symptoms; suspected subsystem/cause;
+the exact measured comparison or clearly labelled visual criterion used to flag
+it; and a targeted question when human knowledge could reveal a missed fault.
+Identify reference/control images unambiguously. Distinguish a measured black
+fraction from a fault criterion: intended darkness is product context, and a
+percentage alone cannot establish incorrect grading. Preserve unanswered human
+questions as pending, never as approval, while continuing independent work.
+
 The renderer test harness must accept a deterministic fixture, backend, quality tier, resolution and light angle and produce:
 
 - screenshot PNG;
@@ -336,3 +345,25 @@ No ghost material/depth/cluster/history state; room transitions and saves remain
 Chrome and Firefox target-hardware runs documented; 1650S target timing gate passes or a documented decision explicitly revises it.
 
 Only after A–F may `Auto` prefer WebGPU by default.
+
+
+## 2026-10-31 visual acceptance clarification
+
+**Requirement (user):** WebGPU is an advanced visual upgrade. Its lighting
+proportions, shadow lengths and rendered output may differ substantially from
+WebGL2. WebGL2 is a supported fallback and a source/context reference; pixel
+parity or matching its limitations is not the WebGPU quality ceiling.
+
+Judge WebGPU by coherent directional lighting, one grounded visible object per
+source object, stable ownership/depth, readable materials, clean near/distant
+shadow structure, temporal stability and the measured target performance gates.
+An internal unit conversion must be justified by clipping, resolution-dependent
+material/ownership errors or another source-supported failure, not by a desire
+to reproduce a WebGL2 shadow length. Preserve explicit artistic controls and
+separate inspection settings from performance/release configuration.
+
+The user approved development inspection version2 brightness/beam controls and
+rejected the distant speckled static-grass trails; the nearest tuft is the human
+reference for acceptable shadow character. The annotated feedback and subsequent
+captures belong to separate source/configuration evidence, not a universal
+numeric darkness or shadow-coverage threshold.

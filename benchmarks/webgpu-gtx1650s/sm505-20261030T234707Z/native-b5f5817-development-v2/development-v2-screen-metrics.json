@@ -1,0 +1,21 @@
+{
+  "source": "b5f5817e82156aebb7c807e1d083e8593a75c69e",
+  "image": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-b5f5817-development-v2\\webgpu-presented.png",
+  "sha256": "41f23db56f85f951af61b5ff40a83a6c875d100c4c45135dbd233bf5e0f0569b",
+  "roiXYXY": [
+    27,
+    90,
+    1893,
+    920
+  ],
+  "exactBlackFraction": 8.200002582677979e-05,
+  "atMostOneRGBCodeFraction": 8.264569532147884e-05,
+  "displayCodeLumaPercentiles": {
+    "p1": 6.999999999999999,
+    "p10": 15.0734,
+    "p50": 43.2912,
+    "p90": 73.7834,
+    "p99": 100.85433599999993
+  },
+  "boundary": "Display-code luma description for inspection utility, not linear photometry, artistic fault threshold, visual acceptance or GPU performance."
+}

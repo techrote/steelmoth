@@ -1,0 +1,14 @@
+ M engine/backend_runtime.js
+ M engine/webgpu_scene_presenter.js
+ M render-test.html
+ M tools/validate_render_harness.py
+ M tools/validate_render_transform_contract.py
+ M tools/validate_sm505_presentation.js
+ M tools/validate_v122_coherence.py
+?? artifacts/
+?? tools/__pycache__/
+?? tools/diagnose_sm505_presentation.py
+?? tools/sm505_capture_stages.js
+?? tools/sm505_physical_guard.py
+?? tools/validate_sm505_physical_guard.py
+?? tools/validate_sm505_scene_scale.js

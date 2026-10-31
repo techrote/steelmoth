@@ -18,6 +18,12 @@
   const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
   const bufferUsage=names=>names.reduce((v,n)=>v|Number(root?.GPUBufferUsage?.[n]??FALLBACK_BUFFER_USAGE[n]??0),0);
 
+  // Convert a native fragment coordinate back into canonical logical depth units.
+  function ownershipWorldScale(value=1){const n=Number(value);return Number.isFinite(n)&&n>0?Math.max(1/16,Math.min(16,n)):1}
+  function ownershipFrameBytes(width,height,atlasWidth,atlasHeight,alphaCutoff,worldScale=1){
+    return new Float32Array([width,height,atlasWidth,atlasHeight,alphaCutoff,ownershipWorldScale(worldScale),0,0]);
+  }
+
   function prepareOwnershipInstance(instance={}){
     return {
       ...instance,
@@ -63,7 +69,7 @@ fn smOwnershipDepth(fragmentScreenY:f32,localHeight:f32,layer:f32,bias:f32)->f32
 
   const MATERIAL_WGSL=`
 struct Instance { rect:vec4f, uv:vec4f, tintAlpha:vec4f, material:vec4f, ids:vec4u };
-struct Frame { logicalAtlas:vec4f, alphaCutoff:f32, _pad0:vec3f };
+struct Frame { logicalAtlas:vec4f, alphaCutoff:f32, worldScale:f32, _pad0:vec2f };
 @group(0) @binding(0) var nearestSampler:sampler;
 @group(0) @binding(1) var albedoTex:texture_2d<f32>;
 @group(0) @binding(2) var nrTex:texture_2d<f32>;
@@ -93,7 +99,7 @@ struct FSOut { @location(0) g0:vec4f,@location(1) g1:vec4f,@location(2) g2:vec4f
   let nr=textureSample(nrTex,nearestSampler,in.uv);let hm=textureSample(hmTex,nearestSampler,in.uv);var n=normalize(nr.xyz*2.0-1.0);if((in.flags&1u)!=0u){n.x=-n.x;}let co=cos(in.material.x);let si=sin(in.material.x);n=normalize(vec3f(n.x*co-n.y*si,n.x*si+n.y*co,n.z));
   let mode=in.material.w;var base:vec3f;if(mode<.5){base=mix(t.rgb,t.rgb*in.tintAlpha.rgb,.07);}else if(mode<1.5){base=mix(t.rgb,in.tintAlpha.rgb,clamp(in.material.z,0.0,1.0));}else{let lum=dot(t.rgb,vec3f(.26,.62,.12));base=in.tintAlpha.rgb*(.28+lum*.98)+pow(max(t.rgb,vec3f(0)),vec3f(2.4))*.12;}
   let localHeight=clamp(hm.r*in.material.y,0.0,1.0);
-  var out:FSOut;out.g0=vec4f(base,1.0);out.g1=vec4f(n*.5+.5,nr.a);out.g2=vec4f(localHeight,hm.b,hm.g,hm.a);out.objectId=in.objectId;out.depth=smOwnershipDepth(in.position.y,localHeight,in.depthMeta.x,in.depthMeta.y);return out;
+  var out:FSOut;out.g0=vec4f(base,1.0);out.g1=vec4f(n*.5+.5,nr.a);out.g2=vec4f(localHeight,hm.b,hm.g,hm.a);out.objectId=in.objectId;out.depth=smOwnershipDepth(in.position.y/frame.worldScale,localHeight,in.depthMeta.x,in.depthMeta.y);return out;
 }`;
   function ownershipMaterialWgsl(normalEncoding='xyz'){if(normalEncoding!=='oct8')return MATERIAL_WGSL;return MATERIAL_WGSL.replace('struct FSOut {','fn smOctEncode(n0:vec3f)->vec2f{var n=n0/(abs(n0.x)+abs(n0.y)+abs(n0.z));if(n.z<0.0){let old=n.xy;n.x=(1.0-abs(old.y))*select(-1.0,1.0,old.x>=0.0);n.y=(1.0-abs(old.x))*select(-1.0,1.0,old.y>=0.0);}return n.xy*.5+.5;}\nstruct FSOut {').replace('out.g1=vec4f(n*.5+.5,nr.a);','out.g1=vec4f(smOctEncode(n),0.0,nr.a);')}
 
@@ -125,7 +131,7 @@ struct Out { value:f32, _pad0:vec3f };
     }
     async renderInstances(instances,options={}){
       await this.initialize();if(!this.atlas)throw new Error('Material-v2 atlases are not configured');instances=Array.from(instances||[]).map(prepareOwnershipInstance);if(instances.length>this.maxInstances)throw new RangeError(`G-buffer instance count ${instances.length} exceeds ${this.maxInstances}`);
-      const packed=packOwnershipInstances(instances),frame=new Float32Array(8);frame[0]=this.width;frame[1]=this.height;frame[2]=this.atlas.width;frame[3]=this.atlas.height;frame[4]=this.alphaCutoff;this.queue.writeBuffer(this._record('instances').handle,0,packed);this.queue.writeBuffer(this._record('frame').handle,0,frame);
+      const packed=packOwnershipInstances(instances),frame=ownershipFrameBytes(this.width,this.height,this.atlas.width,this.atlas.height,this.alphaCutoff,options.worldScale);this.queue.writeBuffer(this._record('instances').handle,0,packed);this.queue.writeBuffer(this._record('frame').handle,0,frame);
       const v=this._views(),encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:sm202-frame`}),pass=encoder.beginRenderPass({label:`${this.labelPrefix}:sm202-ownership-pass`,colorAttachments:[{view:v.g0,clearValue:G.CLEAR.g0,loadOp:'clear',storeOp:'store'},{view:v.g1,clearValue:G.CLEAR.g1,loadOp:'clear',storeOp:'store'},{view:v.g2,clearValue:G.CLEAR.g2,loadOp:'clear',storeOp:'store'},{view:v.objectId,clearValue:G.CLEAR.objectId,loadOp:'clear',storeOp:'store'}],depthStencilAttachment:{view:v.depth,depthClearValue:G.CLEAR.depth,depthLoadOp:'clear',depthStoreOp:'store'}});pass.setPipeline(this.materialPipeline);pass.setBindGroup(0,this.bindGroup);
       if(instances.length){let start=0;while(start<instances.length){const order=G.CATEGORY_ORDER[instances[start].category]??2;let end=start+1;while(end<instances.length&&(G.CATEGORY_ORDER[instances[end].category]??2)===order)end++;pass.draw(6,end-start,0,start);start=end;}}
       pass.end();this.queue.submit([encoder.finish()]);if(options.wait!==false&&typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();this.renderCount++;this.ownershipRenderCount++;this.lastInstanceCount=instances.length;return{schema:SCHEMA,instanceCount:instances.length,drawBatches:new Set(instances.map(s=>G.CATEGORY_ORDER[s.category]??2)).size,depthWriteEnabled:true,depthCompare:'less'};
@@ -145,7 +151,7 @@ struct Out { value:f32, _pad0:vec3f };
     diagnostics(){const base=super.diagnostics();return{...base,schema:SCHEMA,debugModes:[...DEBUG_MODES],ownershipDepth:'sm202-canonical-per-pixel',depthAttachmentPolicy:'depth32float; fragment depth writes enabled; compare less; transparent fragments discard before ownership',depthReadback:'compute-textureLoad-to-buffer',pseudoDepth:{schema:PseudoDepth.SCHEMA,maxWorldZ:PseudoDepth.MAX_WORLD_Z,zToScreenY:PseudoDepth.Z_TO_SCREEN_Y,layerStride:PseudoDepth.LAYER_STRIDE,depthKeyRange:[PseudoDepth.DEPTH_KEY_MIN,PseudoDepth.DEPTH_KEY_MAX],alphaCutoff:PseudoDepth.DEFAULT_ALPHA_CUTOFF},ownershipRenderCount:this.ownershipRenderCount};}
   }
 
-  function referenceDepthForPixel(fragmentScreenY,localHeight,category='dynamic',depthLayer=null,depthBias=0){return PseudoDepth.projectFragment({fragmentScreenY,rootY:fragmentScreenY,localHeight,alpha:1,category,layer:depthLayer,bias:depthBias});}
+  function referenceDepthForPixel(fragmentScreenY,localHeight,category='dynamic',depthLayer=null,depthBias=0,worldScale=1){fragmentScreenY/=ownershipWorldScale(worldScale);return PseudoDepth.projectFragment({fragmentScreenY,rootY:fragmentScreenY,localHeight,alpha:1,category,layer:depthLayer,bias:depthBias});}
 
-  return{SCHEMA,DEBUG_MODES,PSEUDO_DEPTH_WGSL,MATERIAL_WGSL,DEBUG_WGSL,DEPTH_READBACK_WGSL,ownershipMaterialWgsl,prepareOwnershipInstance,buildOwnershipSceneInstances,packOwnershipInstances,referenceDepthForPixel,WebGPUOwnershipGBuffer};
+  return{SCHEMA,DEBUG_MODES,PSEUDO_DEPTH_WGSL,MATERIAL_WGSL,DEBUG_WGSL,DEPTH_READBACK_WGSL,ownershipMaterialWgsl,ownershipWorldScale,ownershipFrameBytes,prepareOwnershipInstance,buildOwnershipSceneInstances,packOwnershipInstances,referenceDepthForPixel,WebGPUOwnershipGBuffer};
 });

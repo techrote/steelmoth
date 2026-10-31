@@ -1,0 +1,1 @@
+{"ok": true, "errors": [], "opaquePixels": {"count": 120110, "rawLightingMean": 0.009539960883557796, "finalBlackFraction": 0.9978935975355924}, "report": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-8285c61\\report.json"}

@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,re
 ROOT=Path(__file__).resolve().parents[1]
-js=(ROOT/'engine/game.js').read_text(); sf=(ROOT/'engine/surfacefx.js').read_text(); idx=(ROOT/'index.html').read_text(); sw=(ROOT/'sw.js').read_text(); web=(ROOT/'webapp.js').read_text()
+js=(ROOT/'engine/game.js').read_text(encoding='utf-8'); sf=(ROOT/'engine/surfacefx.js').read_text(encoding='utf-8'); idx=(ROOT/'index.html').read_text(encoding='utf-8'); sw=(ROOT/'sw.js').read_text(encoding='utf-8'); web=(ROOT/'webapp.js').read_text(encoding='utf-8')
 # Deployment/cache must make this visibly different from 1.2.0/1.2.1 even under a registered PWA service worker.
 assert "const BUILD_VERSION='1.2.3'" in js
 # The release remains v1.2.3 while migration runtime modules legitimately advance
@@ -10,7 +10,7 @@ assert "const BUILD_VERSION='1.2.3'" in js
 # historical revision that happened to exist when an earlier migration task landed.
 assert re.search(r"const CACHE = 'small-machine-web-v1\.2\.3-r[1-9][0-9]*'",sw)
 assert "sw.js?v=1.2.3" in web and "updateViaCache:'none'" in web
-for token in ['engine/game.js?v=1.2.3','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3','webapp.js?v=1.2.3']:
+for token in ['engine/game.js?v=sm505-7','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3','webapp.js?v=sm505-7']:
     assert token in idx,token
 # Direction convention: generator stores +screen-down height derivative as +world normal Y;
 # deferred lights convert screen-down delta to world-up with -Ld.y. Do not invert G1 normal Y again.
@@ -36,7 +36,7 @@ assert 'const shadowScale=2.0' in js
 # colour-derived metallic guesses with documented semantic material priors. Painted
 # steel remains broadly dielectric; rust is not metalness=1; galvanized hardware owns
 # the distinctly metallic class.
-r=json.load(open(ROOT/'assets/generated/material_v2_report.json'))['regions']
+r=json.load(open(ROOT/'assets/generated/material_v2_report.json',encoding='utf-8'))['regions']
 for n in ['floor_cracked','floor_plate','floor_hazard']:
     assert r[n]['roughness_mean']>.55,(n,r[n])
     assert r[n]['metalness_mean']<.32,(n,r[n])
@@ -46,7 +46,7 @@ assert r['rust_barrel']['material_prior']=='rusted_steel' and r['rust_barrel']['
 for n in ['street_lamp','pipe_cluster','scaffold']:
     assert r[n]['material_prior']=='galvanized' and r[n]['metalness_mean']>.50,(n,r[n])
 # Active manifests identify the current release while preserving the v1.2.2 coherence fixes.
-gm=json.load(open(ROOT/'game_manifest.json')); dm=json.load(open(ROOT/'DEPLOYMENT_MANIFEST.json'))
+gm=json.load(open(ROOT/'game_manifest.json',encoding='utf-8')); dm=json.load(open(ROOT/'DEPLOYMENT_MANIFEST.json',encoding='utf-8'))
 assert gm['version']=='1.2.3' and dm['game_version']=='1.2.3'
 assert gm['graphics_namespace']=='signalOrchardGraphicsV123'
 print('V1.2.2 COHERENCE FIXES RETAINED: world-normal convention, bounded water, cool companion light, pseudo-depth flashlight shadows, semantic rough-floor/material response')

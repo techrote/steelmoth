@@ -16,6 +16,27 @@ This document defines the WebGPU Material-v2 representation introduced by SM-200
 
 The G1 roughness clear of `0.88` and sprite alpha-cutout threshold of `0.12` deliberately match the audited v1.2.3 G-buffer rather than introducing new defaults during migration.
 
+### SM-505 non-owning background receiver
+
+The explicit normal-game presenter fills G0/G1/G2 at pixels with object ID zero
+from its retained authored-sRGB background raster, before local shadows and
+SM-204 lighting. This carries the accepted WebGL2 `gbufferBackgroundProg`
+semantics: sampled linear albedo/coverage, neutral G1 `(0.5,0.5,1,0.88)` and G2
+`(0,0,1,0)`. It does not infer material height from painter bump/spec maps.
+
+This is a renderer-derived **non-owning material receiver**, not an additional
+sprite or geometric floor. ID zero still means no owned fragment; depth remains
+the canonical clear value one. The receiver pass reads object ID and attaches
+only the three material targets with load/store, discarding every nonzero-ID
+pixel. Existing sprite material, object and depth bytes must remain exact. The
+ownership module and its standalone empty-clear fixtures are unchanged.
+
+Material consumers use G0 coverage; ownership/hierarchy consumers continue to use
+ID/depth. Thus G0 coverage can be nonzero at an unowned background receiver.
+SM-203 still marks that pixel's ownership range invalid `(1,0)`. GTAO/SSGI and
+advanced forward participation on this unowned background is not established;
+those optional effects remain off in the initial-release presenter.
+
 The depth attachment is deliberately configured with `depthCompare: "always"` and `depthWriteEnabled: false`. SM-200 therefore does **not** claim that painter order has become the accepted fragment-depth formula. SM-201 derives the light-independent root/local-height/layer projection; SM-202 owns hardware per-pixel depth/object ownership.
 
 ## Material atlas semantics

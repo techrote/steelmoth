@@ -86,10 +86,12 @@
     }
     return new Uint8Array(data);
   }
+  // Renderer-derived native units; artistic controls remain clamped in logical units.
+  function worldScale(settings={}){const v=Number(settings.worldScale);return Number.isFinite(v)&&v>0?clamp(v,1/16,16):1}
   function frameBytes(width,height,settings,lightCount,debugMode){
     const data=new ArrayBuffer(64),dv=new DataView(data),f=(o,v)=>dv.setFloat32(o,finite(v,0),true),u=(o,v)=>dv.setUint32(o,Number(v)>>>0,true);
     f(0,width);f(4,height);f(8,settings.lighting===false?1:clamp(finite(settings.ambient,.3),0,2));f(12,clamp(finite(settings.normalStrength,1),0,3));
-    f(16,clamp(finite(settings.heightStrength,1),0,3));f(20,clamp(finite(settings.roughnessScale,1),.2,2));f(24,clamp(finite(settings.metalnessScale,1),0,2));f(28,clamp(finite(settings.materialAOStrength,.62),0,1));
+    f(16,clamp(finite(settings.heightStrength,1),0,3)*worldScale(settings));f(20,clamp(finite(settings.roughnessScale,1),.2,2));f(24,clamp(finite(settings.metalnessScale,1),0,2));f(28,clamp(finite(settings.materialAOStrength,.62),0,1));
     f(32,clamp(finite(settings.pbrSpecularStrength,.70),0,2));u(48,lightCount);u(52,debugMode);return new Uint8Array(data);
   }
 
@@ -100,7 +102,7 @@
     const al=(sample.albedo||sample.g0||[0,0,0,0]).slice(0,4);if((al[3]??1)<.002)return[0,0,0,0];
     const nr=sample.normalRoughness||sample.g1||[.5,.5,1,.88],hm=sample.heightMaterial||sample.g2||[0,0,1,0];
     const ns=clamp(finite(settings.normalStrength,1),0,3),n=vnorm([(nr[0]*2-1)*ns,(nr[1]*2-1)*ns,nr[2]*2-1]);
-    const rough=clamp(nr[3]*clamp(finite(settings.roughnessScale,1),.2,2),.06,1),metal=clamp(hm[1]*clamp(finite(settings.metalnessScale,1),0,2),0,1),mao=1+(hm[2]-1)*clamp(finite(settings.materialAOStrength,.62),0,1),em=hm[3],z=hm[0]*64*clamp(finite(settings.heightStrength,1),0,3);
+    const rough=clamp(nr[3]*clamp(finite(settings.roughnessScale,1),.2,2),.06,1),metal=clamp(hm[1]*clamp(finite(settings.metalnessScale,1),0,2),0,1),mao=1+(hm[2]-1)*clamp(finite(settings.materialAOStrength,.62),0,1),em=hm[3],z=hm[0]*64*clamp(finite(settings.heightStrength,1),0,3)*worldScale(settings);
     const V=vnorm([0,-.12,1]),F0=vmix([.04,.04,.04],al,metal);let diff=[0,0,0],spec=[0,0,0];
     for(const light of lights||[]){
       let radiance,NoL,L;
@@ -115,6 +117,18 @@
     }
     if(debug==='diffuse')return[...diff,1];if(debug==='specular')return[...spec,1];if(debug==='light-count')return[clamp((lights?.length||0)/MAX_LIGHTS,0,1),clamp((lights?.length||0)/MAX_LIGHTS,0,1),clamp((lights?.length||0)/MAX_LIGHTS,0,1),1];
     const ambient=vmul(vmul(al,(settings.lighting===false?1:clamp(finite(settings.ambient,.3),0,2))*(.72+.28*mao)),vmix([1,1,1],[.96,1,1.03],metal*.15)),direct=vadd(diff,spec),bounded=vdiv(direct,direct.map(v=>1+v*.22)),finalColor=vadd(vadd(ambient,bounded),vmul(al,em*.8));return[...vmax(finalColor,0),al[3]??1];
+  }
+
+  function shadeDirectReference(sample,lights,settings={},screenXY=[0,0],directVisibility=1){
+    const diffuse=shadePixelReference(sample,lights,settings,screenXY,'diffuse'),specular=shadePixelReference(sample,lights,settings,screenXY,'specular'),visibility=clamp(finite(directVisibility,1),0,1);
+    return[...diffuse.slice(0,3).map((v,i)=>Math.max(0,v+specular[i])*visibility),0];
+  }
+  function resolveDirectReference(sample,rawDirect,settings={},ambientVisibility=1){
+    const al=(sample.albedo||sample.g0||[0,0,0,0]).slice(0,4);if((al[3]??1)<.002)return[0,0,0,0];
+    const hm=sample.heightMaterial||sample.g2||[0,0,1,0],metal=clamp(hm[1]*clamp(finite(settings.metalnessScale,1),0,2),0,1),visibility=clamp(finite(ambientVisibility,1),0,1);
+    const ambient=vmul(vmul(al,(settings.lighting===false?1:clamp(finite(settings.ambient,.3),0,2))*(.72+.28*visibility)),vmix([1,1,1],[.96,1,1.03],metal*.15));
+    const direct=[0,1,2].map(i=>Math.max(0,finite(rawDirect?.[i],0))),bounded=vdiv(direct,direct.map(v=>1+v*.22)),emissive=vmul(al,hm[3]*.8);
+    return[...vmax(vadd(vadd(ambient,bounded),emissive),0),al[3]??1];
   }
 
   const DEFERRED_WGSL=`
@@ -147,6 +161,32 @@ fn fres(F0:vec3f,VoH:f32)->vec3f{return F0+(vec3f(1)-F0)*pow(1.0-VoH,5.0);}
 }`;
   function deferredWgsl(normalEncoding='xyz'){if(normalEncoding!=='oct8')return DEFERRED_WGSL;return DEFERRED_WGSL.replace('@vertex fn vs_main','fn smSignNotZero(v:f32)->f32{return select(-1.0,1.0,v>=0.0);}fn smOctDecode(e:vec2f)->vec3f{var n=vec3f(e*2.0-1.0,1.0-abs(e.x*2.0-1.0)-abs(e.y*2.0-1.0));if(n.z<0.0){let old=n.xy;n.x=(1.0-abs(old.y))*smSignNotZero(old.x);n.y=(1.0-abs(old.x))*smSignNotZero(old.y);}return normalize(n);}\n@vertex fn vs_main').replace('let n=normalize(vec3f((nr.rg*2.0-1.0)*normalStrength,nr.b*2.0-1.0));','let decodedNormal=smOctDecode(nr.rg);let n=normalize(vec3f(decodedNormal.rg*normalStrength,decodedNormal.b));')}
 
+  function streamedDirectWgsl(normalEncoding='xyz'){
+    let code=deferredWgsl(normalEncoding),binding='@group(0) @binding(4) var<uniform> frame:Frame;';
+    if(!code.includes(binding))throw new Error('SM-505 direct shader source binding drift');
+    code=code.replace(binding,binding+'\n@group(0) @binding(5) var directVisibility:texture_2d<f32>;');
+    const start=code.indexOf('  let ambient=al.rgb*'),end=code.indexOf('\n}',start);
+    if(start<0||end<0)throw new Error('SM-505 direct shader source final-expression drift');
+    return code.slice(0,start)+`  let size=vec2i(textureDimensions(directVisibility));let visibility=clamp(textureLoad(directVisibility,clamp(q,vec2i(0),size-vec2i(1)),0).g,0.0,1.0);
+  return vec4f(max(vec3f(0),diffSum+specSum)*visibility,0);`+code.slice(end);
+  }
+  const RESOLVE_DIRECT_WGSL=`
+struct Frame { p0:vec4f,p1:vec4f,p2:vec4f,counts:vec4u };
+@group(0) @binding(0) var g0:texture_2d<f32>;
+@group(0) @binding(1) var g2:texture_2d<f32>;
+@group(0) @binding(2) var directAccumulation:texture_2d<f32>;
+@group(0) @binding(3) var ambientVisibility:texture_2d<f32>;
+@group(0) @binding(4) var<uniform> frame:Frame;
+@vertex fn vs_main(@builtin(vertex_index) vi:u32)->@builtin(position) vec4f{let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[vi],0,1);}
+@fragment fn fs_main(@builtin(position) p:vec4f)->@location(0) vec4f{
+ let q=vec2i(p.xy);let al=textureLoad(g0,q,0);if(al.a<.002){return vec4f(0);}
+ let hm=textureLoad(g2,q,0);let metal=clamp(hm.g*frame.p1.z,0.0,1.0);
+ let size=vec2i(textureDimensions(ambientVisibility));let visibility=clamp(textureLoad(ambientVisibility,clamp(q,vec2i(0),size-vec2i(1)),0).b,0.0,1.0);
+ let ambient=al.rgb*(frame.p0.z*(.72+.28*visibility))*mix(vec3f(1),vec3f(.96,1,1.03),metal*.15);
+ var direct=max(vec3f(0),textureLoad(directAccumulation,q,0).rgb);direct=direct/(vec3f(1)+direct*.22);
+ return vec4f(max(vec3f(0),ambient+direct+al.rgb*hm.a*.8),al.a);
+}`;
+
   function halfToFloat(h){h=Number(h)&0xffff;const s=(h>>15)&1,e=(h>>10)&31,f=h&1023;if(e===0)return(s?-1:1)*Math.pow(2,-14)*(f/1024);if(e===31)return f?NaN:(s?-Infinity:Infinity);return(s?-1:1)*Math.pow(2,e-15)*(1+f/1024)}
 
   class WebGPUDeferredLighting{
@@ -178,7 +218,41 @@ fn fres(F0:vec3f,VoH:f32)->vec3f{return F0+(vec3f(1)-F0)*pow(1.0-VoH,5.0);}
       pass.setPipeline(this.pipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);if(options.wait!==false&&typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();
       this.renderCount++;this.activeLightCount=lights.length;this.lastLights=lights.map(clone);this.lastDebugMode=debug;return{schema:SCHEMA,activeLightCount:lights.length,debugMode:debug,outputFormat:OUTPUT_FORMAT,lightBuffer:LIGHT_BUFFER_NAME};
     }
-    resize(width,height){width=Math.max(1,Math.round(width));height=Math.max(1,Math.round(height));const changed=this.registry.resize(width,height);this.width=width;this.height=height;return changed}
+    _assertStreamedOpen(){if(this.streamedDirectClosed)throw new Error('SM-505 streamed direct lighting is closed')}
+    async _ensureStreamedDirect(){
+      this._assertStreamedOpen();await this.initialize();this._assertStreamedOpen();
+      if(!this.accumulateDirectPipeline){const module=await this._module('sm505-raw-direct',streamedDirectWgsl(this.normalEncoding));this._assertStreamedOpen();this.accumulateDirectPipeline=await this.pipelines.getRender(`sm505-raw-direct:${this.normalEncoding}`,()=>{this._assertStreamedOpen();return this.device.createRenderPipeline({label:`${this.labelPrefix}:sm505-raw-direct`,layout:'auto',vertex:{module,entryPoint:'vs_main'},fragment:{module,entryPoint:'fs_main',targets:[{format:OUTPUT_FORMAT,blend:{color:{operation:'add',srcFactor:'one',dstFactor:'one'},alpha:{operation:'add',srcFactor:'one',dstFactor:'one'}}}]},primitive:{topology:'triangle-list'}})})}
+      this._assertStreamedOpen();
+      if(!this.resolveDirectPipeline){const module=await this._module('sm505-direct-resolve',RESOLVE_DIRECT_WGSL);this._assertStreamedOpen();this.resolveDirectPipeline=await this.pipelines.getRender(`sm505-direct-resolve:${this.normalEncoding}`,()=>{this._assertStreamedOpen();return this.device.createRenderPipeline({label:`${this.labelPrefix}:sm505-direct-resolve`,layout:'auto',vertex:{module,entryPoint:'vs_main'},fragment:{module,entryPoint:'fs_main',targets:[{format:OUTPUT_FORMAT}]},primitive:{topology:'triangle-list'}})})}
+      this._assertStreamedOpen();const name=this._name('direct-accumulation');
+      if(!this.registry.get(name))this.registry.defineTexture(name,{format:OUTPUT_FORMAT,usage:textureUsage(['RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC']),size:'surface'});
+      return this.registry.require(name);
+    }
+    async initializeStreamedDirect(){await this._ensureStreamedDirect();return this}
+    async accumulateDirect(gbuffer,scene={},settings={},options={}){
+      if(!gbuffer?.registry||!options.visibilityView)throw new Error('SM-505 accumulateDirect requires G-buffer and explicit direct visibility view');
+      const target=await this._ensureStreamedDirect();this._assertStreamedOpen();
+      if(!options.clear&&(!this.directAccumulationValid||this.directAccumulationHandle!==target.handle))throw new Error('SM-505 direct accumulation must begin with clear:true on the current target');
+      const lights=buildCanonicalLights(scene,settings);this.queue.writeBuffer(this.registry.require(LIGHT_BUFFER_NAME).handle,0,packLights(lights));this.queue.writeBuffer(this.registry.require(this._name('frame')).handle,0,frameBytes(this.width,this.height,settings,lights.length,0));
+      const bind=this.device.createBindGroup({label:`${this.labelPrefix}:sm505-raw-direct-bind`,layout:this.accumulateDirectPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:this._gRecord(gbuffer,'g0').handle.createView()},{binding:1,resource:this._gRecord(gbuffer,'g1').handle.createView()},{binding:2,resource:this._gRecord(gbuffer,'g2').handle.createView()},{binding:3,resource:{buffer:this.registry.require(LIGHT_BUFFER_NAME).handle}},{binding:4,resource:{buffer:this.registry.require(this._name('frame')).handle}},{binding:5,resource:options.visibilityView}]});
+      const encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:sm505-raw-direct`}),pass=encoder.beginRenderPass({label:`${this.labelPrefix}:sm505-raw-direct-pass`,colorAttachments:[{view:target.handle.createView(),loadOp:options.clear?'clear':'load',storeOp:'store',clearValue:{r:0,g:0,b:0,a:0}}]});pass.setPipeline(this.accumulateDirectPipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);
+      this.directAccumulationHandle=target.handle;this.directAccumulationValid=true;this.directAccumulationCalls=(this.directAccumulationCalls||0)+1;
+      if(options.wait!==false&&typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();
+      return{schema:SCHEMA,mode:'sm505-raw-direct',lightIds:lights.map(l=>l.id),clear:!!options.clear,outputFormat:OUTPUT_FORMAT,visibilityChannel:'g',compression:false};
+    }
+    async resolveDirect(gbuffer,scene={},settings={},options={}){
+      if(!gbuffer?.registry||!options.ambientVisibilityView)throw new Error('SM-505 resolveDirect requires G-buffer and explicit ambient visibility view');
+      const direct=await this._ensureStreamedDirect();this._assertStreamedOpen();
+      if(!this.directAccumulationValid||this.directAccumulationHandle!==direct.handle)throw new Error('SM-505 resolveDirect requires a cleared current direct accumulation');
+      const lights=buildCanonicalLights(scene,settings);this.queue.writeBuffer(this.registry.require(LIGHT_BUFFER_NAME).handle,0,packLights(lights));this.queue.writeBuffer(this.registry.require(this._name('frame')).handle,0,frameBytes(this.width,this.height,settings,lights.length,0));
+      const output=this.registry.require(this._name('lit')),bind=this.device.createBindGroup({label:`${this.labelPrefix}:sm505-direct-resolve-bind`,layout:this.resolveDirectPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:this._gRecord(gbuffer,'g0').handle.createView()},{binding:1,resource:this._gRecord(gbuffer,'g2').handle.createView()},{binding:2,resource:direct.handle.createView()},{binding:3,resource:options.ambientVisibilityView},{binding:4,resource:{buffer:this.registry.require(this._name('frame')).handle}}]});
+      const encoder=this.device.createCommandEncoder({label:`${this.labelPrefix}:sm505-direct-resolve`}),pass=encoder.beginRenderPass({label:`${this.labelPrefix}:sm505-direct-resolve-pass`,colorAttachments:[{view:output.handle.createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}]});pass.setPipeline(this.resolveDirectPipeline);pass.setBindGroup(0,bind);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);
+      this.directAccumulationValid=false;this.directResolveCalls=(this.directResolveCalls||0)+1;this.renderCount++;this.activeLightCount=lights.length;this.lastLights=lights.map(clone);this.lastDebugMode='final';
+      if(options.wait!==false&&typeof this.queue.onSubmittedWorkDone==='function')await this.queue.onSubmittedWorkDone();
+      return{schema:SCHEMA,mode:'sm505-direct-resolve',activeLightCount:lights.length,outputFormat:OUTPUT_FORMAT,ambientVisibilityChannel:'b',ambientResponse:'0.72 + 0.28 * composed visibility once',directCompression:'once after all contributions',emissiveShadowed:false};
+    }
+    directAccumulationTexture(){return this.registry.require(this._name('direct-accumulation')).handle}
+    resize(width,height){width=Math.max(1,Math.round(width));height=Math.max(1,Math.round(height));const changed=this.registry.resize(width,height);this.width=width;this.height=height;if(changed)this.directAccumulationValid=false;return changed}
     outputTexture(){return this.registry.require(this._name('lit')).handle}
     async readPixel(x,y){
       const record=this.registry.require(this._name('lit')),buffer=this.device.createBuffer({label:`${this.labelPrefix}:sm204-readback`,size:256,usage:bufferUsage(['COPY_DST','MAP_READ'])}),encoder=this.device.createCommandEncoder();
@@ -186,8 +260,8 @@ fn fres(F0:vec3f,VoH:f32)->vec3f{return F0+(vec3f(1)-F0)*pow(1.0-VoH,5.0);}
       const raw=new Uint8Array(buffer.getMappedRange()).slice(0,8);buffer.unmap();buffer.destroy();const dv=new DataView(raw.buffer,raw.byteOffset,8);return[0,2,4,6].map(o=>halfToFloat(dv.getUint16(o,true)));
     }
     diagnostics(){return{schema:SCHEMA,extent:{width:this.width,height:this.height},maxLights:MAX_LIGHTS,lightStride:LIGHT_STRIDE,oneCanonicalLightBuffer:LIGHT_BUFFER_NAME,activeLightCount:this.activeLightCount,lastDebugMode:this.lastDebugMode,debugModes:[...DEBUG_MODES],outputFormat:OUTPUT_FORMAT,normalEncoding:this.normalEncoding,renderCount:this.renderCount,lights:this.lastLights.map(clone),colourSpace:{g0:'linear-albedo',materialChannels:'linear-data',authoredLightColors:'srgb-decoded-during-canonicalization',ggx:'linear-hdr',output:'linear-hdr-rgba16float',debug:{final:'linear-hdr',diffuse:'linear-hdr',specular:'linear-hdr','light-count':'unitless-linear'}},compilation:clone(this.compilation),pbr:{model:'restrained-ggx-schlick-smith-v123-parity',dielectricF0:.04,directClamp:.22,viewVector:[0,-.12,1],selfShadow:'deferred-sm205',contactShadow:'deferred-sm205'},resourceDiagnostics:this.registry.diagnostics(),pipelineDiagnostics:this.pipelines.diagnostics()}}
-    close(){if(this.ownsRegistry)this.registry.close()}
+    close(){this.streamedDirectClosed=true;this.directAccumulationValid=false;if(this.ownsRegistry)this.registry.close()}
   }
 
-  return{SCHEMA,MAX_LIGHTS,LIGHT_STRIDE,LIGHT_BUFFER_NAME,OUTPUT_FORMAT,DEBUG_MODES,LIGHT_TYPE,LIGHT_FLAGS,DEFAULT_Z,DIAGNOSTIC_PRESET,DEFERRED_WGSL,deferredWgsl,lightElevation,buildCanonicalLights,packLights,shadePixelReference,halfToFloat,WebGPUDeferredLighting};
+  return{SCHEMA,MAX_LIGHTS,LIGHT_STRIDE,LIGHT_BUFFER_NAME,OUTPUT_FORMAT,DEBUG_MODES,LIGHT_TYPE,LIGHT_FLAGS,DEFAULT_Z,DIAGNOSTIC_PRESET,DEFERRED_WGSL,deferredWgsl,streamedDirectWgsl,RESOLVE_DIRECT_WGSL,lightElevation,worldScale,frameBytes,buildCanonicalLights,packLights,shadePixelReference,shadeDirectReference,resolveDirectReference,halfToFloat,WebGPUDeferredLighting};
 });

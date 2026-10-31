@@ -99,3 +99,23 @@ This is deterministic API/data/parity evidence on the hosted adapter. It is not 
 ## Downstream contract
 
 SM-205 may add height self/contact visibility to the direct-light composition without creating a second light representation. SM-206 procedural/transparent systems must consume this canonical light state rather than re-deriving incompatible point/cone conventions. Later clustering/DSO/GTAO/SSGI/volumetric work may extend light metadata and visibility inputs, but should preserve this single-authority boundary unless an explicit architecture decision supersedes it.
+
+
+## SM-505 native extent units
+
+**Decision:** the presentation adapter may supply renderer-derived `settings.worldScale`
+when it scales logical scene positions and canonical light elevations into a native
+render extent. This is separate from atlas `world_scale` and is not an artistic or
+persisted graphics control. Missing, non-finite or non-positive values resolve to 1;
+positive values are bounded to 1/16–16. Ordinary material height strength is clamped
+to 0–3 first, then multiplied by this conversion in the packed frame and CPU
+reference. Material-v2 HM values remain unchanged. The default deferred WGSL and
+scale-1 shading equations remain unchanged; streamed direct uses the same frame.
+
+Before this repair, a 3× presentation extent moved light elevation 22 to 66 native
+units while material height remained HM.r × 64 logical units. This mixed geometry
+changed surface-to-light vectors and therefore diffuse/specular response. The
+conversion restores common units; it is not a brightness or material-default tweak.
+Native readbacks from earlier sources must remain separately identified and must
+not qualify the repaired candidate. `tools/validate_sm505_native_units.js` covers
+resolution-invariant source equations and retained mixed-unit negative witnesses.

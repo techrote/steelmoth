@@ -1,0 +1,31 @@
+{
+  "samples": 125,
+  "fields": {
+    "temperatureC": {
+      "min": 33.0,
+      "max": 35.0
+    },
+    "powerW": {
+      "min": 5.26,
+      "max": 22.06
+    },
+    "graphicsClockMHz": {
+      "min": 300.0,
+      "max": 1530.0
+    },
+    "memoryClockMHz": {
+      "min": 405.0,
+      "max": 6000.0
+    },
+    "memoryUsedMiB": {
+      "min": 517.0,
+      "max": 2003.0
+    },
+    "gpuUtilizationPct": {
+      "min": 0.0,
+      "max": 28.0
+    }
+  },
+  "gpuTimings": null,
+  "boundary": "Telemetry context only; no GPU execution time or acceptance."
+}

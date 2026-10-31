@@ -1,0 +1,584 @@
+{
+  "schema": "steelmoth-sm505-development-anchor-analysis/v1",
+  "source": "0a432bcbea3c35bd3a0a510ead713eed31ebd04f",
+  "captureConfiguration": {
+    "fixture": "dense-mixed",
+    "angle": 0,
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1,
+    "quality": "Medium",
+    "gtao": false,
+    "receiverProbe": true,
+    "inspection": "development"
+  },
+  "inputReportSha256": "ad2c9675aa63a409bcdad082e59e74febce105fdb58e92df6f1a0df916a04158",
+  "objectIdBytesSha256": "a0d1050112b54780a832fa97f8e96a6235e82ae9d505febefdf3b41eb4d0e768",
+  "physicalAcceptance": false,
+  "visualAcceptance": false,
+  "boundary": "Offline native object-ID and source analysis; no new browser/GPU work or original evidence modification. DEVELOPMENT preset is not an acceptance dataset. Source-derived quad displacements are distinguished from native raster/ID measurements.",
+  "screenshots": [
+    {
+      "backend": "WebGPU",
+      "path": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-0a432bc-development\\webgpu-presented.png",
+      "sha256": "b720b5d50a7afc335613e3bcc4ce6e0eb4ece20bca0bd7ab18890f1660d820c0"
+    },
+    {
+      "backend": "WebGL2 reference",
+      "path": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-0a432bc-development\\webgl2-presented.png",
+      "sha256": "162b76a6fea8a44dfa31c320c74025dbc033971040c233a72814b21c1857e00e"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "sprite:static:signal_orchard:134",
+      "sprite": "dumpster",
+      "objectId": 2442140296,
+      "anchor": "bottom",
+      "transform": {
+        "x": 260,
+        "y": 165,
+        "w": 20.633999999999997,
+        "h": 24.851999999999997,
+        "rotation": 0,
+        "flip": false
+      },
+      "root": {
+        "authority": "shared-render-transform/v1",
+        "anchorMode": "bottom",
+        "anchorNormalized": [
+          0.5,
+          1
+        ],
+        "metadataSource": "material-v2-metadata",
+        "x": 260,
+        "y": 165
+      },
+      "subrect": null,
+      "sharedFrame": {
+        "left": 249.683,
+        "top": 140.148,
+        "right": 270.317,
+        "bottom": 165,
+        "width": 20.633999999999997,
+        "height": 24.851999999999997,
+        "centerX": 260,
+        "centerY": 152.57399999999998,
+        "anchorMode": "bottom"
+      },
+      "materialFrame": {
+        "left": 249.683,
+        "top": 152.574,
+        "right": 270.317,
+        "bottom": 177.42600000000002,
+        "width": 20.633999999999997,
+        "height": 24.851999999999997,
+        "centerX": 260,
+        "centerY": 165,
+        "anchorMode": "center"
+      },
+      "nativeOwnerBBoxExclusive": [
+        749,
+        470,
+        811,
+        531
+      ],
+      "ownedPixels": 3229,
+      "sourceQuadDisplacementLogical": [
+        0.0,
+        12.426000000000016
+      ],
+      "sourceQuadDisplacementNative": [
+        0.0,
+        37.27800000000005
+      ],
+      "declaredFootNativeY": 495,
+      "ownedPixelsAtOrBelowDeclaredFoot": 1861,
+      "ownerBBoxExtendsBelowDeclaredFootByPixels": 36
+    },
+    {
+      "id": "sprite:static:signal_orchard:135",
+      "sprite": "dumpster",
+      "objectId": 2458917915,
+      "anchor": "bottom",
+      "transform": {
+        "x": 280,
+        "y": 179,
+        "w": 20.633999999999997,
+        "h": 24.851999999999997,
+        "rotation": 0,
+        "flip": false
+      },
+      "root": {
+        "authority": "shared-render-transform/v1",
+        "anchorMode": "bottom",
+        "anchorNormalized": [
+          0.5,
+          1
+        ],
+        "metadataSource": "material-v2-metadata",
+        "x": 280,
+        "y": 179
+      },
+      "subrect": null,
+      "sharedFrame": {
+        "left": 269.683,
+        "top": 154.148,
+        "right": 290.317,
+        "bottom": 179,
+        "width": 20.633999999999997,
+        "height": 24.851999999999997,
+        "centerX": 280,
+        "centerY": 166.57399999999998,
+        "anchorMode": "bottom"
+      },
+      "materialFrame": {
+        "left": 269.683,
+        "top": 166.574,
+        "right": 290.317,
+        "bottom": 191.42600000000002,
+        "width": 20.633999999999997,
+        "height": 24.851999999999997,
+        "centerX": 280,
+        "centerY": 179,
+        "anchorMode": "center"
+      },
+      "nativeOwnerBBoxExclusive": [
+        809,
+        512,
+        871,
+        573
+      ],
+      "ownedPixels": 3229,
+      "sourceQuadDisplacementLogical": [
+        0.0,
+        12.426000000000016
+      ],
+      "sourceQuadDisplacementNative": [
+        0.0,
+        37.27800000000005
+      ],
+      "declaredFootNativeY": 537,
+      "ownedPixelsAtOrBelowDeclaredFoot": 1861,
+      "ownerBBoxExtendsBelowDeclaredFootByPixels": 36
+    },
+    {
+      "id": "sprite:static:signal_orchard:136",
+      "sprite": "cargo_crate",
+      "objectId": 2475695534,
+      "anchor": "bottom",
+      "transform": {
+        "x": 356,
+        "y": 176,
+        "w": 18.4728,
+        "h": 20.124,
+        "rotation": 0,
+        "flip": false
+      },
+      "root": {
+        "authority": "shared-render-transform/v1",
+        "anchorMode": "bottom",
+        "anchorNormalized": [
+          0.5,
+          1
+        ],
+        "metadataSource": "material-v2-metadata",
+        "x": 356,
+        "y": 176
+      },
+      "subrect": null,
+      "sharedFrame": {
+        "left": 346.7636,
+        "top": 155.876,
+        "right": 365.2364,
+        "bottom": 176,
+        "width": 18.4728,
+        "height": 20.124,
+        "centerX": 356,
+        "centerY": 165.93800000000002,
+        "anchorMode": "bottom"
+      },
+      "materialFrame": {
+        "left": 346.7636,
+        "top": 165.938,
+        "right": 365.2364,
+        "bottom": 186.06199999999998,
+        "width": 18.4728,
+        "height": 20.124,
+        "centerX": 356,
+        "centerY": 176,
+        "anchorMode": "center"
+      },
+      "nativeOwnerBBoxExclusive": [
+        1043,
+        514,
+        1096,
+        557
+      ],
+      "ownedPixels": 1818,
+      "sourceQuadDisplacementLogical": [
+        0.0,
+        10.061999999999983
+      ],
+      "sourceQuadDisplacementNative": [
+        0.0,
+        30.18599999999995
+      ],
+      "declaredFootNativeY": 528,
+      "ownedPixelsAtOrBelowDeclaredFoot": 1255,
+      "ownerBBoxExtendsBelowDeclaredFootByPixels": 29
+    },
+    {
+      "id": "sprite:static:signal_orchard:137",
+      "sprite": "rust_barrel",
+      "objectId": 2492473153,
+      "anchor": "bottom",
+      "transform": {
+        "x": 405,
+        "y": 180,
+        "w": 13.59,
+        "h": 19.62,
+        "rotation": 0,
+        "flip": false
+      },
+      "root": {
+        "authority": "shared-render-transform/v1",
+        "anchorMode": "bottom",
+        "anchorNormalized": [
+          0.5,
+          1
+        ],
+        "metadataSource": "material-v2-metadata",
+        "x": 405,
+        "y": 180
+      },
+      "subrect": null,
+      "sharedFrame": {
+        "left": 398.205,
+        "top": 160.38,
+        "right": 411.795,
+        "bottom": 180,
+        "width": 13.59,
+        "height": 19.62,
+        "centerX": 405,
+        "centerY": 170.19,
+        "anchorMode": "bottom"
+      },
+      "materialFrame": {
+        "left": 398.205,
+        "top": 170.19,
+        "right": 411.795,
+        "bottom": 189.81,
+        "width": 13.59,
+        "height": 19.62,
+        "centerX": 405,
+        "centerY": 180,
+        "anchorMode": "center"
+      },
+      "nativeOwnerBBoxExclusive": [
+        1195,
+        523,
+        1234,
+        566
+      ],
+      "ownedPixels": 1070,
+      "sourceQuadDisplacementLogical": [
+        0.0,
+        9.810000000000002
+      ],
+      "sourceQuadDisplacementNative": [
+        0.0,
+        29.430000000000007
+      ],
+      "declaredFootNativeY": 540,
+      "ownedPixelsAtOrBelowDeclaredFoot": 640,
+      "ownerBBoxExtendsBelowDeclaredFootByPixels": 26
+    },
+    {
+      "id": "sprite:static:signal_orchard:138",
+      "sprite": "server_cabinet",
+      "objectId": 2375029820,
+      "anchor": "bottom",
+      "transform": {
+        "x": 464,
+        "y": 164,
+        "w": 14.428799999999999,
+        "h": 18.835199999999997,
+        "rotation": 0,
+        "flip": false
+      },
+      "root": {
+        "authority": "shared-render-transform/v1",
+        "anchorMode": "bottom",
+        "anchorNormalized": [
+          0.5,
+          1
+        ],
+        "metadataSource": "material-v2-metadata",
+        "x": 464,
+        "y": 164
+      },
+      "subrect": null,
+      "sharedFrame": {
+        "left": 456.7856,
+        "top": 145.1648,
+        "right": 471.2144,
+        "bottom": 164,
+        "width": 14.428799999999999,
+        "height": 18.835199999999997,
+        "centerX": 464,
+        "centerY": 154.5824,
+        "anchorMode": "bottom"
+      },
+      "materialFrame": {
+        "left": 456.7856,
+        "top": 154.5824,
+        "right": 471.2144,
+        "bottom": 173.4176,
+        "width": 14.428799999999999,
+        "height": 18.835199999999997,
+        "centerX": 464,
+        "centerY": 164,
+        "anchorMode": "center"
+      },
+      "nativeOwnerBBoxExclusive": [
+        1375,
+        472,
+        1412,
+        520
+      ],
+      "ownedPixels": 1643,
+      "sourceQuadDisplacementLogical": [
+        0.0,
+        9.417599999999993
+      ],
+      "sourceQuadDisplacementNative": [
+        0.0,
+        28.25279999999998
+      ],
+      "declaredFootNativeY": 492,
+      "ownedPixelsAtOrBelowDeclaredFoot": 983,
+      "ownerBBoxExtendsBelowDeclaredFootByPixels": 28
+    },
+    {
+      "id": "sprite:static:signal_orchard:139",
+      "sprite": "pipe_cluster",
+      "objectId": 2391807439,
+      "anchor": "bottom",
+      "transform": {
+        "x": 515,
+        "y": 181,
+        "w": 15.095999999999998,
+        "h": 18.2928,
+        "rotation": 0,
+        "flip": false
+      },
+      "root": {
+        "authority": "shared-render-transform/v1",
+        "anchorMode": "bottom",
+        "anchorNormalized": [
+          0.5,
+          1
+        ],
+        "metadataSource": "material-v2-metadata",
+        "x": 515,
+        "y": 181
+      },
+      "subrect": null,
+      "sharedFrame": {
+        "left": 507.452,
+        "top": 162.7072,
+        "right": 522.548,
+        "bottom": 181,
+        "width": 15.095999999999998,
+        "height": 18.2928,
+        "centerX": 515,
+        "centerY": 171.8536,
+        "anchorMode": "bottom"
+      },
+      "materialFrame": {
+        "left": 507.452,
+        "top": 171.8536,
+        "right": 522.548,
+        "bottom": 190.1464,
+        "width": 15.095999999999998,
+        "height": 18.2928,
+        "centerX": 515,
+        "centerY": 181,
+        "anchorMode": "center"
+      },
+      "nativeOwnerBBoxExclusive": [
+        1524,
+        519,
+        1565,
+        570
+      ],
+      "ownedPixels": 1267,
+      "sourceQuadDisplacementLogical": [
+        0.0,
+        9.1464
+      ],
+      "sourceQuadDisplacementNative": [
+        0.0,
+        27.4392
+      ],
+      "declaredFootNativeY": 543,
+      "ownedPixelsAtOrBelowDeclaredFoot": 807,
+      "ownerBBoxExtendsBelowDeclaredFootByPixels": 27
+    },
+    {
+      "id": "sprite:player:0",
+      "sprite": "player_idle_4",
+      "objectId": 3027986345,
+      "anchor": "center",
+      "transform": {
+        "x": 76,
+        "y": 176.0224,
+        "w": 25.8048,
+        "h": 27.955200000000005,
+        "rotation": 0,
+        "flip": false
+      },
+      "root": {
+        "authority": "shared-render-transform/v1",
+        "anchorMode": "center",
+        "anchorNormalized": [
+          0.5,
+          1
+        ],
+        "metadataSource": "material-v2-metadata",
+        "x": 76,
+        "y": 190
+      },
+      "subrect": null,
+      "sharedFrame": {
+        "left": 63.0976,
+        "top": 162.0448,
+        "right": 88.9024,
+        "bottom": 190,
+        "width": 25.8048,
+        "height": 27.955200000000005,
+        "centerX": 76,
+        "centerY": 176.0224,
+        "anchorMode": "center"
+      },
+      "materialFrame": {
+        "left": 63.0976,
+        "top": 162.0448,
+        "right": 88.9024,
+        "bottom": 190,
+        "width": 25.8048,
+        "height": 27.955200000000005,
+        "centerX": 76,
+        "centerY": 176.0224,
+        "anchorMode": "center"
+      },
+      "nativeOwnerBBoxExclusive": [
+        209,
+        489,
+        247,
+        569
+      ],
+      "ownedPixels": 2062,
+      "sourceQuadDisplacementLogical": [
+        0.0,
+        0.0
+      ],
+      "sourceQuadDisplacementNative": [
+        0.0,
+        0.0
+      ],
+      "declaredFootNativeY": 570,
+      "ownedPixelsAtOrBelowDeclaredFoot": 0,
+      "ownerBBoxExtendsBelowDeclaredFootByPixels": 0
+    }
+  ],
+  "visibleIssues": [
+    {
+      "id": "static-placement-double-image",
+      "screenshots": [
+        {
+          "backend": "WebGPU",
+          "path": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-0a432bc-development\\webgpu-presented.png",
+          "sha256": "b720b5d50a7afc335613e3bcc4ce6e0eb4ece20bca0bd7ab18890f1660d820c0"
+        },
+        {
+          "backend": "WebGL2 reference",
+          "path": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-0a432bc-development\\webgl2-presented.png",
+          "sha256": "162b76a6fea8a44dfa31c320c74025dbc033971040c233a72814b21c1857e00e"
+        }
+      ],
+      "roiNative": [
+        730,
+        415,
+        1570,
+        580
+      ],
+      "perception": "Several bins/crate/barrel appear duplicated or vertically stretched; a baked upper copy remains while a material redraw extends below the declared ground contact. Both supplied backends visibly show the doubled static pattern.",
+      "suspectedCause": "Source-supported inherited placement inconsistency. StaticPainter HDArt.draw uses bottom anchoring; material descriptors retain that bottom x/y; active RenderTransform integration fixes roots but never wraps materialDescriptorVertices geometry. WebGL2 materialDescriptorVertices and WebGPU buildSceneInstances both center the same raw x/y.",
+      "exactMetric": "Bin A native owner bbox [749,470,811,531] versus declared shared foot y495; source sharedframe-to-materialquad shift is exactly +37.278 native px (12.426 logical). Crate shift +30.186px; dynamic-player center-anchor shift0. See per-object native counts and below-foot extents.",
+      "classification": "Inherited in compatibility material geometry and carried into WebGPU; not demonstrated as a new WebGPU-only drift.",
+      "targetedHumanQuestion": "In the highlighted central props, should each prop appear once, with its lower visible copy moved up to align with the declared foot/baked upper copy?",
+      "engineeringNextStep": "Record an explicit inherited-defect decision. For non-subrect bottom/top records, derive native raster center from shared frameBounds/resolve while retaining declared root and source scene. Preserve dynamic center-anchor geometry. Do not silently alter the WebGL2 accepted baseline or historical subrect exception."
+    },
+    {
+      "id": "opaque-shadow-disconnection",
+      "screenshots": [
+        {
+          "backend": "WebGPU",
+          "path": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-0a432bc-development\\webgpu-presented.png",
+          "sha256": "b720b5d50a7afc335613e3bcc4ce6e0eb4ece20bca0bd7ab18890f1660d820c0"
+        },
+        {
+          "backend": "WebGL2 reference",
+          "path": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-0a432bc-development\\webgl2-presented.png",
+          "sha256": "162b76a6fea8a44dfa31c320c74025dbc033971040c233a72814b21c1857e00e"
+        }
+      ],
+      "roiNative": [
+        200,
+        300,
+        1650,
+        850
+      ],
+      "perception": "The WebGL2 reference shows pronounced dark projected/local silhouettes; WebGPU shows much weaker/missing opaque shadow structure although floor direct lighting is now visible.",
+      "suspectedCause": "Source-confirmed disconnected opaque shadow consumption: SM307 visibility computes, but SM204 binds only G0/G1/G2/light/frame, and opaque resolve binds only backdrop+lit colour.",
+      "exactMetric": {
+        "SM307OpaqueConsumerBindingCount": 0,
+        "visibilityUpdateCount": 1,
+        "visibilityValid": true,
+        "sceneOccluderCount": 8,
+        "activeCanonicalLights": 2
+      },
+      "measurementLimit": "No original SM307 mask pixels were captured here; do not invent a shadow-pixel loss fraction or require reproducing every legacy shadow artifact.",
+      "targetedHumanQuestion": "Should the WebGPU shadows follow the props and flashlight direction in this paired view, retaining the visible ambient fill rather than the reference\u2019s darkest overlapping wedges?",
+      "engineeringNextStep": "Connect canonical dedicated direct/ambient visibility channels once with emissive preserved; do not multiply the combined debug envelope across all light."
+    }
+  ],
+  "activeHookVerification": {
+    "method": "Executed full render_transform_integration.js in CPU VM around actual extracted game.js materialDescriptorVertices, with shared transform API and static descriptor.",
+    "integrationInstalled": true,
+    "materialMethodIdentityUnchanged": true,
+    "binADescriptorMaterialYBoundsLogical": [
+      152.574,
+      177.426
+    ],
+    "binASharedBottomFrameYBoundsLogical": [
+      140.148,
+      165
+    ],
+    "binASharedRootLogical": [
+      260,
+      165
+    ],
+    "sourceSearch": "No materialDescriptorVertices replacement exists in engine modules; integration patches root/foot helpers, editor/caster collection and static-cache refresh only."
+  },
+  "canonicalReconciliation": {
+    "ROOT_FOOT_CONVENTION_runtime_item6": "WebGL2 replay uses the same geometry/contact/submission order; future WebGPU consumes already-resolved roots.",
+    "ROOT_FOOT_CONVENTION_subrect": "Historical subrect x/y centre reconstruction is explicitly preserved even for source draws labelled bottom; no blanket h/2 subtraction is valid.",
+    "SM101_history": "Merged99ceee1 modified integration/sceneadapter/root tests, not game.js material raster geometry.",
+    "testGap": "validate_render_transform.js proves static/dynamic/foreground numeric root equality but does not compare static bottom-anchor versus dynamic center-anchor material raster bounds.",
+    "conflict": "Correcting GPU raster center from shared bottom frame improves intended foot alignment but changes inherited accepted material placement versus WebGL2. It must be documented as a deliberate renderer defect repair; it is not a no-op parity refactor.",
+    "nonSolution": "Relabelling the static record center anchored would preserve the old material redraw but disagree with baked painter/editor/caster placement and would not remove the double image."
+  }
+}

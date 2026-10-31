@@ -1,0 +1,35 @@
+{
+  "schema": "steelmoth-sm505-ci-checkpoint/v1",
+  "observedAtUtc": "2026-10-31T02:19:36.092918+00:00",
+  "head": "62e7856cf1dca1d0b21d0f1301260ab1a6ffcc88",
+  "workflowCount": 24,
+  "completedSuccess": 23,
+  "completedFailure": 0,
+  "unfinished": [
+    {
+      "conclusion": "",
+      "createdAt": "2026-10-31T02:12:48Z",
+      "databaseId": 41158955236,
+      "headSha": "62e7856cf1dca1d0b21d0f1301260ab1a6ffcc88",
+      "name": "Verification",
+      "status": "in_progress",
+      "updatedAt": "2026-10-31T02:17:52Z",
+      "url": "https://github.com/techrote/steelmoth/actions/runs/41158955236"
+    }
+  ],
+  "failures": [],
+  "verificationSubjobs": {
+    "sourceRegression": "PASS",
+    "cleanPackage": "PASS",
+    "glslMrt": "PASS",
+    "webgl2PixelParity": "PASS",
+    "webgpuBrowser": "IN PROGRESS at normal SM505 presentation/fallback step"
+  },
+  "failureLogsAndArtifactCustody": "NOT APPLICABLE at snapshot: no failed workflows/jobs observed, Verification browser artifacts not uploaded yet. No pending run is represented as PASS.",
+  "limitations": [
+    "Current exact-head Verification is unresolved; no full24/24CI PASS claim.",
+    "Earlier b5f5817 hosted device/shared-image loss remains preserved separately under ci-b5f5817; this new-head snapshot does not establish a fix or root cause.",
+    "Hosted CI is software/API correctness evidence only, never physical GTX1650S, visual, performance or release acceptance."
+  ],
+  "executionBoundary": "Read-only connector/CLI status capture and evidence writes only. No GPU/browser workload, source edits, reruns or waiting for remaining run."
+}

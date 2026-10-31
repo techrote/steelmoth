@@ -1,0 +1,72 @@
+{
+  "schema": "steelmoth-sm505-physical-guard/v1",
+  "ok": false,
+  "startedAt": "2026-10-30T23:53:33.215872+00:00",
+  "endedAt": "2026-10-30T23:53:45.430185+00:00",
+  "deadlineUtc": "2026-10-31T07:47:07+00:00",
+  "timeoutSeconds": 240.0,
+  "pollSeconds": 1,
+  "command": [
+    "python",
+    "tools/diagnose_sm505_presentation.py",
+    "--hardware",
+    "--root",
+    "C:/steelmoth/artifacts/sm505-20261030T234707Z/integrated-ca60b95-source",
+    "--out",
+    "C:/steelmoth/artifacts/sm505-20261030T234707Z/physical-prefix-ca60b95",
+    "--fixture",
+    "single-box",
+    "--angle",
+    "0",
+    "--width",
+    "1920",
+    "--height",
+    "1080",
+    "--timeout",
+    "200"
+  ],
+  "cwd": "C:\\steelmoth\\.campaign-worktrees\\sm505-overnight-20261030",
+  "source": {
+    "commit": "ca60b9546e426d9caa5ac6fc05909a733571fbe2",
+    "tree": "84475cb8cd13e411866e18078f0ab0e3cdb2456e",
+    "branch": "codex/sm505-overnight-20261030",
+    "statusFile": "source-status.txt",
+    "diffFile": "source-diff.patch"
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce GTX 1650 SUPER",
+    "uuid": "GPU-f2d0eee8-2045-6c99-f33e-4c04636acdf7",
+    "driver": "616.92",
+    "memoryTotalMiB": 4096.0,
+    "temperatureC": 32.0,
+    "powerW": 5.86,
+    "graphicsClockMHz": 300.0,
+    "memoryClockMHz": 405.0,
+    "memoryUsedMiB": 425.0,
+    "gpuUtilizationPct": 0.0,
+    "raw": {
+      "name": "NVIDIA GeForce GTX 1650 SUPER",
+      "uuid": "GPU-f2d0eee8-2045-6c99-f33e-4c04636acdf7",
+      "driver_version": "616.92",
+      "memory.total": "4096",
+      "temperature.gpu": "32",
+      "power.draw": "5.86",
+      "clocks.current.graphics": "300",
+      "clocks.current.memory": "405",
+      "memory.used": "425",
+      "utilization.gpu": "0"
+    },
+    "at": "2026-10-30T23:53:33.524771+00:00",
+    "elapsedSeconds": 0.30889860000002045
+  },
+  "childPid": 7764,
+  "returncode": 1,
+  "failure": {
+    "type": "RuntimeError",
+    "message": "workload-exit-1",
+    "at": "2026-10-30T23:53:45.428984+00:00"
+  },
+  "samples": 12,
+  "boundary": "Host safety telemetry only. Runner must prove actual browser adapter and API correctness. No automatic retry.",
+  "elapsedSeconds": 12.214318700000035
+}

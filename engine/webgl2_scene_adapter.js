@@ -69,7 +69,7 @@
         const [grade,lights,occluders,settings,effects,guide,water,objectiveMarker,grass,foliage,playerCone]=args;
         const scene=this.builder.finalize({logicalSize:[640,360],grade,lights,occluders,settings,effects,guide,water,objectiveMarker,grass,foliage,playerCone});
         this.lastScene=scene;this.game.renderScene=scene;this.renderer.lastRenderScene=scene;if(root)root.steelMothLastRenderScene=scene;
-        const result=this.adapter.consume(scene);this.active=false;this.builder=null;this.pending=[];return result;
+        const runtime=this.game?.backendRuntime||root?.steelMothBackendRuntime;const consumed=runtime?.consumeScene?.(scene)===true;const result=consumed?scene:this.adapter.consume(scene);this.active=false;this.builder=null;this.pending=[];return result;
       }catch(error){return this.fallback(args,error)}
     }
     diagnostics(){return {schema:Scene.SCHEMA,enabled:!this.disabled,failedFrames:this.failedFrames,lastError:this.lastError,sequence:this.sequence,lastStats:clone(this.lastScene?.stats||null)}}

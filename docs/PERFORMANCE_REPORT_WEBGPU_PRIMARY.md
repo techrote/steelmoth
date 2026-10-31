@@ -1,5 +1,16 @@
 # WebGPU primary performance report — SM-505 reconciliation
 
+## 2026-10-31 candidate boundary
+
+The [SM-505 overnight candidate](SM505_OVERNIGHT_2026-10-30.md) executes a changed
+normal-game command stream at `9b5b932b2f23d5203422b1de6c7d5575c481f4d1`.
+Its physical stage diagnostics establish API/capture behavior and a failed visual
+gate, **not GPU timing**. The full 300+600 ×3 ×8-scene matrix and queue/command-span
+distributions are NOT RUN. The staged benchmark page does not time the new normal
+presenter and cannot silently qualify it. A complete source-matched normal-path
+harness is required after correctness. Targets remain ≤12 ms mean / ≤14.5 ms p95;
+no historical distributions are combined with the new candidate.
+
 Date: 2026-10-03  
 Release gate: #50 / SM-505  
 Performance authority: #31 / SM-501, PR #92

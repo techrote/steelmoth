@@ -18,6 +18,7 @@
   const normalizedAngle = ((requestedAngle % 360) + 360) % 360;
   const quality = String(params.get('quality') || 'high').toLowerCase();
   const benchmark = truthy(params.get('benchmark'));
+  const benchmarkPrepare = truthy(params.get('benchmarkPrepare'));
   const config = Object.freeze({
     schema: 'steelmoth-render-test-config/v1',
     fixture: cleanId(params.get('fixture')),
@@ -30,7 +31,9 @@
     seed: (Math.round(num('seed', 1397572098, 1, 4294967295)) >>> 0) || 1,
     fixedTimeMs: num('fixedTimeMs', 12000, 0, 3600000),
     settleFrames: Math.round(num('settleFrames', 4, 2, 20)),
+    inspection: String(params.get('inspection') || 'none').toLowerCase(),
     benchmark,
+    benchmarkPrepare,
     benchmarkProfile: cleanId(params.get('benchmarkProfile'), 'representative'),
     warmupFrames: Math.round(num('warmupFrames', 300, 1, 5000)),
     sampleFrames: Math.round(num('sampleFrames', 600, 1, 5000))
@@ -40,6 +43,7 @@
   const ready = new Promise(resolve => { readyResolve = resolve; });
   let lastResult = null;
   let fixture = null;
+  const inspectionConeBases = new WeakMap();
 
   function stableStringify(value) {
     if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -108,6 +112,17 @@
     };
     return table[name] || table.high;
   }
+  function inspectionPatch(name='none') {
+    if (name === 'none') return {};
+    if (name !== 'development') throw new Error(`unknown inspection preset ${name}; use none or development`);
+    // Explicit test-only inspection controls. Keep the canonical post pass and
+    // existing exposure/gamma/brightness; never persist this development view.
+    return {
+      ambientInitial:.18, ambientComplete:.18,
+      playerConeRange:900, playerConeInnerAngle:12, playerConeOuterAngle:17.5, playerConeIntensity:6,
+      shadowLift:0, contrast:1, saturation:1, gradeMix:0, bloom:false, vignette:0, grain:0
+    };
+  }
   function nextAnimationFrame() {
     return new Promise(resolve => requestAnimationFrame(resolve));
   }
@@ -136,7 +151,7 @@
     game.room.editorDecor=dense;
   }
   function applyBenchmarkProfile(game) {
-    if(!config.benchmark)return;
+    if(!config.benchmark&&!config.benchmarkPrepare)return;
     const profile=config.benchmarkProfile;
     if(profile==='dense-static')expandDenseStatic(game);
     if(profile==='representative')addBenchmarkFollowers(game,4);
@@ -263,6 +278,21 @@
     if (Number.isFinite(diag.coneIntensity)) game.graphics.playerConeIntensity=diag.coneIntensity;
     if (Number.isFinite(diag.coneRange)) game.graphics.playerConeRange=diag.coneRange;
     if (Number.isFinite(diag.omniIntensity)) game.graphics.playerOmniIntensity=diag.omniIntensity;
+    if (enabled && config.inspection !== 'none') {
+      if (config.benchmark || config.benchmarkPrepare) throw new Error('development inspection is forbidden for benchmark captures');
+      const patch=inspectionPatch(config.inspection);
+      Object.assign(game.graphics,patch); game.ambientLevel=patch.ambientInitial;
+      // The requested inspection beam exceeds ordinary UI/game clamps. Keep
+      // those production clamps intact; override only a paused test capture's
+      // returned cone, before Game.render constructs canonical visibility rays.
+      if(!inspectionConeBases.has(game))inspectionConeBases.set(game,game.playerLightCone);
+      const baseCone=inspectionConeBases.get(game);
+      if(typeof baseCone!=='function')throw new Error('development inspection requires the production playerLightCone');
+      game.playerLightCone=function(...args){
+        const cone=baseCone.apply(game,args);
+        return enabled&&config.inspection==='development'&&game.paused?{...cone,range:patch.playerConeRange,intensity:patch.playerConeIntensity}:cone;
+      };
+    }
     const a=config.lightAngle*Math.PI/180, origin=game.playerLightOrigin(), radius=240;
     game.mouseAimActive=true; game.mouseAimX=origin.x+Math.cos(a)*radius; game.mouseAimY=origin.y+Math.sin(a)*radius;
     game.playerFacing=Math.cos(a)<0?-1:1;
@@ -281,6 +311,14 @@
     const canvas=document.getElementById('game'), blob=await canvasBlob(canvas), diag=game.diagnostics(), canvasHash=await sha256Blob(blob);
     const actualDpr=Number(window.devicePixelRatio||1), scene={fixture:fixture.id,room:game.room?.key||null,roomIndex:game.room?.index??null,position:[game.x,game.y],completed:[...game.state.completed].sort(),collectibles:[...game.state.moths].sort(),companions:[...game.state.robots].sort(),lightAngle:config.lightAngle,quality:config.quality,seed:config.seed,fixedTimeMs:config.fixedTimeMs};
     const metadata={schema:'steelmoth-render-capture/v1',buildVersion:diag.version||null,backend:'webgl2',fixture:fixture.id,fixtureSchema:fixture.schema,config,scene,viewport:{requestedNative:[config.width,config.height],actualNative:diag.renderer?.native||[canvas.width,canvas.height],dprRequested:config.dpr,dprActual:actualDpr,dprMatched:Math.abs(actualDpr-config.dpr)<.01},renderer:diag.renderer||null,diagnosticLight:game.playerLightCone(),environment:{userAgent:navigator.userAgent,platform:navigator.platform||null},limitations:['WebGPU is not implemented in the v1.2.3 baseline; backend=webgl2 is the only accepted backend in SM-002.']};
+    metadata.inspectionPreset=config.inspection;
+    metadata.inspectionSettings=inspectionPatch(config.inspection);
+    if(config.inspection!=='none'){
+      metadata.physicalAcceptance=false;metadata.visualAcceptance=false;
+      metadata.inspectionVersion=2;
+      metadata.inspectionBeam={range:metadata.diagnosticLight.range,intensity:metadata.diagnosticLight.intensity,innerHalfAngleDegrees:Math.acos(metadata.diagnosticLight.innerCos)*180/Math.PI,outerHalfAngleDegrees:Math.acos(metadata.diagnosticLight.outerCos)*180/Math.PI,fullOuterAngleDegrees:2*Math.acos(metadata.diagnosticLight.outerCos)*180/Math.PI,overrideScope:'paused renderTest harness return value; production control clamps/defaults unchanged'};
+      metadata.limitations.push('Development inspection changes ambient, flashlight and artistic controls for visibility. It is never visual, performance or release acceptance.');
+    }
     const stable={config:metadata.config,scene:metadata.scene,viewport:{requestedNative:metadata.viewport.requestedNative,actualNative:metadata.viewport.actualNative,dprRequested:metadata.viewport.dprRequested,dprActual:metadata.viewport.dprActual},renderer:{materialPipeline:metadata.renderer?.materialPipeline||null,gBuffer:metadata.renderer?.gBuffer?{size:metadata.renderer.gBuffer.size,float:metadata.renderer.gBuffer.float}:null}};
     const canvasPng={bytes:blob.size,sha256:canvasHash};
     if(includeCanvasData)canvasPng.dataUrl=await blobDataUrl(blob);
@@ -299,6 +337,8 @@
   async function start() {
     if (!enabled) { readyResolve({ok:false,disabled:true}); return; }
     try {
+      inspectionPatch(config.inspection);
+      if ((config.benchmark || config.benchmarkPrepare) && config.inspection !== 'none') throw new Error('development inspection is forbidden for benchmark captures');
       if (config.backend !== 'webgl2') throw new Error(`backend ${config.backend} is unavailable in baseline v1.2.3; use webgl2`);
       installCanvasLayout(); fixture=await loadFixture();
       const deadline=performance.now()+15000;
@@ -320,6 +360,6 @@
   }
 
   if (enabled) installIsolation();
-  window.SteelMothRenderHarness={enabled,config,angles:ANGLES,ready,capture,get result(){return lastResult;}};
+  window.SteelMothRenderHarness={enabled,config,angles:ANGLES,ready,capture,inspectionPatch,get result(){return lastResult;}};
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',start,{once:true}); else start();
 })();
