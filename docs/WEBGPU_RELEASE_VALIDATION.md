@@ -12,6 +12,14 @@ source/configuration evidence. Current candidate source is based on live main
 `AUTO_WEBGPU_ENABLED=false`; WebGL2 remains the default. No accepted physical
 normal-game presentation campaign exists, and #50 remains open.
 
+The [native-unit correction](SM505_NATIVE_UNITS.md) preserves internal material,
+ownership, trace and topology consistency across presentation extents. The
+WebGPU quality goal permits substantially different shadow proportions/output
+from WebGL2; matching WebGL2 pixels or shadow lengths is not a visual acceptance
+criterion. The b5 native diagnostic predates these corrections and cannot qualify
+the corrected source. Development-v2 brightness controls remain user-approved
+diagnostic settings and are excluded from release/performance qualification.
+
 The earlier `9b5b932` single-box diagnostic recorded99.8575605% near-black
 object-owned pixels. Source-identical CPU/GPU replay explains that output,
 but its black fraction alone is not a grading-fault threshold for this dark game.

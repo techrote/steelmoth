@@ -35,6 +35,28 @@ Default hard-core bounds:
 
 These are hard-core representation parameters, not SM-304 distance-tier simplification and not a soft-shadow radius.
 
+### Explicit world-distance scale
+
+`throwFor`, `secondaryThrowFor`, `buildDSOPlan` and `WebGPUDSOHardCore.update`
+accept optional `worldScale` (default `1`, finite number in `1/16..16`).
+It converts the logical owner bounds `minThrow`/`maxThrow` and the secondary
+minimum of `4` into the same coordinate units as the submitted snapshots.
+For native presentation at scale `3`, these distances become `36..288` and
+`12`, respectively. The secondary fraction, height factor and resource caps
+are unchanged.
+
+Snapshot bounds, roots and `zRange` must already be in those derived world
+units. SM-303 does not scale their positions or multiply their heights again;
+`throwPerZ` remains dimensionless. A caller using native bounds/heights must
+pass its matching `worldScale`. Mixing native heights with logical throw
+limits truncates the long wedge and is retained as a negative CPU witness.
+Default scale `1` preserves the previous packed job/member plans and masks.
+
+`tools/validate_sm505_dso_world_scale.js` checks logical/native distance
+equivalence, minimum/maximum clamps and bounded secondary structure at
+scales `1`, `2` and `3`. These are deterministic source/representation
+checks, not GPU execution, visual coverage acceptance or performance results.
+
 ## Tile-local GPU work
 
 SM-303 reuses the logical 32-pixel tile convention already established by SM-300. Every DSO job computes a conservative swept bound from its owner and bounded secondary structure. Only tiles touched by that bound receive the job index.

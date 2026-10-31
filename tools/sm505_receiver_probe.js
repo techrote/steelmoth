@@ -79,9 +79,9 @@ async function sm505ReceiverProbe(options={}) {
     if(derived.settings?.lighting===false)throw new Error('fixture lighting is disabled; do not alter artistic controls for this probe');
     const cone=JSON.parse(JSON.stringify(sourceCone)),coneScene={...derived,lights:[cone],playerCone:cone};
     const awayCone={...cone,dx:-(cone.dx??1),dy:-(cone.dy??0)},awayScene={...derived,lights:[awayCone],playerCone:awayCone},offScene={...derived,lights:[],playerCone:null};
-    const settings=derived.settings||{},instances=O.buildOwnershipSceneInstances(derived,game.art.manifest);
-    result.configuration.originalAuthoredCone=cone;result.configuration.instanceCount=instances.length;
-    p._uploadBackdrop();started=true;await p.gb.renderInstances(instances,{wait:false});
+    const settings=derived.settings||{},instances=O.buildOwnershipSceneInstances(derived,Presenter.nativeOwnershipAtlas(game.art.manifest,derived.settings.materialHeightScaleY));
+    result.configuration.derivedSettings=JSON.parse(JSON.stringify(settings));result.configuration.originalAuthoredCone=cone;result.configuration.instanceCount=instances.length;
+    p._uploadBackdrop();started=true;await p.gb.renderInstances(instances,{worldScale:derived.settings.worldScale,wait:false});
     await p.lighting.render(p.gb,coneScene,settings,{wait:false});result.lights={negative:JSON.parse(JSON.stringify(p.lighting.lastLights))};
     const negative=await snapshot('negative-no-receiver');
     progress('seed production receiver');await p._renderBackgroundReceivers();

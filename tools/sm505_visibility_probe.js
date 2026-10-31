@@ -21,7 +21,7 @@ async function sm505VisibilityProbe(){
       const e=d.createCommandEncoder();e.copyTextureToBuffer({texture},{buffer,bytesPerRow:row,rowsPerImage:h},{width:w,height:h});q.submit([e.finish()]);
       await buffer.mapAsync(GPUMapMode.READ);const bytes=new Uint8Array(buffer.getMappedRange()).slice();buffer.unmap();
       const hash=await digest(bytes);if(retain)result.items.push({name,format,kind:'linear-rgb',width:w,height:h,rowBytes:row,sha256:hash,base64:encode(bytes)});
-      const view=new DataView(bytes.buffer),pixel=index=>{const offset=Math.floor(index/w)*row+(index%w)*bpp;return Array.from({length:4},(_,c)=>format==='rgba16float'?L.halfToFloat(view.getUint16(offset+c*2,true)):view.getUint8(offset+c)/255)};
+      const view=new DataView(bytes.buffer),pixel=index=>{const offset=Math.floor(index/w)*row+(index%w)*bpp;if(format==='r32uint')return[view.getUint32(offset,true),0,0,1];return Array.from({length:4},(_,c)=>format==='rgba16float'?L.halfToFloat(view.getUint16(offset+c*2,true)):view.getUint8(offset+c)/255)};
       return{pixel,sha256:hash};
     }finally{buffer.destroy()}
   }
@@ -30,6 +30,13 @@ async function sm505VisibilityProbe(){
     const g0=await read(p.gb._record('g0').handle,'rgba8unorm','g0'),g1=await read(p.gb._record('g1').handle,'rgba16float','g1'),g2=await read(p.gb._record('g2').handle,'rgba16float','g2');
     const visibility=await read(p.visibility._record('visibility').handle,'rgba16float','visibility');
     result.inputHashes={g0:g0.sha256,g1:g1.sha256,g2:g2.sha256,composedVisibility:visibility.sha256};
+    const owners=await read(p.gb._record('object').handle,'r32uint','object-id');result.inputHashes.objectId=owners.sha256;
+    const inputs=new Map(scene.sprites.map(s=>[s.id,s]));
+    const materialAtlas=P.nativeOwnershipAtlas(game.art.manifest,native.settings.materialHeightScaleY);
+    const anchored=new Map(p.api.Ownership.buildOwnershipSceneInstances(native,materialAtlas).filter(i=>i.category==='static'&&inputs.get(i.id)?.root?.anchorMode==='bottom'&&!inputs.get(i.id)?.subrect&&Math.abs(i.rotation)<1e-8).map(i=>[i.objectId,{id:i.id,drawFootY:inputs.get(i.id).transform.y*h/scene.frame.logicalSize[1],rect:[i.x-i.w/2,i.y-i.h/2,i.x+i.w/2,i.y+i.h/2],pixels:0,outsideDrawFrame:0,atOrBelowDrawFoot:0,bounds:[w,h,-1,-1]}]));
+    for(let i=0;i<count;i++){const item=anchored.get(owners.pixel(i)[0]);if(!item)continue;const x=i%w,y=Math.floor(i/w);item.pixels++;item.bounds=[Math.min(item.bounds[0],x),Math.min(item.bounds[1],y),Math.max(item.bounds[2],x),Math.max(item.bounds[3],y)];if(y+.5>=item.drawFootY+1e-5)item.atOrBelowDrawFoot++;if(x+.5<item.rect[0]-1e-4||x+.5>item.rect[2]+1e-4||y+.5<item.rect[1]-1e-4||y+.5>item.rect[3]+1e-4)item.outsideDrawFrame++}
+    result.rasterAnchors=[...anchored.values()];
+    check(result.rasterAnchors.some(i=>i.pixels>0)&&result.rasterAnchors.every(i=>i.atOrBelowDrawFoot===0&&i.outsideDrawFrame===0),'actual static ownership aligns with its anchored source draw frame',{objects:result.rasterAnchors.length,visibleObjects:result.rasterAnchors.filter(i=>i.pixels>0).length,outsideDrawFrame:result.rasterAnchors.reduce((n,i)=>n+i.outsideDrawFrame,0),atOrBelowDrawFoot:result.rasterAnchors.reduce((n,i)=>n+i.atOrBelowDrawFoot,0)});
     const points=new Set(),point=(x,y)=>{x=Math.max(0,Math.min(w-1,Math.round(x)));y=Math.max(0,Math.min(h-1,Math.round(y)));const i=y*w+x;if(g0.pixel(i)[3]>.002)points.add(i)};
     for(const light of lights.slice(0,3))for(const [dx,dy]of [[12,0],[32,0],[64,0],[128,0],[256,0],[480,0],[0,24],[0,-24]])point(light.position[0]+dx,light.position[1]+dy);
     let emissivePixels=0,aoPixels=0,firstEmissive=null,firstAO=null;

@@ -18,7 +18,7 @@
       .then(() => import('./engine/render_transform_integration.js?v=sm101-1'))
       .then(() => import('./engine/render_scene.js?v=sm100-1'))
       .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1')))
-    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm505-5'))
+    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm505-6'))
     .then(() => globalThis.SteelMothWebGL2SceneAdapter?.installWhenGameAvailable?.(globalThis) || null)
     .catch(err => {
       globalThis.steelMothRenderSceneBridgeError = String(err?.stack || err);
@@ -69,8 +69,8 @@
     .then(() => globalThis.SteelMothWebGPUQuality?.installRuntimeIntegration?.(globalThis) || null)
     .then(() => import('./engine/webgpu_editor_state.js?v=sm403-1'))
     .then(() => globalThis.SteelMothWebGPUEditorState?.installWhenEditorAvailable?.(globalThis) || null)
-    .then(() => import('./engine/webgpu_scene_presenter.js?v=sm505-5'))
-    .then(() => import('./engine/backend_runtime.js?v=sm505-5'))
+    .then(() => import('./engine/webgpu_scene_presenter.js?v=sm505-6'))
+    .then(() => import('./engine/backend_runtime.js?v=sm505-6'))
     .then(() => globalThis.SteelMothBackendRuntime?.install?.(globalThis) || null)
     .then(() => import('./engine/webgpu_transition_state.js?v=sm404-1'))
     .then(() => globalThis.SteelMothWebGPUTransitionState?.installRuntimeIntegration?.(globalThis) || null)

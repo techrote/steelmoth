@@ -86,10 +86,12 @@
     }
     return new Uint8Array(data);
   }
+  // Renderer-derived native units; artistic controls remain clamped in logical units.
+  function worldScale(settings={}){const v=Number(settings.worldScale);return Number.isFinite(v)&&v>0?clamp(v,1/16,16):1}
   function frameBytes(width,height,settings,lightCount,debugMode){
     const data=new ArrayBuffer(64),dv=new DataView(data),f=(o,v)=>dv.setFloat32(o,finite(v,0),true),u=(o,v)=>dv.setUint32(o,Number(v)>>>0,true);
     f(0,width);f(4,height);f(8,settings.lighting===false?1:clamp(finite(settings.ambient,.3),0,2));f(12,clamp(finite(settings.normalStrength,1),0,3));
-    f(16,clamp(finite(settings.heightStrength,1),0,3));f(20,clamp(finite(settings.roughnessScale,1),.2,2));f(24,clamp(finite(settings.metalnessScale,1),0,2));f(28,clamp(finite(settings.materialAOStrength,.62),0,1));
+    f(16,clamp(finite(settings.heightStrength,1),0,3)*worldScale(settings));f(20,clamp(finite(settings.roughnessScale,1),.2,2));f(24,clamp(finite(settings.metalnessScale,1),0,2));f(28,clamp(finite(settings.materialAOStrength,.62),0,1));
     f(32,clamp(finite(settings.pbrSpecularStrength,.70),0,2));u(48,lightCount);u(52,debugMode);return new Uint8Array(data);
   }
 
@@ -100,7 +102,7 @@
     const al=(sample.albedo||sample.g0||[0,0,0,0]).slice(0,4);if((al[3]??1)<.002)return[0,0,0,0];
     const nr=sample.normalRoughness||sample.g1||[.5,.5,1,.88],hm=sample.heightMaterial||sample.g2||[0,0,1,0];
     const ns=clamp(finite(settings.normalStrength,1),0,3),n=vnorm([(nr[0]*2-1)*ns,(nr[1]*2-1)*ns,nr[2]*2-1]);
-    const rough=clamp(nr[3]*clamp(finite(settings.roughnessScale,1),.2,2),.06,1),metal=clamp(hm[1]*clamp(finite(settings.metalnessScale,1),0,2),0,1),mao=1+(hm[2]-1)*clamp(finite(settings.materialAOStrength,.62),0,1),em=hm[3],z=hm[0]*64*clamp(finite(settings.heightStrength,1),0,3);
+    const rough=clamp(nr[3]*clamp(finite(settings.roughnessScale,1),.2,2),.06,1),metal=clamp(hm[1]*clamp(finite(settings.metalnessScale,1),0,2),0,1),mao=1+(hm[2]-1)*clamp(finite(settings.materialAOStrength,.62),0,1),em=hm[3],z=hm[0]*64*clamp(finite(settings.heightStrength,1),0,3)*worldScale(settings);
     const V=vnorm([0,-.12,1]),F0=vmix([.04,.04,.04],al,metal);let diff=[0,0,0],spec=[0,0,0];
     for(const light of lights||[]){
       let radiance,NoL,L;
@@ -261,5 +263,5 @@ struct Frame { p0:vec4f,p1:vec4f,p2:vec4f,counts:vec4u };
     close(){this.streamedDirectClosed=true;this.directAccumulationValid=false;if(this.ownsRegistry)this.registry.close()}
   }
 
-  return{SCHEMA,MAX_LIGHTS,LIGHT_STRIDE,LIGHT_BUFFER_NAME,OUTPUT_FORMAT,DEBUG_MODES,LIGHT_TYPE,LIGHT_FLAGS,DEFAULT_Z,DIAGNOSTIC_PRESET,DEFERRED_WGSL,deferredWgsl,streamedDirectWgsl,RESOLVE_DIRECT_WGSL,lightElevation,buildCanonicalLights,packLights,shadePixelReference,shadeDirectReference,resolveDirectReference,halfToFloat,WebGPUDeferredLighting};
+  return{SCHEMA,MAX_LIGHTS,LIGHT_STRIDE,LIGHT_BUFFER_NAME,OUTPUT_FORMAT,DEBUG_MODES,LIGHT_TYPE,LIGHT_FLAGS,DEFAULT_Z,DIAGNOSTIC_PRESET,DEFERRED_WGSL,deferredWgsl,streamedDirectWgsl,RESOLVE_DIRECT_WGSL,lightElevation,worldScale,frameBytes,buildCanonicalLights,packLights,shadePixelReference,shadeDirectReference,resolveDirectReference,halfToFloat,WebGPUDeferredLighting};
 });

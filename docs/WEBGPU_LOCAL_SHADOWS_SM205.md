@@ -96,3 +96,29 @@ SM-205 records CPU submit/wait wall time only when no GPU timestamp query is use
 ## Composition boundary
 
 SM-205 outputs local visibility fields. It does not blindly multiply them into every other visibility term and it does not own DSO/Dark Bloom/AO state. SM-307 remains responsible for bounded visibility composition so dense industrial geometry cannot be independently darkened by several unrelated terms to near black.
+
+
+## SM-505 native extent unit conversion
+
+**Decision:** `settings.worldScale` is a renderer-derived conversion shared with
+SM-204, defaulting to 1 and bounded to 1/16–16 for finite positive inputs. Apply
+ordinary artistic clamps first, then convert material height, trace distance,
+bias, near-light cutoff and contact smooth transition width into native units.
+The contact fallback light elevation is converted too. This preserves the
+configured 4–36 logical-pixel contact range and self trace limits rather than
+reinterpreting those limits as native pixels. Quality tap counts are unchanged.
+The existing 48-byte frame uses its previously unused final word for float scale
+bits; self/contact WGSL reads that word with `bitcast<f32>`.
+
+The previous 3× presenter combined scaled light coordinates with unscaled HM
+height, 176-native-pixel self reach and 20-native-pixel contact reach. That was a
+unit mismatch, not an approved shortening of shadow quality. The conversion
+restores corresponding geometry. Sample hash coordinates are converted back to logical units before jitter, so
+corresponding logical sample positions retain their authored pattern. Different
+raster sample grids and nearest material sampling still prevent a promise of
+byte-identical masks across extents. The 3-logical-pixel contact smooth transition and
+1/2-logical-pixel near cutoffs scale with the same conversion.
+
+CPU reference and packed-frame checks are in
+`tools/validate_sm505_native_units.js`; actual changed-source GPU compilation and
+readbacks remain necessary for native correctness evidence.

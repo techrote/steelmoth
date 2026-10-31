@@ -11,6 +11,7 @@
   const finite=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const usage=(kind,...names)=>names.reduce((v,n)=>v|Number(root?.[kind]?.[n]||0),0);
+  const Transform=root?.SteelMothRenderTransform||((typeof module==='object'&&module.exports)?require('./render_transform.js'):null);
   const required=()=>({
     Scene:root?.SteelMothRenderScene,Pseudo:root?.SteelMothPseudoDepth,Ownership:root?.SteelMothWebGPUOwnership,
     Depth:root?.SteelMothWebGPUDepthHierarchy,Lighting:root?.SteelMothWebGPULighting,Shadows:root?.SteelMothWebGPULocalShadows,
@@ -21,10 +22,19 @@
     Ordering:root?.SteelMothWebGPUOrdering,Quality:root?.SteelMothWebGPUQuality
   });
 
-  function scaleScene(scene,width,height,pseudo=null,lighting=null){
+  function scaleScene(scene,width,height,pseudo=null,lighting=null,transform=Transform){
     const out=clone(scene),logical=scene?.frame?.logicalSize||[640,360],sx=width/Math.max(1,finite(logical[0],640)),sy=height/Math.max(1,finite(logical[1],360)),ss=Math.min(sx,sy);
     out.frame={...(out.frame||{}),logicalSize:[width,height]};
-    for(const s of out.sprites||[]){const t=s.transform||{},rx=s.root?finite(s.root.x,finite(t.x)):null,ry=s.root?finite(s.root.y,finite(t.y)):null;t.x=finite(t.x)*sx;t.y=finite(t.y)*sy;if(t.w!=null)t.w=finite(t.w)*sx;if(t.h!=null)t.h=finite(t.h)*sy;if(s.root){s.root.x=rx*sx;s.root.y=ry*sy}if(pseudo?.projectSpriteFragment){const p=pseudo.projectSpriteFragment(s,{u:.5,v:1,localHeight:0,alpha:s.style?.alpha??1});if(Number.isFinite(p?.depth01))s.depth01=p.depth01}}
+    out.settings={...(out.settings||{}),worldScale:finite(scene?.settings?.worldScale,1)*ss,materialHeightScaleY:finite(scene?.settings?.materialHeightScaleY,1)*sy};
+    for(const s of out.sprites||[]){const t=s.transform||{},rx=s.root?finite(s.root.x,finite(t.x)):null,ry=s.root?finite(s.root.y,finite(t.y)):null;
+      if(s.category==='static'&&!s.rasterAnchorResolved&&['bottom','top'].includes(s.root?.anchorMode)){
+        if(!transform?.rasterCenter)throw new Error('SM-505 static raster requires the shared frame transform');
+        const center=transform.rasterCenter({x:t.x,y:t.y,w:t.w,h:t.h,anchor:s.root.anchorMode,rotation:t.rotation,flip:t.flip,subrect:s.subrect});t.x=center.x;t.y=center.y;s.rasterAnchorResolved=true;
+      }
+      // Canonical depth keys use authored units; native XY is a sampling extent.
+      if(pseudo?.projectSpriteFragment){const previous=finite(scene?.settings?.worldScale,1),logical=previous===1?s:{...s,transform:{...t,x:finite(t.x)/previous,y:finite(t.y)/previous,w:t.w==null?undefined:t.w/previous,h:t.h==null?undefined:t.h/previous},root:s.root?{...s.root,x:rx/previous,y:ry/previous}:undefined};const p=pseudo.projectSpriteFragment(logical,{u:.5,v:1,localHeight:0,alpha:s.style?.alpha??1});if(Number.isFinite(p?.depth01))s.depth01=p.depth01}
+      t.x=finite(t.x)*sx;t.y=finite(t.y)*sy;if(t.w!=null)t.w=finite(t.w)*sx;if(t.h!=null)t.h=finite(t.h)*sy;if(s.root){s.root.x=rx*sx;s.root.y=ry*sy}
+    }
     // Cone lights carry their reach in `range`, while point lights use `radius`.
     // Both are logical world distances and must follow the derived native extent.
     // Resolve omitted elevations through SM-204 while they are still in logical
@@ -34,7 +44,16 @@
     // SM-204's group/cone defaults in this presentation adapter.
     const scaleLight=l=>{const z=typeof lighting?.lightElevation==='function'?lighting.lightElevation(l):l.z;l.x*=sx;l.y*=sy;if(z!=null)l.z=z*ss;if(l.radius!=null)l.radius*=ss;if(l.range!=null)l.range*=ss};
     for(const l of out.lights||[])scaleLight(l);
-    for(const o of out.occluders||[]){if(Array.isArray(o.bounds))o.bounds=[o.bounds[0]*sx,o.bounds[1]*sy,o.bounds[2]*sx,o.bounds[3]*sy];if(Array.isArray(o.rect))o.rect=[o.rect[0]*sx,o.rect[1]*sy,o.rect[2]*sx,o.rect[3]*sy];if(o.root){o.root.x*=sx;o.root.y*=sy}if(o.x!=null)o.x*=sx;if(o.contactY!=null)o.contactY*=sy;if(Array.isArray(o.sections))for(const q of o.sections)if(q.z!=null)q.z*=ss}
+    for(const o of out.occluders||[]){
+      if(Array.isArray(o.bounds))o.bounds=[o.bounds[0]*sx,o.bounds[1]*sy,o.bounds[2]*sx,o.bounds[3]*sy];
+      if(Array.isArray(o.rect))o.rect=[o.rect[0]*sx,o.rect[1]*sy,o.rect[2]*sx,o.rect[3]*sy];
+      if(Array.isArray(o.zRange))o.zRange=o.zRange.map(z=>z*ss);
+      if(o.root){o.root.x*=sx;o.root.y*=sy}
+      for(const k of ['x','rootX','shadowContactX','shadowContactOffsetX'])if(o[k]!=null)o[k]*=sx;
+      for(const k of ['y','contactY','rootY','shadowContactY','shadowContactOffsetY'])if(o[k]!=null)o[k]*=sy;
+      if(o.shadowContact){for(const k of ['x','offsetX'])if(o.shadowContact[k]!=null)o.shadowContact[k]*=sx;for(const k of ['y','offsetY'])if(o.shadowContact[k]!=null)o.shadowContact[k]*=sy}
+      if(Array.isArray(o.sections))for(const q of o.sections){if(q.z!=null)q.z*=ss;for(const k of ['a','b'])if(Array.isArray(q[k]))q[k]=[q[k][0]*sx,q[k][1]*sy]}
+    }
     const scaleOverlay=o=>{if(o){if(o.x!=null)o.x*=sx;if(o.y!=null)o.y*=sy}};
     scaleOverlay(out.overlays?.guide);scaleOverlay(out.overlays?.objectiveMarker);if(out.playerCone)scaleLight(out.playerCone);
     for(const p of out.proceduralLayers||[])if(p.kind==='effects'&&Array.isArray(p.descriptor))for(const e of p.descriptor){if(e.x!=null)e.x*=sx;if(e.y!=null)e.y*=sy;for(const k of ['radius','size','length'])if(e[k]!=null)e[k]*=ss}
@@ -48,6 +67,19 @@
   function atlasMetaFromLegacy(atlas){
     const regions={};for(const [name,r] of Object.entries(atlas?.s||{}))regions[name]=[r.x,r.y,r.w,r.h];
     return{source_size:[atlas?.canvas?.width||512,atlas?.canvas?.height||256],regions};
+  }
+
+  function nativeOwnershipAtlas(atlas,scaleY=1){
+    if(scaleY===1)return atlas;
+    // Scale the authored base BEFORE the accepted material-factor clamp.
+    return{...atlas,world_scale:finite(atlas?.world_scale,.18)*scaleY};
+  }
+
+  function nativeClusterOptions(scale,clusters){
+    const out={},defaults=clusters?.DEFAULTS||{};
+    for(const key of ['adjacencyPx','crossClassAdjacencyPx','groundYThreshold','depthProximity','zProximity'])if(defaults[key]!=null)out[key]=defaults[key]*scale;
+    if(defaults.tinyConnectorArea!=null)out.tinyConnectorArea=defaults.tinyConnectorArea*scale*scale;
+    return out;
   }
 
   function frameScene(scene,predicate,{procedural=false,overlays=false}={}){
@@ -124,7 +156,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
 @vertex fn vs(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->O{
  let corners=array<vec2f,6>(vec2f(-.5,0),vec2f(.5,0),vec2f(-.5,1),vec2f(-.5,1),vec2f(.5,0),vec2f(.5,1));
  let q=corners[vi];let r=raster[ii];let s=lit[ii];let bend=bitcast<f32>(s.ids.z);let root=r.rootSize.xy;let size=r.rootSize.zw;
- let x=root.x+q.x*size.x+bend*q.y;let y=root.y-q.y*size.y;let mode=u32(params.extentMode.z+.5);let layerOffset=select(0.0,-1024.0,mode==0u);let depth=clamp((3072.0-(layerOffset+root.y))/5120.0,0.0,1.0);var o:O;o.p=vec4f(x/params.extentMode.x*2.0-1.0,1.0-y/params.extentMode.y*2.0,depth,1);
+ let x=root.x+q.x*size.x+bend*q.y;let y=root.y-q.y*size.y;let mode=u32(params.extentMode.z+.5);let layerOffset=select(0.0,-1024.0,mode==0u);let worldScale=max(params.extentMode.w,.0001);let depth=clamp((3072.0-(layerOffset+root.y/worldScale))/5120.0,0.0,1.0);var o:O;o.p=vec4f(x/params.extentMode.x*2.0-1.0,1.0-y/params.extentMode.y*2.0,depth,1);
  o.uv=mix(r.uv.xy,r.uv.zw,vec2f(q.x+.5,1.0-q.y));o.color=s.color;o.front=bitcast<f32>(s.ids.w);o.category=s.ids.y;return o;
 }
 @fragment fn fs(in:O)->@location(0) vec4f{
@@ -210,9 +242,9 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
     }
     _buildFoliageRaster(){
       const d=this.device,m=d.createShaderModule({label:'SM505:foliage-raster',code:FOLIAGE_RASTER_WGSL}),target={format:WORLD_FORMAT,blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}};
-      this.foliageRaster=d.createBuffer({label:'SM505:foliage-raster-data',size:this.api.Foliage.MAX_INSTANCES*32,usage:usage('GPUBufferUsage','STORAGE','COPY_DST')});this.foliageParams=[0,1,2].map(mode=>{const b=d.createBuffer({label:`SM505:foliage-raster-params:${mode}`,size:16,usage:usage('GPUBufferUsage','UNIFORM','COPY_DST')});this.queue.writeBuffer(b,0,new Float32Array([this.width,this.height,mode,0]));return b});this.foliageSampler=d.createSampler({magFilter:'nearest',minFilter:'nearest'});
+      this.foliageRaster=d.createBuffer({label:'SM505:foliage-raster-data',size:this.api.Foliage.MAX_INSTANCES*32,usage:usage('GPUBufferUsage','STORAGE','COPY_DST')});this.foliageParams=[0,1,2].map(mode=>{const b=d.createBuffer({label:`SM505:foliage-raster-params:${mode}`,size:16,usage:usage('GPUBufferUsage','UNIFORM','COPY_DST')});this.queue.writeBuffer(b,0,new Float32Array([this.width,this.height,mode,1]));return b});this.foliageSampler=d.createSampler({magFilter:'nearest',minFilter:'nearest'});
       const desc=depth=>({label:`SM505:foliage:${depth?'depth':'front'}`,layout:'auto',vertex:{module:m,entryPoint:'vs'},fragment:{module:m,entryPoint:'fs',targets:[target]},primitive:{topology:'triangle-list'},depthStencil:depth?{format:'depth32float',depthWriteEnabled:false,depthCompare:'less-equal'}:undefined});
-      this.foliageDepthPipeline=d.createRenderPipeline(desc(true));this.foliageFrontPipeline=d.createRenderPipeline(desc(false));this.resources.push(this.foliageRaster,...this.foliageParams);
+      this.foliageDepthPipeline=d.createRenderPipeline(desc(true));this.foliageFrontPipeline=d.createRenderPipeline(desc(false));this.resources.push(this.foliageRaster,...this.foliageParams);this.foliageWorldScale=null;
     }
     _uploadLegacyAtlas(){
       const src=this.game.atlas?.canvas;if(!src)throw new Error('SM-505 legacy atlas unavailable');this.legacyMeta=atlasMetaFromLegacy(this.game.atlas);this.legacyTexture=this.device.createTexture({label:'SM505:legacy-atlas',size:{width:src.width,height:src.height},format:'rgba8unorm-srgb',usage:usage('GPUTextureUsage','TEXTURE_BINDING','COPY_DST','RENDER_ATTACHMENT')});this.resources.push(this.legacyTexture);this.queue.copyExternalImageToTexture({source:src},{texture:this.legacyTexture,colorSpace:'srgb'},{width:src.width,height:src.height});
@@ -275,10 +307,13 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
     async _render(scene){
       this._assertOpen();this.api.Scene.validateRenderScene(scene);const e=this._extent();if(e.width!==this.width||e.height!==this.height){await this._rebuild(e.width,e.height);this._assertOpen()}
       this._uploadBackdrop();const scaled=scaleScene(scene,this.width,this.height,this.api.Pseudo,this.api.Lighting),s=scaled.scene,quality=this.root?.steelMothWebGPUQualityRuntime?.preset||this.game.graphics?.webgpuQualityPreset||'Medium',Q=this.api.Quality;
-      this._invalidateForRoom(String(s.frame?.roomId||'unknown-room'));const shadowSettings={...Q.localShadowSettings(quality,s.settings||{}),selfShadowing:s.settings?.lighting!==false&&s.settings?.selfShadowing!==false,contactShadows:s.settings?.lighting!==false&&s.settings?.contactShadows!==false};
-      const opaqueInstances=this.api.Ownership.buildOwnershipSceneInstances(s,this.game.art.manifest);
-      await this.gb.renderInstances(opaqueInstances,{wait:false});this._assertOpen();this._renderBackgroundReceivers();const opaqueIds=new Set(opaqueInstances.map(instance=>String(instance.id)));await this.depth.buildFromOwnership(this.gb,{wait:false});this._assertOpen();await this.occ.update(s,{wait:false});this._assertOpen();await this.clusters.update(this.occ,{wait:false});this._assertOpen();await this.dominance.update(this.clusters,this.occ,this.api.Lighting.buildCanonicalLights(s,shadowSettings),{wait:false});this._assertOpen();
-      const macroDriver=macroLightDriver(s,shadowSettings,this.api.Lighting,this.api.Shadows,this.dominance.snapshot),lightId=macroDriver?.id||null;await this.dso.update(this.clusters,this.occ,this.dominance,{lightId,wait:false});this._assertOpen();await this.dsoHierarchy.update(this.dso,{quality,wait:false});this._assertOpen();await this.bloom.update(this.bloom.sourceFromPaths(this.dsoHierarchy,this.depth),{quality,wait:false});this._assertOpen();await this.bloomTemporal.update(this.bloomTemporal.sourceFromPaths(this.bloom,this.depth,this.gb,this.dsoHierarchy,macroDriver||{}),{wait:false});this._assertOpen();await this._renderOpaqueLighting(s,shadowSettings,lightId);this._assertOpen();
+      this.nativeUnits={scale:scaled.scale,worldScale:s.settings.worldScale,materialHeightScaleY:s.settings.materialHeightScaleY,depth:'canonical authored units; native raster Y converted before shared kernel',material:'logical compatibility factor before clamp; native height decoded once'};this._invalidateForRoom(String(s.frame?.roomId||'unknown-room'));const shadowSettings={...Q.localShadowSettings(quality,s.settings||{}),selfShadowing:s.settings?.lighting!==false&&s.settings?.selfShadowing!==false,contactShadows:s.settings?.lighting!==false&&s.settings?.contactShadows!==false};
+      const baseAtlas=this.game.art.manifest,heightScale=s.settings.materialHeightScaleY;
+      if(!this.nativeAtlas||this.nativeAtlas.source!==baseAtlas||this.nativeAtlas.scaleY!==heightScale)this.nativeAtlas={source:baseAtlas,scaleY:heightScale,atlas:nativeOwnershipAtlas(baseAtlas,heightScale)};
+      const opaqueInstances=this.api.Ownership.buildOwnershipSceneInstances(s,this.nativeAtlas.atlas);
+      await this.gb.renderInstances(opaqueInstances,{worldScale:s.settings.worldScale,wait:false});this._assertOpen();this._renderBackgroundReceivers();const opaqueIds=new Set(opaqueInstances.map(instance=>String(instance.id)));await this.depth.buildFromOwnership(this.gb,{wait:false});this._assertOpen();await this.occ.update(s,{wait:false});this._assertOpen();await this.clusters.update(this.occ,{...nativeClusterOptions(s.settings.worldScale,this.api.Clusters),wait:false});this._assertOpen();await this.dominance.update(this.clusters,this.occ,this.api.Lighting.buildCanonicalLights(s,shadowSettings),{relevancePadding:finite(this.api.Dominance?.DEFAULTS?.relevancePadding,4)*s.settings.worldScale,wait:false});this._assertOpen();
+      const macroDriver=macroLightDriver(s,shadowSettings,this.api.Lighting,this.api.Shadows,this.dominance.snapshot),lightId=macroDriver?.id||null;await this.dso.update(this.clusters,this.occ,this.dominance,{lightId,worldScale:s.settings.worldScale,wait:false});this._assertOpen();await this.dsoHierarchy.update(this.dso,{quality,wait:false});this._assertOpen();await this.bloom.update(this.bloom.sourceFromPaths(this.dsoHierarchy,this.depth),{quality,wait:false});this._assertOpen();await this.bloomTemporal.update(this.bloomTemporal.sourceFromPaths(this.bloom,this.depth,this.gb,this.dsoHierarchy,macroDriver||{}),{wait:false});this._assertOpen();await this._renderOpaqueLighting(s,shadowSettings,lightId);this._assertOpen();
+      if(this.foliageParams&&this.foliageWorldScale!==s.settings.worldScale){this.foliageParams.forEach((buffer,mode)=>this.queue.writeBuffer(buffer,0,new Float32Array([this.width,this.height,mode,s.settings.worldScale])));this.foliageWorldScale=s.settings.worldScale}
       this._opaqueComposite();this._updateWaterField(String(s.frame.roomId||'unknown-room'));
       const frames=this._sourceFrames(s,opaqueIds),depthView=this.gb._views().depth,enc=this.device.createCommandEncoder({label:'SM505:forward-compose'}),worldView=this.world.createView();
       const waterDesc=(s.proceduralLayers||[]).find(p=>p.kind==='water')?.descriptor;if(waterDesc&&this.water.fieldTexture){const source=this.water.sourceFromPaths(this.lighting,this.gb,this.visibility);source.sceneView=worldView;await this.water.render(source,s,{...(s.settings||{}),...waterDesc},{wait:false,time:(s.frame.timeMs||0)/1000,ripples:this.game.renderer.surfaceFX?.water?.sources?.items||[]});this._assertOpen();this._blendTexture(enc,this.water.outputTexture().createView(),worldView)}
@@ -305,13 +340,13 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       catch(error){if(this.closed){this._closeResources();return}this.lastError=String(error?.stack||error);this.ready=false;try{this.onFailure(error,this)}catch(_e){}}
       finally{this.rendering=false}
     }
-    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,opaqueVisibility:{policy:'light-identified streamed direct; one compression; ambient AO once; emissive unmasked',plan:clone(this.lastOpaqueVisibilityPlan||null)},backgroundReceiver:{policy:'unowned material receiver; object ID and depth unchanged',renderCount:this.receiverRenders||0,compilation:clone(this.receiverCompilation||[])},presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds rgba16float world and raw-direct accumulation targets, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
+    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,nativeUnits:clone(this.nativeUnits||null),opaqueVisibility:{policy:'light-identified streamed direct; one compression; ambient AO once; emissive unmasked',plan:clone(this.lastOpaqueVisibilityPlan||null)},backgroundReceiver:{policy:'unowned material receiver; object ID and depth unchanged',renderCount:this.receiverRenders||0,compilation:clone(this.receiverCompilation||[])},presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds rgba16float world and raw-direct accumulation targets, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
     _closeResources(){
-      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.lighting,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.receiverBindings=null;this.resources=[];
+      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.lighting,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.receiverBindings=null;this.nativeAtlas=null;this.resources=[];
     }
     close(){if(this.closed)return;this.closed=true;this.ready=false;this.pending=null;this._closeResources();try{this.context?.unconfigure?.()}catch(_e){};try{this.canvas?.remove?.()}catch(_e){};this.canvas=null;this.context=null}
   }
 
   function create(options){return new WebGPUScenePresenter(options)}
-  return{SCHEMA,WORLD_FORMAT,COMPOSITE_WGSL,BACKGROUND_RECEIVER_WGSL,FOLIAGE_RASTER_WGSL,scaleScene,scaleFoliageInstances,atlasMetaFromLegacy,frameScene,visibilityLightPlan,lightSubset,macroLightDriver,WebGPUScenePresenter,create};
+  return{SCHEMA,WORLD_FORMAT,COMPOSITE_WGSL,BACKGROUND_RECEIVER_WGSL,FOLIAGE_RASTER_WGSL,scaleScene,scaleFoliageInstances,atlasMetaFromLegacy,nativeOwnershipAtlas,nativeClusterOptions,frameScene,visibilityLightPlan,lightSubset,macroLightDriver,WebGPUScenePresenter,create};
 });

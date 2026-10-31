@@ -97,3 +97,38 @@ The inherited SM-200 real-GPU material readbacks remain required, as does the SM
 Hosted Chrome/Dawn success proves the tested API, WGSL, attachment, object-ID and depth-readback contracts on that adapter. It is not GTX 1650 Super performance evidence, final deferred-lighting parity, Firefox acceptance, DSO quality, or human visual acceptance.
 
 SM-203 and later clustering/DSO/GTAO/SSGI/volumetric work must consume this resolved ownership depth/object field. They must not fall back to G2.R local height as if it were ownership depth or derive another competing pseudo-depth projection.
+
+
+## Optional native extent conversion (SM-505)
+
+**Decision:** `renderInstances(instances, {worldScale})` may convert a native
+fragment's screen Y back into canonical logical units before evaluating the
+unchanged SM-201 depth function. The optional scale defaults to 1; non-finite or
+non-positive inputs resolve to 1 and positive inputs are bounded to 1/16-16.
+`referenceDepthForPixel` accepts the same conversion as its optional sixth
+argument. This is a coordinate conversion, not a new ownership convention:
+
+```text
+canonicalFragmentY = nativeFragmentY / worldScale
+worldZ = clamp(localHeight, 0, 1) * 64
+projectedGroundY = canonicalFragmentY + worldZ
+```
+
+Layer, fine bias, root semantics, local HM encoding, attachment formats, stable
+IDs, alpha cutoff, depth comparison and the canonical depth-key range retain
+their existing meaning. The presentation adapter must preserve the logical
+material height factor before its ordinary clamp when it expands sprite
+rectangles into native pixels; multiplying local HM height again by render
+extent would count the conversion twice. SM-203 consumes the resulting ordinary
+canonical depth attachment without a separate depth convention or shader change.
+
+The frame remains 32 bytes: logical/atlas extents at byte0, alpha cutoff at16,
+worldScale at20 and two padding floats at24. The fragment shader divides screen
+Y at its call into the byte-identical canonical `smOwnershipDepth` kernel.
+Scale1 retains the accepted mathematical result. Reusing a native source sample
+with unconverted Y can reverse which of two unequal-height covered fragments
+wins; the negative witness is retained in
+`tools/validate_sm505_ownership_units.js`. That CPU validator also exercises the
+actual `renderInstances` frame/instance writes, stable IDs and canonical depth at
+1/2/3x extents. GPU compilation/readbacks and visual qualification remain separate
+requirements for a changed candidate.
