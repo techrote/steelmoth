@@ -29,7 +29,7 @@ function environment(blockedStage=null){
   const queue={submit(){events.push('submit')},writeBuffer(){},writeTexture(){},copyExternalImageToTexture(){}};
   const device={queue,createTexture:()=>resource('world'),createCommandEncoder:()=>({finish:()=>({})})};
   const api={
-    Ownership:{WebGPUOwnershipGBuffer:producer('gb')},Depth:{WebGPUDepthHierarchy:producer('depth')},Shadows:{WebGPULocalShadows:producer('shadows')},Lighting:{WebGPUDeferredLighting:producer('lighting')},
+    Ownership:{WebGPUOwnershipGBuffer:producer('gb'),buildOwnershipSceneInstances:()=>[]},Depth:{WebGPUDepthHierarchy:producer('depth')},Shadows:{WebGPULocalShadows:producer('shadows')},Lighting:{WebGPUDeferredLighting:producer('lighting')},
     Occluders:{WebGPUOccluderBins:producer('occluders')},Clusters:{WebGPUOccluderClusters:producer('clusters')},Dominance:{WebGPUDominantOccluders:producer('dominance')},DSO:{WebGPUDSOHardCore:producer('dso')},DSOHierarchy:{WebGPUDSOHierarchy:producer('dsoHierarchy')},
     Bloom:{WebGPUDarkBloom:producer('bloom')},BloomTemporal:{WebGPUDarkBloomTemporal:producer('bloomTemporal')},Visibility:{WebGPUVisibilityComposition:producer('visibility')},Water:{WebGPUWaterPass:producer('water')},
     Foliage:{FoliageFrameAuthority:class{},WebGPUFoliagePass:producer('foliage')},Post:{WebGPUPost:producer('post')},Transparent:{WebGPUTransparentFX:producer('fx')},
@@ -66,12 +66,12 @@ function prepareRender(e){
   const fields=['gb','depth','shadows','occ','clusters','dominance','dso','dsoHierarchy','bloom','bloomTemporal','visibility','lighting','water'];
   for(let i=0;i<fields.length;i++){
     const r=e.resource(renderStages[i]);p[fields[i]]=r;
-    const run=async()=>e.stage('render:'+r.name,r);r.renderScene=run;r.buildFromOwnership=run;r.render=run;r.update=run;r.sourceFromPaths=()=>({});r.invalidate=()=>{};
+    const run=async()=>e.stage('render:'+r.name,r);r.renderInstances=run;r.buildFromOwnership=run;r.render=run;r.update=run;r.sourceFromPaths=()=>({});r.invalidate=()=>{};
   }
   p.gb.close=function(){for(const r of [this,p.shadows,p.lighting]){r.live=false;r.closes++}};
   p.gb._views=()=>({depth:{}});p.gb.atlas={albedo:{createView:()=>({})}};p.water.fieldTexture={};p.water.outputTexture=()=>({createView:()=>({})});
   p.world=e.resource('world');p.legacyTexture=e.resource('legacy');p.resources=[p.world,p.legacyTexture];
-  p.fx={};for(const name of ['worldLegacy','worldHd','topLegacy','topHd','overlay'])p.fx[name]=Object.assign(e.resource(name),{uploadFrame(){},renderStage(){e.events.push('fx:'+name)}});
+  p.fx={};for(const name of ['worldLegacy','worldHd','topLegacy','topHd','overlay'])p.fx[name]=Object.assign(e.resource(name),{uploadFrame(){},renderStage(stage){e.events.push('fx:'+name+':'+stage)}});
   p.post=Object.assign(e.resource('post'),{render(){e.events.push('post')}});
   p._opaqueComposite=()=>e.events.push('opaque-composite');p._updateWaterField=()=>{};p._sourceFrames=()=>({legacy:{},hd:{},overlay:{}});p._blendTexture=()=>e.events.push('water-blend');
   return{frame:{logicalSize:[64,36],roomId:'lifecycle-room'},sprites:[],lights:[],settings:{},proceduralLayers:[{kind:'water',descriptor:{}}]};
@@ -89,7 +89,8 @@ async function testRenderCancellation(){
     await assert.rejects(e.p._render(scene),/presenter is closed/);
   }
   const e=environment(),scene=prepareRender(e);await e.p._drain(scene);
-  assert.equal(e.p.presentedFrames,1,'live render still presents');assert.equal(e.state.failures,0);assert(e.events.includes('post'));assert(e.events.includes('submit'));e.p.close();
+  assert.equal(e.p.presentedFrames,1,'live render still presents');assert.equal(e.state.failures,0);assert(e.events.includes('post'));assert(e.events.includes('submit'));
+  assert.deepEqual(e.events.slice(e.events.indexOf('post')),['post','fx:overlay:post-effects','fx:topLegacy:top-additive','fx:topHd:top-additive','fx:topLegacy:top-alpha','fx:topHd:top-alpha','fx:overlay:objective','fx:overlay:guide','submit'],'real _render must execute the canonical SM-402 post/effects/top/objective/guide order');e.p.close();
 }
 
 async function testRebuildCancellation(){
@@ -111,5 +112,5 @@ async function testUnexpectedFailuresStillReport(){
 
 (async()=>{
   await testInitializationCancellation();await testRenderCancellation();await testRebuildCancellation();await testUnexpectedFailuresStillReport();
-  console.log('SM-505 PRESENTER LIFECYCLE PASS: 10 deferred initialization and 13 render cancellation boundaries, resize cancellation, live success, closed-entry refusal and real-failure reporting');
+  console.log('SM-505 PRESENTER LIFECYCLE PASS: 10 deferred initialization and 13 render cancellation boundaries, resize cancellation, live success, canonical post/top/overlay ordering, closed-entry refusal and real-failure reporting');
 })().catch(error=>{console.error(error?.stack||error);process.exit(1)});

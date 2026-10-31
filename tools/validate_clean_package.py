@@ -130,6 +130,7 @@ def main() -> int:
                 ['node','tools/validate_sm505_presentation.js'],
                 ['node','tools/validate_sm505_scene_scale.js'],
                 ['node','tools/validate_sm505_uploads.js'],
+                ['node','tools/validate_sm505_exclusive_ownership.js'],
                 ['node','tools/validate_sm505_presenter_lifecycle.js'],
                 [sys.executable,'tools/validate_sm505_physical_guard.py'],
                 [sys.executable,'tools/validate_sm505_deployment_contract.py'],

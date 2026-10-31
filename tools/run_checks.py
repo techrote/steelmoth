@@ -57,6 +57,7 @@ CHECKS = [
     ("sm505-presentation", "regression", ["node", "tools/validate_sm505_presentation.js"]),
     ("sm505-scene-scale", "regression", ["node", "tools/validate_sm505_scene_scale.js"]),
     ("sm505-uploads", "regression", ["node", "tools/validate_sm505_uploads.js"]),
+    ("sm505-exclusive-ownership", "regression", ["node", "tools/validate_sm505_exclusive_ownership.js"]),
     ("sm505-presenter-lifecycle", "regression", ["node", "tools/validate_sm505_presenter_lifecycle.js"]),
     ("sm505-physical-guard", "regression", [PY, "tools/validate_sm505_physical_guard.py"]),
     ("js-sm505-capture-stages", "source", ["node", "--check", "tools/sm505_capture_stages.js"]),

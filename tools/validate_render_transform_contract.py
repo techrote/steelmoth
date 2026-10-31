@@ -39,9 +39,9 @@ def main():
     normal_chain="""import('./engine/render_transform.js?v=sm101-1')
       .then(() => import('./engine/render_transform_integration.js?v=sm101-1'))
       .then(() => import('./engine/render_scene.js?v=sm100-1'))
-      .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1')))\n    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm505-2'))"""
+      .then(() => import('./engine/render_transform_scene_adapter.js?v=sm101-1')))\n    .then(() => import('./engine/webgl2_scene_adapter.js?v=sm505-3'))"""
     require(normal_chain in webapp,'normal webapp transform/scene modules are not chained in the required execution order')
-    order=['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_scene.js?v=sm100-1','render_transform_scene_adapter.js?v=sm101-1','webgl2_scene_adapter.js?v=sm505-2']
+    order=['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_scene.js?v=sm100-1','render_transform_scene_adapter.js?v=sm101-1','webgl2_scene_adapter.js?v=sm505-3']
     for item in order:
         require(item in webapp,f'webapp missing transform/scene module: {item}')
     require('renderTransformBaseline' in webapp and "params.get('renderTest')" in webapp,'test-only before/after browser parity mode is missing or insufficiently gated')

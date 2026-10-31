@@ -144,9 +144,11 @@ def main():
                 stages['captures']=metadata;report['stages']=stages
                 report['postProbe']={**stages['postProbe'],'inputLinear':np.array(stages['postProbe']['inputHalfWords'],dtype='<u2').view('<f2').astype(float).tolist(),
                     'rawRGB':arrays['post-probe-raw'][0,:,:3].tolist(),'finalRGB':arrays['post-probe-final'][0,:,:3].tolist()}
-                mask=np.max(arrays['gbuffer-albedo'][:,:,:3],axis=2)>1/255
+                id_meta=next(item for item in metadata if item['name']=='object-id')
+                ids=np.fromfile(out/'object-id.bin',dtype=np.uint8).reshape(args.height,id_meta['rowBytes'])[:,:args.width*4].copy().view('<u4').reshape(args.height,args.width)
+                mask=ids!=0
                 final=arrays['final-postprocessed'][:,:,:3];raw=arrays['raw-lighting'][:,:,:3]
-                report['opaquePixels']={'count':int(mask.sum()),'rawLightingMean':float(raw[mask].mean()) if mask.any() else None,'finalBlackFraction':float(np.mean(np.max(final[mask],axis=1)<=1/255)) if mask.any() else None}
+                report['opaquePixels']={'maskAuthority':'SM-202 objectID != 0','count':int(mask.sum()),'rawLightingMean':float(raw[mask].mean()) if mask.any() else None,'finalBlackFraction':float(np.mean(np.max(final[mask],axis=1)<=1/255)) if mask.any() else None}
                 report['javascriptExceptions']=cdp.exceptions
                 if cdp.exceptions:raise RuntimeError('Unexpected JavaScript exceptions; inspect original log')
                 errors=stages['runtime']['webgpu']['uncapturedErrors']

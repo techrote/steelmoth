@@ -59,6 +59,18 @@ function testUploadDestinations(){
   assert.throws(()=>failure.p._uploadLegacyAtlas(),/copy rejected/);failure.p.close();assert(failure.textures.every(t=>!t.alive),'failed legacy upload must already be owned for cleanup');
 }
 
+function testPixelArtSampling(){
+  const e=environment(),samplers=[],buffers=[];
+  e.device.createShaderModule=()=>({});e.device.createRenderPipeline=descriptor=>({descriptor});
+  e.device.createSampler=descriptor=>{const sampler={descriptor};samplers.push(sampler);return sampler};
+  e.device.createBuffer=descriptor=>{const buffer={descriptor,destroyed:false,destroy(){this.destroyed=true}};buffers.push(buffer);return buffer};
+  e.queue.writeBuffer=()=>{};e.p.api.Foliage={MAX_INSTANCES:64};e.p.width=64;e.p.height=36;
+  e.p._buildCompositePipelines();e.p._buildFoliageRaster();
+  assert.deepEqual(samplers[0].descriptor,{magFilter:'linear',minFilter:'linear'},'float world-composition sampler retains filtering');
+  assert.deepEqual(e.p.foliageSampler.descriptor,{magFilter:'nearest',minFilter:'nearest'},'shared pixel-art albedo atlas must use crisp nearest sampling');
+  assert.equal(buffers.length,4);e.p.close();assert(buffers.every(b=>b.destroyed),'raster buffers remain owned for cleanup');
+}
+
 function uploadBuild(e){e.p._buildResources=async()=>{e.events.push('build');e.p._uploadLegacyAtlas();e.p._uploadBackdrop()}}
 async function testScopedConstruction(){
   const good=environment();uploadBuild(good);good.state.popGate=deferred();
@@ -88,4 +100,4 @@ async function testScopedConstruction(){
   await noScope.p.initialize();assert.equal(noScope.p.ready,true,'minimal deterministic mocks may omit optional scope methods');noScope.p.close();
 }
 
-(async()=>{try{testUploadDestinations();await testScopedConstruction();console.log('SM-505 UPLOADS PASS: canonical external-copy usages/colour space, revision reuse, old-descriptor rejection, async init/resize validation, cleanup and cancellation')}finally{if(previousUsage===undefined)delete globalThis.GPUTextureUsage;else globalThis.GPUTextureUsage=previousUsage}})().catch(error=>{console.error(error?.stack||error);process.exit(1)});
+(async()=>{try{testUploadDestinations();testPixelArtSampling();await testScopedConstruction();console.log('SM-505 UPLOADS PASS: canonical external-copy usages/colour space, revision reuse, crisp foliage albedo sampling, old-descriptor rejection, async init/resize validation, cleanup and cancellation')}finally{if(previousUsage===undefined)delete globalThis.GPUTextureUsage;else globalThis.GPUTextureUsage=previousUsage}})().catch(error=>{console.error(error?.stack||error);process.exit(1)});

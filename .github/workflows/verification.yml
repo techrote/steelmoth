@@ -113,6 +113,9 @@ jobs:
             artifacts/sm702-forward/**
             artifacts/sm505-presentation-browser.json
             artifacts/sm505-presentation-browser.png
+            artifacts/sm505-presentation-browser.webgpu.png
+            artifacts/sm505-presentation-browser.failure.png
+            artifacts/sm505-presentation-browser.browser.log
           if-no-files-found: warn
 
   webgl2-transform-parity:
