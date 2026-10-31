@@ -43,6 +43,11 @@ SM-500 brackets that complete callback as `rendererTotal`. Its
 idle gaps caused by host work/waits. It is not pure shader execution time. See
 [the SM-500 timing boundary](SM500_TIMING_BOUNDARY.md).
 
+The presenter's [completion boundary](SM505_FRAME_COMPLETION.md) awaits
+`onSubmittedWorkDone()` before its completed-frame counter advances. That host
+notification wait lies inside the observed callback and can delay the ending
+queue marker. Its `lastHostCompletionWaitMs` is host wall time, never GPU time.
+
 Production submissions do not yet adopt `performanceTimingScope.submit`, so
 `commandGpuMs` stays **null**, with zero explicit command spans. Per-producer GPU
 breakdown remains **NOT RUN** by this total-only observer; separate source-matched

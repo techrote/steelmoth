@@ -12,6 +12,7 @@
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const usage=(kind,...names)=>names.reduce((v,n)=>v|Number(root?.[kind]?.[n]||0),0);
   const Transform=root?.SteelMothRenderTransform||((typeof module==='object'&&module.exports)?require('./render_transform.js'):null);
+  const PseudoDepth=root?.SteelMothPseudoDepth||((typeof module==='object'&&module.exports)?require('./pseudo_depth.js'):null);
   const required=()=>({
     Scene:root?.SteelMothRenderScene,Pseudo:root?.SteelMothPseudoDepth,Ownership:root?.SteelMothWebGPUOwnership,
     Depth:root?.SteelMothWebGPUDepthHierarchy,Lighting:root?.SteelMothWebGPULighting,Shadows:root?.SteelMothWebGPULocalShadows,
@@ -98,7 +99,7 @@
       if(selfShadow||contactShadow||macro)batches.push({ids:[id],selfShadow,contactShadow,macro});else neutral.push(id);
     }
     if(neutral.length||!batches.length)batches.push({ids:neutral,selfShadow:false,contactShadow:false,macro:false});
-    return{canonicalIds:ids,macroLightId:macroId,selfLightIds:[...selfIds],contactLightId:known.has(contactId)?contactId:null,batches};
+    return{canonicalIds:ids,selfReconstruction:settings.selfShadowReconstruction!==false,macroLightId:macroId,selfLightIds:[...selfIds],contactLightId:known.has(contactId)?contactId:null,batches};
   }
 
   function lightSubset(scene,ids){
@@ -156,7 +157,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
 @vertex fn vs(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->O{
  let corners=array<vec2f,6>(vec2f(-.5,0),vec2f(.5,0),vec2f(-.5,1),vec2f(-.5,1),vec2f(.5,0),vec2f(.5,1));
  let q=corners[vi];let r=raster[ii];let s=lit[ii];let bend=bitcast<f32>(s.ids.z);let root=r.rootSize.xy;let size=r.rootSize.zw;
- let x=root.x+q.x*size.x+bend*q.y;let y=root.y-q.y*size.y;let mode=u32(params.extentMode.z+.5);let layerOffset=select(0.0,-1024.0,mode==0u);let worldScale=max(params.extentMode.w,.0001);let depth=clamp((3072.0-(layerOffset+root.y/worldScale))/5120.0,0.0,1.0);var o:O;o.p=vec4f(x/params.extentMode.x*2.0-1.0,1.0-y/params.extentMode.y*2.0,depth,1);
+ let x=root.x+q.x*size.x+bend*q.y;let y=root.y-q.y*size.y;let mode=u32(params.extentMode.z+.5);let layerOffset=select(0.0,-${Number(PseudoDepth.LAYER_STRIDE).toFixed(1)},mode==0u);let worldScale=max(params.extentMode.w,.0001);let depth=clamp((${Number(PseudoDepth.DEPTH_KEY_MAX).toFixed(1)}-(layerOffset+root.y/worldScale))/${Number(PseudoDepth.DEPTH_KEY_MAX-PseudoDepth.DEPTH_KEY_MIN).toFixed(1)},0.0,1.0);var o:O;o.p=vec4f(x/params.extentMode.x*2.0-1.0,1.0-y/params.extentMode.y*2.0,depth,1);
  o.uv=mix(r.uv.xy,r.uv.zw,vec2f(q.x+.5,1.0-q.y));o.color=s.color;o.front=bitcast<f32>(s.ids.w);o.category=s.ids.y;return o;
 }
 @fragment fn fs(in:O)->@location(0) vec4f{
@@ -168,9 +169,16 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
     constructor(options={}){
       this.root=options.root||root;this.game=options.game;this.manager=options.manager;this.onFailure=options.onFailure||(()=>{});
       if(!this.game?.renderer||!this.manager?.device)throw new Error('SM-505 presenter requires game renderer and initialized WebGPU manager');
-      this.api=options.api||required();this.device=this.manager.device;this.queue=this.device.queue;this.canvas=null;this.context=null;this.width=0;this.height=0;this.ready=false;this.closed=false;this.pending=null;this.rendering=false;this.presentedFrames=0;this.droppedFrames=0;this.lastRoomId=null;this.lastError=null;this.lastPlan=null;this.lastSourceRevision={background:null,water:null};this.resources=[];
+      this.api=options.api||required();this.device=this.manager.device;this.queue=this.device.queue;this.canvas=null;this.context=null;this.width=0;this.height=0;this.ready=false;this.closed=false;this.pending=null;this.rendering=false;this.submittedFrames=0;this.completedFrames=0;this.waitingForGPU=false;this.presentedFrames=0;this.droppedFrames=0;this.lastRoomId=null;this.lastError=null;this.lastPlan=null;this.lastSourceRevision={background:null,water:null};this.resources=[];
     }
     _assertOpen(){if(this.closed){const error=new Error('SM-505 presenter is closed');error.name='SM505PresenterClosedError';throw error}}
+    async _completeFrame(){
+      this.submittedFrames=(this.submittedFrames||0)+1;
+      if(typeof this.queue.onSubmittedWorkDone!=='function')throw new Error('SM-505 presentation requires GPU completion/backpressure support');
+      const started=typeof performance!=='undefined'?performance.now():Date.now();this.waitingForGPU=true;
+      try{await this.queue.onSubmittedWorkDone();this._assertOpen();this.completedFrames=(this.completedFrames||0)+1;this.presentedFrames++}
+      finally{this.waitingForGPU=false;this.lastHostCompletionWaitMs=(typeof performance!=='undefined'?performance.now():Date.now())-started}
+    }
     _assertApi(){for(const [name,value] of Object.entries(this.api))if(!value)throw new Error(`SM-505 missing staged renderer dependency: ${name}`)}
     _extent(){const r=this.game.renderer;return{width:Math.max(2,Math.round(r.nativeW||this.game.canvas?.width||640)),height:Math.max(2,Math.round(r.nativeH||this.game.canvas?.height||360))}}
     _makeCanvas(){
@@ -205,7 +213,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       this.gb=new A.Ownership.WebGPUOwnershipGBuffer({device:d,width:w,height:h,maxInstances:4096,labelPrefix:'SM505GBuffer'});await this.gb.setAtlases({albedo:this.game.art.img,normalRoughness:this.game.art.materialNRImg,heightMaterial:this.game.art.materialHMImg,meta:manifest});this._assertOpen();
       this.depth=new A.Depth.WebGPUDepthHierarchy({device:d,queue:q,width:w,height:h,labelPrefix:'SM505Depth'});
       this.shadows=new A.Shadows.WebGPULocalShadows({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Shadows'});
-      this.lighting=new A.Lighting.WebGPUDeferredLighting({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Lighting'});await this.shadows.initialize();this._assertOpen();await this.lighting.initialize();this._assertOpen();await this.lighting.initializeStreamedDirect();this._assertOpen();
+      this.lighting=new A.Lighting.WebGPUDeferredLighting({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Lighting'});await this.shadows.initialize();this._assertOpen();await this.shadows.initializeSelfReconstruction();this._assertOpen();await this.lighting.initialize();this._assertOpen();await this.lighting.initializeStreamedDirect();this._assertOpen();
       this.occ=new A.Occluders.WebGPUOccluderBins({device:d,width:w,height:h,maxOccluders:512,maxPerTile:32,maxTileRefs:16384});
       this.clusters=new A.Clusters.WebGPUOccluderClusters({device:d,width:w,height:h,maxClusters:512,maxMembers:512,maxCandidatePairs:4096,maxCandidatePerTile:32});
       this.dominance=new A.Dominance.WebGPUDominantOccluders({device:d,maxDominanceRecords:512});
@@ -293,13 +301,13 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
         this._assertOpen();const subset=lightSubset(scene,batch.ids);
         const subsetIds=this.api.Lighting.buildCanonicalLights(subset,settings).map(l=>l.id);
         if(JSON.stringify(subsetIds)!==JSON.stringify(batch.ids))throw new Error('SM-505 per-light subset lost canonical light identity');
-        await this.shadows.render(this.gb,subset,{...settings,selfShadowing:batch.selfShadow,contactShadows:batch.contactShadow},{wait:false});this._assertOpen();
+        await this.shadows.render(this.gb,subset,{...settings,selfShadowing:batch.selfShadow,contactShadows:batch.contactShadow},{reconstructSelf:batch.selfShadow&&settings.selfShadowReconstruction!==false,wait:false});this._assertOpen();
         await this.visibility.update(source(),visibilityOptions(batch));this._assertOpen();
         await this.lighting.accumulateDirect(this.gb,subset,settings,{visibilityView:this.visibility.bindings().visibility,clear:first,wait:false});this._assertOpen();first=false;
       }
       // Existing forward consumers retain their accepted aggregate visibility.
       // No DSO/Bloom/temporal producer is advanced a second time here.
-      await this.shadows.render(this.gb,scene,settings,{wait:false});this._assertOpen();
+      await this.shadows.render(this.gb,scene,settings,{reconstructSelf:false,wait:false});this._assertOpen();
       await this.visibility.update(source(),visibilityOptions());this._assertOpen();
       await this.lighting.resolveDirect(this.gb,scene,settings,{ambientVisibilityView:this.visibility.bindings().visibility,wait:false});this._assertOpen();
       this.lastOpaqueVisibilityPlan=plan;
@@ -324,7 +332,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       this.fx.overlay.uploadFrame(frames.overlay);this.fx.overlay.renderStage('post-effects',{encoder:enc,targetView:output,frame:frames.overlay});
       this.fx.topLegacy.uploadFrame(frames.legacy);this.fx.topHd.uploadFrame(frames.hd);for(const stage of ['top-additive','top-alpha']){this.fx.topLegacy.renderStage(stage,{encoder:enc,targetView:output,frame:frames.legacy,atlasView:this.legacyTexture.createView()});this.fx.topHd.renderStage(stage,{encoder:enc,targetView:output,frame:frames.hd,atlasView:this.gb.atlas.albedo.createView()})}
       for(const stage of ['objective','guide'])this.fx.overlay.renderStage(stage,{encoder:enc,targetView:output,frame:frames.overlay});
-      this.lastPlan=this.api.Ordering.buildFramePlan({water:!!waterDesc,foliage:{instances:this.foliageAuthority?.instances||[]},transparentFrame:frames.overlay});this.queue.submit([enc.finish()]);this.presentedFrames++;
+      this.lastPlan=this.api.Ordering.buildFramePlan({water:!!waterDesc,foliage:{instances:this.foliageAuthority?.instances||[]},transparentFrame:frames.overlay});this.queue.submit([enc.finish()]);await this._completeFrame();
     }
     async _rebuild(width,height){
       this._assertOpen();
@@ -340,9 +348,9 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       catch(error){if(this.closed){this._closeResources();return}this.lastError=String(error?.stack||error);this.ready=false;try{this.onFailure(error,this)}catch(_e){}}
       finally{this.rendering=false}
     }
-    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,nativeUnits:clone(this.nativeUnits||null),opaqueVisibility:{policy:'light-identified streamed direct; one compression; ambient AO once; emissive unmasked',plan:clone(this.lastOpaqueVisibilityPlan||null)},backgroundReceiver:{policy:'unowned material receiver; object ID and depth unchanged',renderCount:this.receiverRenders||0,compilation:clone(this.receiverCompilation||[])},presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds rgba16float world and raw-direct accumulation targets, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
+    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,submittedFrames:this.submittedFrames,completedFrames:this.completedFrames,waitingForGPU:this.waitingForGPU,lastHostCompletionWaitMs:this.lastHostCompletionWaitMs??null,frameCountMeaning:'GPU-completed presentation commands; compositor/display delivery requires a capture',backpressure:'one GPU frame plus at most one latest pending scene; gameplay continues independently',droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,nativeUnits:clone(this.nativeUnits||null),opaqueVisibility:{policy:'light-identified streamed direct; one compression; ambient AO once; emissive unmasked',plan:clone(this.lastOpaqueVisibilityPlan||null)},backgroundReceiver:{policy:'unowned material receiver; object ID and depth unchanged',renderCount:this.receiverRenders||0,compilation:clone(this.receiverCompilation||[])},presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds rgba16float world and raw-direct accumulation targets, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
     _closeResources(){
-      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.lighting,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.receiverBindings=null;this.nativeAtlas=null;this.resources=[];
+      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.shadows,this.lighting,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.receiverBindings=null;this.nativeAtlas=null;this.resources=[];
     }
     close(){if(this.closed)return;this.closed=true;this.ready=false;this.pending=null;this._closeResources();try{this.context?.unconfigure?.()}catch(_e){};try{this.canvas?.remove?.()}catch(_e){};this.canvas=null;this.context=null}
   }

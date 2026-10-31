@@ -61,7 +61,7 @@
   "procedural_vegetation_lighting": "scene-coupled-material-v2-normal-aware",
   "fine_grass_palette": "Wet Relay fx_creature/fx_water",
   "renderer_candidate": "sm505-normal-webgpu-presentation",
-  "renderer_presentation_asset_revision": "sm505-6",
+  "renderer_presentation_asset_revision": "sm505-7",
   "auto_webgpu_enabled": false,
   "webgpu_presentation_policy": "explicit-candidate-only-pending-physical-acceptance"
 }

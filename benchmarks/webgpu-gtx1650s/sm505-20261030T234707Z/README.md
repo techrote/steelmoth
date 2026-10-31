@@ -1,3 +1,28 @@
+# SM-505 source-separated overnight evidence
+
+Current acceptance remains **BLOCKED**. No physical performance/release acceptance,
+Auto promotion, merge or issue closure is claimed.
+
+Additional checkpoints after the first diagnostic:
+
+| Source/configuration | Evidence | Result/limit |
+| --- | --- | --- |
+|0a432bc/developmentv1|[Receiver originals](receiver-0a432bc-development-v1/README.md)|12receiver checksPASS; user rejected overlybroad/bright inspection; visualFAIL|
+|b5f5817/developmentv2|[Native originals](native-b5f5817-development-v2/README.md)|Receiver+streamed numericcontrolsPASS; duplicateprops and distantnoiseFAIL|
+|0de5890/developmentv2|[Native originals](native-0de5890-development-v2/README.md)|141anchoredobjects0outside/0below; user confirms no doubledoutlines; distantnoiseFAIL|
+
+[User annotated feedback](user-feedback/feedback.json) and
+[exact-capture prop review](user-feedback/human-review-0de5890-props.json) retain
+the scope of human judgments. WebGPU must provide higher visualquality; matching
+WebGL2 shadow sizes/proportions/output is not acceptance.
+
+Every new checkpoint has its own original ZIP/source/report/telemetry and does
+not replace the old attempts. The campaign manifest covers all published files,
+including original per-attempt manifests inside/alongside the preserved archives.
+GPU execution timings remain NOTRUN in these diagnostics.
+
+## Historical first checkpoint (9b5b932)
+
 # SM-505 source-separated evidence — 2026-10-30T23:47:07Z
 
 **Visual gate FAIL. Physical release/performance acceptance is false.**

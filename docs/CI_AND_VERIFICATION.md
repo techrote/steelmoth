@@ -237,6 +237,15 @@ telemetry and deadlines. Diagnostic completion is not physical acceptance or a
 GPU performance measurement. Never count the tooling tests' explicitly marked
 mock transport artifacts as gameplay screenshots.
 
+The b5 hosted browser failure exposed shared-image/context loss; the underlying
+cause remains unknown. First-failure snapshots now preserve the initial renderer,
+presenter and device state before fallback replaces that state. The presenter
+also bounds work to one in-flight GPU frame plus one latest pending scene and
+counts completion only after the queue promise succeeds. These are evidence and
+boundedness improvements, not a proven fix for the hosted failure. A fresh
+exact-head CI run remains required; its result must be recorded independently
+from native hardware diagnostics and from the original failed attempt.
+
 The [normal-presentation benchmark contract](SM505_NORMAL_PRESENTATION_BENCHMARK.md)
 adds JavaScript syntax, mocked normal-path scheduling and Python source/
 qualification/watchdog/report mutation checks to the source runner and clean

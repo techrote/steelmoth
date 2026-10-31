@@ -1,0 +1,113 @@
+{
+  "sourceCommit": "b5f5817e82156aebb7c807e1d083e8593a75c69e",
+  "physicalAcceptance": false,
+  "visualAcceptance": false,
+  "analysisScope": "CPU read of original raw captures only; ROIs explicit, no arbitrary parity threshold",
+  "regions": {
+    "cableweed-right-shadow": {
+      "boxXYXYExclusive": [
+        1164,
+        255,
+        1320,
+        330
+      ],
+      "area": 11700,
+      "unowned": 11700,
+      "selfBelowNeutral": 4130,
+      "unownedSelfBelowNeutral": 4130,
+      "contactBelowNeutral": 548,
+      "dsoPositive": 0,
+      "composedDirectBelowNeutral": 4235,
+      "maxHMheight": 0.0,
+      "shadowAffectedUnownedBBox": [
+        1164,
+        255,
+        1297,
+        322
+      ]
+    },
+    "cableweed-long-shadow": {
+      "boxXYXYExclusive": [
+        1437,
+        252,
+        1586,
+        328
+      ],
+      "area": 11324,
+      "unowned": 11324,
+      "selfBelowNeutral": 6076,
+      "unownedSelfBelowNeutral": 6076,
+      "contactBelowNeutral": 892,
+      "dsoPositive": 0,
+      "composedDirectBelowNeutral": 6170,
+      "maxHMheight": 0.0,
+      "shadowAffectedUnownedBBox": [
+        1437,
+        252,
+        1577,
+        326
+      ]
+    },
+    "bin-upper-baked-copy": {
+      "boxXYXYExclusive": [
+        754,
+        420,
+        806,
+        457
+      ],
+      "area": 1924,
+      "unowned": 1505,
+      "selfBelowNeutral": 1422,
+      "unownedSelfBelowNeutral": 1422,
+      "contactBelowNeutral": 844,
+      "dsoPositive": 0,
+      "composedDirectBelowNeutral": 1435,
+      "maxHMheight": 0.470458984375,
+      "shadowAffectedUnownedBBox": [
+        757,
+        420,
+        806,
+        457
+      ]
+    },
+    "bin-lower-material-copy": {
+      "boxXYXYExclusive": [
+        754,
+        470,
+        806,
+        531
+      ],
+      "area": 3172,
+      "unowned": 323,
+      "selfBelowNeutral": 441,
+      "unownedSelfBelowNeutral": 118,
+      "contactBelowNeutral": 2678,
+      "dsoPositive": 3,
+      "composedDirectBelowNeutral": 2700,
+      "maxHMheight": 0.92724609375,
+      "shadowAffectedUnownedBBox": [
+        767,
+        470,
+        806,
+        528
+      ]
+    }
+  },
+  "binA": {
+    "sourceId": "sprite:static:signal_orchard:134",
+    "declaredBottomLogical": 165,
+    "canonicalFrameHeightLogical": 24.852,
+    "materialCenterOffsetNative": 37.278,
+    "objectBBoxXYXYExclusive": [
+      749,
+      470,
+      811,
+      531
+    ],
+    "objectOwnedAtOrBelowDeclaredFootPixels": 1861
+  },
+  "originalScreenshots": {
+    "webgpu-presented.png": "41f23db56f85f951af61b5ff40a83a6c875d100c4c45135dbd233bf5e0f0569b",
+    "webgl2-presented.png": "c8a542ef2119b1484bbc5a193bc272aa3f95e83c90828b7eb1051ecfb617a5dd"
+  }
+}

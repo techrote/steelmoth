@@ -4,9 +4,11 @@ import base64
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+import json
 import numpy as np
 from PIL import Image
-from diagnose_sm505_presentation import save_item
+from diagnose_sm505_presentation import ObserverCDP, save_item
 
 
 class CaptureFormats(unittest.TestCase):
@@ -42,6 +44,33 @@ class CaptureFormats(unittest.TestCase):
             self.assertEqual(item['channels']['direct']['zeroPixels'],1)
             self.assertEqual(item['channels']['ambient']['zeroPixels'],0)
             self.assertAlmostEqual(item['channels']['ambient']['minimum'],.7,places=3)
+
+
+class ObserverDeadlines(unittest.TestCase):
+    def observer(self):
+        class Socket:
+            sent=[]
+            timeouts=[]
+            receives=0
+            def settimeout(self,value):self.timeouts.append(value)
+            def send(self,value):self.sent.append(value)
+            def recv(self):self.receives+=1;return json.dumps({'method':'Runtime.consoleAPICalled','params':{'message':'retained before deadline'}})
+        observer=object.__new__(ObserverCDP);observer.ws=Socket();observer.serial=0;observer.events=[];observer.exceptions=[];observer.timeout=120;observer.deadline=5
+        return observer
+
+    def test_expired_workload_never_sends_browser_command(self):
+        observer=self.observer()
+        with patch('diagnose_sm505_presentation.time.monotonic',return_value=5):
+            with self.assertRaises(TimeoutError):observer.call('MustNotLaunch')
+        self.assertEqual(observer.serial,0);self.assertEqual(observer.ws.receives,0)
+
+    def test_events_cannot_extend_global_workload_deadline(self):
+        observer=self.observer()
+        with patch('diagnose_sm505_presentation.time.monotonic',side_effect=[0,0,5]):
+            with self.assertRaises(TimeoutError):observer.call('ReadOnlyState')
+        self.assertEqual(observer.ws.receives,1)
+        self.assertEqual(len(observer.events),1,'original event survives deadline failure')
+        self.assertTrue(all(0<t<=5 for t in observer.ws.timeouts),'socket waits remain inside the workload budget')
 
 
 if __name__=='__main__':unittest.main()

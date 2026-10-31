@@ -1,0 +1,7 @@
+{
+  "imageSha256": "322a182df56ba2bbb8c945a7bb220bbcb578f8e702e913ec02b5306eda145cb2",
+  "kind": "user-supplied annotated crop; not an original renderer capture",
+  "feedback": "Brightness now good. Speckled grass shadow only looks good on grass tuft closest to character. Objects rendered twice issue still present.",
+  "referenceRuntime": "b5f5817e82156aebb7c807e1d083e8593a75c69e",
+  "decision": "Freeze inspection v2 brightness/beam controls; use nearest grass tuft as human shadow-character reference. Duplicate props remain rejected."
+}

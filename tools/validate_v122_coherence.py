@@ -10,7 +10,7 @@ assert "const BUILD_VERSION='1.2.3'" in js
 # historical revision that happened to exist when an earlier migration task landed.
 assert re.search(r"const CACHE = 'small-machine-web-v1\.2\.3-r[1-9][0-9]*'",sw)
 assert "sw.js?v=1.2.3" in web and "updateViaCache:'none'" in web
-for token in ['engine/game.js?v=sm505-6','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3','webapp.js?v=sm505-6']:
+for token in ['engine/game.js?v=sm505-7','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3','webapp.js?v=sm505-7']:
     assert token in idx,token
 # Direction convention: generator stores +screen-down height derivative as +world normal Y;
 # deferred lights convert screen-down delta to world-up with -Ld.y. Do not invert G1 normal Y again.

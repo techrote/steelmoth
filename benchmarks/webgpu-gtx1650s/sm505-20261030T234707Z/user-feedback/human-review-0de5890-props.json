@@ -1,0 +1,9 @@
+{
+  "source": "0de5890a49e1c82d7a1cda643201193ec3309fba",
+  "screenshot": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-0de5890-development-v2\\webgpu-presented.png",
+  "sha256": "fa1265cb7a097d537eb6084c21a478f31bec2c459d7776b65ae8d32bc454d928",
+  "question": "In this exact new image, do you see any remaining doubled object outlines or ghost copies, especially around the two central bins, crate and cabinet?",
+  "userAnswer": "No remaining doubled outlines visible",
+  "acceptedScope": "No visible duplication in this exact capture; development brightness/beam already approved separately.",
+  "notAccepted": "Distant grass shadow noise, complete game visual matrix, performance, Firefox, deployment and release acceptance remain independent."
+}

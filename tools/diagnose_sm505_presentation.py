@@ -26,12 +26,18 @@ from validate_sm603_target_report import hardware_errors
 TOOLS_ROOT=Path(__file__).resolve().parents[1]
 
 class ObserverCDP(CDP):
-    def __init__(self,url):
-        super().__init__(url);self.events=[]
+    def __init__(self,url,timeout=120,deadline=None):
+        super().__init__(url);self.events=[];self.timeout=timeout;self.deadline=deadline
     def call(self,method,params=None):
+        remaining=self.deadline-time.monotonic() if self.deadline is not None else self.timeout
+        if remaining<=0:raise TimeoutError('SM-505 observer workload deadline expired before browser command')
+        self.ws.settimeout(min(self.timeout,remaining))
         self.serial+=1;ident=self.serial
         self.ws.send(json.dumps({'id':ident,'method':method,'params':params or {}}))
         while True:
+            remaining=self.deadline-time.monotonic() if self.deadline is not None else self.timeout
+            if remaining<=0:raise TimeoutError('SM-505 observer workload deadline expired while receiving browser events')
+            self.ws.settimeout(min(self.timeout,remaining))
             m=json.loads(self.ws.recv())
             if m.get('method') in ('Runtime.exceptionThrown','Runtime.consoleAPICalled','Log.entryAdded'):
                 self.events.append(m)
@@ -51,7 +57,7 @@ def source_identity(root):
             'tree':git('rev-parse','HEAD^{tree}') if (root/'.git').exists() else None,
             'status':git('status','--porcelain=v1','--untracked-files=all') if (root/'.git').exists() else 'archive; see archive commit and checksum',
             'root':str(root),'fileSha256':{p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
-            'observerSha256':{str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__),TOOLS_ROOT/'tools/sm505_capture_stages.js',TOOLS_ROOT/'tools/sm505_receiver_probe.js',TOOLS_ROOT/'tools/sm505_visibility_probe.js'] if p.is_file()}}
+            'observerSha256':{str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [*TOOLS_ROOT.glob('tools/*.py'),*[TOOLS_ROOT/('tools/'+name) for name in ('sm505_capture_stages.js','sm505_receiver_probe.js','sm505_visibility_probe.js','sm505_self_reconstruction_probe.js','sm505_emissive_probe.js','sm505_lifecycle_probe.js')]] if p.is_file()}}
 
 def save_item(out,item):
     raw=base64.b64decode(item.pop('base64'));(out/(item['name']+'.bin')).write_bytes(raw)
@@ -90,12 +96,15 @@ def main():
     ap.add_argument('--timeout',type=float,default=150)
     ap.add_argument('--receiver-probe',action='store_true',help='Run source-matched background receiver negative/positive/cone readback controls outside timing')
     ap.add_argument('--visibility-probe',action='store_true',help='Run source-matched per-light direct/ambient/emissive numeric visibility controls outside timing')
+    ap.add_argument('--self-reconstruction-probe',action='store_true',help='Retain matched raw/reconstructed WebGPU replays and single-driver shadow-field numeric controls')
+    ap.add_argument('--emissive-probe',action='store_true',help='Supplement actual-game evidence with explicitly synthetic 1x1 production-lighting material controls')
+    ap.add_argument('--lifecycle-probe',action='store_true',help='Finish with bounded actual-game backend switches, resize/recreation and explicitly injected runtime fallback')
     ap.add_argument('--inspection',choices=['none','development'],default='none',help='Explicit matched development visibility preset; never performance/release acceptance')
     args=ap.parse_args();root=args.root.resolve();out=args.out.resolve()
     if out.exists():ap.error('--out must be new; original attempts cannot be overwritten')
     if not 1<=args.timeout<=600 or not 160<=args.width<=3840 or not 90<=args.height<=2160:ap.error('invalid bounded extent/deadline')
     out.mkdir(parents=True);report={'schema':'steelmoth-sm505-stage-diagnostic/v1','ok':False,'physicalAcceptance':False,'hardwareRequested':args.hardware,'softwareRequested':not args.hardware,'startedAt':dt.datetime.now(dt.timezone.utc).isoformat(),
-      'configuration':{'fixture':args.fixture,'angle':args.angle,'width':args.width,'height':args.height,'dpr':1,'quality':'Medium','gtao':False,'receiverProbe':args.receiver_probe,'visibilityProbe':args.visibility_probe,'inspection':args.inspection},'errors':[],
+      'configuration':{'fixture':args.fixture,'angle':args.angle,'width':args.width,'height':args.height,'dpr':1,'quality':'Medium','gtao':False,'receiverProbe':args.receiver_probe,'visibilityProbe':args.visibility_probe,'selfReconstructionProbe':args.self_reconstruction_probe,'emissiveProbe':args.emissive_probe,'lifecycleProbe':args.lifecycle_probe,'inspection':args.inspection},'errors':[],
       'boundary':'Engineering diagnostic using normal index.html bootstrap and canonical deterministic fixture adapter. Neither human visual approval nor performance/release acceptance.'}
     proc=cdp=srv=None
     try:
@@ -112,7 +121,7 @@ def main():
             command+=['about:blank'];report['command']=command;deadline=time.monotonic()+args.timeout
             with (out/'browser.log').open('wb') as log:
                 proc=subprocess.Popen(command,cwd=root,stdout=log,stderr=log,start_new_session=os.name!='nt',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0) if os.name=='nt' else 0)
-                target=wait_for_page(proc,Path(profile),deadline);cdp=ObserverCDP(target['webSocketDebuggerUrl']);cdp.call('Runtime.enable');cdp.call('Page.enable')
+                target=wait_for_page(proc,Path(profile),deadline);cdp=ObserverCDP(target['webSocketDebuggerUrl'],deadline=deadline);cdp.call('Runtime.enable');cdp.call('Page.enable')
                 report['browser']=cdp.call('Browser.getVersion')
                 cdp.call('Emulation.setDeviceMetricsOverride',{'width':args.width,'height':args.height,'deviceScaleFactor':1,'mobile':False})
                 injection=(root/'engine/render_fixture_adapter.js').read_text(encoding='utf-8')+'\n'+(root/'engine/render_harness.js').read_text(encoding='utf-8')
@@ -149,7 +158,21 @@ def main():
                 report['webgpuPresented']=cdp.evaluate("({canvas:document.querySelector('#webgpuPresentation')?.toDataURL('image/png'),runtime:steelMothBackendRuntime.diagnostics()})")
                 (out/'webgpu-canvas.png').write_bytes(base64.b64decode(report['webgpuPresented'].pop('canvas').split(',')[1]))
                 (out/'webgpu-presented.png').write_bytes(base64.b64decode(cdp.call('Page.captureScreenshot',{'format':'png'})['data']))
-                stages=cdp.evaluate((TOOLS_ROOT/'tools/sm505_capture_stages.js').read_text(encoding='utf-8')+'\nsm505CaptureStages()')
+                if args.self_reconstruction_probe:
+                    report['selfReconstructionVisualControls']=[]
+                    for enabled in (False,True):
+                        name='reconstructed' if enabled else 'raw'
+                        control=cdp.evaluate("""(async()=>{const p=steelMothBackendRuntime.presenter,original=game.renderScene,s=JSON.parse(JSON.stringify(original));s.settings.selfShadowReconstruction=%s;await p._render(s);await new Promise(r=>requestAnimationFrame(r));return{sceneUnchanged:game.renderScene===original,runtime:steelMothBackendRuntime.diagnostics(),canvas:p.canvas.toDataURL('image/png'),settings:s.settings,boundary:'Diagnostic replay of identical frozen normal RenderScene with only self-shadow reconstruction changed; not timing or an independent gameplay run.'}})()""" % ('true' if enabled else 'false'))
+                        (out/f'webgpu-{name}-self-replay-canvas.png').write_bytes(base64.b64decode(control.pop('canvas').split(',')[1]))
+                        (out/f'webgpu-{name}-self-replay-presented.png').write_bytes(base64.b64decode(cdp.call('Page.captureScreenshot',{'format':'png'})['data']))
+                        control['enabled']=enabled;control['file']=f'webgpu-{name}-self-replay-presented.png';report['selfReconstructionVisualControls'].append(control)
+                        if not control['sceneUnchanged'] or control['runtime']['presentationBackend']!='webgpu':raise RuntimeError('self reconstruction replay altered scene authority or lost normal presentation')
+                def eval_observer(script, invocation):
+                    payload=(TOOLS_ROOT/('tools/'+script)).read_text(encoding='utf-8')+'\n'+invocation
+                    original=payload.encode('utf-8');name='injected-'+script;(out/name).write_bytes(original)
+                    report.setdefault('observerInjections',{})[script]={'file':name,'sha256':hashlib.sha256(original).hexdigest(),'bytes':len(original),'boundary':'Exact UTF-8 payload evaluated in this browser, including invocation; raw repository-byte hashes remain separate.'}
+                    return cdp.evaluate(payload)
+                stages=eval_observer('sm505_capture_stages.js','sm505CaptureStages()')
                 arrays={};metadata=[]
                 for item in stages.pop('items'):
                     meta,array=save_item(out,item);metadata.append(meta);arrays[item['name']]=array
@@ -164,26 +187,43 @@ def main():
                 receiver=(~mask)&(arrays['gbuffer-albedo'][:,:,3]>.002)
                 report['receiverPixels']={'maskAuthority':'objectID == 0 and G0.a > .002; no geometry ownership','count':int(receiver.sum()),'rawLightingMean':float(raw[receiver].mean()) if receiver.any() else None,'finalBlackFraction':float(np.mean(np.max(final[receiver],axis=1)<=1/255)) if receiver.any() else None}
                 if args.receiver_probe:
-                    probe=cdp.evaluate((TOOLS_ROOT/'tools/sm505_receiver_probe.js').read_text(encoding='utf-8')+'\nsm505ReceiverProbe()')
+                    probe=eval_observer('sm505_receiver_probe.js','sm505ReceiverProbe()')
                     probe_out=out/'receiver-probe';probe_out.mkdir();probe_captures=[]
                     for item in probe.pop('items'):
                         meta,_array=save_item(probe_out,item);probe_captures.append(meta)
                     probe['captures']=probe_captures;report['receiverProbe']=probe
                     if not probe['ok']:raise RuntimeError('Background receiver engineering probe failed: '+str(probe.get('errors'))+'; '+str([c for c in probe['checks'] if not c['ok']]))
                 if args.visibility_probe:
-                    probe=cdp.evaluate((TOOLS_ROOT/'tools/sm505_visibility_probe.js').read_text(encoding='utf-8')+'\nsm505VisibilityProbe()')
+                    probe=eval_observer('sm505_visibility_probe.js','sm505VisibilityProbe()')
                     probe_out=out/'visibility-probe';probe_out.mkdir();probe_captures=[]
                     for item in probe.pop('items'):
                         meta,_array=save_item(probe_out,item);probe_captures.append(meta)
                     probe['captures']=probe_captures;report['visibilityProbe']=probe
                     if not probe['ok']:raise RuntimeError('Opaque visibility engineering probe failed: '+str(probe.get('errors'))+'; '+str([c for c in probe['checks'] if not c['ok']]))
+                for active,script,function,key,directory in [(args.self_reconstruction_probe,'sm505_self_reconstruction_probe.js','sm505SelfReconstructionProbe','selfReconstructionProbe','self-reconstruction-probe'),(args.emissive_probe,'sm505_emissive_probe.js','sm505EmissiveProbe','emissiveProbe','emissive-probe')]:
+                    if not active:continue
+                    probe=eval_observer(script,function+'()')
+                    probe_out=out/directory;probe_out.mkdir();probe_captures=[]
+                    for item in probe.pop('items'):
+                        meta,_array=save_item(probe_out,item);probe_captures.append(meta)
+                    probe['captures']=probe_captures;report[key]=probe
+                    if not probe['ok']:raise RuntimeError(key+' failed: '+str(probe.get('errors'))+'; '+str([c for c in probe['checks'] if not c['ok']]))
+                if args.lifecycle_probe:
+                    script='sm505_lifecycle_probe.js';raw_hash=hashlib.sha256((TOOLS_ROOT/('tools/'+script)).read_bytes()).hexdigest()
+                    probe=eval_observer(script,'sm505LifecycleProbe('+json.dumps({'timeoutMs':120000,'sourceIdentity':report['source'],'observerSha256':raw_hash})+')')
+                    probe_out=out/'lifecycle-probe';probe_out.mkdir()
+                    for shot in probe.pop('screenshots'):
+                        target=probe_out/(shot['name']+'.png');target.write_bytes(base64.b64decode(shot.pop('pngBase64')));shot['file']=target.name
+                        probe.setdefault('captures',[]).append(shot)
+                    report['lifecycleProbe']=probe
+                    if not probe['ok']:raise RuntimeError('Lifecycle engineering probe failed: '+str(probe.get('errors'))+'; '+str([c for c in probe['checks'] if not c['ok']]))
                 report['javascriptExceptions']=cdp.exceptions
                 if cdp.exceptions:raise RuntimeError('Unexpected JavaScript exceptions; inspect original log')
                 report['runtimeAfterProbes']=cdp.evaluate('steelMothBackendRuntime.diagnostics()')
-                errors=report['runtimeAfterProbes']['webgpu']['uncapturedErrors']
+                errors=(report['runtimeAfterProbes'].get('webgpu') or {}).get('uncapturedErrors',[])
                 if errors:raise RuntimeError(f'Unexpected WebGPU errors: {errors}')
                 report['sourceAfter']=source_identity(root)
-                if report['source']['fileSha256']!=report['sourceAfter']['fileSha256']:raise RuntimeError('Source changed during capture; evidence not source stable')
+                if any(report['source'][key]!=report['sourceAfter'][key] for key in ('commit','tree','fileSha256','observerSha256')):raise RuntimeError('Source changed during capture; evidence not source stable')
                 report['ok']=True
     except Exception as error:
         report['errors'].append(f'{type(error).__name__}: {error}')

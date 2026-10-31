@@ -23,11 +23,12 @@ function environment(blockedStage=null){
     }
     async initialize(){await stage('init:'+this.name,this);return this}
     async initializeStreamedDirect(){await stage('init:lighting-stream',this);return this}
+    async initializeSelfReconstruction(){await stage('init:shadow-reconstruction',this);return this}
     async setAtlases(){await stage('init:atlases',this)}
   }}
   const canvas={style:{},setAttribute(){},getContext(){return context},remove(){state.canvasRemoved++}};
   const context={configure(){events.push('configure')},unconfigure(){state.unconfigured++},getCurrentTexture(){events.push('present-texture');return{createView:()=>({})}}};
-  const queue={submit(){events.push('submit')},writeBuffer(){},writeTexture(){},copyExternalImageToTexture(){}};
+  const queue={submit(){events.push('submit')},async onSubmittedWorkDone(){await stage('render:completion')},writeBuffer(){},writeTexture(){},copyExternalImageToTexture(){}};
   const device={queue,createTexture:()=>resource('world'),createCommandEncoder:()=>({finish:()=>({})})};
   const api={
     Ownership:{WebGPUOwnershipGBuffer:producer('gb'),buildOwnershipSceneInstances:()=>[]},Depth:{WebGPUDepthHierarchy:producer('depth')},Shadows:{WebGPULocalShadows:producer('shadows')},Lighting:{WebGPUDeferredLighting:producer('lighting')},
@@ -45,7 +46,7 @@ function environment(blockedStage=null){
 }
 
 async function testInitializationCancellation(){
-  const stages=['init:atlases','init:shadows','init:lighting','init:lighting-stream','init:water','init:post',
+  const stages=['init:atlases','init:shadows','init:shadow-reconstruction','init:lighting','init:lighting-stream','init:water','init:post',
     'init:SM505WorldLegacy','init:SM505WorldHD','init:SM505TopLegacy','init:SM505TopHD','init:SM505Overlay'];
   for(const name of stages){
     const e=environment(name),promise=e.p.initialize();await until(()=>e.state.entered);
@@ -61,7 +62,7 @@ async function testInitializationCancellation(){
   assert(e.events.includes('_buildCompositePipelines'));assert(e.events.includes('_uploadBackdrop'));e.p.close();assert(e.owned.every(r=>!r.live));
 }
 
-const renderStages=['gb','depth','shadows','occluders','clusters','dominance','dso','dsoHierarchy','bloom','bloomTemporal','visibility','lighting','water','direct'];
+const renderStages=['gb','depth','shadows','occluders','clusters','dominance','dso','dsoHierarchy','bloom','bloomTemporal','visibility','lighting','water','direct','completion'];
 function prepareRender(e){
   const p=e.p;p.width=64;p.height=36;p.ready=true;p.canvas={remove(){}};p.context=e.context;
   const fields=['gb','depth','shadows','occ','clusters','dominance','dso','dsoHierarchy','bloom','bloomTemporal','visibility','lighting','water'];
@@ -96,7 +97,7 @@ async function testRenderCancellation(){
   const e=environment(),scene=prepareRender(e);await e.p._drain(scene);
   assert.equal(e.p.presentedFrames,1,'live render still presents');assert.equal(e.state.failures,0);assert(e.events.includes('post'));assert(e.events.includes('submit'));
   assert.deepEqual(e.events.filter(x=>['render:gb','background-receivers','render:depth','render:shadows','render:direct','render:lighting'].includes(x)),['render:gb','background-receivers','render:depth','render:shadows','render:direct','render:shadows','render:lighting'],'background receivers precede depth, streamed direct and final lighting; forward masks are restored');
-  assert.deepEqual(e.events.slice(e.events.indexOf('post')),['post','fx:overlay:post-effects','fx:topLegacy:top-additive','fx:topHd:top-additive','fx:topLegacy:top-alpha','fx:topHd:top-alpha','fx:overlay:objective','fx:overlay:guide','submit'],'real _render must execute the canonical SM-402 post/effects/top/objective/guide order');e.p.close();
+  assert.deepEqual(e.events.slice(e.events.indexOf('post')),['post','fx:overlay:post-effects','fx:topLegacy:top-additive','fx:topHd:top-additive','fx:topLegacy:top-alpha','fx:topHd:top-alpha','fx:overlay:objective','fx:overlay:guide','submit','render:completion'],'real _render must execute canonical ordering and await completion before counting a frame');e.p.close();
 }
 
 async function testRebuildCancellation(){
@@ -118,5 +119,5 @@ async function testUnexpectedFailuresStillReport(){
 
 (async()=>{
   await testInitializationCancellation();await testRenderCancellation();await testRebuildCancellation();await testUnexpectedFailuresStillReport();
-  console.log('SM-505 PRESENTER LIFECYCLE PASS: 11 deferred initialization and 14 render cancellation boundaries, streamed lighting, resize cancellation, live success, canonical post/top/overlay ordering, closed-entry refusal and real-failure reporting');
+  console.log('SM-505 PRESENTER LIFECYCLE PASS: 12 deferred initialization and 15 render cancellation boundaries, streamed lighting, resize cancellation, live success, canonical post/top/overlay ordering, closed-entry refusal and real-failure reporting');
 })().catch(error=>{console.error(error?.stack||error);process.exit(1)});

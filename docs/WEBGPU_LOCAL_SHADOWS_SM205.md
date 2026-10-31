@@ -122,3 +122,64 @@ byte-identical masks across extents. The 3-logical-pixel contact smooth transiti
 CPU reference and packed-frame checks are in
 `tools/validate_sm505_native_units.js`; actual changed-source GPU compilation and
 readbacks remain necessary for native correctness evidence.
+
+
+## Optional single-light self-shadow reconstruction (SM-505)
+
+**Decision:** SM-505 may opt in to spatial reconstruction of one selected raw
+self-shadow driver. This addresses sparse trace aliasing as a WebGPU quality
+improvement; reproducing WebGL2 shadow lengths, shapes or noise is not its target.
+The accepted raw default path and its quality tap counts remain available.
+`initializeSelfReconstruction()` compiles the optional shader under the caller's
+validation scope and allocates one persistent full-extent R16float target
+(4,147,200 bytes at1920x1080), reused across drivers and frames. There is no
+additional trace, temporal/history field, light buffer or per-frame texture.
+
+The render option is `render(gbuffer, scene, settings, {reconstructSelf:true})`.
+It requires exactly one selected self light and enabled self samples. The raw
+self commands submit first. Reconstruction submits next, while the shared
+canonical buffer still contains that driver's record. Only then may contact
+replace that canonical buffer and submit its existing work. No CPU wait is
+inserted. `selfTexture()` selects the filtered result only after an opted-in
+invocation; a subsequent default/global invocation selects raw again.
+`rawSelfTexture()` always exposes the raw texture and `reconstructionTexture()`
+returns the optional persistent target or null. Diagnostics retain invocation
+count and the last reconstructed driver's canonical identity.
+
+For raw occlusion `o=1-selfVisibility`, one symmetric 3x3 diffusion step is:
+
+```text
+o'(p) = o(p) + sum_q weight(p,q) * (o(q) - o(p))
+axial base weight = 2/16; diagonal base weight = 1/16
+weight(p,q) = baseWeight * min(aliasStrength(p), aliasStrength(q))
+```
+
+Native offset stride is `max(1, round(worldScale))`. Reject out-of-bounds pairs;
+do not clamp/repeat their neighbor coordinates. Reject a pair unless both ends
+are covered, have identical exact object IDs, differ by at most1 logical world
+pixel in decoded material height and at most1.5 logical depth-key units
+(`abs(depthP-depthQ)*5120`). Both ends must also lie inside the existing canonical
+point radius or cone radius/outer angle. All gates are symmetric, so rejected
+weights remain at their original centre and the accepted operator conserves
+occlusion mass in real arithmetic. Its total neighbor weight is at most3/4,
+keeping the result inside the original visibility range. R16float storage adds
+quantization; native readbacks must characterize its mass error separately.
+
+Alias strength uses the existing traced step length in logical units:
+`min(lightXYdistance, maxSelfSpan)/(worldScale * tapCount)`. Smoothstep transitions
+from0 at6 world pixels to1 at12 world pixels; the min of both endpoints preserves
+symmetry and protects nearby thin vegetation with finer trace steps. These
+values are explicit algorithm quality choices, not artistic brightness controls
+or claims of measured visual acceptance. Ambient, emissive, contact, DSO and the
+canonical material defaults remain unchanged.
+
+`selfReconstructionReference(input, canonicalLight, settings)` is the independent
+CPU replay interface: input contains width/height and equally sized visibility,
+objectIds, coverage, heights (encoded local HM) and depth (canonical depth01)
+arrays. `tools/validate_sm505_self_reconstruction.js` checks constants, range,
+mass conservation, symmetric rejected boundaries, canonical light support,
+near protection, thin shadow survival, white-noise frequency reduction, real
+resource descriptors/queue ordering and pending compiler cancellation. A retained
+nonsymmetric negative witness demonstrates mass drift. This CPU evidence is not
+WGSL execution, GPU timing or human visual acceptance; source-matched native raw
+and filtered captures are required before accepting the quality change.

@@ -57,6 +57,16 @@ Do not reinterpret historical queue-span datasets as command execution time. For
 
 Do not subtract CPU callback time, host wait time, or readback latency from queue span to manufacture a command-time estimate.
 
+## SM-505 normal presenter completion boundary
+
+The [normal presenter](SM505_FRAME_COMPLETION.md) awaits
+`queue.onSubmittedWorkDone()` before counting a completed frame. The actual-index
+observer awaits that original callback, so its `rendererTotal` queue span may
+include GPU-idle time while the host receives completion and submits the ending
+timestamp marker. `lastHostCompletionWaitMs` is host wall time only. It is never
+GPU time or a value to subtract. Production submissions still lack explicit
+command-span coverage; `commandGpuMs` therefore remains `null`.
+
 ## Query-resolve alignment repair — 2026-10-03
 
 Physical SM-601 localization exposed an API defect in the initial command-span
