@@ -3,6 +3,8 @@
 Current acceptance remains **BLOCKED**. No physical performance/release acceptance,
 Auto promotion, merge or issue closure is claimed.
 
+Latest wrap checkpoint: [source62e7856 originals and measured controls](native-62e7856-development-v2/README.md). Receiver12/12, visibility5/5, reconstruction11/11, synthetic emissive14/14 and lifecycle39/39 PASS; human review rejects reconstructed shadows as too weak/blurry; visual/performance acceptance remain BLOCKED. User requested testing finish after this bounded run.
+
 Additional checkpoints after the first diagnostic:
 
 | Source/configuration | Evidence | Result/limit |
@@ -23,7 +25,7 @@ GPU execution timings remain NOTRUN in these diagnostics.
 
 ## Historical first checkpoint (9b5b932)
 
-# SM-505 source-separated evidence — 2026-10-30T23:47:07Z
+# SM-505 source-separated evidence â€” 2026-10-30T23:47:07Z
 
 **Visual gate FAIL. Physical release/performance acceptance is false.**
 
@@ -66,6 +68,6 @@ WebGPU linear pre-post scene, IEC sRGB encoded for inspection:
 
 ![Pre-post scene](physical-9b5b932/pre-postprocessing.png)
 
-WebGPU browser-presented final frame — failed visual gate:
+WebGPU browser-presented final frame â€” failed visual gate:
 
 ![Failed canonical post](physical-9b5b932/webgpu-presented.png)

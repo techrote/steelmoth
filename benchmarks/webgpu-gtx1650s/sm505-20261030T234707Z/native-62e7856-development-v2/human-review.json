@@ -1,0 +1,12 @@
+{
+  "schema": "steelmoth-sm505-human-visual-review/v1",
+  "source": "62e7856cf1dca1d0b21d0f1301260ab1a6ffcc88",
+  "image": "webgpu-reconstructed-self-replay-presented.png",
+  "imageSha256": "7e14cd4410a1d4d13b5bbf7b9d45ca3b5ef47ea81adfc9c2beca80a21ac3583c",
+  "question": "In the exact reconstructed WebGPU image just posted, do the distant grass shadows now look acceptable, or do any still look like noisy smears? Are there prop-shadow shapes you find especially implausible?",
+  "answer": "They look a bit too weak/blurry now.",
+  "result": "FAIL",
+  "criterion": "Human visual quality: distant grass shadows lose too much perceived strength and sharpness. HF reduction alone cannot establish acceptance.",
+  "measuredEngineeringNoiseReduction": 0.9728015624759522,
+  "scope": "This exact reconstructed development inspection image; no later tuning or acceptance implied."
+}
