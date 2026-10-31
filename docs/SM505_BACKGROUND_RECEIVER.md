@@ -31,17 +31,28 @@ See [the receiver representation exception](WEBGPU_GBUFFER_SM200.md#sm-505-non-o
 
 | Control | Development value |
 | --- | ---: |
-| Ambient fill | 0.55 |
-| Flashlight range, logical pixels | 520 |
-| Inner / outer half-angle | 50° / 75° |
-| Flashlight intensity | 3 |
+| Ambient fill | 0.18 |
+| Flashlight range, logical pixels | 900 |
+| Inner / outer half-angle | 12° / 17.5° |
+| Flashlight full outer angle | 35° |
+| Flashlight intensity | 6 |
 | Shadow lift | 0 |
 | Contrast / saturation | 1 / 1 |
 | Grade mix / vignette / grain | 0 / 0 / 0 |
 | Bloom | off |
 
-The beam uses existing supported control limits: about 2.1× normal range,
-150° full outer width versus normal 60°, and 1.5× normal intensity. Exposure,
+This is development inspection **version 2**, requested after the earlier
+0.55-ambient / 150° / 520-range / intensity-3 view. The new narrow beam spans
+the fixed map, with reduced ambient fill so its directional contribution can be
+judged. Prior source/configuration captures remain separately retained.
+
+Range 900 and intensity 6 exceed ordinary control caps (520 and 3). A paused
+`renderTest` harness-only wrapper overrides the returned `playerLightCone()`
+range/intensity **before** the normal frame constructs visibility profiles and
+canonical light records. It does not edit the production method or its clamps,
+and delegates to that method without those overrides when the test is unpaused.
+The existing angle controls supply the 12°/17.5° half-angles. Metadata records
+`inspectionVersion`, actual `inspectionBeam` values, and scope explicitly. Exposure,
 gamma and brightness are unchanged. Normal post processing still executes;
 this is an explicit inspection configuration, not a raw bypass or production
 rendering repair. Original fixture controls remain available as `inspection=none`.

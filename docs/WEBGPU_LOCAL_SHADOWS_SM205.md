@@ -44,6 +44,21 @@ The compatibility occluded visibility range remains deliberately soft and local 
 
 ## Contact-shadow pass and depth-aware reconstruction
 
+### Shared light-buffer queue ordering
+
+Self and contact retain the single canonical light buffer. The self encoder is
+submitted **before** `queue.writeBuffer()` replaces its selected-light payload
+with the contact driver; contact/reconstruction use a second encoder/submission.
+Both submissions remain queue ordered, with no intervening CPU completion wait.
+The optional final `wait` still waits once after all local-shadow work. Disabled
+outputs retain their existing neutral clears and allocate no extra light buffer.
+
+The former single encoder was submitted only after both buffer writes, so its
+self pass could read the contact-only payload while reporting multiple selected
+self lights. A deterministic queue model retains that failure witness. Earlier
+physical outputs remain source-separated evidence; this ordering repair requires
+fresh native numeric validation and does not establish a timing improvement.
+
 The raw contact pass renders to persistent half-resolution `r16float` texture `sm205:contact`. It uses the compatibility 4/8/12 sample families, player-cone-first contact driver selection, the configured short trace distance and the compatibility bias relationship (`selfShadowBias × 0.70`, clamped).
 
 A separate full-resolution `sm205:contact-visibility` pass performs the retained **3×3 depth-aware reconstruction**. Neighbor weights decay exponentially with G2 local-height disagreement and the center tap receives double weight. The configured `contactShadowStrength` is applied only during this reconstruction, producing a 0..1 visibility field ready for later bounded composition.

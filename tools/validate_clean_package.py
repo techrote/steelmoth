@@ -6,6 +6,13 @@ from pathlib import Path, PurePosixPath
 ROOT=Path(__file__).resolve().parents[1]
 SKIP_TOP={'.git','.github','artifacts'}
 SKIP_NAMES={'__pycache__','.pytest_cache','.mypy_cache','.DS_Store'}
+# These source contracts verify dedicated CI wiring as well as runtime staging.
+# Retain their exact workflow inputs so extraction runs the same strict checks.
+CONTRACT_WORKFLOWS={
+    '.github/workflows/sm305-dark-bloom.yml',
+    '.github/workflows/sm306-dark-bloom-temporal.yml',
+    '.github/workflows/sm307-visibility.yml',
+}
 
 # SHA256SUMS.txt belongs to the imported v1.2.3 distribution. Repository runtime
 # code is now intentionally evolving through the migration programme, so the old
@@ -41,6 +48,7 @@ def baseline_sha256_matches(path: Path, expected: str) -> tuple[bool,bool]:
 
 def include(path: Path) -> bool:
     rel=path.relative_to(ROOT)
+    if rel.as_posix() in CONTRACT_WORKFLOWS: return True
     if rel.parts and rel.parts[0] in SKIP_TOP: return False
     return not any(p in SKIP_NAMES for p in rel.parts)
 
@@ -74,7 +82,19 @@ def main() -> int:
             z.extractall(extract)
         unpack=extract/'steelmoth'
         required=[
+            *sorted(CONTRACT_WORKFLOWS),
+            'tools/validate_webgpu_dark_bloom_contract.py',
+            'tools/validate_webgpu_dark_bloom_temporal_contract.py',
+            'tools/validate_webgpu_visibility_contract.py',
             'tools/validate_sm505_inspection_preset.js',
+            'tools/sm505_normal_benchmark.js','tools/benchmark_sm505_normal.py',
+            'tools/validate_sm505_normal_benchmark.js','tools/validate_sm505_normal_benchmark.py',
+            'tools/benchmark_webgl2.py','docs/SM505_NORMAL_PRESENTATION_BENCHMARK.md',
+            'tools/validate_sm505_capture_formats.py',
+            'tools/validate_sm505_light_stream.js','tools/validate_sm505_streamed_lighting.js',
+            'tools/validate_sm205_light_queue.js','tools/sm505_visibility_probe.js',
+            'tools/validate_sm505_firefox.py','tools/diagnose_sm505_firefox.py',
+            'docs/SM505_OPAQUE_VISIBILITY.md',
             'tools/sm505_receiver_probe.js','tools/validate_sm505_background_receiver.js',
             'tools/analyze_sm505_capture.py','tools/sm505_replay_post.js','tools/diagnose_sm505_presentation.py','tools/sm505_capture_stages.js','tools/sm505_physical_guard.py','tools/validate_sm505_physical_guard.py','tools/validate_sm505_scene_scale.js','tools/validate_sm505_uploads.js','tools/validate_sm505_presenter_lifecycle.js','tools/validate_sm505_exclusive_ownership.js',
             'engine/webgpu_forward_lighting.js','webgpu-forward-lighting-smoke.html','tools/sm702_forward_fixtures.js','tools/validate_sm702_forward_fixtures.js','tools/validate_sm702_forward_lighting.js','tools/validate_sm702_transparent_materials.js','tools/validate_sm702_forward_browser.py','tools/run_sm702_target_campaign.py','tools/validate_sm702_target_report.py','tools/experiments/sm702_water_baseline.js','tools/experiments/sm702_foliage_baseline.js','tools/experiments/sm702_transparent_fx_baseline.js','docs/WEBGPU_FORWARD_LIGHTING_SM702.md',
@@ -136,6 +156,15 @@ def main() -> int:
                 ['node','tools/validate_sm505_exclusive_ownership.js'],
                 ['node','tools/validate_sm505_background_receiver.js'],
                 ['node','tools/validate_sm505_inspection_preset.js'],
+                ['node','--check','tools/sm505_normal_benchmark.js'],
+                ['node','tools/validate_sm505_normal_benchmark.js'],
+                [sys.executable,'tools/validate_sm505_normal_benchmark.py'],
+                [sys.executable,'tools/validate_sm505_capture_formats.py'],
+                ['node','tools/validate_sm505_light_stream.js'],
+                ['node','tools/validate_sm505_streamed_lighting.js'],
+                ['node','tools/validate_sm205_light_queue.js'],
+                ['node','--check','tools/sm505_visibility_probe.js'],
+                [sys.executable,'tools/validate_sm505_firefox.py'],
                 ['node','tools/validate_sm505_presenter_lifecycle.js'],
                 [sys.executable,'tools/validate_sm505_physical_guard.py'],
                 [sys.executable,'tools/validate_sm505_deployment_contract.py'],
@@ -150,6 +179,9 @@ def main() -> int:
                 [sys.executable,'tools/validate_webgpu_occluders_contract.py'],
                 [sys.executable,'tools/validate_webgpu_clusters_contract.py'],
                 [sys.executable,'tools/validate_webgpu_dominance_contract.py'],
+                [sys.executable,'tools/validate_webgpu_dark_bloom_contract.py'],
+                [sys.executable,'tools/validate_webgpu_dark_bloom_temporal_contract.py'],
+                [sys.executable,'tools/validate_webgpu_visibility_contract.py'],
                 [sys.executable,'tools/validate_render_harness.py'],
                 [sys.executable,'tools/validate_render_fixtures.py','--repeat','2'],
             ]

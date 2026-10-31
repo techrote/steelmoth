@@ -43,6 +43,7 @@
   const ready = new Promise(resolve => { readyResolve = resolve; });
   let lastResult = null;
   let fixture = null;
+  const inspectionConeBases = new WeakMap();
 
   function stableStringify(value) {
     if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -117,8 +118,8 @@
     // Explicit test-only inspection controls. Keep the canonical post pass and
     // existing exposure/gamma/brightness; never persist this development view.
     return {
-      ambientInitial:.55, ambientComplete:.55,
-      playerConeRange:520, playerConeInnerAngle:50, playerConeOuterAngle:75, playerConeIntensity:3,
+      ambientInitial:.18, ambientComplete:.18,
+      playerConeRange:900, playerConeInnerAngle:12, playerConeOuterAngle:17.5, playerConeIntensity:6,
       shadowLift:0, contrast:1, saturation:1, gradeMix:0, bloom:false, vignette:0, grain:0
     };
   }
@@ -281,6 +282,16 @@
       if (config.benchmark || config.benchmarkPrepare) throw new Error('development inspection is forbidden for benchmark captures');
       const patch=inspectionPatch(config.inspection);
       Object.assign(game.graphics,patch); game.ambientLevel=patch.ambientInitial;
+      // The requested inspection beam exceeds ordinary UI/game clamps. Keep
+      // those production clamps intact; override only a paused test capture's
+      // returned cone, before Game.render constructs canonical visibility rays.
+      if(!inspectionConeBases.has(game))inspectionConeBases.set(game,game.playerLightCone);
+      const baseCone=inspectionConeBases.get(game);
+      if(typeof baseCone!=='function')throw new Error('development inspection requires the production playerLightCone');
+      game.playerLightCone=function(...args){
+        const cone=baseCone.apply(game,args);
+        return enabled&&config.inspection==='development'&&game.paused?{...cone,range:patch.playerConeRange,intensity:patch.playerConeIntensity}:cone;
+      };
     }
     const a=config.lightAngle*Math.PI/180, origin=game.playerLightOrigin(), radius=240;
     game.mouseAimActive=true; game.mouseAimX=origin.x+Math.cos(a)*radius; game.mouseAimY=origin.y+Math.sin(a)*radius;
@@ -304,6 +315,8 @@
     metadata.inspectionSettings=inspectionPatch(config.inspection);
     if(config.inspection!=='none'){
       metadata.physicalAcceptance=false;metadata.visualAcceptance=false;
+      metadata.inspectionVersion=2;
+      metadata.inspectionBeam={range:metadata.diagnosticLight.range,intensity:metadata.diagnosticLight.intensity,innerHalfAngleDegrees:Math.acos(metadata.diagnosticLight.innerCos)*180/Math.PI,outerHalfAngleDegrees:Math.acos(metadata.diagnosticLight.outerCos)*180/Math.PI,fullOuterAngleDegrees:2*Math.acos(metadata.diagnosticLight.outerCos)*180/Math.PI,overrideScope:'paused renderTest harness return value; production control clamps/defaults unchanged'};
       metadata.limitations.push('Development inspection changes ambient, flashlight and artistic controls for visibility. It is never visual, performance or release acceptance.');
     }
     const stable={config:metadata.config,scene:metadata.scene,viewport:{requestedNative:metadata.viewport.requestedNative,actualNative:metadata.viewport.actualNative,dprRequested:metadata.viewport.dprRequested,dprActual:metadata.viewport.dprActual},renderer:{materialPipeline:metadata.renderer?.materialPipeline||null,gBuffer:metadata.renderer?.gBuffer?{size:metadata.renderer.gBuffer.size,float:metadata.renderer.gBuffer.float}:null}};

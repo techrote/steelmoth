@@ -9,7 +9,7 @@ async function sm505CaptureStages() {
   const base64=bytes=>{let s='';for(let i=0;i<bytes.length;i+=16384)s+=String.fromCharCode(...bytes.subarray(i,i+16384));return btoa(s)};
   async function read(name,texture,format,kind){
     const width=texture.width,height=texture.height;
-    const bytesPerPixel=format==='rgba16float'?8:4,rowBytes=Math.ceil(width*bytesPerPixel/256)*256;
+    const bytesPerPixel=format==='rgba16float'?8:format==='r16float'?2:4,rowBytes=Math.ceil(width*bytesPerPixel/256)*256;
     const b=d.createBuffer({label:`SM505:capture:${name}`,size:rowBytes*height,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
     try{
       const enc=d.createCommandEncoder();enc.copyTextureToBuffer({texture},{buffer:b,bytesPerRow:rowBytes,rowsPerImage:height},{width,height});q.submit([enc.finish()]);
@@ -23,6 +23,10 @@ async function sm505CaptureStages() {
     await read('gbuffer-normal-roughness',p.gb._record('g1').handle,'rgba16float','numeric');
     await read('gbuffer-height-material',p.gb._record('g2').handle,'rgba16float','numeric');
     await read('object-id',p.gb._record('object').handle,'r32uint','object-id');
+    await read('self-visibility',p.shadows.selfTexture(),'r16float','visibility');
+    await read('contact-visibility',p.shadows.contactVisibilityTexture(),'r16float','visibility');
+    await read('dso-occlusion',p.dsoHierarchy._record('mask').handle,'r32float','occlusion');
+    await read('composed-visibility',p.visibility._record('visibility').handle,'rgba16float','visibility-channels');
     await read('raw-lighting',p.lighting.outputTexture(),'rgba16float','linear-rgb');
     await read('pre-postprocessing',p.world,'rgba16float','linear-rgb');
     await p.post._ensureOutputPipeline('rgba8unorm');
@@ -57,6 +61,6 @@ async function sm505CaptureStages() {
   }finally{
     const error=await d.popErrorScope();if(error)throw new Error(`stage capture validation: ${error.message}`);
   }
-  return {items,postProbe:{inputHalfWords:[0x2e66,0x3000,0x3029,0x31c3,0x3800,0x3c00,0,0],settings:{bloom:false,grain:0,vignette:0},grade:[1,1,1],productionDefaults:p.api.Post.DEFAULTS,meaning:'Known-failure diagnostic for default grading on linear HDR, not visual acceptance.'},scene:game.renderScene,runtime:r.diagnostics(),lighting:p.lighting.diagnostics(),post:p.post.diagnostics(),visibility:p.visibility.diagnostics(),
+  return {items,postProbe:{inputHalfWords:[0x2e66,0x3000,0x3029,0x31c3,0x3800,0x3c00,0,0],settings:{bloom:false,grain:0,vignette:0},grade:[1,1,1],productionDefaults:p.api.Post.DEFAULTS,meaning:'Fixed-input grading characterization on linear HDR; not an artistic fault threshold or visual acceptance.'},scene:game.renderScene,runtime:r.diagnostics(),lighting:p.lighting.diagnostics(),shadows:p.shadows.diagnostics(),dso:p.dso.diagnostics(),post:p.post.diagnostics(),visibility:p.visibility.diagnostics(),
     boundary:'Actual production target readbacks, plus source-identical diagnostic post/depth replays. Observer work is not performance evidence; depth PNG is quantized debug, original ownership IDs are retained.'};
 }

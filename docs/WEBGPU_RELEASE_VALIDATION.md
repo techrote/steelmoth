@@ -2,27 +2,44 @@
 
 ## 2026-10-31 engineering checkpoint — still blocked
 
-Subsequent user review prioritized [background receiving and brighter development
-inspection](SM505_BACKGROUND_RECEIVER.md). That source now has a material-only
-receiver pass and a labelled test preset (r30/sm505-4); its native captures must
-be retained separately from the first checkpoint below. The black fraction is
-descriptive, not by itself a grading-failure threshold. Production post/defaults
-remain unchanged while missing lighting is repaired and evaluated.
+The [overnight report](SM505_OVERNIGHT_2026-10-30.md) and subsequent
+[background receiver diagnostic](SM505_BACKGROUND_RECEIVER.md) preserve separate
+source/configuration evidence. Current candidate source is based on live main
+`19701149` with original SM-505 history merged, on a dedicated branch; draft
+[PR118](https://github.com/techrote/steelmoth/pull/118) remains unmerged.
 
-The [overnight checkpoint](SM505_OVERNIGHT_2026-10-30.md) reconciles current main
-with the explicit normal-game presenter candidate and retains source-separated
-GTX 1650 SUPER Chrome diagnostics. The final rendered source is `9b5b932b2f23d5203422b1de6c7d5575c481f4d1`.
-Normal explicit WebGPU presentation now executes, but canonical post clips
-99.8575605% of the fixture's object-owned pixels to at most one display code.
-The exact post equation and fixed-input GPU witnesses establish the blackout.
-**Gate C FAIL; no performance/release campaign or Auto promotion.**
+**Gate C remains FAIL: no visual, performance or release acceptance.**
+`AUTO_WEBGPU_ENABLED=false`; WebGL2 remains the default. No accepted physical
+normal-game presentation campaign exists, and #50 remains open.
 
-Light-unit, external-upload, lifecycle, exclusive ownership, stage-order and
-nearest-albedo repairs are implemented. The source cache identity is r30/sm505-3.
-Backdrop lighting and opaque SM-307 consumption remain incomplete. Full native
-Firefox, editor/runtime, visual, timing and deployment acceptance are NOT RUN.
-The older dated audits below remain historical evidence, not the present
-implementation inventory. #50 stays open; the candidate stays draft/unmerged.
+The earlier `9b5b932` single-box diagnostic recorded99.8575605% near-black
+object-owned pixels. Source-identical CPU/GPU replay explains that output,
+but its black fraction alone is not a grading-fault threshold for this dark game.
+Production artistic defaults remain unchanged. The proven integration defect
+was missing background material: all1,952,847 unowned pixels had zero raw light.
+
+Native source `0a432bc` adds the non-owning background receiver. Its separate
+dense-mixed development-v1 diagnostic passes12/12 receiver checks, including
+unchanged ID/full depth/owned material, cone response and GPU/CPU error below
+0.003. It still exposes two visual faults: opaque composition ignores SM307
+visibility, and static material geometry is offset from background artwork in
+both backends. This diagnostic does not pass visual acceptance. Version1's
+ambient0.55/full cone150° inspection was rejected as too broad/bright; version2
+uses0.18/35°/range900/intensity6 in the paused test harness only. Inspection
+settings are excluded from all release/performance qualification.
+
+Source implementation also repairs native light units, external-copy usage,
+initialization/cancellation, exclusive ownership, stage order and nearest albedo.
+The candidate retains coherent r30 cache identity and all newer main modules.
+The [normal timing runner](SM505_NORMAL_PRESENTATION_BENCHMARK.md) is implemented
+and CPU-tested but refuses physical timing without exact-source presentation
+and visual qualification. The eight scenes × three runs ×300warm-up/600measured
+matrix, complete native lifecycle/editor/ordering matrix, soak, cross-browser
+acceptance and live PWA deployment remain unmet. Queue/command GPU targets remain
+≤12ms mean/≤14.5ms p95; no diagnostic wall time is substituted for GPU time.
+
+The dated audits below are historical and are not the current implementation
+inventory or current accepted physical evidence.
 
 Date: 2026-10-03  
 Issue: #50 / SM-505  

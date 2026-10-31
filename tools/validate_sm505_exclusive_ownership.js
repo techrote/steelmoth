@@ -3,6 +3,7 @@ const assert=require('assert');
 const Ownership=require('../engine/webgpu_ownership.js');
 const Transparent=require('../engine/webgpu_transparent_fx.js');
 const Presenter=require('../engine/webgpu_scene_presenter.js');
+const Lighting=require('../engine/webgpu_lighting.js'),Shadows=require('../engine/webgpu_local_shadows.js');
 
 const atlas={source_size:[16,16],world_scale:1,region_meta:{face:{world_scale:1}},regions:{face:[0,0,8,8]}};
 const sprite=(id,alpha=.92,overrides={})=>({id,category:'static',atlas:'hd',spriteId:'face',materialId:'material:face',root:{x:20,y:30},transform:{x:20,y:22,w:16,h:16,rotation:0,flip:false},style:{alpha,color:[1,1,1],tint:[1,1,1],glow:false},...overrides});
@@ -38,12 +39,12 @@ async function testOneCanonicalArrayFeedsRenderAndPartition(){
   const stop=new Error('test stops before GPU encoding'),p=Object.create(Presenter.WebGPUScenePresenter.prototype);
   let builds=0,built=null,submitted=null,partitionIds=null;
   p.closed=false;p.width=640;p.height=360;p.root={};p.game={renderer:{},art:{manifest:atlas}};
-  p.api={Scene:{validateRenderScene(){}},Ownership:{buildOwnershipSceneInstances(s,a){builds++;built=Ownership.buildOwnershipSceneInstances(s,a);return built}},Quality:{localShadowSettings:()=>({})},Pseudo:{},Lighting:{}};
+  p.api={Scene:{validateRenderScene(){}},Ownership:{buildOwnershipSceneInstances(s,a){builds++;built=Ownership.buildOwnershipSceneInstances(s,a);return built}},Quality:{localShadowSettings:()=>({})},Pseudo:{},Lighting,Shadows};
   p._extent=()=>({width:640,height:360});p._uploadBackdrop=()=>{};p._renderBackgroundReceivers=()=>{};p._invalidateForRoom=()=>{};p._opaqueComposite=()=>{};p._updateWaterField=()=>{};
   p.gb={async renderInstances(instances){submitted=instances},async renderScene(){throw new Error('scene must not be scanned a second time')}};
   p.depth={async buildFromOwnership(){}};p.shadows={async render(){}};
   for(const name of ['occ','clusters','dominance','dso','dsoHierarchy','bloom','bloomTemporal','visibility'])p[name]={async update(){},sourceFromPaths:()=>({})};
-  p.lighting={async render(){}};
+  p._renderOpaqueLighting=async()=>{}; // Dedicated light-stream contract tests this independent boundary.
   p._sourceFrames=(s,ids)=>{partitionIds=ids;const frames=extract(s,ids);assert(!allSprites(frames).some(r=>ids.has(r.id)));throw stop};
   await assert.rejects(p._render(scene),error=>error===stop);
   assert.equal(builds,1,'one canonical instance build per captured scene');assert.strictEqual(submitted,built,'submit the exact canonical array used to classify ownership');

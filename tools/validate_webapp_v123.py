@@ -31,10 +31,10 @@ assert re.search(r"const CACHE = 'small-machine-web-v1\.2\.3-r[1-9][0-9]*'",sw)
 assert 'sw.js?v=1.2.3' in web
 assert "localPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1'" in web
 assert "k.startsWith('small-machine-web-')" in web and 'clearLocalPreviewCaches' in web
-for token in ['engine/game.js?v=sm505-4','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3']:
+for token in ['engine/game.js?v=sm505-5','engine/surfacefx.js?v=1.2.3','engine/foliagefx.js?v=1.2.3']:
     assert token in h, token
 # Runtime modules must be loaded by the app and included in the offline core.
-for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','pseudo_depth.js?v=sm201-1','webgpu_gbuffer.js?v=sm200-1','webgpu_ownership.js?v=sm202-1','webgpu_depth_hierarchy.js?v=sm203-1','webgpu_lighting.js?v=sm204-1','webgpu_scene_presenter.js?v=sm505-4','backend_runtime.js?v=sm505-4']:
+for token in ['render_transform.js?v=sm101-1','render_transform_integration.js?v=sm101-1','render_transform_scene_adapter.js?v=sm101-1','webgpu_device.js?v=sm102-1','webgpu_resources.js?v=sm103-1','pseudo_depth.js?v=sm201-1','webgpu_gbuffer.js?v=sm200-1','webgpu_ownership.js?v=sm202-1','webgpu_depth_hierarchy.js?v=sm203-1','webgpu_lighting.js?v=sm204-1','webgpu_scene_presenter.js?v=sm505-5','backend_runtime.js?v=sm505-5']:
     assert token in web and token in sw, token
 # SM-104's validation module is intentionally test-only: existence and its smoke
 # entrypoint are required, but normal gameplay/offline bootstrap must not load it.

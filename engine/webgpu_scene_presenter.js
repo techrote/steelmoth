@@ -54,6 +54,35 @@
     return{...scene,sprites:(scene.sprites||[]).filter(predicate),proceduralLayers:procedural?(scene.proceduralLayers||[]):(scene.proceduralLayers||[]).filter(p=>p.kind!=='effects'),overlays:overlays?scene.overlays:{guide:null,objectiveMarker:null}};
   }
 
+  // A merged SM-307 mask has no per-light identity. Stream only the bounded
+  // affected drivers; batch remaining lights with neutral direct visibility.
+  function visibilityLightPlan(scene,settings,lighting,shadows,macroLightId=null){
+    const lights=lighting.buildCanonicalLights(scene,settings),ids=lights.map(l=>l.id),known=new Set(ids);
+    const selfIds=new Set(shadows.selectSelfShadowLights(scene,settings).map(l=>l.id));
+    const contactId=settings.lighting!==false&&settings.contactShadows!==false?shadows.selectContactLight(scene,settings,scene.frame?.logicalSize).id:null;
+    const macroId=settings.lighting!==false&&settings.shadows!==false&&known.has(macroLightId)?macroLightId:null;
+    const batches=[],neutral=[];
+    for(const id of ids){const selfShadow=selfIds.has(id),contactShadow=id===contactId,macro=id===macroId;
+      if(selfShadow||contactShadow||macro)batches.push({ids:[id],selfShadow,contactShadow,macro});else neutral.push(id);
+    }
+    if(neutral.length||!batches.length)batches.push({ids:neutral,selfShadow:false,contactShadow:false,macro:false});
+    return{canonicalIds:ids,macroLightId:macroId,selfLightIds:[...selfIds],contactLightId:known.has(contactId)?contactId:null,batches};
+  }
+
+  function lightSubset(scene,ids){
+    const wanted=new Set(ids),cone=scene.playerCone;
+    return{...scene,lights:(scene.lights||[]).filter(l=>wanted.has(String(l.id))),playerCone:cone&&wanted.has(String(cone.id||'light:player-cone:0'))?cone:null};
+  }
+
+  function macroLightDriver(scene,settings,lighting,shadows,dominance=null){
+    const canonical=lighting.buildCanonicalLights(scene,settings);if(!canonical.length)return null;
+    const preferred=shadows.selectContactLight(scene,settings,scene.frame?.logicalSize).id;
+    const available=dominance?new Set((dominance.records||[]).map(r=>r.lightId)):null;
+    const chosen=canonical.find(l=>l.id===preferred&&(!available||available.has(l.id)))||canonical.find(l=>!available||available.has(l.id));
+    if(!chosen)return null;
+    return (scene.lights||[]).find(l=>String(l.id)===chosen.id)||(scene.playerCone&&String(scene.playerCone.id||'light:player-cone:0')===chosen.id?scene.playerCone:null);
+  }
+
   const COMPOSITE_WGSL=`
 @group(0) @binding(0) var samp:sampler;
 @group(0) @binding(1) var aTex:texture_2d<f32>;
@@ -144,7 +173,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       this.gb=new A.Ownership.WebGPUOwnershipGBuffer({device:d,width:w,height:h,maxInstances:4096,labelPrefix:'SM505GBuffer'});await this.gb.setAtlases({albedo:this.game.art.img,normalRoughness:this.game.art.materialNRImg,heightMaterial:this.game.art.materialHMImg,meta:manifest});this._assertOpen();
       this.depth=new A.Depth.WebGPUDepthHierarchy({device:d,queue:q,width:w,height:h,labelPrefix:'SM505Depth'});
       this.shadows=new A.Shadows.WebGPULocalShadows({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Shadows'});
-      this.lighting=new A.Lighting.WebGPUDeferredLighting({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Lighting'});await this.shadows.initialize();this._assertOpen();await this.lighting.initialize();this._assertOpen();
+      this.lighting=new A.Lighting.WebGPUDeferredLighting({device:d,width:w,height:h,registry:this.gb.registry,pipelines:this.gb.pipelines,labelPrefix:'SM505Lighting'});await this.shadows.initialize();this._assertOpen();await this.lighting.initialize();this._assertOpen();await this.lighting.initializeStreamedDirect();this._assertOpen();
       this.occ=new A.Occluders.WebGPUOccluderBins({device:d,width:w,height:h,maxOccluders:512,maxPerTile:32,maxTileRefs:16384});
       this.clusters=new A.Clusters.WebGPUOccluderClusters({device:d,width:w,height:h,maxClusters:512,maxMembers:512,maxCandidatePairs:4096,maxCandidatePerTile:32});
       this.dominance=new A.Dominance.WebGPUDominantOccluders({device:d,maxDominanceRecords:512});
@@ -218,13 +247,38 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
     _invalidateForRoom(roomId){
       if(this.lastRoomId==null){this.lastRoomId=roomId;return}if(roomId===this.lastRoomId)return;for(const r of [this.water,this.bloom,this.bloomTemporal,this.dsoHierarchy,this.visibility])try{r?.invalidate?.('room-change')}catch(_e){}this.lastRoomId=roomId;this.lastSourceRevision.water=null;
     }
+    async _renderOpaqueLighting(scene,settings,macroLightId){
+      const plan=visibilityLightPlan(scene,settings,this.api.Lighting,this.api.Shadows,macroLightId);
+      const source=()=>this.visibility.sourceFromPaths(this.gb,this.shadows,this.dsoHierarchy,this.bloomTemporal,null);
+      const visibilityOptions=(batch=null)=>({gtao:false,wait:false,
+        dso:batch?batch.macro:settings.lighting!==false&&settings.shadows!==false,
+        darkBloom:batch?batch.macro:settings.lighting!==false&&settings.shadows!==false,
+        selfShadow:batch?batch.selfShadow:settings.selfShadowing!==false&&settings.lighting!==false,
+        contactShadow:batch?batch.contactShadow:settings.contactShadows!==false&&settings.lighting!==false,
+        materialAOStrength:clamp(finite(settings.materialAOStrength,.62),0,1)});
+      let first=true;
+      for(const batch of plan.batches){
+        this._assertOpen();const subset=lightSubset(scene,batch.ids);
+        const subsetIds=this.api.Lighting.buildCanonicalLights(subset,settings).map(l=>l.id);
+        if(JSON.stringify(subsetIds)!==JSON.stringify(batch.ids))throw new Error('SM-505 per-light subset lost canonical light identity');
+        await this.shadows.render(this.gb,subset,{...settings,selfShadowing:batch.selfShadow,contactShadows:batch.contactShadow},{wait:false});this._assertOpen();
+        await this.visibility.update(source(),visibilityOptions(batch));this._assertOpen();
+        await this.lighting.accumulateDirect(this.gb,subset,settings,{visibilityView:this.visibility.bindings().visibility,clear:first,wait:false});this._assertOpen();first=false;
+      }
+      // Existing forward consumers retain their accepted aggregate visibility.
+      // No DSO/Bloom/temporal producer is advanced a second time here.
+      await this.shadows.render(this.gb,scene,settings,{wait:false});this._assertOpen();
+      await this.visibility.update(source(),visibilityOptions());this._assertOpen();
+      await this.lighting.resolveDirect(this.gb,scene,settings,{ambientVisibilityView:this.visibility.bindings().visibility,wait:false});this._assertOpen();
+      this.lastOpaqueVisibilityPlan=plan;
+    }
     async _render(scene){
       this._assertOpen();this.api.Scene.validateRenderScene(scene);const e=this._extent();if(e.width!==this.width||e.height!==this.height){await this._rebuild(e.width,e.height);this._assertOpen()}
       this._uploadBackdrop();const scaled=scaleScene(scene,this.width,this.height,this.api.Pseudo,this.api.Lighting),s=scaled.scene,quality=this.root?.steelMothWebGPUQualityRuntime?.preset||this.game.graphics?.webgpuQualityPreset||'Medium',Q=this.api.Quality;
-      this._invalidateForRoom(String(s.frame?.roomId||'unknown-room'));const shadowSettings=Q.localShadowSettings(quality,s.settings||{});
+      this._invalidateForRoom(String(s.frame?.roomId||'unknown-room'));const shadowSettings={...Q.localShadowSettings(quality,s.settings||{}),selfShadowing:s.settings?.lighting!==false&&s.settings?.selfShadowing!==false,contactShadows:s.settings?.lighting!==false&&s.settings?.contactShadows!==false};
       const opaqueInstances=this.api.Ownership.buildOwnershipSceneInstances(s,this.game.art.manifest);
-      await this.gb.renderInstances(opaqueInstances,{wait:false});this._assertOpen();this._renderBackgroundReceivers();const opaqueIds=new Set(opaqueInstances.map(instance=>String(instance.id)));await this.depth.buildFromOwnership(this.gb,{wait:false});this._assertOpen();await this.shadows.render(this.gb,s,shadowSettings,{wait:false});this._assertOpen();await this.occ.update(s,{wait:false});this._assertOpen();await this.clusters.update(this.occ,{wait:false});this._assertOpen();await this.dominance.update(this.clusters,this.occ,s.lights,{wait:false});this._assertOpen();
-      const lightId=s.lights?.[0]?.id||'light:0';await this.dso.update(this.clusters,this.occ,this.dominance,{lightId,wait:false});this._assertOpen();await this.dsoHierarchy.update(this.dso,{quality,wait:false});this._assertOpen();await this.bloom.update(this.bloom.sourceFromPaths(this.dsoHierarchy,this.depth),{quality,wait:false});this._assertOpen();await this.bloomTemporal.update(this.bloomTemporal.sourceFromPaths(this.bloom,this.depth,this.gb,this.dsoHierarchy,s.lights?.[0]||{}),{wait:false});this._assertOpen();await this.visibility.update(this.visibility.sourceFromPaths(this.gb,this.shadows,this.dsoHierarchy,this.bloomTemporal,null),{gtao:false,wait:false});this._assertOpen();await this.lighting.render(this.gb,s,shadowSettings,{wait:false});this._assertOpen();
+      await this.gb.renderInstances(opaqueInstances,{wait:false});this._assertOpen();this._renderBackgroundReceivers();const opaqueIds=new Set(opaqueInstances.map(instance=>String(instance.id)));await this.depth.buildFromOwnership(this.gb,{wait:false});this._assertOpen();await this.occ.update(s,{wait:false});this._assertOpen();await this.clusters.update(this.occ,{wait:false});this._assertOpen();await this.dominance.update(this.clusters,this.occ,this.api.Lighting.buildCanonicalLights(s,shadowSettings),{wait:false});this._assertOpen();
+      const macroDriver=macroLightDriver(s,shadowSettings,this.api.Lighting,this.api.Shadows,this.dominance.snapshot),lightId=macroDriver?.id||null;await this.dso.update(this.clusters,this.occ,this.dominance,{lightId,wait:false});this._assertOpen();await this.dsoHierarchy.update(this.dso,{quality,wait:false});this._assertOpen();await this.bloom.update(this.bloom.sourceFromPaths(this.dsoHierarchy,this.depth),{quality,wait:false});this._assertOpen();await this.bloomTemporal.update(this.bloomTemporal.sourceFromPaths(this.bloom,this.depth,this.gb,this.dsoHierarchy,macroDriver||{}),{wait:false});this._assertOpen();await this._renderOpaqueLighting(s,shadowSettings,lightId);this._assertOpen();
       this._opaqueComposite();this._updateWaterField(String(s.frame.roomId||'unknown-room'));
       const frames=this._sourceFrames(s,opaqueIds),depthView=this.gb._views().depth,enc=this.device.createCommandEncoder({label:'SM505:forward-compose'}),worldView=this.world.createView();
       const waterDesc=(s.proceduralLayers||[]).find(p=>p.kind==='water')?.descriptor;if(waterDesc&&this.water.fieldTexture){const source=this.water.sourceFromPaths(this.lighting,this.gb,this.visibility);source.sceneView=worldView;await this.water.render(source,s,{...(s.settings||{}),...waterDesc},{wait:false,time:(s.frame.timeMs||0)/1000,ripples:this.game.renderer.surfaceFX?.water?.sources?.items||[]});this._assertOpen();this._blendTexture(enc,this.water.outputTexture().createView(),worldView)}
@@ -251,13 +305,13 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       catch(error){if(this.closed){this._closeResources();return}this.lastError=String(error?.stack||error);this.ready=false;try{this.onFailure(error,this)}catch(_e){}}
       finally{this.rendering=false}
     }
-    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,backgroundReceiver:{policy:'unowned material receiver; object ID and depth unchanged',renderCount:this.receiverRenders||0,compilation:clone(this.receiverCompilation||[])},presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds one rgba16float world target, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
+    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,opaqueVisibility:{policy:'light-identified streamed direct; one compression; ambient AO once; emissive unmasked',plan:clone(this.lastOpaqueVisibilityPlan||null)},backgroundReceiver:{policy:'unowned material receiver; object ID and depth unchanged',renderCount:this.receiverRenders||0,compilation:clone(this.receiverCompilation||[])},presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds rgba16float world and raw-direct accumulation targets, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
     _closeResources(){
-      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.receiverBindings=null;this.resources=[];
+      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.lighting,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.receiverBindings=null;this.resources=[];
     }
     close(){if(this.closed)return;this.closed=true;this.ready=false;this.pending=null;this._closeResources();try{this.context?.unconfigure?.()}catch(_e){};try{this.canvas?.remove?.()}catch(_e){};this.canvas=null;this.context=null}
   }
 
   function create(options){return new WebGPUScenePresenter(options)}
-  return{SCHEMA,WORLD_FORMAT,COMPOSITE_WGSL,BACKGROUND_RECEIVER_WGSL,FOLIAGE_RASTER_WGSL,scaleScene,scaleFoliageInstances,atlasMetaFromLegacy,frameScene,WebGPUScenePresenter,create};
+  return{SCHEMA,WORLD_FORMAT,COMPOSITE_WGSL,BACKGROUND_RECEIVER_WGSL,FOLIAGE_RASTER_WGSL,scaleScene,scaleFoliageInstances,atlasMetaFromLegacy,frameScene,visibilityLightPlan,lightSubset,macroLightDriver,WebGPUScenePresenter,create};
 });

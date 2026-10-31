@@ -237,6 +237,16 @@ telemetry and deadlines. Diagnostic completion is not physical acceptance or a
 GPU performance measurement. Never count the tooling tests' explicitly marked
 mock transport artifacts as gameplay screenshots.
 
+The [normal-presentation benchmark contract](SM505_NORMAL_PRESENTATION_BENCHMARK.md)
+adds JavaScript syntax, mocked normal-path scheduling and Python source/
+qualification/watchdog/report mutation checks to the source runner and clean
+extraction. `python tools/benchmark_sm505_normal.py --plan --campaign` is CPU-only.
+Actual timing refuses execution until exact-source normal presentation and visual
+correctness explicitly pass, with hash-valid evidence and an active owned physical
+watchdog. CI never launches that target campaign or generates qualification from
+diagnostic success. The total-only observer leaves uncovered command GPU time
+null and records per-pass, pure-encoding and residency limitations explicitly.
+
 SM-602 adds `node tools/validate_webgpu_ssgi.js` to the normal runner and
 `python tools/validate_webgpu_ssgi_browser.py` to the required WebGPU job. The
 browser runner fails when WebGPU is unavailable, reads production diffuse and

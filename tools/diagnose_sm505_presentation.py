@@ -51,15 +51,16 @@ def source_identity(root):
             'tree':git('rev-parse','HEAD^{tree}') if (root/'.git').exists() else None,
             'status':git('status','--porcelain=v1','--untracked-files=all') if (root/'.git').exists() else 'archive; see archive commit and checksum',
             'root':str(root),'fileSha256':{p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
-            'observerSha256':{str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__),TOOLS_ROOT/'tools/sm505_capture_stages.js',TOOLS_ROOT/'tools/sm505_receiver_probe.js'] if p.is_file()}}
+            'observerSha256':{str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__),TOOLS_ROOT/'tools/sm505_capture_stages.js',TOOLS_ROOT/'tools/sm505_receiver_probe.js',TOOLS_ROOT/'tools/sm505_visibility_probe.js'] if p.is_file()}}
 
 def save_item(out,item):
     raw=base64.b64decode(item.pop('base64'));(out/(item['name']+'.bin')).write_bytes(raw)
     w,h,row=item['width'],item['height'],item['rowBytes']
     data=np.frombuffer(raw,dtype=np.uint8).reshape(h,row)
     if item['format']=='rgba16float':a=data[:,:w*8].copy().view('<f2').reshape(h,w,4).astype(np.float32)
-    elif item['format']=='r32float':
-        value=data[:,:w*4].copy().view('<f4').reshape(h,w)
+    elif item['format'] in ('r16float','r32float'):
+        size=2 if item['format']=='r16float' else 4
+        value=data[:,:w*size].copy().view('<f2' if size==2 else '<f4').reshape(h,w).astype(np.float32)
         a=np.repeat(value[:,:,None],4,axis=2);a[:,:,3]=1
     elif item['format']=='r32uint':
         ids=data[:,:w*4].copy().view('<u4').reshape(h,w)
@@ -67,6 +68,11 @@ def save_item(out,item):
         a[ids==0,:3]=0;item['occupiedPixels']=int(np.count_nonzero(ids))
     else:a=data[:,:w*4].reshape(h,w,4).astype(np.float32)/255
     item['finite']=bool(np.isfinite(a).all());rgb=a[:,:,:3]
+    if item['kind'] in ('visibility','occlusion','visibility-channels'):
+        names=('combined','direct','ambient','dso') if item['kind']=='visibility-channels' else (item['kind'],)
+        item['channels']={name:{'minimum':float(a[:,:,i].min()),'maximum':float(a[:,:,i].max()),
+          'mean':float(a[:,:,i].mean()),'zeroPixels':int(np.count_nonzero(a[:,:,i]==0)),
+          'belowNeutralPixels':int(np.count_nonzero(a[:,:,i]<1-1/1024))} for i,name in enumerate(names)}
     item['rgbMean']=np.mean(rgb,axis=(0,1)).tolist();item['blackFraction']=float(np.mean(np.max(rgb,axis=2)<=1/255))
     if item['kind']=='linear-rgb':
         x=np.maximum(rgb,0);rgb=np.where(x<=.0031308,12.92*x,1.055*np.power(x,1/2.4)-.055)
@@ -83,12 +89,13 @@ def main():
     ap.add_argument('--angle',type=int,choices=range(0,360,45),default=0);ap.add_argument('--width',type=int,default=1920);ap.add_argument('--height',type=int,default=1080)
     ap.add_argument('--timeout',type=float,default=150)
     ap.add_argument('--receiver-probe',action='store_true',help='Run source-matched background receiver negative/positive/cone readback controls outside timing')
+    ap.add_argument('--visibility-probe',action='store_true',help='Run source-matched per-light direct/ambient/emissive numeric visibility controls outside timing')
     ap.add_argument('--inspection',choices=['none','development'],default='none',help='Explicit matched development visibility preset; never performance/release acceptance')
     args=ap.parse_args();root=args.root.resolve();out=args.out.resolve()
     if out.exists():ap.error('--out must be new; original attempts cannot be overwritten')
     if not 1<=args.timeout<=600 or not 160<=args.width<=3840 or not 90<=args.height<=2160:ap.error('invalid bounded extent/deadline')
     out.mkdir(parents=True);report={'schema':'steelmoth-sm505-stage-diagnostic/v1','ok':False,'physicalAcceptance':False,'hardwareRequested':args.hardware,'softwareRequested':not args.hardware,'startedAt':dt.datetime.now(dt.timezone.utc).isoformat(),
-      'configuration':{'fixture':args.fixture,'angle':args.angle,'width':args.width,'height':args.height,'dpr':1,'quality':'Medium','gtao':False,'receiverProbe':args.receiver_probe,'inspection':args.inspection},'errors':[],
+      'configuration':{'fixture':args.fixture,'angle':args.angle,'width':args.width,'height':args.height,'dpr':1,'quality':'Medium','gtao':False,'receiverProbe':args.receiver_probe,'visibilityProbe':args.visibility_probe,'inspection':args.inspection},'errors':[],
       'boundary':'Engineering diagnostic using normal index.html bootstrap and canonical deterministic fixture adapter. Neither human visual approval nor performance/release acceptance.'}
     proc=cdp=srv=None
     try:
@@ -163,9 +170,17 @@ def main():
                         meta,_array=save_item(probe_out,item);probe_captures.append(meta)
                     probe['captures']=probe_captures;report['receiverProbe']=probe
                     if not probe['ok']:raise RuntimeError('Background receiver engineering probe failed: '+str(probe.get('errors'))+'; '+str([c for c in probe['checks'] if not c['ok']]))
+                if args.visibility_probe:
+                    probe=cdp.evaluate((TOOLS_ROOT/'tools/sm505_visibility_probe.js').read_text(encoding='utf-8')+'\nsm505VisibilityProbe()')
+                    probe_out=out/'visibility-probe';probe_out.mkdir();probe_captures=[]
+                    for item in probe.pop('items'):
+                        meta,_array=save_item(probe_out,item);probe_captures.append(meta)
+                    probe['captures']=probe_captures;report['visibilityProbe']=probe
+                    if not probe['ok']:raise RuntimeError('Opaque visibility engineering probe failed: '+str(probe.get('errors'))+'; '+str([c for c in probe['checks'] if not c['ok']]))
                 report['javascriptExceptions']=cdp.exceptions
                 if cdp.exceptions:raise RuntimeError('Unexpected JavaScript exceptions; inspect original log')
-                errors=stages['runtime']['webgpu']['uncapturedErrors']
+                report['runtimeAfterProbes']=cdp.evaluate('steelMothBackendRuntime.diagnostics()')
+                errors=report['runtimeAfterProbes']['webgpu']['uncapturedErrors']
                 if errors:raise RuntimeError(f'Unexpected WebGPU errors: {errors}')
                 report['sourceAfter']=source_identity(root)
                 if report['source']['fileSha256']!=report['sourceAfter']['fileSha256']:raise RuntimeError('Source changed during capture; evidence not source stable')

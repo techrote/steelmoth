@@ -33,7 +33,8 @@ for phrase in ('0 = occluded','1 = visible','not multiplied independently','term
 require('bounded visibility/occlusion' in arch.lower() and 'blindly multiplying' in arch.lower(),'canonical architecture no longer states bounded-composition rule')
 require('webgpuVisibilityDone' in smoke and 'toggle-matrix' in smoke and 'debug-matrix' in smoke and 'moving-light-a' in smoke and 'moving-light-b' in smoke and 'gtao-reserved' in smoke,'real-browser evidence matrix incomplete')
 require("webgpu_visibility.js?v=sm307-1" in web,'webapp does not stage SM-307 visibility module')
-require(web.index("webgpu_dark_bloom_temporal.js?v=sm306-1") < web.index("webgpu_visibility.js?v=sm307-1") < web.index("backend_runtime.js?v=sm102-1"),'SM-307 staging order is not temporal Dark Bloom -> visibility -> runtime')
+# Runtime cache identity evolves; SM-505's deployment contract owns its exact revision.
+require(web.index("webgpu_dark_bloom_temporal.js?v=sm306-1") < web.index("webgpu_visibility.js?v=sm307-1") < web.index("backend_runtime.js?v="),'SM-307 staging order is not temporal Dark Bloom -> visibility -> runtime')
 require(re.search(r"small-machine-web-v1\.2\.3-r[1-9][0-9]*",sw) is not None and "webgpu_visibility.js?v=sm307-1" in sw,'service-worker revision/cache entry missing')
 require('sm307-visibility' in workflow and 'validate_webgpu_visibility_browser.py --require-webgpu' in workflow,'dedicated required-WebGPU workflow missing')
 print('SM-307 bounded visibility source/staging contract: PASS')
