@@ -20,4 +20,4 @@ The service worker cache is `small-machine-web-v1.2.3-r30`. `sw.js`, `index.html
 
 ## SM-505 renderer candidate identity
 
-Distribution revision **r30** binds the changed normal-game renderer assets to presentation revision **sm505-3** (`engine/game.js`, `webapp.js`, `engine/webgl2_scene_adapter.js`, `engine/webgpu_scene_presenter.js`, and `engine/backend_runtime.js`). Normal `Auto` remains WebGL2 until the exact-candidate physical acceptance gate is complete; explicit WebGPU selection exercises this candidate only.
+Distribution revision **r30** binds the changed normal-game renderer assets to presentation revision **sm505-4** (`engine/game.js`, `webapp.js`, `engine/webgl2_scene_adapter.js`, `engine/webgpu_scene_presenter.js`, and `engine/backend_runtime.js`). Normal `Auto` remains WebGL2 until the exact-candidate physical acceptance gate is complete; explicit WebGPU selection exercises this candidate only.

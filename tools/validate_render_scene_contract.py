@@ -52,7 +52,7 @@ for token in [
 
 for url in [
     './engine/render_scene.js?v=sm100-1',
-    './engine/webgl2_scene_adapter.js?v=sm505-3',
+    './engine/webgl2_scene_adapter.js?v=sm505-4',
 ]:
     assert url in webapp, f'webapp missing {url}'
     assert url in sw, f'service worker missing {url}'

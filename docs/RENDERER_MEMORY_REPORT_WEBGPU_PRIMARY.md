@@ -1,5 +1,18 @@
 # WebGPU primary renderer memory report — SM-505 reconciliation
 
+## 2026-10-31 normal-presenter candidate
+
+The [overnight checkpoint](SM505_OVERNIGHT_2026-10-30.md) retains native telemetry
+and producer resource diagnostics at `9b5b932b2f23d5203422b1de6c7d5575c481f4d1`.
+The observed 427–1904 MiB device-wide memory range includes retained WebGL2,
+WebGPU, the browser and diagnostic readback/replay work. It is **not** a measured
+production footprint or leak result. Complete normal-presenter descriptor totals
+and bounded soak acceptance remain NOT RUN. One source-defined additional
+1920×1080 `rgba16float` world texture alone accounts for 16,588,800 descriptor
+bytes; backdrop/legacy copies, foliage buffers and other contexts must also be
+accounted separately. The historical staged totals below are not relabelled as
+the new normal-presenter total.
+
 Date: 2026-10-03  
 Evidence source: accepted SM-501 reconciled physical campaign at `2e4d490f7af21a4b21a1e8e3e8c392e03968dfc4`
 

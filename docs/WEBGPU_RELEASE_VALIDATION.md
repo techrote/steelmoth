@@ -1,5 +1,29 @@
 # SM-505 WebGPU release validation
 
+## 2026-10-31 engineering checkpoint — still blocked
+
+Subsequent user review prioritized [background receiving and brighter development
+inspection](SM505_BACKGROUND_RECEIVER.md). That source now has a material-only
+receiver pass and a labelled test preset (r30/sm505-4); its native captures must
+be retained separately from the first checkpoint below. The black fraction is
+descriptive, not by itself a grading-failure threshold. Production post/defaults
+remain unchanged while missing lighting is repaired and evaluated.
+
+The [overnight checkpoint](SM505_OVERNIGHT_2026-10-30.md) reconciles current main
+with the explicit normal-game presenter candidate and retains source-separated
+GTX 1650 SUPER Chrome diagnostics. The final rendered source is `9b5b932b2f23d5203422b1de6c7d5575c481f4d1`.
+Normal explicit WebGPU presentation now executes, but canonical post clips
+99.8575605% of the fixture's object-owned pixels to at most one display code.
+The exact post equation and fixed-input GPU witnesses establish the blackout.
+**Gate C FAIL; no performance/release campaign or Auto promotion.**
+
+Light-unit, external-upload, lifecycle, exclusive ownership, stage-order and
+nearest-albedo repairs are implemented. The source cache identity is r30/sm505-3.
+Backdrop lighting and opaque SM-307 consumption remain incomplete. Full native
+Firefox, editor/runtime, visual, timing and deployment acceptance are NOT RUN.
+The older dated audits below remain historical evidence, not the present
+implementation inventory. #50 stays open; the candidate stays draft/unmerged.
+
 Date: 2026-10-03  
 Issue: #50 / SM-505  
 Evaluated source: `19cca285fe7a3ae902626aa2e54c534dff5603ce`

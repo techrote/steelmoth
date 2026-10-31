@@ -1,0 +1,199 @@
+{
+  "schema": "steelmoth-sm505-source-separated-comparison/v1",
+  "before": {
+    "source": "8285c6131eb88e74e2e2da10cf7be02909eb4a6d",
+    "directory": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-8285c61",
+    "reportSha256": "686f2b10775f20bcc761d9c8b2507079cb4a215bbb0e3626132001727893da76",
+    "configuration": {
+      "fixture": "single-box",
+      "angle": 0,
+      "width": 1920,
+      "height": 1080,
+      "dpr": 1,
+      "quality": "Medium",
+      "gtao": false
+    },
+    "occupiedPost": {
+      "mask": "authoritative object-ID != 0",
+      "count": 120753,
+      "expectedBlack": 120500,
+      "actualBlack": 120500,
+      "expectedBlackFraction": 0.9979048139590735,
+      "actualBlackFraction": 0.9979048139590735,
+      "blackClassificationAgreement": 1,
+      "exactBytePixelFraction": 0.9999089049547423,
+      "withinOneOutputCodePixelFraction": 1,
+      "maximumAbsoluteByteError": 1,
+      "meanAbsoluteByteError": 3.0365015085891586e-05,
+      "maximumRawAbsoluteByteError": 1,
+      "examplesOverOneCode": [],
+      "bloomAssumption": "Measured pre-post luminance never reaches .7; linear bright extraction produces zero, so reference bloom input is zero."
+    }
+  },
+  "after": {
+    "source": "9b5b932b2f23d5203422b1de6c7d5575c481f4d1",
+    "directory": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-9b5b932",
+    "reportSha256": "bc5524b0065235f67bb421d2c692545dd2a70480b2b8a23c3cd786a5a8b20033",
+    "configuration": {
+      "fixture": "single-box",
+      "angle": 0,
+      "width": 1920,
+      "height": 1080,
+      "dpr": 1,
+      "quality": "Medium",
+      "gtao": false
+    },
+    "occupiedPost": {
+      "count": 120753,
+      "expectedBlack": 120581,
+      "actualBlack": 120581,
+      "expectedBlackFraction": 0.99857560474688,
+      "actualBlackFraction": 0.99857560474688,
+      "blackClassificationAgreement": 1,
+      "exactBytePixelFraction": 0.9999006235869916,
+      "withinOneOutputCodePixelFraction": 1,
+      "maximumAbsoluteByteError": 1,
+      "meanAbsoluteByteError": 3.312547100279082e-05,
+      "maximumRawAbsoluteByteError": 1,
+      "mask": "canonical SM-202 objectID !=0",
+      "blackDefinition": "max RGB <=1 output code/255",
+      "exactZeroPixels": 120581,
+      "exactZeroFraction": 0.99857560474688
+    }
+  },
+  "originalManifestVerification": [
+    {
+      "source": "8285c6131eb88e74e2e2da10cf7be02909eb4a6d",
+      "directory": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-8285c61",
+      "manifestFiles": 30,
+      "allOriginalHashesMatch": true,
+      "manifestSha256": "8ce6fa9e9829eda1e84c7d30fe5207fb98d1ac7299ac2ac9e63e9f0e91cc9410"
+    },
+    {
+      "source": "9b5b932b2f23d5203422b1de6c7d5575c481f4d1",
+      "directory": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-9b5b932",
+      "manifestFiles": 30,
+      "allOriginalHashesMatch": true,
+      "manifestSha256": "026ae0e8e2ef2d67853e4274abc4f13808b334562b67a20203ee7a61244c1adb"
+    }
+  ],
+  "exactCaptureComparisons": [
+    {
+      "capture": "gbuffer-albedo",
+      "oldSha256": "d64d25e06985929f15c5325bac2182d0d3fd6d137c6a8629b629ba9b2f613aa1",
+      "newSha256": "d64d25e06985929f15c5325bac2182d0d3fd6d137c6a8629b629ba9b2f613aa1",
+      "exactBinaryMatch": true,
+      "sizeOld": 8294400,
+      "sizeNew": 8294400,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "gbuffer-normal-roughness",
+      "oldSha256": "609d36faf927db4496c189e951a0fb17fd27b2820a168362bc716678fdbf0796",
+      "newSha256": "609d36faf927db4496c189e951a0fb17fd27b2820a168362bc716678fdbf0796",
+      "exactBinaryMatch": true,
+      "sizeOld": 16588800,
+      "sizeNew": 16588800,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "gbuffer-height-material",
+      "oldSha256": "240262091d903ac927a8fca31949e95c0a034e0efbb6a89bf1b53bd1625facec",
+      "newSha256": "240262091d903ac927a8fca31949e95c0a034e0efbb6a89bf1b53bd1625facec",
+      "exactBinaryMatch": true,
+      "sizeOld": 16588800,
+      "sizeNew": 16588800,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "object-id",
+      "oldSha256": "67b583dd19ba5fa99f2e6e8d12097ea5cef23065cf075f29534eee6ceb900a30",
+      "newSha256": "67b583dd19ba5fa99f2e6e8d12097ea5cef23065cf075f29534eee6ceb900a30",
+      "exactBinaryMatch": true,
+      "sizeOld": 8294400,
+      "sizeNew": 8294400,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "ownership-depth",
+      "oldSha256": "e5e3f4cadea0ff116dd7c8cb9be2d4098099b27450bd7da07f8f0c61a5b9f975",
+      "newSha256": "e5e3f4cadea0ff116dd7c8cb9be2d4098099b27450bd7da07f8f0c61a5b9f975",
+      "exactBinaryMatch": true,
+      "sizeOld": 8294400,
+      "sizeNew": 8294400,
+      "meaning": "Quantized rgba8 depth-debug replay ONLY; actual depth32float buffer was not captured"
+    },
+    {
+      "capture": "raw-lighting",
+      "oldSha256": "06f011504d8d42f901c0aa34c5df7cef3f816db019bf9a96269629602b290a44",
+      "newSha256": "06f011504d8d42f901c0aa34c5df7cef3f816db019bf9a96269629602b290a44",
+      "exactBinaryMatch": true,
+      "sizeOld": 16588800,
+      "sizeNew": 16588800,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "opaque-composition",
+      "oldSha256": "ad3e63618f15823795207fcee0e6e86efef17afb1faab077e8ffde6c62bd3f1a",
+      "newSha256": "ad3e63618f15823795207fcee0e6e86efef17afb1faab077e8ffde6c62bd3f1a",
+      "exactBinaryMatch": true,
+      "sizeOld": 16588800,
+      "sizeNew": 16588800,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "pre-postprocessing",
+      "oldSha256": "4aa4a40a18919539f21190ebf3a5e6807bcb31d6e10659f16fc6855a3e6b2d90",
+      "newSha256": "f004426344de8300a85ec3e92937ce244baca9ddd2c6dc545bbd15b312025434",
+      "exactBinaryMatch": false,
+      "sizeOld": 16588800,
+      "sizeNew": 16588800,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "final-postprocessed",
+      "oldSha256": "0d7f28ba99de8001a4a71ec6fa2c7d94a84ddf5214a9481922f84a79d1ae1639",
+      "newSha256": "c0418b41d1ef50d03b37248f7b495a8df7dcdee64b38471b37c132739b497d6a",
+      "exactBinaryMatch": false,
+      "sizeOld": 8294400,
+      "sizeNew": 8294400,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "raw-display",
+      "oldSha256": "3336dae795cb14881d52a2189b425292096e85663a20a4f9e41737f149696e58",
+      "newSha256": "b3d8123320dabc29ef3d72e37d32bebcde2e93b3983f7f69da58f5bcc1af85c2",
+      "exactBinaryMatch": false,
+      "sizeOld": 8294400,
+      "sizeNew": 8294400,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "post-probe-final",
+      "oldSha256": "9823c48d3ad4188141279d7d4145d236ba759a31d56bfbb73bcfd66196f140e9",
+      "newSha256": "9823c48d3ad4188141279d7d4145d236ba759a31d56bfbb73bcfd66196f140e9",
+      "exactBinaryMatch": true,
+      "sizeOld": 256,
+      "sizeNew": 256,
+      "meaning": "Exact original capture bytes"
+    },
+    {
+      "capture": "post-probe-raw",
+      "oldSha256": "96a640ef5e2b7ffd2dd42430148059b1b82735e5d4ff7174499f0706d27ec027",
+      "newSha256": "96a640ef5e2b7ffd2dd42430148059b1b82735e5d4ff7174499f0706d27ec027",
+      "exactBinaryMatch": true,
+      "sizeOld": 256,
+      "sizeNew": 256,
+      "meaning": "Exact original capture bytes"
+    }
+  ],
+  "settingsIdentical": true,
+  "gradeIdentical": true,
+  "canonicalLightsIdentical": true,
+  "postSourceIdentical": true,
+  "probeIdentical": true,
+  "blackPixelCountDifference": 81,
+  "blackFractionDifference": 0.0006707907878065189,
+  "boundary": "Source-separated correctness comparison of two independent native diagnostics. No sample pooling, temporal aggregation, GPU timing comparison or acceptance claim. Upstream exact hashes isolate retained representation/lighting; changed forward composition is a different candidate.",
+  "conclusion": "Opaque/forward exclusivity and ordering/nearest-source repair changes composed frames while upstream G-buffer/object-ID/depth-debug/raw-lighting remain identical. Canonical post clipping persists; increased black fraction after removing unlit duplicate replay is not a reason to retain erroneous replay or adjust brightness. Depth-debug equality does not establish full depth32float byte parity."
+}

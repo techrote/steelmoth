@@ -225,6 +225,18 @@ The production WGSL inventory is a growing gate. Every issue that adds shaders, 
 
 ## Extending the gate
 
+SM-505 adds deterministic normal-presenter routing, canonical native light units,
+external-image usage/validation scopes, asynchronous cancellation, exclusive
+opaque/forward ownership, stage ordering, sampling and watchdog refusal tests to
+the native source runner and clean extraction. The hosted normal-game browser
+gate retains visible WebGPU and fallback/failure captures and browser logs.
+These checks do not waive the [known native post visual failure](SM505_OVERNIGHT_2026-10-30.md).
+`tools/diagnose_sm505_presentation.py` retains normal `index.html` stage readbacks;
+`tools/sm505_physical_guard.py` must wrap physical use to provide serial execution,
+telemetry and deadlines. Diagnostic completion is not physical acceptance or a
+GPU performance measurement. Never count the tooling tests' explicitly marked
+mock transport artifacts as gameplay screenshots.
+
 SM-602 adds `node tools/validate_webgpu_ssgi.js` to the normal runner and
 `python tools/validate_webgpu_ssgi_browser.py` to the required WebGPU job. The
 browser runner fails when WebGPU is unavailable, reads production diffuse and

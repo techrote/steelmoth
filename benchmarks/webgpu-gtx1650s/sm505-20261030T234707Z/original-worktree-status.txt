@@ -1,0 +1,4 @@
+?? .campaign-worktrees/
+?? artifacts/
+?? benchmarks/webgpu-gtx1650s/post-sm501-dark-bloom-fix/
+?? tools/__pycache__/

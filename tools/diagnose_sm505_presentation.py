@@ -51,13 +51,16 @@ def source_identity(root):
             'tree':git('rev-parse','HEAD^{tree}') if (root/'.git').exists() else None,
             'status':git('status','--porcelain=v1','--untracked-files=all') if (root/'.git').exists() else 'archive; see archive commit and checksum',
             'root':str(root),'fileSha256':{p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
-            'observerSha256':{str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__),TOOLS_ROOT/'tools/sm505_capture_stages.js']}}
+            'observerSha256':{str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__),TOOLS_ROOT/'tools/sm505_capture_stages.js',TOOLS_ROOT/'tools/sm505_receiver_probe.js'] if p.is_file()}}
 
 def save_item(out,item):
     raw=base64.b64decode(item.pop('base64'));(out/(item['name']+'.bin')).write_bytes(raw)
     w,h,row=item['width'],item['height'],item['rowBytes']
     data=np.frombuffer(raw,dtype=np.uint8).reshape(h,row)
     if item['format']=='rgba16float':a=data[:,:w*8].copy().view('<f2').reshape(h,w,4).astype(np.float32)
+    elif item['format']=='r32float':
+        value=data[:,:w*4].copy().view('<f4').reshape(h,w)
+        a=np.repeat(value[:,:,None],4,axis=2);a[:,:,3]=1
     elif item['format']=='r32uint':
         ids=data[:,:w*4].copy().view('<u4').reshape(h,w)
         a=np.stack([(ids*73)%251,(ids*139)%253,(ids*211)%255,np.full_like(ids,255)],axis=-1)/255
@@ -79,11 +82,13 @@ def main():
     ap.add_argument('--browser');ap.add_argument('--hardware',action='store_true');ap.add_argument('--fixture',default='single-box')
     ap.add_argument('--angle',type=int,choices=range(0,360,45),default=0);ap.add_argument('--width',type=int,default=1920);ap.add_argument('--height',type=int,default=1080)
     ap.add_argument('--timeout',type=float,default=150)
+    ap.add_argument('--receiver-probe',action='store_true',help='Run source-matched background receiver negative/positive/cone readback controls outside timing')
+    ap.add_argument('--inspection',choices=['none','development'],default='none',help='Explicit matched development visibility preset; never performance/release acceptance')
     args=ap.parse_args();root=args.root.resolve();out=args.out.resolve()
     if out.exists():ap.error('--out must be new; original attempts cannot be overwritten')
     if not 1<=args.timeout<=600 or not 160<=args.width<=3840 or not 90<=args.height<=2160:ap.error('invalid bounded extent/deadline')
     out.mkdir(parents=True);report={'schema':'steelmoth-sm505-stage-diagnostic/v1','ok':False,'physicalAcceptance':False,'hardwareRequested':args.hardware,'softwareRequested':not args.hardware,'startedAt':dt.datetime.now(dt.timezone.utc).isoformat(),
-      'configuration':{'fixture':args.fixture,'angle':args.angle,'width':args.width,'height':args.height,'dpr':1,'quality':'Medium','gtao':False},'errors':[],
+      'configuration':{'fixture':args.fixture,'angle':args.angle,'width':args.width,'height':args.height,'dpr':1,'quality':'Medium','gtao':False,'receiverProbe':args.receiver_probe,'inspection':args.inspection},'errors':[],
       'boundary':'Engineering diagnostic using normal index.html bootstrap and canonical deterministic fixture adapter. Neither human visual approval nor performance/release acceptance.'}
     proc=cdp=srv=None
     try:
@@ -92,7 +97,7 @@ def main():
         if not exe:raise RuntimeError('Chrome executable unavailable')
         server=http.server.ThreadingHTTPServer(('127.0.0.1',0),functools.partial(QuietHandler,directory=str(root)));srv=server
         threading.Thread(target=server.serve_forever,daemon=True).start()
-        query=urllib.parse.urlencode({'rendererBackend':'webgl2','renderTest':1,'backend':'webgl2','quality':'medium','fixture':args.fixture,'width':args.width,'height':args.height,'dpr':1,'lightAngle':args.angle,'seed':1397572098,'fixedTimeMs':12000,'settleFrames':4})
+        query=urllib.parse.urlencode({'rendererBackend':'webgl2','renderTest':1,'backend':'webgl2','quality':'medium','fixture':args.fixture,'width':args.width,'height':args.height,'dpr':1,'lightAngle':args.angle,'seed':1397572098,'fixedTimeMs':12000,'settleFrames':4,'inspection':args.inspection})
         url=f'http://127.0.0.1:{server.server_address[1]}/index.html?{query}'
         with tempfile.TemporaryDirectory(prefix='sm505-diagnostic-',ignore_cleanup_errors=True) as profile:
             command=[exe,'--headless=new','--no-first-run','--no-default-browser-check','--disable-background-networking','--disable-component-update','--disable-sync','--enable-unsafe-webgpu','--force-device-scale-factor=1',f'--window-size={args.width},{args.height}','--remote-debugging-port=0','--remote-allow-origins=*',f'--user-data-dir={profile}']
@@ -149,6 +154,15 @@ def main():
                 mask=ids!=0
                 final=arrays['final-postprocessed'][:,:,:3];raw=arrays['raw-lighting'][:,:,:3]
                 report['opaquePixels']={'maskAuthority':'SM-202 objectID != 0','count':int(mask.sum()),'rawLightingMean':float(raw[mask].mean()) if mask.any() else None,'finalBlackFraction':float(np.mean(np.max(final[mask],axis=1)<=1/255)) if mask.any() else None}
+                receiver=(~mask)&(arrays['gbuffer-albedo'][:,:,3]>.002)
+                report['receiverPixels']={'maskAuthority':'objectID == 0 and G0.a > .002; no geometry ownership','count':int(receiver.sum()),'rawLightingMean':float(raw[receiver].mean()) if receiver.any() else None,'finalBlackFraction':float(np.mean(np.max(final[receiver],axis=1)<=1/255)) if receiver.any() else None}
+                if args.receiver_probe:
+                    probe=cdp.evaluate((TOOLS_ROOT/'tools/sm505_receiver_probe.js').read_text(encoding='utf-8')+'\nsm505ReceiverProbe()')
+                    probe_out=out/'receiver-probe';probe_out.mkdir();probe_captures=[]
+                    for item in probe.pop('items'):
+                        meta,_array=save_item(probe_out,item);probe_captures.append(meta)
+                    probe['captures']=probe_captures;report['receiverProbe']=probe
+                    if not probe['ok']:raise RuntimeError('Background receiver engineering probe failed: '+str(probe.get('errors'))+'; '+str([c for c in probe['checks'] if not c['ok']]))
                 report['javascriptExceptions']=cdp.exceptions
                 if cdp.exceptions:raise RuntimeError('Unexpected JavaScript exceptions; inspect original log')
                 errors=stages['runtime']['webgpu']['uncapturedErrors']

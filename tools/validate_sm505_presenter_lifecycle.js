@@ -39,7 +39,7 @@ function environment(blockedStage=null){
   const p=new WebGPUScenePresenter({root:{document:{createElement:()=>canvas}},game,manager:{device,format:'bgra8unorm'},api,onFailure:()=>state.failures++});
   // Keep synchronous raster setup separate: cancellation tests execute the real
   // producer orchestration without requiring a fake GPU pipeline implementation.
-  for(const method of ['_buildCompositePipelines','_buildFoliageRaster','_uploadLegacyAtlas','_uploadBackdrop'])p[method]=()=>events.push(method);
+  for(const method of ['_buildCompositePipelines','_buildBackgroundReceiverPipeline','_buildFoliageRaster','_uploadLegacyAtlas','_uploadBackdrop'])p[method]=()=>events.push(method);
   return{p,events,owned,gate,state,stage,resource,context};
 }
 
@@ -73,7 +73,7 @@ function prepareRender(e){
   p.world=e.resource('world');p.legacyTexture=e.resource('legacy');p.resources=[p.world,p.legacyTexture];
   p.fx={};for(const name of ['worldLegacy','worldHd','topLegacy','topHd','overlay'])p.fx[name]=Object.assign(e.resource(name),{uploadFrame(){},renderStage(stage){e.events.push('fx:'+name+':'+stage)}});
   p.post=Object.assign(e.resource('post'),{render(){e.events.push('post')}});
-  p._opaqueComposite=()=>e.events.push('opaque-composite');p._updateWaterField=()=>{};p._sourceFrames=()=>({legacy:{},hd:{},overlay:{}});p._blendTexture=()=>e.events.push('water-blend');
+  p._renderBackgroundReceivers=()=>e.events.push('background-receivers');p._opaqueComposite=()=>e.events.push('opaque-composite');p._updateWaterField=()=>{};p._sourceFrames=()=>({legacy:{},hd:{},overlay:{}});p._blendTexture=()=>e.events.push('water-blend');
   return{frame:{logicalSize:[64,36],roomId:'lifecycle-room'},sprites:[],lights:[],settings:{},proceduralLayers:[{kind:'water',descriptor:{}}]};
 }
 
@@ -90,6 +90,7 @@ async function testRenderCancellation(){
   }
   const e=environment(),scene=prepareRender(e);await e.p._drain(scene);
   assert.equal(e.p.presentedFrames,1,'live render still presents');assert.equal(e.state.failures,0);assert(e.events.includes('post'));assert(e.events.includes('submit'));
+  assert.deepEqual(e.events.filter(x=>['render:gb','background-receivers','render:depth','render:shadows','render:lighting'].includes(x)),['render:gb','background-receivers','render:depth','render:shadows','render:lighting'],'background receivers must be seeded after ownership and before hierarchy/shadows/lighting');
   assert.deepEqual(e.events.slice(e.events.indexOf('post')),['post','fx:overlay:post-effects','fx:topLegacy:top-additive','fx:topHd:top-additive','fx:topLegacy:top-alpha','fx:topHd:top-alpha','fx:overlay:objective','fx:overlay:guide','submit'],'real _render must execute the canonical SM-402 post/effects/top/objective/guide order');e.p.close();
 }
 

@@ -118,6 +118,15 @@ Extreme scale/flip/rotation/subrect/DPR must not leak albedo or material channel
 
 ## 7. Deterministic visual fixture harness
 
+For each visible issue encountered during qualification, post the actual
+source-matched screenshot with: observed symptoms; suspected subsystem/cause;
+the exact measured comparison or clearly labelled visual criterion used to flag
+it; and a targeted question when human knowledge could reveal a missed fault.
+Identify reference/control images unambiguously. Distinguish a measured black
+fraction from a fault criterion: intended darkness is product context, and a
+percentage alone cannot establish incorrect grading. Preserve unanswered human
+questions as pending, never as approval, while continuing independent work.
+
 The renderer test harness must accept a deterministic fixture, backend, quality tier, resolution and light angle and produce:
 
 - screenshot PNG;

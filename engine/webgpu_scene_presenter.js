@@ -64,6 +64,24 @@ struct V{@builtin(position) p:vec4f,@location(0) uv:vec2f};
 @fragment fn overlay(in:V)->@location(0) vec4f{let a=textureSampleLevel(aTex,samp,in.uv,0);let layoutKeep=textureSampleLevel(bTex,samp,in.uv,0);return a+layoutKeep*0.0;}
 `;
 
+  // Compatibility background receives lighting without claiming sprite ownership.
+  // ID/depth are read-only; occupied material pixels are never touched.
+  const BACKGROUND_RECEIVER_WGSL=`
+@group(0) @binding(0) var nearestSampler:sampler;
+@group(0) @binding(1) var background:texture_2d<f32>;
+@group(0) @binding(2) var owner:texture_2d<u32>;
+struct V{@builtin(position) p:vec4f,@location(0) uv:vec2f};
+@vertex fn vs(@builtin(vertex_index) i:u32)->V{
+ let positions=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));let p=positions[i];
+ var o:V;o.p=vec4f(p,0,1);o.uv=vec2f((p.x+1)*.5,(1-p.y)*.5);return o;
+}
+struct Material{@location(0) g0:vec4f,@location(1) g1:vec4f,@location(2) g2:vec4f};
+@fragment fn fs(in:V)->Material{
+ if(textureLoad(owner,vec2i(in.p.xy),0).x!=0u){discard;}
+ var m:Material;m.g0=textureSampleLevel(background,nearestSampler,in.uv,0);
+ m.g1=vec4f(.5,.5,1,.88);m.g2=vec4f(0,0,1,0);return m;
+}`;
+
   const FOLIAGE_RASTER_WGSL=`
 struct Raster{rootSize:vec4f,uv:vec4f};
 struct Lit{color:vec4f,state:vec4f,ids:vec4u};
@@ -138,12 +156,28 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       this.post=new A.Post.WebGPUPost({device:d,width:w,height:h,intermediateFormat:WORLD_FORMAT,outputFormat:this.manager.format,labelPrefix:'SM505Post'});await this.post.initialize();this._assertOpen();
       this.fx={worldLegacy:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:WORLD_FORMAT,labelPrefix:'SM505WorldLegacy'}),worldHd:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:WORLD_FORMAT,labelPrefix:'SM505WorldHD'}),topLegacy:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505TopLegacy'}),topHd:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505TopHD'}),overlay:new A.Transparent.WebGPUTransparentFX({device:d,width:w,height:h,format:this.manager.format,labelPrefix:'SM505Overlay'})};for(const x of Object.values(this.fx)){try{await x.initialize();this._assertOpen()}catch(error){try{x.close?.()}catch(_e){}throw error}}
       this.world=d.createTexture({label:'SM505:world',size:{width:w,height:h},format:WORLD_FORMAT,usage:usage('GPUTextureUsage','RENDER_ATTACHMENT','TEXTURE_BINDING','COPY_SRC')});this.resources.push(this.world);
-      this._buildCompositePipelines();this._buildFoliageRaster();this._uploadLegacyAtlas();this._uploadBackdrop(true);
+      this._buildCompositePipelines();await this._buildBackgroundReceiverPipeline();this._assertOpen();this._buildFoliageRaster();this._uploadLegacyAtlas();this._uploadBackdrop(true);
     }
     _buildCompositePipelines(){
       const d=this.device,m=d.createShaderModule({label:'SM505:composite',code:COMPOSITE_WGSL});this.sampler=d.createSampler({magFilter:'linear',minFilter:'linear'});
       this.basePipeline=d.createRenderPipeline({label:'SM505:opaque-resolve',layout:'auto',vertex:{module:m,entryPoint:'vs'},fragment:{module:m,entryPoint:'opaque',targets:[{format:WORLD_FORMAT}]},primitive:{topology:'triangle-list'}});
       this.overlayPipeline=d.createRenderPipeline({label:'SM505:overlay',layout:'auto',vertex:{module:m,entryPoint:'vs'},fragment:{module:m,entryPoint:'overlay',targets:[{format:WORLD_FORMAT,blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}}]},primitive:{topology:'triangle-list'}});
+    }
+    async _buildBackgroundReceiverPipeline(){
+      const d=this.device,module=d.createShaderModule({label:'SM505:background-receiver',code:BACKGROUND_RECEIVER_WGSL});
+      this.receiverCompilation=[];if(typeof module.getCompilationInfo==='function'){const info=await module.getCompilationInfo();this._assertOpen();this.receiverCompilation=Array.from(info.messages||[]).map(m=>({type:m.type,message:m.message,lineNum:m.lineNum,linePos:m.linePos}));const errors=this.receiverCompilation.filter(m=>m.type==='error');if(errors.length)throw new Error(`SM-505 background receiver WGSL: ${errors.map(m=>m.message).join('; ')}`);}
+      this.receiverPipeline=d.createRenderPipeline({label:'SM505:background-receiver',layout:'auto',vertex:{module,entryPoint:'vs'},fragment:{module,entryPoint:'fs',targets:[{format:this.gb.formats.g0},{format:this.gb.formats.g1},{format:this.gb.formats.g2}]},primitive:{topology:'triangle-list'}});
+      this.receiverSampler=d.createSampler({label:'SM505:background-nearest',magFilter:'nearest',minFilter:'nearest',addressModeU:'clamp-to-edge',addressModeV:'clamp-to-edge'});this.receiverBindings=null;
+    }
+    _renderBackgroundReceivers(){
+      this._assertOpen();const object=this.gb._record('object').handle;
+      if(!this.receiverBindings||this.receiverBindings.background!==this.backdrop||this.receiverBindings.object!==object){
+        const group=this.device.createBindGroup({label:'SM505:background-receiver',layout:this.receiverPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:this.receiverSampler},{binding:1,resource:this.backdrop.createView()},{binding:2,resource:object.createView()}]});
+        this.receiverBindings={group,background:this.backdrop,object};
+      }
+      const views=this.gb._views(),encoder=this.device.createCommandEncoder({label:'SM505:background-receiver'});
+      const pass=encoder.beginRenderPass({label:'SM505:background-receiver',colorAttachments:[views.g0,views.g1,views.g2].map(view=>({view,loadOp:'load',storeOp:'store'}))});
+      pass.setPipeline(this.receiverPipeline);pass.setBindGroup(0,this.receiverBindings.group);pass.draw(3);pass.end();this.queue.submit([encoder.finish()]);this.receiverRenders=(this.receiverRenders||0)+1;
     }
     _buildFoliageRaster(){
       const d=this.device,m=d.createShaderModule({label:'SM505:foliage-raster',code:FOLIAGE_RASTER_WGSL}),target={format:WORLD_FORMAT,blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha',operation:'add'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha',operation:'add'}}};
@@ -189,7 +223,7 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       this._uploadBackdrop();const scaled=scaleScene(scene,this.width,this.height,this.api.Pseudo,this.api.Lighting),s=scaled.scene,quality=this.root?.steelMothWebGPUQualityRuntime?.preset||this.game.graphics?.webgpuQualityPreset||'Medium',Q=this.api.Quality;
       this._invalidateForRoom(String(s.frame?.roomId||'unknown-room'));const shadowSettings=Q.localShadowSettings(quality,s.settings||{});
       const opaqueInstances=this.api.Ownership.buildOwnershipSceneInstances(s,this.game.art.manifest);
-      await this.gb.renderInstances(opaqueInstances,{wait:false});this._assertOpen();const opaqueIds=new Set(opaqueInstances.map(instance=>String(instance.id)));await this.depth.buildFromOwnership(this.gb,{wait:false});this._assertOpen();await this.shadows.render(this.gb,s,shadowSettings,{wait:false});this._assertOpen();await this.occ.update(s,{wait:false});this._assertOpen();await this.clusters.update(this.occ,{wait:false});this._assertOpen();await this.dominance.update(this.clusters,this.occ,s.lights,{wait:false});this._assertOpen();
+      await this.gb.renderInstances(opaqueInstances,{wait:false});this._assertOpen();this._renderBackgroundReceivers();const opaqueIds=new Set(opaqueInstances.map(instance=>String(instance.id)));await this.depth.buildFromOwnership(this.gb,{wait:false});this._assertOpen();await this.shadows.render(this.gb,s,shadowSettings,{wait:false});this._assertOpen();await this.occ.update(s,{wait:false});this._assertOpen();await this.clusters.update(this.occ,{wait:false});this._assertOpen();await this.dominance.update(this.clusters,this.occ,s.lights,{wait:false});this._assertOpen();
       const lightId=s.lights?.[0]?.id||'light:0';await this.dso.update(this.clusters,this.occ,this.dominance,{lightId,wait:false});this._assertOpen();await this.dsoHierarchy.update(this.dso,{quality,wait:false});this._assertOpen();await this.bloom.update(this.bloom.sourceFromPaths(this.dsoHierarchy,this.depth),{quality,wait:false});this._assertOpen();await this.bloomTemporal.update(this.bloomTemporal.sourceFromPaths(this.bloom,this.depth,this.gb,this.dsoHierarchy,s.lights?.[0]||{}),{wait:false});this._assertOpen();await this.visibility.update(this.visibility.sourceFromPaths(this.gb,this.shadows,this.dsoHierarchy,this.bloomTemporal,null),{gtao:false,wait:false});this._assertOpen();await this.lighting.render(this.gb,s,shadowSettings,{wait:false});this._assertOpen();
       this._opaqueComposite();this._updateWaterField(String(s.frame.roomId||'unknown-room'));
       const frames=this._sourceFrames(s,opaqueIds),depthView=this.gb._views().depth,enc=this.device.createCommandEncoder({label:'SM505:forward-compose'}),worldView=this.world.createView();
@@ -217,13 +251,13 @@ struct O{@builtin(position) p:vec4f,@location(0) uv:vec2f,@location(1) color:vec
       catch(error){if(this.closed){this._closeResources();return}this.lastError=String(error?.stack||error);this.ready=false;try{this.onFailure(error,this)}catch(_e){}}
       finally{this.rendering=false}
     }
-    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds one rgba16float world target, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
+    diagnostics(){return{schema:SCHEMA,ready:this.ready,closed:this.closed,extent:{width:this.width,height:this.height},presentedFrames:this.presentedFrames,droppedFrames:this.droppedFrames,pending:!!this.pending,lastRoomId:this.lastRoomId,lastError:this.lastError,ordering:this.lastPlan?this.api.Ordering.diagnostics(this.lastPlan):null,quality:this.root?.steelMothWebGPUQualityRuntime?.preset||'Medium',gtaoEnabled:false,backgroundReceiver:{policy:'unowned material receiver; object ID and depth unchanged',renderCount:this.receiverRenders||0,compilation:clone(this.receiverCompilation||[])},presentationCanvas:this.canvas?.id||null,sourceOwnership:'backend-neutral RenderScene + renderer-derived presentation resources',resourceDeltaPolicy:'SM-505 adds one rgba16float world target, backdrop/legacy atlas copies and bounded foliage raster buffers; M1-M5 producer resources are reused.'}}
     _closeResources(){
-      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.resources=[];
+      for(const x of Object.values(this.fx||{}))try{x.close?.()}catch(_e){};for(const x of [this.post,this.water,this.foliage,this.visibility,this.bloomTemporal,this.bloom,this.dsoHierarchy,this.dso,this.dominance,this.clusters,this.occ,this.depth,this.gb])try{x?.close?.()}catch(_e){};for(const x of this.resources||[])try{x?.destroy?.()}catch(_e){};try{this.backdrop?.destroy?.()}catch(_e){};this.fx=null;this.receiverBindings=null;this.resources=[];
     }
     close(){if(this.closed)return;this.closed=true;this.ready=false;this.pending=null;this._closeResources();try{this.context?.unconfigure?.()}catch(_e){};try{this.canvas?.remove?.()}catch(_e){};this.canvas=null;this.context=null}
   }
 
   function create(options){return new WebGPUScenePresenter(options)}
-  return{SCHEMA,WORLD_FORMAT,COMPOSITE_WGSL,FOLIAGE_RASTER_WGSL,scaleScene,scaleFoliageInstances,atlasMetaFromLegacy,frameScene,WebGPUScenePresenter,create};
+  return{SCHEMA,WORLD_FORMAT,COMPOSITE_WGSL,BACKGROUND_RECEIVER_WGSL,FOLIAGE_RASTER_WGSL,scaleScene,scaleFoliageInstances,atlasMetaFromLegacy,frameScene,WebGPUScenePresenter,create};
 });

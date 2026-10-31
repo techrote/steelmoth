@@ -1,0 +1,1 @@
+{"ok": true, "errors": [], "opaquePixels": {"maskAuthority": "SM-202 objectID != 0", "count": 120753, "rawLightingMean": 0.009510854259133339, "finalBlackFraction": 0.99857560474688}, "report": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-9b5b932\\report.json"}

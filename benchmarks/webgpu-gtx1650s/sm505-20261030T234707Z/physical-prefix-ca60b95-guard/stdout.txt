@@ -1,0 +1,1 @@
+{"ok": false, "errors": ["RuntimeError: WebGPU failed while rendering frozen fixture"], "opaquePixels": null, "report": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-prefix-ca60b95\\report.json"}

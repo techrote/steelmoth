@@ -1,0 +1,80 @@
+{
+  "schema": "steelmoth-sm505-host-telemetry-summary/v1",
+  "createdAtUtc": "2026-10-31T00:09:23.301915+00:00",
+  "earlierSummaryPreserved": "analysis/telemetry-summary.json",
+  "guardDirectory": "physical-9b5b932-guard",
+  "sourceCommit": "9b5b932b2f23d5203422b1de6c7d5575c481f4d1",
+  "sourceTree": "2ccf54f47a69d0e792763af4c78b29e19547e068",
+  "browserSourceCommit": "9b5b932b2f23d5203422b1de6c7d5575c481f4d1",
+  "browserSourceAfterCommit": "9b5b932b2f23d5203422b1de6c7d5575c481f4d1",
+  "sourceIdentityMatches": true,
+  "guardOk": true,
+  "workloadReturncode": 0,
+  "diagnosticOk": true,
+  "physicalAcceptance": false,
+  "startedAt": "2026-10-31T00:07:30.978684+00:00",
+  "endedAt": "2026-10-31T00:08:34.852082+00:00",
+  "elapsedHostSeconds": 63.87339820000011,
+  "telemetrySampleCount": 61,
+  "guardDeclaredSampleCount": 61,
+  "sampleCountsMatch": true,
+  "metrics": {
+    "temperatureC": {
+      "min": 32.0,
+      "max": 34.0,
+      "samples": 61
+    },
+    "powerW": {
+      "min": 5.05,
+      "max": 24.62,
+      "samples": 61
+    },
+    "graphicsClockMHz": {
+      "min": 300.0,
+      "max": 1530.0,
+      "samples": 61
+    },
+    "memoryClockMHz": {
+      "min": 405.0,
+      "max": 6000.0,
+      "samples": 61
+    },
+    "memoryUsedMiB": {
+      "min": 427.0,
+      "max": 1904.0,
+      "samples": 61
+    },
+    "gpuUtilizationPct": {
+      "min": 0.0,
+      "max": 15.0,
+      "samples": 61
+    }
+  },
+  "failure": null,
+  "thermalStopRecorded": false,
+  "deadlineStopRecorded": false,
+  "cleanupErrorRecorded": null,
+  "maxTemperatureBelow82C": true,
+  "identityConstant": true,
+  "gpuIdentity": {
+    "name": "NVIDIA GeForce GTX 1650 SUPER",
+    "uuid": "GPU-f2d0eee8-2045-6c99-f33e-4c04636acdf7",
+    "driver": "616.92",
+    "memoryTotalMiB": 4096.0
+  },
+  "processInspection": {
+    "inspectedAtUtc": "2026-10-31T00:09:12.9317782Z",
+    "method": "Read-only Win32_Process snapshot for recorded child PID or chrome.exe command line containing exact isolated profile. Inspection shell excluded.",
+    "recordedPid": 14456,
+    "isolatedProfile": "C:\\Users\\-\\AppData\\Local\\Temp\\sm505-diagnostic-nbba12w3",
+    "matchingProcesses": [],
+    "finding": "No recorded child PID or Chrome process matching the isolated profile remains. PID alone is not ownership proof because PIDs can be reused. No processes were terminated by this analysis."
+  },
+  "memoryBoundary": "nvidia-smi memoryUsedMiB is sampled device-wide driver-visible allocation including desktop/unrelated applications, both retained rendering backends, browser allocation/cache and diagnostic observer resources. Stage capture allocates transient texture-readback staging buffers and replay post/depth targets. This is not renderer-owned descriptor bytes, a source-isolated production peak, a production delta or leak evidence. Returned arrays/PNG encoding also consume separate CPU memory.",
+  "performanceBoundary": "Elapsed seconds and telemetry are host observations only, not GPU queue/command times or the required eight-scene300+600x3 performance campaign. Successful diagnostic execution does not establish visual correctness or release acceptance.",
+  "originalEvidenceSha256": {
+    "physical-9b5b932-guard/guard.json": "c1427355dd400d8803b72e0181df6f90c5b1e1cfe223b164a03cc6fba24c513e",
+    "physical-9b5b932-guard/telemetry.jsonl": "8670652d1a8b097a3427c8f5f65fb3d508e3198fb0731d907ef07f9619e932fe",
+    "physical-9b5b932/report.json": "bc5524b0065235f67bb421d2c692545dd2a70480b2b8a23c3cd786a5a8b20033"
+  }
+}

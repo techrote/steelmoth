@@ -1,0 +1,13 @@
+{
+  "os": "{\n    \"Caption\":  \"Microsoft Windows 11 Pro\",\n    \"Version\":  \"10.0.26200\",\n    \"BuildNumber\":  \"26200\"\n}\n",
+  "cpu": "{\n    \"Name\":  \"AMD Ryzen 5 2600X Six-Core Processor           \",\n    \"NumberOfCores\":  6,\n    \"NumberOfLogicalProcessors\":  12\n}\n",
+  "ram": "{\n    \"TotalPhysicalMemory\":  34265980928\n}\n",
+  "display": "{\n    \"Name\":  \"NVIDIA GeForce GTX 1650 SUPER\",\n    \"PNPDeviceID\":  \"PCI\\\\VEN_10DE\\u0026DEV_2187\\u0026SUBSYS_13573842\\u0026REV_A1\\\\4\\u00261DA95F35\\u00260\\u00260019\",\n    \"DriverVersion\":  \"32.0.16.1692\",\n    \"CurrentHorizontalResolution\":  1920,\n    \"CurrentVerticalResolution\":  1080,\n    \"CurrentRefreshRate\":  60\n}\n",
+  "browsers": "[\n    {\n        \"FullName\":  \"C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\",\n        \"Version\":  \"156.0.8078.74\"\n    },\n    {\n        \"FullName\":  \"C:\\\\Program Files\\\\Mozilla Firefox\\\\firefox.exe\",\n        \"Version\":  \"159.0\"\n    }\n]\n",
+  "archive": {
+    "commit": "ca60b9546e426d9caa5ac6fc05909a733571fbe2",
+    "sha256": "2288a6863052365ffca32fe5cee02296803b8144a0ffbf707c539d21058f344a"
+  },
+  "startUtc": "2026-10-30T23:47:07Z",
+  "deadlineUtc": "2026-10-31T07:47:07Z"
+}

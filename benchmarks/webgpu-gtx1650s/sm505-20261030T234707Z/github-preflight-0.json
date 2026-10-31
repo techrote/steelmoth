@@ -1,0 +1,42 @@
+{
+  "status": "fulfilled",
+  "value": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Action completed."
+      }
+    ],
+    "structuredContent": {
+      "issue": {
+        "url": "https://github.com/techrote/steelmoth/issues/50",
+        "title": "[M5][SM-505] Final WebGPU default-backend promotion and release acceptance",
+        "issue_number": 50,
+        "body": "## Objective\nMake the evidence-based final decision to promote WebGPU as Steel Moth's default `Auto` renderer and package the first release that satisfies functional, visual, performance, fallback, and deployment gates.\n\n## Scope\nReconcile SM-405 functional parity with SM-500/501 target-hardware performance evidence; verify packaging/static/PWA cache identity; clean-extraction checks; review unresolved renderer blockers; update backend default only if gates pass; produce final validation/performance/memory/release reports.\n\n## Non-goals\n- No new fidelity feature work.\n- No opportunistic algorithm rewrite unless required to close a release-blocking defect.\n- Do not weaken performance/visual gates silently to obtain a release.\n\n## Dependencies / concurrency\nDepends on SM-405 functional parity, SM-500 instrumentation, SM-501 target-hardware quality/performance acceptance, and all implementation issues required by the intended first WebGPU release. This is the final promotion gate; later GTAO/SSGI/volumetric milestones do not block the initial WebGPU-primary release unless explicitly pulled into its scope.\n\n## Canonical context\nRead `docs/WEBGPU_VALIDATION_PLAN.md` release gates, `docs/MASTER_WEBGPU_PROGRAMME.md`, `docs/DEPENDENCY_AND_CONCURRENCY.md`, and `AGENTS.md`.\n\n## Implementation prompt\nAssemble existing evidence rather than generating optimistic summaries. Confirm Gates A–F, WebGL2 fallback, deterministic fixtures, editor/room invalidation, Chrome/Firefox correctness, GTX 1650 Super timing, version/cache/deployment identity, and clean-package extraction. If all required evidence passes, change `Auto` to prefer WebGPU and produce a release candidate; otherwise leave the default unchanged and record the blockers.\n\n## Acceptance criteria\n- SM-405 functional parity is complete.\n- Target-hardware benchmark satisfies the documented timing targets or a separately reviewed architecture decision has revised them with evidence.\n- No open release-blocking WebGPU validation/ownership/editor/fallback defect remains.\n- WebGL2 compatibility fallback remains runnable.\n- Static/PWA deployment cannot silently serve stale renderer/material assets.\n- Clean extracted package reruns required tests successfully.\n- `Auto` is promoted to WebGPU only when all required gates pass.\n\n## Verification\nFresh Chrome/Firefox profiles where practical; full deterministic fixture/cross-browser matrix; three-run target benchmark dataset; inherited and WebGPU suites; clean-build/package/extract/retest; version/cache audit.\n\n## Expected artifacts\n`docs/WEBGPU_RELEASE_VALIDATION.md`, `docs/PERFORMANCE_REPORT_WEBGPU_PRIMARY.md`, renderer-memory report, final captures, changelog/migration notes, release/package artifacts and checksums as repository workflow supports.\n\n## Blocking / stopping conditions\nAny unresolved Gate A–F failure, missing target-hardware evidence, stale-asset/deployment defect, fallback failure, or ambiguous package validation keeps `Auto` unchanged and this issue open.",
+        "state": "open",
+        "user": {
+          "login": "techrote",
+          "name": "techrote",
+          "email": null,
+          "avatar_url": "https://avatars.githubusercontent.com/u/261801702?v=4",
+          "id": 261801702
+        },
+        "assignees": null,
+        "labels": null,
+        "milestone": null,
+        "state_reason": "reopened",
+        "comments": 3,
+        "created_at": "2026-09-16T22:40:15Z",
+        "updated_at": "2026-10-21T21:26:16Z",
+        "closed_at": null,
+        "display_url": "https://github.com/techrote/steelmoth/issues/50",
+        "display_title": "[M5][SM-505] Final WebGPU default-backend promotion and release acceptance"
+      },
+      "url": "https://github.com/techrote/steelmoth/issues/50",
+      "title": "[M5][SM-505] Final WebGPU default-backend promotion and release acceptance",
+      "display_url": "https://github.com/techrote/steelmoth/issues/50",
+      "display_title": "[M5][SM-505] Final WebGPU default-backend promotion and release acceptance"
+    },
+    "isError": false
+  }
+}

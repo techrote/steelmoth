@@ -74,6 +74,9 @@ def main() -> int:
             z.extractall(extract)
         unpack=extract/'steelmoth'
         required=[
+            'tools/validate_sm505_inspection_preset.js',
+            'tools/sm505_receiver_probe.js','tools/validate_sm505_background_receiver.js',
+            'tools/analyze_sm505_capture.py','tools/sm505_replay_post.js','tools/diagnose_sm505_presentation.py','tools/sm505_capture_stages.js','tools/sm505_physical_guard.py','tools/validate_sm505_physical_guard.py','tools/validate_sm505_scene_scale.js','tools/validate_sm505_uploads.js','tools/validate_sm505_presenter_lifecycle.js','tools/validate_sm505_exclusive_ownership.js',
             'engine/webgpu_forward_lighting.js','webgpu-forward-lighting-smoke.html','tools/sm702_forward_fixtures.js','tools/validate_sm702_forward_fixtures.js','tools/validate_sm702_forward_lighting.js','tools/validate_sm702_transparent_materials.js','tools/validate_sm702_forward_browser.py','tools/run_sm702_target_campaign.py','tools/validate_sm702_target_report.py','tools/experiments/sm702_water_baseline.js','tools/experiments/sm702_foliage_baseline.js','tools/experiments/sm702_transparent_fx_baseline.js','docs/WEBGPU_FORWARD_LIGHTING_SM702.md',
             'webgpu-ssgi-stabilization-smoke.html','tools/sm603_ssgi_fixtures.js','tools/validate_webgpu_ssgi_stabilization.js','tools/experiments/sm603_ssgi_baseline.js','tools/validate_sm603_ssgi_browser.py','tools/run_sm603_target_campaign.py','tools/validate_sm603_target_report.py','docs/WEBGPU_SSGI_SM603.md',
             'engine/webgpu_ssgi.js','webgpu-ssgi-smoke.html','tools/validate_webgpu_ssgi.js','tools/validate_sm602_ssgi_lifecycle.js','tools/validate_webgpu_ssgi_browser.py','docs/WEBGPU_SSGI_SM602.md',
@@ -131,6 +134,8 @@ def main() -> int:
                 ['node','tools/validate_sm505_scene_scale.js'],
                 ['node','tools/validate_sm505_uploads.js'],
                 ['node','tools/validate_sm505_exclusive_ownership.js'],
+                ['node','tools/validate_sm505_background_receiver.js'],
+                ['node','tools/validate_sm505_inspection_preset.js'],
                 ['node','tools/validate_sm505_presenter_lifecycle.js'],
                 [sys.executable,'tools/validate_sm505_physical_guard.py'],
                 [sys.executable,'tools/validate_sm505_deployment_contract.py'],

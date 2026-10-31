@@ -1,0 +1,341 @@
+{
+  "schema": "steelmoth-sm505-final-post-analysis/v1",
+  "source": "9b5b932b2f23d5203422b1de6c7d5575c481f4d1",
+  "inputReport": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-9b5b932\\report.json",
+  "inputReportSha256": "bc5524b0065235f67bb421d2c692545dd2a70480b2b8a23c3cd786a5a8b20033",
+  "originalManifestVerification": {
+    "source": "9b5b932b2f23d5203422b1de6c7d5575c481f4d1",
+    "directory": "C:\\steelmoth\\artifacts\\sm505-20261030T234707Z\\physical-9b5b932",
+    "manifestFiles": 30,
+    "allOriginalHashesMatch": true,
+    "manifestSha256": "026ae0e8e2ef2d67853e4274abc4f13808b334562b67a20203ee7a61244c1adb"
+  },
+  "productionSourceFileMatches": {
+    "engine/webgpu_post.js": true,
+    "engine/webgpu_scene_presenter.js": true,
+    "engine/webgpu_ownership.js": true,
+    "engine/webgpu_transparent_fx.js": true
+  },
+  "atlasMetadataProvenance": {
+    "worktreeSha256": "03408be8e0748535029c149366700ee8dfdd0bd9aa68d4f48c01dbdece2e5a80",
+    "gitBlobBytesSha256": "60743b23f87ccaa050037d7dc2533240a8126fc4a2aab157ef4b67c10dcefbc7",
+    "parsedJSONMatchesExactCommit": true,
+    "boundary": "Text checkout CRLF differs from Git LF; metadata semantics compare structurally, not falsely byte-identically."
+  },
+  "boundary": "ONE native source-matched frame analyzed offline. No new GPU/browser run; no performance, temporal, human visual or release acceptance. Original datasets and previous analysis remain unchanged.",
+  "occupiedPostComparison": {
+    "count": 120753,
+    "expectedBlack": 120581,
+    "actualBlack": 120581,
+    "expectedBlackFraction": 0.99857560474688,
+    "actualBlackFraction": 0.99857560474688,
+    "blackClassificationAgreement": 1,
+    "exactBytePixelFraction": 0.9999006235869916,
+    "withinOneOutputCodePixelFraction": 1,
+    "maximumAbsoluteByteError": 1,
+    "meanAbsoluteByteError": 3.312547100279082e-05,
+    "maximumRawAbsoluteByteError": 1,
+    "mask": "canonical SM-202 objectID !=0",
+    "blackDefinition": "max RGB <=1 output code/255",
+    "exactZeroPixels": 120581,
+    "exactZeroFraction": 0.99857560474688
+  },
+  "postProbe": {
+    "rows": [
+      {
+        "inputLinear": 0.0999755859375,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "cpuRaw": [
+          0.34914909334547867,
+          0.34914909334547867,
+          0.34914909334547867
+        ],
+        "gpuRaw": [
+          0.3490196168422699,
+          0.3490196168422699,
+          0.3490196168422699
+        ],
+        "maximumFinalError": 0,
+        "maximumRawError": 0.0001294765032087697
+      },
+      {
+        "inputLinear": 0.125,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "cpuRaw": [
+          0.3885728590463344,
+          0.3885728590463344,
+          0.3885728590463344
+        ],
+        "gpuRaw": [
+          0.38823530077934265,
+          0.38823530077934265,
+          0.38823530077934265
+        ],
+        "maximumFinalError": 0,
+        "maximumRawError": 0.0003375582669917221
+      },
+      {
+        "inputLinear": 0.1300048828125,
+        "cpuFinal": [
+          0.07262305066796881,
+          0.07262305066796881,
+          0.07262305066796881
+        ],
+        "gpuFinal": [
+          0.07058823853731155,
+          0.07058823853731155,
+          0.07058823853731155
+        ],
+        "cpuRaw": [
+          0.3958883210942131,
+          0.3958883210942131,
+          0.3958883210942131
+        ],
+        "gpuRaw": [
+          0.3960784375667572,
+          0.3960784375667572,
+          0.3960784375667572
+        ],
+        "maximumFinalError": 0.0020348121306572597,
+        "maximumRawError": 0.00019011647254407738
+      },
+      {
+        "inputLinear": 0.1800537109375,
+        "cpuFinal": [
+          0.3363299878678535,
+          0.3363299878678535,
+          0.3363299878678535
+        ],
+        "gpuFinal": [
+          0.33725491166114807,
+          0.33725491166114807,
+          0.33725491166114807
+        ],
+        "cpuRaw": [
+          0.46142032292277296,
+          0.46142032292277296,
+          0.46142032292277296
+        ],
+        "gpuRaw": [
+          0.4627451002597809,
+          0.4627451002597809,
+          0.4627451002597809
+        ],
+        "maximumFinalError": 0.0009249237932945631,
+        "maximumRawError": 0.0013247773370079208
+      },
+      {
+        "inputLinear": 0.5,
+        "cpuFinal": [
+          0.8160821918959679,
+          0.8160821918959679,
+          0.8160821918959679
+        ],
+        "gpuFinal": [
+          0.8156862854957581,
+          0.8156862854957581,
+          0.8156862854957581
+        ],
+        "cpuRaw": [
+          0.7353569830524495,
+          0.7353569830524495,
+          0.7353569830524495
+        ],
+        "gpuRaw": [
+          0.7372549176216125,
+          0.7372549176216125,
+          0.7372549176216125
+        ],
+        "maximumFinalError": 0.00039590640020981116,
+        "maximumRawError": 0.0018979345691630956
+      },
+      {
+        "inputLinear": 1,
+        "cpuFinal": [
+          1.0032834683736263,
+          1.0032834683736263,
+          1.0032834683736263
+        ],
+        "gpuFinal": [
+          1,
+          1,
+          1
+        ],
+        "cpuRaw": [
+          0.9999999999999999,
+          0.9999999999999999,
+          0.9999999999999999
+        ],
+        "gpuRaw": [
+          1,
+          1,
+          1
+        ],
+        "maximumFinalError": 0,
+        "maximumRawError": 1.1102230246251565e-16
+      },
+      {
+        "inputLinear": 0,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "cpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "gpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "maximumFinalError": 0,
+        "maximumRawError": 0
+      },
+      {
+        "inputLinear": 0,
+        "cpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "gpuFinal": [
+          0,
+          0,
+          0
+        ],
+        "cpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "gpuRaw": [
+          0,
+          0,
+          0
+        ],
+        "maximumFinalError": 0,
+        "maximumRawError": 0
+      }
+    ],
+    "tolerance": 0.00392156862745098,
+    "allWithinOneOutputCode": true
+  },
+  "opaqueForwardExclusivity": {
+    "canonicalInstanceCount": 133,
+    "uniqueOwnedIDs": 133,
+    "forwardSpriteCount": 0,
+    "ownedIDsFoundInForwardRecords": [],
+    "forwardStageCounts": {
+      "legacy": {
+        "world-alpha": 0,
+        "world-additive": 0,
+        "post-effects": 0,
+        "top-additive": 0,
+        "top-alpha": 0,
+        "objective": 0,
+        "guide": 0
+      },
+      "hd": {
+        "world-alpha": 0,
+        "world-additive": 0,
+        "post-effects": 0,
+        "top-additive": 0,
+        "top-alpha": 0,
+        "objective": 0,
+        "guide": 0
+      },
+      "overlay": {
+        "world-alpha": 0,
+        "world-additive": 0,
+        "post-effects": 0,
+        "top-additive": 0,
+        "top-alpha": 0,
+        "objective": 0,
+        "guide": 0
+      }
+    }
+  },
+  "postMechanism": {
+    "neutralLinearZeroCutoff": 0.12650575128413377,
+    "conditions": "Neutral RGB/grade1, no grain/vignette/bloom. Grade gain1.0625, shadowLift-.10, exponential exposure1.6, contrast1.12 adds-.06, clamp before sRGB OETF.",
+    "postSourceUnchangedFromBefore": true,
+    "probeIdenticalFromBefore": true,
+    "fullPrePostMaximumLuminance": 0.5959780761718749,
+    "bloomAboveThresholdPixels": 0,
+    "referenceBloomInput": "Zero is exact because bright extraction threshold .7 exceeds every prepost luminance.",
+    "quantiles": [
+      0,
+      0.5,
+      0.9,
+      0.95,
+      0.99,
+      1
+    ],
+    "occupiedPrePostMaxRGBQuantiles": [
+      0.0,
+      0.0096893310546875,
+      0.0233612060546875,
+      0.03049316406249991,
+      0.05133056640625,
+      0.6337890625
+    ],
+    "occupiedRawLightingMaxRGBQuantiles": [
+      0.0,
+      0.0096893310546875,
+      0.0233612060546875,
+      0.03049316406249991,
+      0.05133056640625,
+      0.6337890625
+    ],
+    "occupiedPixelsChangedByForwardCompositionFraction": 0.0
+  },
+  "nativePlanCounts": {
+    "opaque-resolved": 1,
+    "water": 1,
+    "fine-grass": 13,
+    "foliage-background": 33,
+    "world-alpha": 0,
+    "world-additive": 0,
+    "foliage-foreground": 0,
+    "post": 1,
+    "post-effects": 0,
+    "top-additive": 0,
+    "top-alpha": 0,
+    "objective": 0,
+    "guide": 0,
+    "debug-ui-present": 1
+  },
+  "disposition": {
+    "visual": "FAIL; canonical post still destroys opaque readability",
+    "fullPhysicalPerformanceMatrix": "NOT RUN; visual gate failed",
+    "foregroundTopReadability": "NOT RUN in this frame; authored foreground/top counts0",
+    "opaqueVisibilityAndFloorLightIntegration": "UNRESOLVED; SM307 masks remain unused by opaque lighting and backdrop remains outside deferred Gbuffer"
+  },
+  "recommendedDecision": "Preserve linear HDR, exactly one final sRGB transfer, and current saved/default controls. Keep visual acceptance blocked. A separate reviewed grading decision must define parameter units and intended black/grey reference outputs before changing artistic controls. Missing visibility/floor integration requires source-supported composition work; do not compensate it with brightness."
+}

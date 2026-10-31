@@ -39,7 +39,7 @@ async function testOneCanonicalArrayFeedsRenderAndPartition(){
   let builds=0,built=null,submitted=null,partitionIds=null;
   p.closed=false;p.width=640;p.height=360;p.root={};p.game={renderer:{},art:{manifest:atlas}};
   p.api={Scene:{validateRenderScene(){}},Ownership:{buildOwnershipSceneInstances(s,a){builds++;built=Ownership.buildOwnershipSceneInstances(s,a);return built}},Quality:{localShadowSettings:()=>({})},Pseudo:{},Lighting:{}};
-  p._extent=()=>({width:640,height:360});p._uploadBackdrop=()=>{};p._invalidateForRoom=()=>{};p._opaqueComposite=()=>{};p._updateWaterField=()=>{};
+  p._extent=()=>({width:640,height:360});p._uploadBackdrop=()=>{};p._renderBackgroundReceivers=()=>{};p._invalidateForRoom=()=>{};p._opaqueComposite=()=>{};p._updateWaterField=()=>{};
   p.gb={async renderInstances(instances){submitted=instances},async renderScene(){throw new Error('scene must not be scanned a second time')}};
   p.depth={async buildFromOwnership(){}};p.shadows={async render(){}};
   for(const name of ['occ','clusters','dominance','dso','dsoHierarchy','bloom','bloomTemporal','visibility'])p[name]={async update(){},sourceFromPaths:()=>({})};
