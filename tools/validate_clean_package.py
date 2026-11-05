@@ -39,14 +39,29 @@ def baseline_sha256_matches(path: Path, expected: str) -> tuple[bool,bool]:
     normalized=payload.replace(b'\r\n',b'\n')
     return hashlib.sha256(normalized).hexdigest().lower()==expected.lower(),normalized != payload
 
-def include(path: Path) -> bool:
-    rel=path.relative_to(ROOT)
+def include(path: Path, root: Path = ROOT) -> bool:
+    rel=path.relative_to(root)
     if rel.parts and rel.parts[0] in SKIP_TOP: return False
     return not any(p in SKIP_NAMES for p in rel.parts)
 
+def collect_source_files(root: Path = ROOT) -> list[Path]:
+    """Never dereference symlinks into the supposedly self-contained source ZIP."""
+    files=[]
+    for path in sorted(root.rglob('*')):
+        if not include(path,root): continue
+        # is_file() follows links, including links outside the repository. A
+        # dangling link or linked directory must not silently disappear either.
+        if path.is_symlink():
+            raise RuntimeError(f'unsafe symlink in clean package source: {path.relative_to(root).as_posix()}')
+        if path.is_file(): files.append(path)
+    return files
+
 def safe_member(name: str) -> None:
-    p=PurePosixPath(name)
-    if p.is_absolute() or '..' in p.parts: raise RuntimeError(f'unsafe archive member: {name}')
+    # Recognize both separator conventions and Windows drive components, even
+    # when validating an archive on a POSIX CI runner.
+    p=PurePosixPath(name.replace('\\','/'))
+    if not p.parts or p.is_absolute() or '..' in p.parts or any(':' in part for part in p.parts):
+        raise RuntimeError(f'unsafe archive member: {name}')
 
 def baseline_runtime_path(name: str) -> bool:
     name=name.replace('\\','/').removeprefix('./')
@@ -64,9 +79,18 @@ def main() -> int:
     ap.add_argument('--archive',type=Path,help='optional destination for the generated ZIP')
     args=ap.parse_args()
     report={'schema':'steelmoth-clean-package-report/v1','ok':False,'checks':[]}
+    try:
+        files=collect_source_files(ROOT)
+    except RuntimeError as error:
+        report['error']=str(error)
+        if args.report:
+            dst=args.report if args.report.is_absolute() else ROOT/args.report
+            dst.parent.mkdir(parents=True,exist_ok=True)
+            dst.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+        print(f"CLEAN PACKAGE FAIL: {error}",file=sys.stderr)
+        return 1
     with tempfile.TemporaryDirectory(prefix='steelmoth-package-') as td:
         td=Path(td); archive=td/'steelmoth-source.zip'; extract=td/'extract'
-        files=[p for p in sorted(ROOT.rglob('*')) if p.is_file() and include(p)]
         with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
             for p in files: z.write(p,Path('steelmoth')/p.relative_to(ROOT))
         with zipfile.ZipFile(archive) as z:
@@ -82,7 +106,7 @@ def main() -> int:
             'engine/render_transform_scene_adapter.js','engine/webgl2_scene_adapter.js',
             'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/webgpu_gbuffer.js','engine/webgpu_ownership.js','engine/webgpu_depth_hierarchy.js','engine/webgpu_lighting.js','engine/webgpu_local_shadows.js','engine/webgpu_transparent_fx.js','engine/webgpu_occluders.js','engine/webgpu_clusters.js','engine/webgpu_dominance.js','engine/backend_runtime.js',
             'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html','webgpu-ownership-smoke.html','webgpu-depth-hierarchy-smoke.html','webgpu-lighting-smoke.html','webgpu-local-shadows-smoke.html','webgpu-transparent-fx-smoke.html','webgpu-occluders-smoke.html','webgpu-clusters-smoke.html','webgpu-dominance-smoke.html',
-            'assets/generated/atlas.json','game_data/maps.json','tools/validate_webapp_v123.py',
+            'assets/generated/atlas.json','game_data/maps.json','tools/test_clean_package_sources.py','tools/validate_webapp_v123.py',
             'tools/validate_render_scene_contract.py','tools/validate_render_transform_contract.py','tools/validate_pseudo_depth_contract.py',
             'tools/validate_webgpu_contract.py','tools/validate_webgpu_resources_contract.py','tools/validate_webgpu_validation_contract.py','tools/validate_webgpu_gbuffer_contract.py','tools/validate_webgpu_ownership_contract.py','tools/validate_webgpu_depth_hierarchy_contract.py','tools/validate_webgpu_lighting_contract.py','tools/validate_webgpu_local_shadows_contract.py','tools/validate_webgpu_transparent_fx_contract.py','tools/validate_webgpu_occluders_contract.py','tools/validate_webgpu_clusters_contract.py','tools/validate_webgpu_dominance_contract.py',
             'render-tests/webgpu-validation-report.sample.json',
@@ -114,6 +138,7 @@ def main() -> int:
             report['baseline_crlf_entries_normalized']=sum_normalized
             report['baseline_sha256_errors']=sum_errors
             checks=[
+                [sys.executable,'tools/test_clean_package_sources.py'],
                 ['node','tools/validate_webgpu_ssgi_stabilization.js'],
                 [sys.executable,'tools/validate_sm603_target_report.py','--self-test'],
                 ['node','tools/validate_sm702_forward_lighting.js'],
