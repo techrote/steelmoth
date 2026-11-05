@@ -62,6 +62,12 @@ def collect_source_files(root: Path = ROOT) -> list[Path]:
                     f'unsafe hardlink in clean package source: {path.relative_to(root).as_posix()}'
                 )
             files.append(path)
+        elif not path.is_dir():
+            # Silently dropping named pipes, sockets or devices makes an
+            # ostensibly complete source ZIP incomplete. Refuse before writing.
+            raise RuntimeError(
+                f'non-regular entry in clean package source: {path.relative_to(root).as_posix()}'
+            )
     return files
 
 def safe_member(name: str) -> None:
