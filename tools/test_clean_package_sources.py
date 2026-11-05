@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -37,6 +38,63 @@ class CleanPackageSourceTests(unittest.TestCase):
             [p.relative_to(self.root).as_posix() for p in collect_source_files(self.root)],
             ['main.js'],
         )
+
+
+    def test_excluded_special_node_is_ignored(self) -> None:
+        if not hasattr(os,'mkfifo'):
+            self.skipTest('filesystem does not support named pipes')
+        excluded=self.root/'artifacts'
+        excluded.mkdir()
+        try:
+            os.mkfifo(excluded/'ignored.pipe')
+        except (OSError,NotImplementedError) as error:
+            self.skipTest(f'filesystem does not permit named pipes: {error}')
+        self.assertEqual(
+            [p.relative_to(self.root).as_posix() for p in collect_source_files(self.root)],
+            ['main.js'],
+        )
+
+    def test_included_fifo_source_rejected(self) -> None:
+        if not hasattr(os,'mkfifo'):
+            self.skipTest('filesystem does not support named pipes')
+        pipe=self.root/'unsafe.pipe'
+        try:
+            os.mkfifo(pipe)
+        except (OSError,NotImplementedError) as error:
+            self.skipTest(f'filesystem does not permit named pipes: {error}')
+        with self.assertRaisesRegex(RuntimeError,'non-regular entry.*unsafe.pipe'):
+            collect_source_files(self.root)
+
+    def test_included_unix_socket_source_rejected(self) -> None:
+        if not hasattr(socket,'AF_UNIX'):
+            self.skipTest('platform does not support UNIX sockets')
+        sock=socket.socket(socket.AF_UNIX)
+        self.addCleanup(sock.close)
+        try:
+            sock.bind(str(self.root/'unsafe.sock'))
+        except (OSError,NotImplementedError) as error:
+            self.skipTest(f'filesystem does not permit UNIX sockets: {error}')
+        with self.assertRaisesRegex(RuntimeError,'non-regular entry.*unsafe.sock'):
+            collect_source_files(self.root)
+
+    def test_special_source_refuses_archive_with_structured_report(self) -> None:
+        if not hasattr(os,'mkfifo'):
+            self.skipTest('filesystem does not support named pipes')
+        try:
+            os.mkfifo(self.root/'unsafe.pipe')
+        except (OSError,NotImplementedError) as error:
+            self.skipTest(f'filesystem does not permit named pipes: {error}')
+        archive=Path(self.temp.name)/'release.zip'
+        report=Path(self.temp.name)/'failure.json'
+        with patch('validate_clean_package.ROOT',self.root), \\
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \\
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(archive.exists())
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertIn('non-regular entry',outcome['error'])
+        self.assertIn('unsafe.pipe',outcome['error'])
 
     def test_external_file_symlink_rejected(self) -> None:
         private=Path(self.temp.name)/'private.txt'
