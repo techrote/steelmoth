@@ -47,6 +47,16 @@ check(base.occluderMask.every(v=>v===0),'reference does not mutate caller mask')
 check(S.rayBlocked({width:WIDTH,height:HEIGHT,...wall},8.5,18.5,30.5,18.5),'supercover crosses thick wall');
 const diagonal=fixture();diagonal.mark(19,19);check(S.rayBlocked(diagonal,8.5,8.5,29.5,29.5),'diagonal exact-cell occluder is not skipped');
 const corner=fixture();corner.mark(12,11);check(S.rayBlocked(corner,8.5,8.5,16.5,16.5),'corner-adjacent occluder conservatively interrupts supercover');
+// True supercover also includes the *other* row/column for rays on a grid edge.
+// The former DDA considered only floor(y) or floor(x), leaking at edge-aligned beams.
+const edgeRow=fixture();edgeRow.mark(21,17);
+check(S.rayBlocked(edgeRow,8.5,18,30.5,18),'horizontal grid-edge ray blocks occluder in upper-adjacent row');
+check(S.rayBlocked(edgeRow,30.5,18,8.5,18),'reverse horizontal grid-edge ray also blocks adjacent row');
+check(!S.rayBlocked(edgeRow,8.5,18.5,30.5,18.5),'horizontal non-edge ray does not overblock neighbouring row');
+const edgeColumn=fixture();edgeColumn.mark(20,21);
+check(S.rayBlocked(edgeColumn,21,8.5,21,29.5),'vertical grid-edge ray blocks occluder in left-adjacent column');
+check(S.rayBlocked(edgeColumn,21,29.5,21,8.5),'reverse vertical grid-edge ray also blocks adjacent column');
+check(!S.rayBlocked(edgeColumn,22.5,8.5,22.5,29.5),'vertical non-edge ray remains clear outside adjacent column');
 // Exported ray traversal must fail closed for malformed/out-of-bounds inputs.
 check(S.rayBlocked(base,-1,-1,-1,-1),'zero-length out-of-bounds source is blocked');
 check(S.rayBlocked(base,-1,18,-1,18),'zero-length horizontal outside source is blocked');
