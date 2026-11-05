@@ -169,7 +169,10 @@ def main() -> int:
             results=[run(unpack,c) for c in checks];report['checks']=results
             report['ok']=sum_checked>0 and not sum_errors and all(r['returncode']==0 for r in results)
         report.update({'archive_sha256':sha256(archive),'archive_bytes':archive.stat().st_size,'file_count':len(files)})
-        if args.archive:
+        # Never publish a source ZIP that failed extraction, provenance or
+        # regression validation. Otherwise --archive exposes an invalid deliverable
+        # even while the command exits nonzero.
+        if args.archive and report['ok']:
             dst=args.archive if args.archive.is_absolute() else ROOT/args.archive;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(archive,dst)
     if args.report:
         dst=args.report if args.report.is_absolute() else ROOT/args.report;dst.parent.mkdir(parents=True,exist_ok=True);dst.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
