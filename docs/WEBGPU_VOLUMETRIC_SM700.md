@@ -8,7 +8,7 @@ The reference in engine/webgpu_volumetrics.js consumes an **SM-204 normalized pl
 
 The oracle uses 4× downsampling with ceil extents and center samples; 12–20 midpoint low-frequency dust-density samples; smooth cone and range falloff; and a conservative full-resolution supercover occlusion trace so that thin blockers are not skipped by sparse rays. A positive depth range and nonzero object ID block only when the accepted macro-occluder mask also flags the pixel. Per-cone DSO visibility zero yields exact zero scattering.
 
-This planar shadow test is a **deterministic visibility oracle**, not an approved physically accurate volumetric transport or full three-dimensional self-occlusion model. Its per-quarter-pixel CPU traversal is intentionally limited to at most 512×512 fixture inputs and **must never be placed in a gameplay frame loop**.
+This planar shadow test is a **deterministic visibility oracle**, not an approved physically accurate volumetric transport or full three-dimensional self-occlusion model. Its per-quarter-pixel CPU traversal is intentionally limited to at most 512×512 fixture inputs (both axes independently bounded, not just pixel area) and **must never be placed in a gameplay frame loop**. The exported supercover ray helper treats non-finite coordinates and out-of-bounds origins as blocked, including zero-length rays, rather than silently reporting clear space.
 
 The reference returns a quarter-resolution Float32Array and a blocked mask. Disabled output is exact zero, strength and density are bounded, and scattering cannot exceed 0.12. No temporal accumulation, resource allocation or gameplay effects are introduced. GPU-frame cost and renderer-memory delta are **unmeasured**, not zero.
 
