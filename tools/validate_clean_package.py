@@ -64,7 +64,7 @@ def collect_source_files(root: Path = ROOT) -> list[Path]:
     ):
         folder = Path(directory)
         subdirs[:] = [name for name in sorted(subdirs) if include(folder/name, root)]
-        for name in (*subdirs, *names):
+        for name in (*subdirs, *sorted(names)):
             path = folder/name
             if not include(path, root): continue
             if path.is_symlink():
