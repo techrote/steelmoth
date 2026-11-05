@@ -10,13 +10,17 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         root=Path(tmp); log=root/'chrome.log'; out=root/'failure-diagnostics.json'
         log.write_text('start\nshader-error\n',encoding='utf-8')
-        probe={'documentReadyState':'complete','hasBody':True,'ready':False,'error':False,'resultLength':0}
+        probe={'documentReadyState':'complete','hasBody':True,'ready':False,'error':False,'resultLength':0,
+               'harnessInstalled':True,'harnessEnabled':True,'harnessStage':'render-scene-promise',
+               'harnessStageHistory':[{'stage':'fixture-fetch','elapsedMs':10},{'stage':'render-scene-promise','elapsedMs':20}],
+               'gamePresent':True,'gameReady':True,'bridgeAttached':False,'bridgePromisePresent':True}
         save_capture_failure(out,phase='render-test-readiness',error=RuntimeError('timeout'),
                              polls=3,last_probe=probe,chrome_log=log,browser_exit=None,elapsed_s=12.34567)
         d=json.loads(out.read_text(encoding='utf-8'))
         assert d['schema']=='steelmoth-browser-capture-failure/v1'
         assert d['phase']=='render-test-readiness' and d['error']=='timeout'
         assert d['readyPolls']==3 and d['lastReadinessProbe']==probe
+        assert d['lastReadinessProbe']['harnessStage']=='render-scene-promise'
         assert d['browserExitCode'] is None and d['elapsedSeconds']==12.346
         assert 'shader-error' in d['chromeLogTail']
         log.unlink()

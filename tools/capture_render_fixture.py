@@ -110,7 +110,7 @@ def main():
                         cdp=CDP(target['webSocketDebuggerUrl'],timeout=max(10,min(30,a.browser_timeout*.5)));cdp.call('Page.enable');cdp.call('Runtime.enable')
                         phase='render-test-readiness'
                         while time.monotonic()<deadline:
-                            last_probe=cdp.eval("(() => { const b=document.body; const r=document.getElementById('renderTestResult'); return {documentReadyState:document.readyState,hasBody:!!b,ready:!!b&&b.dataset.renderTestReady==='1',error:!!b&&b.dataset.renderTestError==='1',resultLength:r?.textContent?.length||0}; })()")
+                            last_probe=cdp.eval("(() => { const b=document.body; const r=document.getElementById('renderTestResult'); const h=window.SteelMothRenderHarness; const g=window.game; return {documentReadyState:document.readyState,hasBody:!!b,ready:!!b&&b.dataset.renderTestReady==='1',error:!!b&&b.dataset.renderTestError==='1',resultLength:r?.textContent?.length||0,harnessInstalled:!!h,harnessEnabled:h?.enabled??null,harnessStage:h?.stage||null,harnessStageHistory:Array.isArray(h?.stageHistory)?h.stageHistory.slice(-16):[],gamePresent:!!g,gameReady:b?.dataset.ready==='1',bridgeAttached:!!g?.renderSceneBridge,bridgePromisePresent:typeof globalThis.steelMothRenderSceneReady?.then==='function'}; })()")
                             polls+=1
                             if not isinstance(last_probe,dict): raise RuntimeError('invalid render-test readiness probe')
                             if last_probe['ready'] or last_probe['error']: break
