@@ -65,6 +65,27 @@ class CleanPackageSourceTests(unittest.TestCase):
             with self.subTest(name=name),self.assertRaises(RuntimeError):
                 safe_member(name)
 
+    def test_failed_extraction_does_not_publish_archive(self) -> None:
+        archive=Path(self.temp.name)/'release.zip'
+        report=Path(self.temp.name)/'failed-report.json'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(archive.exists(),'failed verification must not publish a ZIP')
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertEqual(outcome['error'],'missing required extracted files')
+
+    def test_failed_extraction_does_not_replace_previous_archive(self) -> None:
+        archive=Path(self.temp.name)/'previous-release.zip'
+        archive.write_bytes(b'existing validated artifact')
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertEqual(archive.read_bytes(),b'existing validated artifact')
+
 
 if __name__=='__main__':
     unittest.main(verbosity=2)
