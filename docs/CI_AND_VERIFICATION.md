@@ -223,6 +223,10 @@ The SM-101 Chrome pixel-parity job proves same-environment before/after WebGL2 i
 
 The production WGSL inventory is a growing gate. Every issue that adds shaders, formats, layouts, atlas classes or passes must add corresponding source and real-browser validation rather than treating earlier milestones as frozen one-time checkpoints.
 
+## SM-700 reference-only oracle gate
+
+The normal source/regression runner checks syntax for `engine/webgpu_volumetrics.js` and executes `node tools/validate_webgpu_volumetrics.js`. Clean-package extraction additionally requires and reruns the fixture oracle. These checks validate a disabled, non-temporal *CPU reference*, not a runnable WebGPU pass, real browser, hardware performance, or visual fidelity. Issue #39 remains open; see `WEBGPU_VOLUMETRIC_SM700.md` for current evidence limits and required production follow-up.
+
 ## Extending the gate
 
 SM-602 adds `node tools/validate_webgpu_ssgi.js` to the normal runner and
