@@ -56,6 +56,33 @@ class CleanPackageSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'broken.txt'):
             collect_source_files(self.root)
 
+    def test_external_hardlinked_source_rejected(self) -> None:
+        private=Path(self.temp.name)/'private.txt'
+        private.write_text('outside repository',encoding='utf-8')
+        self.hardlink(self.root/'leak.txt',private)
+        with self.assertRaisesRegex(RuntimeError,'unsafe hardlink.*leak.txt'):
+            collect_source_files(self.root)
+
+    def test_internal_hardlink_alias_also_rejected(self) -> None:
+        self.hardlink(self.root/'alias.js',self.root/'main.js')
+        with self.assertRaisesRegex(RuntimeError,'unsafe hardlink.*alias.js'):
+            collect_source_files(self.root)
+
+    def test_external_hardlink_fails_without_publishing_archive(self) -> None:
+        private=Path(self.temp.name)/'private.txt'
+        private.write_text('outside repository',encoding='utf-8')
+        self.hardlink(self.root/'leak.txt',private)
+        archive=Path(self.temp.name)/'leaked-release.zip'
+        report=Path(self.temp.name)/'hardlink-failure.json'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(archive.exists())
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertIn('unsafe hardlink',outcome['error'])
+
     def test_archive_members_are_cross_platform_safe(self) -> None:
         safe_member('steelmoth/tools/run_checks.py')
         for name in (

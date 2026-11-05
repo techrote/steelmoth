@@ -53,7 +53,15 @@ def collect_source_files(root: Path = ROOT) -> list[Path]:
         # dangling link or linked directory must not silently disappear either.
         if path.is_symlink():
             raise RuntimeError(f'unsafe symlink in clean package source: {path.relative_to(root).as_posix()}')
-        if path.is_file(): files.append(path)
+        if path.is_file():
+            # Hardlinks can alias bytes outside the repository even though
+            # is_file() considers them ordinary files. Refuse ambiguous input
+            # provenance rather than silently materializing an external inode.
+            if path.stat().st_nlink > 1:
+                raise RuntimeError(
+                    f'unsafe hardlink in clean package source: {path.relative_to(root).as_posix()}'
+                )
+            files.append(path)
     return files
 
 def safe_member(name: str) -> None:
