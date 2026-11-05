@@ -260,6 +260,15 @@ The clean source ZIP deliberately excludes `.git`, `.github`, generated `artifac
 
 Archive member validation handles both POSIX and Windows separator conventions, including traversal and drive-qualified names; an archive is not considered safe merely because the current CI host interprets a path differently. The failure is reported as `CLEAN PACKAGE FAIL` and, with `--report`, in the machine-readable report's `error` field. No archive is emitted on source preflight failure.
 
+Output preflight also rejects **hardlink aliases**: `--archive` and `--report`
+may have different normalized paths but share the same inode, allowing the
+JSON report to overwrite the published ZIP. Existing output files (including
+ones in excluded `artifacts/` or outside the checkout) must not be hardlinked
+to any source-included file, because writing the output would corrupt that
+source. The extra source-inode scan runs only when an existing output has
+multiple hardlinks. This is a filesystem preflight guard, not a claim of
+race-free operation against concurrent external filesystem mutation.
+
 `--archive` publishes the generated ZIP **only when the full clean-package report is successful**, including required extracted files, provenance hashes and extracted regression checks. A failed run exits nonzero and does not create or overwrite the requested destination (an older destination file, if present, is left untouched); callers must use the exit status and report rather than archive existence as the success signal.
 
 Output destinations are also preflighted before any write. Use `artifacts/` or an external directory for `--report` and `--archive`: specifying an included repository source path would cause self-inclusion on the next package run or overwrite a source file. The two destinations must be distinct after path normalization (including symlink aliases), otherwise a successful report write could overwrite the published ZIP. Invalid output destinations return nonzero **without modifying either file**, and report a CLI error rather than writing JSON into an unsafe report location.

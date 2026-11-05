@@ -85,8 +85,27 @@ def validate_output_destinations(root: Path, report: Path | None, archive: Path 
                     f'--{option} output is included in source package: {rel}; '
                     'use artifacts/ or a destination outside the repository'
                 )
-    if 'report' in resolved and 'archive' in resolved and resolved['report']==resolved['archive']:
+    if 'report' in resolved and 'archive' in resolved and (
+        resolved['report']==resolved['archive'] or
+        (resolved['report'].is_file() and resolved['archive'].is_file() and
+         resolved['report'].samefile(resolved['archive']))
+    ):
         raise RuntimeError('--report and --archive must have distinct destinations')
+    # Paths in artifacts/ or outside the root can still be hardlinks to
+    # source files. Writing a report/ZIP would mutate the shared inode.
+    # Avoid scanning the source tree for outputs with only one hardlink.
+    linked_outputs={
+        option:target for option,target in resolved.items()
+        if target.is_file() and target.stat().st_nlink>1
+    }
+    if linked_outputs:
+        for source in collect_source_files(root):
+            for option,target in linked_outputs.items():
+                if source.samefile(target):
+                    raise RuntimeError(
+                        f'--{option} output is a hardlink to included source: '
+                        f'{source.relative_to(root).as_posix()}'
+                    )
 
 def baseline_runtime_path(name: str) -> bool:
     name=name.replace('\\','/').removeprefix('./')

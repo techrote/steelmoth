@@ -110,6 +110,55 @@ class CleanPackageSourceTests(unittest.TestCase):
                 self.root, self.root/'artifacts'/'nested'/'..'/'release.zip',destination
             )
 
+    def hardlink(self, path: Path, target: Path) -> None:
+        try:
+            path.hardlink_to(target)
+        except (OSError,NotImplementedError) as error:
+            self.skipTest(f'filesystem does not permit hardlinks: {error}')
+
+    def test_distinct_existing_artifacts_are_allowed(self) -> None:
+        output=self.root/'artifacts'
+        output.mkdir()
+        (output/'report.json').write_text('old report',encoding='utf-8')
+        (output/'release.zip').write_bytes(b'old ZIP')
+        validate_output_destinations(
+            self.root,output/'report.json',output/'release.zip',
+        )
+
+    def test_hardlinked_report_archive_collision_preserves_artifact(self) -> None:
+        output=self.root/'artifacts'
+        output.mkdir()
+        archive=output/'release.zip'
+        report=output/'report.json'
+        archive.write_bytes(b'existing validated ZIP')
+        self.hardlink(report,archive)
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertEqual(archive.read_bytes(),b'existing validated ZIP')
+        self.assertEqual(report.read_bytes(),b'existing validated ZIP')
+
+    def test_excluded_report_hardlinked_to_included_source_rejected(self) -> None:
+        output=self.root/'artifacts'
+        output.mkdir()
+        report=output/'report.json'
+        source=self.root/'main.js'
+        self.hardlink(report,source)
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertEqual(source.read_text(encoding='utf-8'),'ok')
+
+    def test_external_archive_hardlinked_to_included_source_rejected(self) -> None:
+        source=self.root/'main.js'
+        archive=Path(self.temp.name)/'release.zip'
+        self.hardlink(archive,source)
+        with self.assertRaisesRegex(RuntimeError,'hardlink to included source: main.js'):
+            validate_output_destinations(self.root,None,archive)
+        self.assertEqual(source.read_text(encoding='utf-8'),'ok')
+
     def test_archive_at_source_root_rejected_before_creation(self) -> None:
         destination=self.root/'release.zip'
         with patch('validate_clean_package.ROOT',self.root), \
