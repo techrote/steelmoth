@@ -47,7 +47,6 @@
     // Check the source before the zero-length fast path: an outside origin is
     // blocked even when the two endpoints coincide.
     if (x < 0 || y < 0 || x >= input.width || y >= input.height) return true;
-    const ex = Math.floor(bx), ey = Math.floor(by);
     const dx = bx - ax, dy = by - ay;
     // A point on an integer grid line touches both neighbouring cells; at
     // a grid corner it touches all four. Include endpoints, including a
@@ -79,7 +78,12 @@
       if (occupiedAt(input, x, y) ||
           (alongHorizontalEdge && occupiedAt(input, x, y - 1)) ||
           (alongVerticalEdge && occupiedAt(input, x - 1, y))) return true;
-      if (x === ex && y === ey) return false;
+      // All cells incident on the exact endpoint were already tested above.
+      // End the closed segment in parametric time, not by floored destination
+      // cell equality: negative-direction grid-edge endpoints can skip that
+      // cell and otherwise walk outside the fixture, falsely blocking clear
+      // rays. Allow only traversal-count-scaled floating-point rounding.
+      if (Math.min(tX, tY) >= 1 - 16 * Number.EPSILON * (count + 1)) return false;
       // Repeated DDA additions can round mathematically coincident
       // grid-corner crossings to slightly unequal times. Only collapse
       // differences at floating-point noise scale; ordinary near-corner

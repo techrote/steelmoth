@@ -70,6 +70,71 @@ check(S.rayBlocked(interiorCorner,9,6,0,0),'interior diagonal corner touch is re
 const pointCorner=fixture();pointCorner.mark(7,17);
 check(S.rayBlocked(pointCorner,8,18,8,18),'zero-length corner touching an adjacent occluder blocks');
 check(!S.rayBlocked(pointCorner,8.001,18.001,8.001,18.001),'interior zero-length point is not spuriously blocked');
+// Terminate at the actual ray endpoint, not after stepping past an integer
+// destination boundary. These were false BLOCKED results in empty fixtures.
+const terminationClear = fixture();
+check(!S.rayBlocked(terminationClear,40,12,38,13),'grid-edge destination descending ray stays clear');
+check(!S.rayBlocked(terminationClear,27,29,34,27),'grid-edge destination mixed-sign ray stays clear');
+check(!S.rayBlocked(terminationClear,2,10,0,0),'origin-to-border corner ray stays clear');
+const terminationOffPath = fixture();terminationOffPath.mark(15,24);
+check(!S.rayBlocked(terminationOffPath,40,12,38,13),'distant unrelated occluder does not falsely block endpoint ray');
+const terminationAtEndpoint = fixture();terminationAtEndpoint.mark(37,12);
+check(S.rayBlocked(terminationAtEndpoint,40,12,38,13),'incident endpoint occluder still blocks');
+
+// Independent exact closed-cell geometry oracle. Quarter-pixel coordinates
+// keep orientation products integral and exact within JS safe integer range.
+// This is fixture-level CPU verification, not a GPU/visual performance test.
+const orientation = (a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+const onSegment = (a,b,c)=>c[0]>=Math.min(a[0],b[0])&&c[0]<=Math.max(a[0],b[0])&&c[1]>=Math.min(a[1],b[1])&&c[1]<=Math.max(a[1],b[1]);
+function segmentsIntersect(a,b,c,d) {
+  const p=orientation(a,b,c),q=orientation(a,b,d),r=orientation(c,d,a),s=orientation(c,d,b);
+  return (p===0&&onSegment(a,b,c))||(q===0&&onSegment(a,b,d))||
+    (r===0&&onSegment(c,d,a))||(s===0&&onSegment(c,d,b))||
+    ((p>0)!==(q>0)&&(r>0)!==(s>0));
+}
+function segmentTouchesPixel(ax,ay,bx,by,x,y) {
+  const a=[ax,ay],b=[bx,by],left=4*x,top=4*y,right=left+4,bottom=top+4;
+  const inside=v=>v[0]>=left&&v[0]<=right&&v[1]>=top&&v[1]<=bottom;
+  return inside(a)||inside(b)||
+    segmentsIntersect(a,b,[left,top],[right,top])||
+    segmentsIntersect(a,b,[right,top],[right,bottom])||
+    segmentsIntersect(a,b,[right,bottom],[left,bottom])||
+    segmentsIntersect(a,b,[left,bottom],[left,top]);
+}
+let seed=0x21ab34cd;
+function nextSeed() {seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return seed>>>0;}
+const rays=[[0,0,36,24],[32,72,32,72],[8,40,0,0],[32,72,120,72],[32,72,32,116]];
+for(let i=0;i<500;i++) {
+  let ax=4+(nextSeed()%(4*(WIDTH-2))),ay=4+(nextSeed()%(4*(HEIGHT-2)));
+  let bx=4+(nextSeed()%(4*(WIDTH-2))),by=4+(nextSeed()%(4*(HEIGHT-2)));
+  if(i%4===0)ay=by;
+  if(i%4===1)ax=bx;
+  if(i%5===0) {ax=Math.round(ax/4)*4;bx=Math.round(bx/4)*4;ay=Math.round(ay/4)*4;by=Math.round(by/4)*4;}
+  rays.push([ax,ay,bx,by]);
+}
+const sweep=fixture();
+let comparisons=0, touchedComparisons=0, clearComparisons=0;
+for(const [ax,ay,bx,by] of rays) {
+  const touched=[],untouched=[];
+  for(let y=0;y<HEIGHT;y++)for(let x=0;x<WIDTH;x++) {
+    (segmentTouchesPixel(ax,ay,bx,by,x,y)?touched:untouched).push([x,y]);
+  }
+  const cases=touched.map(cell=>[cell,true]);
+  for(let i=0;i<5;i++)cases.push([untouched[nextSeed()%untouched.length],false]);
+  for(const [cell,expected] of cases) {
+    if(!cell)continue;
+    const [x,y]=cell,k=y*WIDTH+x;
+    sweep.occluderMask[k]=1;sweep.objectIds[k]=9;
+    sweep.depthLevel0[2*k]=0.35;sweep.depthLevel0[2*k+1]=0.35;
+    assert.equal(S.rayBlocked(sweep,ax/4,ay/4,bx/4,by/4),expected,
+      'closed-cell geometry mismatch ray='+[ax/4,ay/4,bx/4,by/4]+' cell='+cell);
+    sweep.occluderMask[k]=0;sweep.objectIds[k]=0;
+    sweep.depthLevel0[2*k]=1;sweep.depthLevel0[2*k+1]=0;
+    comparisons++;if(expected)touchedComparisons++;else clearComparisons++;
+  }
+}
+check(comparisons>14000&&touchedComparisons>11000&&clearComparisons>2000,
+  'seeded independent closed-cell geometry sweep checks touched and clear cells');
 // Exported ray traversal must fail closed for malformed/out-of-bounds inputs.
 check(S.rayBlocked(base,-1,-1,-1,-1),'zero-length out-of-bounds source is blocked');
 check(S.rayBlocked(base,-1,18,-1,18),'zero-length horizontal outside source is blocked');
