@@ -94,7 +94,7 @@ def safe_member(name: str) -> None:
         # POSIX, including DOS device names with extensions and trailing dots.
         if part.endswith(('.', ' ')) or any(ord(char)<32 or char in '<>"|?*' for char in part):
             raise RuntimeError(f'unsafe archive member: {name}')
-        stem=part.split('.',1)[0].upper()
+        stem=part.split('.',1)[0].rstrip(' ').upper()
         if (stem in {'CON','PRN','AUX','NUL','CONIN$','CONOUT$'} or
             (len(stem)==4 and stem[:3] in {'COM','LPT'} and stem[3] in '123456789¹²³')):
             raise RuntimeError(f'unsafe archive member: {name}')

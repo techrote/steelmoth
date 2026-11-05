@@ -196,6 +196,7 @@ class CleanPackageSourceTests(unittest.TestCase):
         for name in (
             'CON.txt','aux','NUL.json','PRN','COM1.log','com¹.log',
             'LPT9.txt','CONIN$','CONOUT$','name.','name ',
+            'CON .txt','COM1 .log','LPT¹  .dat',
             'bad?.txt','a*b','a<b','a|b','a"b','a\x1ftxt',
         ):
             with self.subTest(name=name),self.assertRaisesRegex(RuntimeError,'unsafe archive member'):
