@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -142,6 +143,33 @@ class CleanPackageSourceTests(unittest.TestCase):
             path.hardlink_to(target)
         except (OSError,NotImplementedError) as error:
             self.skipTest(f'filesystem does not permit hardlinks: {error}')
+
+    def test_existing_directory_output_destination_rejected(self) -> None:
+        output=self.root/'artifacts'
+        output.mkdir()
+        with self.assertRaisesRegex(RuntimeError,'--archive output is not a regular file'):
+            validate_output_destinations(self.root,None,output)
+
+    def test_existing_fifo_report_destination_rejected(self) -> None:
+        if not hasattr(os,'mkfifo'):
+            self.skipTest('filesystem does not support named pipes')
+        output=self.root/'artifacts'
+        output.mkdir()
+        pipe=output/'report.pipe'
+        try:
+            os.mkfifo(pipe)
+        except (OSError,NotImplementedError) as error:
+            self.skipTest(f'filesystem does not permit named pipes: {error}')
+        with self.assertRaisesRegex(RuntimeError,'--report output is not a regular file'):
+            validate_output_destinations(self.root,pipe,None)
+
+    def test_existing_device_archive_destination_rejected(self) -> None:
+        if os.name!='posix':
+            self.skipTest('POSIX device-path regression')
+        device=Path(os.devnull)
+        self.assertTrue(device.exists())
+        with self.assertRaisesRegex(RuntimeError,'--archive output is not a regular file'):
+            validate_output_destinations(self.root,None,device)
 
     def test_distinct_existing_artifacts_are_allowed(self) -> None:
         output=self.root/'artifacts'

@@ -85,6 +85,11 @@ def validate_output_destinations(root: Path, report: Path | None, archive: Path 
         requested=destination if destination.is_absolute() else root/destination
         lexical=Path(os.path.abspath(requested))
         target=lexical.resolve()
+        # Only existing regular files can safely receive a ZIP/JSON report.
+        # A FIFO may hang the validator, while devices such as /dev/null can
+        # discard a successful release archive without reporting an error.
+        if target.exists() and not target.is_file():
+            raise RuntimeError(f'--{option} output is not a regular file: {lexical}')
         resolved[option]=target
         for candidate in (lexical,target):
             if candidate.is_relative_to(root) and include(candidate,root):
