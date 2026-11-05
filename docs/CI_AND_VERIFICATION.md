@@ -65,6 +65,21 @@ For each case it requires both the canvas PNG SHA-256 and the headless-browser v
 
 This is strong before/after visual-regression evidence for the root/foot refactor in one controlled browser environment. It is **not** evidence of target-GPU timing, broad browser compatibility, or final human visual approval.
 
+### SM-101 capture-failure forensics
+
+When a Chrome/CDP fixture capture fails, `tools/capture_render_fixture.py` writes a bounded
+`failure-diagnostics.json` next to the existing `chrome.log` for that repetition.
+The JSON records the failure phase, number of readiness probes, the last observed
+document readiness/body/harness-result state, elapsed time, browser exit code and
+a bounded Chrome stderr tail. The existing CI artifact upload includes these files
+even when the parity job fails. This is diagnostic instrumentation only: it does
+not add automatic retries, extend the 60-second capture timeout, weaken the
+canvas/viewport byte-equality gate or diagnose a browser timeout as harmless.
+The no-browser unit contract runs under `tools/run_checks.py` via
+`tools/test_render_capture_failure.py`. Any source-specific parity timeout
+remains a failed qualification until reproduced or successfully rerun against
+the exact published candidate.
+
 ### SM-102 WebGPU lifecycle gate
 
 The normal source/regression runner includes:
