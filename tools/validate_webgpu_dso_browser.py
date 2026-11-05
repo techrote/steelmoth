@@ -17,11 +17,18 @@ def free_port():
 def json_get(url,timeout=2):
     with urllib.request.urlopen(url,timeout=timeout) as r:return json.loads(r.read().decode())
 class CDP:
-    def __init__(self,url,timeout=100):self.ws=websocket.create_connection(url,timeout=timeout,origin='http://127.0.0.1');self.seq=0
+    def __init__(self,url,timeout=100):self.ws=websocket.create_connection(url,timeout=timeout,origin='http://127.0.0.1');self.seq=0;self.events=[]
     def call(self,method,params=None):
         self.seq+=1;i=self.seq;self.ws.send(json.dumps({'id':i,'method':method,'params':params or {}}))
         while True:
             m=json.loads(self.ws.recv())
+            if m.get('method') in ('Runtime.exceptionThrown','Runtime.consoleAPICalled'):
+                p=m.get('params') or {}
+                detail=p.get('exceptionDetails') or {}
+                args=p.get('args') or []
+                desc=detail.get('text') or ' '.join(str(a.get('value',a.get('description',''))) for a in args if isinstance(a,dict))
+                self.events.append({'method':m['method'],'message':str(desc)[:300]})
+                self.events=self.events[-16:]
             if m.get('id')!=i:continue
             if 'error'in m:raise RuntimeError(f"CDP {method}: {m['error']}")
             return m.get('result',{})
@@ -32,6 +39,25 @@ class CDP:
     def close(self):
         try:self.ws.close()
         except Exception:pass
+
+# A failed browser smoke can be stuck in adapter acquisition or GPU readback.
+# Preserve the last observable stage without changing the acceptance predicate.
+def normalize_readiness(raw):
+    if not isinstance(raw,dict):
+        return {'done':False,'documentReadyState':None,'hasBody':False,'stage':None,'resultLength':0}
+    length=raw.get('resultLength',0)
+    return {
+        'done':raw.get('done') is True,
+        'documentReadyState':str(raw.get('documentReadyState') or '')[:24],
+        'hasBody':raw.get('hasBody') is True,
+        'stage':str(raw.get('stage') or '')[:64] or None,
+        'resultLength':min(max(length,0),1000000) if type(length) is int else 0,
+    }
+
+def probe_readiness(cdp):
+    raw=cdp.eval("""(()=>{const b=document.body,r=document.getElementById('webgpuDSOResult');return {done:b?.dataset.webgpuDsoDone==='1',documentReadyState:document.readyState,hasBody:!!b,stage:b?.dataset.webgpuDsoStage||null,resultLength:r?.textContent?.length||0}})()""")
+    return normalize_readiness(raw)
+
 def validate(smoke,require_webgpu):
     if not smoke.get('ok'):raise RuntimeError(smoke.get('error','SM-303 DSO page reported failure'))
     checks=smoke.get('checks') or []
@@ -63,28 +89,42 @@ def main():
     exe=browser();path=args.report if args.report.is_absolute() else ROOT/args.report;path.parent.mkdir(parents=True,exist_ok=True);shot=path.with_suffix('.png');report={'schema':'steelmoth-webgpu-dso-browser-report/v1','ok':False,'browserExecutable':exe,'requireWebGPU':args.require_webgpu,'screenshot':str(shot.relative_to(ROOT) if shot.is_relative_to(ROOT) else shot),'evidenceBoundary':'Real hosted WebGPU validates SM-303 tile-local DSO hard-core WGSL execution, exact r32float mask readback against the deterministic CPU structural reference, box/bin eight-angle hard-mask captures, dominant-owner-only long wedges, bounded secondary structure, structural island metrics, invalidation and moving-light ownership stability. It does not validate SM-304 distance simplification, SM-305 Dark Bloom, SM-306 temporal accumulation, final shadow composition, target-GPU performance or human visual quality.'}
     if not exe:report['error']='Chrome/Chromium executable not found';path.write_text(json.dumps(report,indent=2)+'\n');return 1
     handler=lambda *a,**k:Quiet(*a,directory=str(ROOT),**k);srv=Server(('127.0.0.1',0),handler);threading.Thread(target=srv.serve_forever,daemon=True).start();port=srv.server_address[1];proc=None;cdp=None
+    phase='startup';started=time.monotonic();target_polls=0;readiness_polls=0;last_state={}
     try:
         with tempfile.TemporaryDirectory(prefix='steelmoth-sm303-chrome-') as profile:
             debug=free_port();url=f'http://127.0.0.1:{port}/webgpu-dso-smoke.html';cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--disable-component-update','--disable-default-apps','--disable-sync','--metrics-recording-only','--no-first-run','--enable-webgl','--enable-unsafe-webgpu','--remote-allow-origins=*',f'--remote-debugging-port={debug}',f'--user-data-dir={profile}',url]
-            proc=subprocess.Popen(cmd,cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,start_new_session=True);deadline=time.monotonic()+args.timeout;target=None
+            proc=subprocess.Popen(cmd,cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,start_new_session=True);deadline=time.monotonic()+args.timeout;target=None;phase='cdp-target'
             while time.monotonic()<deadline and proc.poll() is None:
+                target_polls+=1
                 try:
                     target=next((t for t in json_get(f'http://127.0.0.1:{debug}/json/list') if t.get('type')=='page' and 'webgpu-dso-smoke.html' in t.get('url','')),None)
                     if target:break
                 except Exception:pass
                 time.sleep(.15)
             if not target:raise RuntimeError('Chrome DevTools SM-303 page target did not become available')
-            cdp=CDP(target['webSocketDebuggerUrl'],timeout=max(50,min(170,args.timeout*.8)));cdp.call('Runtime.enable');cdp.call('Page.enable');report['browserVersion']=cdp.call('Browser.getVersion')
+            phase='cdp-session';cdp=CDP(target['webSocketDebuggerUrl'],timeout=max(50,min(170,args.timeout*.8)));cdp.call('Runtime.enable');cdp.call('Page.enable');report['browserVersion']=cdp.call('Browser.getVersion')
+            phase='dso-readiness'
             while time.monotonic()<deadline:
-                if cdp.eval("document.body && document.body.dataset.webgpuDsoDone==='1'"):break
+                readiness_polls+=1;last_state=probe_readiness(cdp)
+                if last_state['done']:break
                 time.sleep(.2)
             else:raise RuntimeError('SM-303 DSO page did not publish before timeout')
-            text=cdp.eval("document.getElementById('webgpuDSOResult')?.textContent || ''")
+            phase='smoke-result';text=cdp.eval("document.getElementById('webgpuDSOResult')?.textContent || ''")
             if not text:raise RuntimeError('webgpuDSOResult missing after readiness signal')
-            smoke=json.loads(text);report['smoke']=smoke;report['browserCommand']=cmd[:-1]+['<local-sm303-url>'];validate(smoke,args.require_webgpu);png=cdp.call('Page.captureScreenshot',{'format':'png','fromSurface':True}).get('data','')
+            smoke=json.loads(text);report['smoke']=smoke;report['browserCommand']=cmd[:-1]+['<local-sm303-url>'];validate(smoke,args.require_webgpu);phase='screenshot';png=cdp.call('Page.captureScreenshot',{'format':'png','fromSurface':True}).get('data','')
             if not png:raise RuntimeError('SM-303 debug screenshot capture returned no data')
             shot.write_bytes(base64.b64decode(png));report['screenshotBytes']=shot.stat().st_size;report['ok']=True
-    except Exception as exc:report['error']=str(exc)
+    except Exception as exc:
+        report['error']=str(exc)
+        report['failureDiagnostics']={
+            'phase':phase,
+            'elapsedSeconds':round(time.monotonic()-started,3),
+            'targetPolls':target_polls,
+            'readinessPolls':readiness_polls,
+            'lastPageState':last_state,
+            'observedRuntimeEvents':cdp.events[-16:] if cdp else [],
+            'browserExitCode':proc.poll() if proc else None,
+        }
     finally:
         if cdp:cdp.close()
         if proc and proc.poll() is None:

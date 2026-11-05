@@ -253,3 +253,19 @@ renderer success is correctness evidence only. Native paired process campaigns,
 source/hash retention and the exact timing exclusions are specified in
 [SM-702](WEBGPU_FORWARD_LIGHTING_SM702.md). The retained native results and
 performance limitations are in [the measured report](SM702_FORWARD_LIGHTING_REPORT.md).
+
+## SM-303 browser timeout evidence (2026-11-05)
+
+The standalone `sm303-dso.yml` WebGPU hard-mask job retains its unchanged 220-second
+readiness deadline and exact GPU/CPU mask acceptance. On failure,
+`artifacts/webgpu-dso-browser.json` now includes `failureDiagnostics`:
+CDP-target/readiness poll counts, elapsed time, failure phase, last document/DOM
+readiness, last explicit in-page stage (adapter/device/module imports/GPU readback),
+bounded Chrome runtime exception/console events, and process exit state.
+The existing bounded Chrome stderr tail is retained. The report is uploaded
+on failed jobs and can distinguish adapter acquisition from later readback
+hangs without relaxing the smoke, screenshot, WebGPU or renderer gates.
+`python tools/test_webgpu_dso_browser_diagnostics.py` exercises the
+fail-closed telemetry contract without a browser. This instrumentation is
+not an explanation of an observed timeout, target GTX 1650 SUPER performance,
+or human visual acceptance.
