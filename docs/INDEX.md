@@ -47,6 +47,7 @@ Do not silently promote a historical suggestion into a requirement.
 - [`WEBGPU_VALIDATION_PLAN.md`](WEBGPU_VALIDATION_PLAN.md) — API, WGSL, readback, visual, editor, browser and hardware testing.
 - [`CI_AND_VERIFICATION.md`](CI_AND_VERIFICATION.md) — stable local/CI entrypoints, failure-report schema, package extraction gate, and evidence boundaries.
 - [`LIGHTING_FIDELITY_ROADMAP.md`](LIGHTING_FIDELITY_ROADMAP.md) — post-migration lighting/material/indirect-light development sequence.
+- [`WEBGPU_VOLUMETRIC_SM700.md`](WEBGPU_VOLUMETRIC_SM700.md) — disabled-only SM-700 non-temporal CPU visibility/reference oracle, test boundaries and future production/hardware gates; issue #39 remains open.
 - [`COLOUR_PIPELINE.md`](COLOUR_PIPELINE.md) — canonical WebGPU source/linear-HDR/display colour-space contract and numeric fixtures.
 - [`DEPENDENCY_AND_CONCURRENCY.md`](DEPENDENCY_AND_CONCURRENCY.md) — dependency graph, serialization points and safe parallel lanes.
 - [`RESEARCH_AND_DECISIONS.md`](RESEARCH_AND_DECISIONS.md) — external research findings, assumptions, ADR-style decisions and unresolved questions.
