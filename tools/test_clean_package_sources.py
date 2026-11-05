@@ -182,7 +182,9 @@ class CleanPackageSourceTests(unittest.TestCase):
         source=self.root/'main.js'
         archive=Path(self.temp.name)/'release.zip'
         self.hardlink(archive,source)
-        with self.assertRaisesRegex(RuntimeError,'hardlink to included source: main.js'):
+        # The source-input hardlink guard can reject this alias before the
+        # output-specific guard, but either path must refuse before writing.
+        with self.assertRaisesRegex(RuntimeError,'hardlink.*main.js'):
             validate_output_destinations(self.root,None,archive)
         self.assertEqual(source.read_text(encoding='utf-8'),'ok')
 
