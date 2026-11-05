@@ -23,8 +23,8 @@
   }
 
   function dimensions(width, height) {
-    if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 || width * height > 512 * 512) {
-      throw new RangeError('SM-700 CPU reference requires positive fixture dimensions at most 262144 pixels');
+    if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 || width > 512 || height > 512) {
+      throw new RangeError('SM-700 CPU reference requires positive fixture dimensions at most 512x512');
     }
     return {width, height, quarterWidth: Math.ceil(width / QUARTER_SCALE), quarterHeight: Math.ceil(height / QUARTER_SCALE)};
   }
@@ -41,11 +41,44 @@
   // Supercover raster traversal avoids skipping single-pixel macro occluders
   // that a sparse 12..20 sample-only shadow ray would otherwise miss.
   function rayBlocked(input, ax, ay, bx, by) {
+    // This public helper is also used without referenceScattering()'s upfront
+    // shape check. Missing or truncated canonical readbacks must never mean
+    // "unoccluded"; return BLOCKED instead of reading undefined mask entries.
+    const w = input?.width, h = input?.height;
+    if (!Number.isInteger(w) || !Number.isInteger(h) || w <= 0 || h <= 0 || w > 512 || h > 512 ||
+        input.depthLevel0?.length !== 2 * w * h ||
+        input.objectIds?.length !== w * h ||
+        input.occluderMask?.length !== w * h) return true;
+    // Invalid coordinates must never turn a missing shadow ray into clear air.
+    if (![ax, ay, bx, by].every(Number.isFinite)) return true;
     let x = Math.floor(ax), y = Math.floor(ay);
-    const ex = Math.floor(bx), ey = Math.floor(by);
+    // Check the source before the zero-length fast path: an outside origin is
+    // blocked even when the two endpoints coincide.
+    if (x < 0 || y < 0 || x >= input.width || y >= input.height) return true;
+    // The endpoint must itself belong to the fixture. In particular, a ray
+    // ending exactly at width/height is outside the half-open image domain;
+    // parametric termination must not reinterpret that as clear space.
+    if (bx < 0 || by < 0 || bx >= input.width || by >= input.height) return true;
     const dx = bx - ax, dy = by - ay;
-    if (!(dx || dy)) return occupiedAt(input, x, y);
+    // A point on an integer grid line touches both neighbouring cells; at
+    // a grid corner it touches all four. Include endpoints, including a
+    // zero-length ray, so a tangent macro occluder cannot be reported clear.
+    const pointBlocked = (px, py) => {
+      const cx = Math.floor(px), cy = Math.floor(py);
+      const edgeX = Number.isInteger(px), edgeY = Number.isInteger(py);
+      return occupiedAt(input, cx, cy) ||
+        (edgeX && occupiedAt(input, cx - 1, cy)) ||
+        (edgeY && occupiedAt(input, cx, cy - 1)) ||
+        (edgeX && edgeY && occupiedAt(input, cx - 1, cy - 1));
+    };
+    if (pointBlocked(ax, ay) || pointBlocked(bx, by)) return true;
+    if (!(dx || dy)) return false;
     const stepX = Math.sign(dx), stepY = Math.sign(dy);
+    // A ray exactly along a pixel edge touches *both* adjacent rows/columns.
+    // Check the other side too; otherwise the supercover oracle leaks through
+    // macro occluders that occupy only that side of the grid boundary.
+    const alongHorizontalEdge = stepY === 0 && Number.isInteger(ay);
+    const alongVerticalEdge = stepX === 0 && Number.isInteger(ax);
     const deltaX = stepX ? 1 / Math.abs(dx) : Infinity;
     const deltaY = stepY ? 1 / Math.abs(dy) : Infinity;
     let tX = stepX > 0 ? (x + 1 - ax) * deltaX : stepX < 0 ? (ax - x) * deltaX : Infinity;
@@ -54,10 +87,23 @@
     if (x < 0 || y < 0 || x >= input.width || y >= input.height) return true;
     const maxCells = input.width + input.height + 2;
     for (let count = 0; count < maxCells; count++) {
-      if (occupiedAt(input, x, y)) return true;
-      if (x === ex && y === ey) return false;
-      if (tX < tY) {x += stepX; tX += deltaX;}
-      else if (tY < tX) {y += stepY; tY += deltaY;}
+      if (occupiedAt(input, x, y) ||
+          (alongHorizontalEdge && occupiedAt(input, x, y - 1)) ||
+          (alongVerticalEdge && occupiedAt(input, x - 1, y))) return true;
+      // All cells incident on the exact endpoint were already tested above.
+      // End the closed segment in parametric time, not by floored destination
+      // cell equality: negative-direction grid-edge endpoints can skip that
+      // cell and otherwise walk outside the fixture, falsely blocking clear
+      // rays. Allow only traversal-count-scaled floating-point rounding.
+      if (Math.min(tX, tY) >= 1 - 16 * Number.EPSILON * (count + 1)) return false;
+      // Repeated DDA additions can round mathematically coincident
+      // grid-corner crossings to slightly unequal times. Only collapse
+      // differences at floating-point noise scale; ordinary near-corner
+      // paths must not expand into a broad shadow.
+      const corner = Number.isFinite(tX) && Number.isFinite(tY) &&
+        Math.abs(tX - tY) <= 16 * Number.EPSILON * (count + 1);
+      if (tX < tY && !corner) {x += stepX; tX += deltaX;}
+      else if (tY < tX && !corner) {y += stepY; tY += deltaY;}
       else {
         // Conservative corner supercover: both edge-adjacent cells can block.
         if (occupiedAt(input, x + stepX, y) || occupiedAt(input, x, y + stepY)) return true;
@@ -69,11 +115,21 @@
   }
 
   function normalizeCone(light) {
-    if (!light || (light.type !== 'cone' && light.typeValue !== 1)) throw new TypeError('SM-700 requires an SM-204 normalized cone light');
+    // SM-204 emits type='cone' and typeValue=1. A single available
+    // discriminator suffices, but contradictory metadata is not canonical.
+    if (!light || (light.type !== undefined && light.type !== 'cone') ||
+        (light.typeValue !== undefined && light.typeValue !== 1) ||
+        (light.type !== 'cone' && light.typeValue !== 1)) {
+      throw new TypeError('SM-700 requires a consistent SM-204 normalized cone light');
+    }
     const p = light.position, d = light.direction;
-    if (!p || !d || ![p[0], p[1], d[0], d[1], light.radius, light.outerCos, light.innerCos, light.intensity].every(Number.isFinite)) throw new TypeError('SM-700 cone has invalid canonical fields');
+    if (!p || !d || ![p[0], p[1], p[2], d[0], d[1], light.radius, light.outerCos, light.innerCos, light.intensity].every(Number.isFinite)) throw new TypeError('SM-700 cone has invalid canonical fields');
     const length = Math.hypot(d[0], d[1]);
-    if (length < 1e-6 || light.radius <= 0 || light.intensity < 0 || light.innerCos <= light.outerCos) throw new RangeError('SM-700 cone geometry or intensity is invalid');
+    if (length < 1e-6 || light.radius <= 0 || light.intensity < 0 ||
+        light.innerCos <= light.outerCos || light.innerCos > 1 || light.innerCos < -1 ||
+        light.outerCos > 1 || light.outerCos < -1) {
+      throw new RangeError('SM-700 cone geometry or intensity is invalid');
+    }
     return {x: p[0], y: p[1], dx: d[0] / length, dy: d[1] / length, radius: light.radius, intensity: light.intensity, innerCos: light.innerCos, outerCos: light.outerCos};
   }
 
