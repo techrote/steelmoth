@@ -63,6 +63,31 @@ def safe_member(name: str) -> None:
     if not p.parts or p.is_absolute() or '..' in p.parts or any(':' in part for part in p.parts):
         raise RuntimeError(f'unsafe archive member: {name}')
 
+def validate_output_destinations(root: Path, report: Path | None, archive: Path | None) -> None:
+    """Reject output/input overlap and report/archive aliases before any writes.
+
+    Existing output files inside a source-included path would be packed on the
+    next invocation; report/archive aliases would replace the ZIP with JSON.
+    Check both lexical paths and resolved targets (including symlink aliases).
+    """
+    root=root.resolve()
+    resolved={}
+    for option,destination in (('report',report),('archive',archive)):
+        if destination is None: continue
+        requested=destination if destination.is_absolute() else root/destination
+        lexical=Path(os.path.abspath(requested))
+        target=lexical.resolve()
+        resolved[option]=target
+        for candidate in (lexical,target):
+            if candidate.is_relative_to(root) and include(candidate,root):
+                rel=candidate.relative_to(root).as_posix()
+                raise RuntimeError(
+                    f'--{option} output is included in source package: {rel}; '
+                    'use artifacts/ or a destination outside the repository'
+                )
+    if 'report' in resolved and 'archive' in resolved and resolved['report']==resolved['archive']:
+        raise RuntimeError('--report and --archive must have distinct destinations')
+
 def baseline_runtime_path(name: str) -> bool:
     name=name.replace('\\','/').removeprefix('./')
     if name in BASELINE_EVOLVING_PATHS: return False
@@ -79,6 +104,13 @@ def main() -> int:
     ap.add_argument('--archive',type=Path,help='optional destination for the generated ZIP')
     args=ap.parse_args()
     report={'schema':'steelmoth-clean-package-report/v1','ok':False,'checks':[]}
+    # Invalid destinations are rejected without touching the report or archive:
+    # either may alias an existing source file or each other.
+    try:
+        validate_output_destinations(ROOT,args.report,args.archive)
+    except RuntimeError as error:
+        print(f"CLEAN PACKAGE FAIL: {error}",file=sys.stderr)
+        return 1
     try:
         files=collect_source_files(ROOT)
     except RuntimeError as error:
