@@ -10,7 +10,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from validate_clean_package import collect_source_files, main, safe_member
+from validate_clean_package import collect_source_files, main, safe_member, validate_output_destinations
 
 
 class CleanPackageSourceTests(unittest.TestCase):
@@ -85,6 +85,53 @@ class CleanPackageSourceTests(unittest.TestCase):
              redirect_stdout(StringIO()):
             self.assertEqual(main(),1)
         self.assertEqual(archive.read_bytes(),b'existing validated artifact')
+
+
+    def test_output_destinations_in_excluded_artifacts_or_outside_root(self) -> None:
+        excluded=self.root/'artifacts'
+        validate_output_destinations(self.root,excluded/'report.json',excluded/'release.zip')
+        validate_output_destinations(
+            self.root,Path(self.temp.name)/'report.json',Path(self.temp.name)/'release.zip',
+        )
+
+    def test_archive_report_collision_preserves_existing_artifact(self) -> None:
+        destination=Path(self.temp.name)/'release.zip'
+        destination.write_bytes(b'previous validated zip')
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(destination),'--report',str(destination)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertEqual(destination.read_bytes(),b'previous validated zip')
+
+    def test_archive_report_normalized_alias_collision(self) -> None:
+        destination=self.root/'artifacts'/'release.zip'
+        with self.assertRaisesRegex(RuntimeError,'distinct destinations'):
+            validate_output_destinations(
+                self.root, self.root/'artifacts'/'nested'/'..'/'release.zip',destination
+            )
+
+    def test_archive_at_source_root_rejected_before_creation(self) -> None:
+        destination=self.root/'release.zip'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(destination)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(destination.exists())
+
+    def test_existing_archive_inside_source_cannot_be_repacked(self) -> None:
+        destination=self.root/'release.zip'
+        destination.write_bytes(b'existing archive from previous run')
+        with self.assertRaisesRegex(RuntimeError,'included in source package'):
+            validate_output_destinations(self.root,None,destination)
+        self.assertEqual(destination.read_bytes(),b'existing archive from previous run')
+
+    def test_report_cannot_overwrite_included_source(self) -> None:
+        source=self.root/'main.js'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--report',str(source)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertEqual(source.read_text(encoding='utf-8'),'ok')
 
 
 if __name__=='__main__':
