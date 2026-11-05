@@ -44,6 +44,7 @@ CHECKS = [
     ("js-render-fixture-adapter", "source", ["node", "--check", "engine/render_fixture_adapter.js"]),
     ("js-webapp", "source", ["node", "--check", "webapp.js"]),
     ("js-service-worker", "source", ["node", "--check", "sw.js"]),
+    ("clean-package-source-safety", "regression", [PY, "tools/test_clean_package_sources.py"]),
     ("planning", "regression", [PY, "tools/validate_planning.py"]),
     ("render-transform", "regression", ["node", "tools/validate_render_transform.js"]),
     ("render-transform-contract", "regression", [PY, "tools/validate_render_transform_contract.py"]),
