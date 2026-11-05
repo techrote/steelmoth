@@ -23,8 +23,8 @@
   }
 
   function dimensions(width, height) {
-    if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 || width * height > 512 * 512) {
-      throw new RangeError('SM-700 CPU reference requires positive fixture dimensions at most 262144 pixels');
+    if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 || width > 512 || height > 512) {
+      throw new RangeError('SM-700 CPU reference requires positive fixture dimensions at most 512x512');
     }
     return {width, height, quarterWidth: Math.ceil(width / QUARTER_SCALE), quarterHeight: Math.ceil(height / QUARTER_SCALE)};
   }
@@ -41,7 +41,12 @@
   // Supercover raster traversal avoids skipping single-pixel macro occluders
   // that a sparse 12..20 sample-only shadow ray would otherwise miss.
   function rayBlocked(input, ax, ay, bx, by) {
+    // Invalid coordinates must never turn a missing shadow ray into clear air.
+    if (![ax, ay, bx, by].every(Number.isFinite)) return true;
     let x = Math.floor(ax), y = Math.floor(ay);
+    // Check the source before the zero-length fast path: an outside origin is
+    // blocked even when the two endpoints coincide.
+    if (x < 0 || y < 0 || x >= input.width || y >= input.height) return true;
     const ex = Math.floor(bx), ey = Math.floor(by);
     const dx = bx - ax, dy = by - ay;
     if (!(dx || dy)) return occupiedAt(input, x, y);
