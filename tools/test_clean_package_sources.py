@@ -12,7 +12,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from validate_clean_package import collect_source_files, main, safe_member, validate_output_destinations
+from validate_clean_package import collect_source_files, main, safe_member, validate_member_collisions, validate_output_destinations
 
 
 class CleanPackageSourceTests(unittest.TestCase):
@@ -219,6 +219,67 @@ class CleanPackageSourceTests(unittest.TestCase):
         self.assertFalse(outcome['ok'])
         self.assertIn('unsafe archive member',outcome['error'])
         self.assertIn('CON.txt',outcome['error'])
+
+    def test_case_insensitive_member_collision_oracle(self) -> None:
+        for members in (
+            ('steelmoth/assets/Sprite.png','steelmoth/assets/sprite.png'),
+            ('steelmoth/Assets/a.png','steelmoth/assets/b.png'),
+            ('steelmoth/Assets/nested/a.png','steelmoth/assets/nested/b.png'),
+        ):
+            with self.subTest(members=members), self.assertRaisesRegex(
+                RuntimeError,'case-insensitive archive member collision'
+            ):
+                validate_member_collisions(members)
+        validate_member_collisions((
+            'steelmoth/assets/a.png','steelmoth/assets/b.png',
+            'steelmoth/engine/game.js',
+        ))
+
+    def test_case_insensitive_source_file_collision_rejected(self) -> None:
+        directory=self.root/'assets'
+        directory.mkdir()
+        upper=directory/'Sprite.png'
+        lower=directory/'sprite.png'
+        upper.write_bytes(b'first')
+        lower.write_bytes(b'second')
+        if upper.samefile(lower):
+            self.skipTest('filesystem is case-insensitive')
+        with self.assertRaisesRegex(RuntimeError,'case-insensitive archive member collision'):
+            collect_source_files(self.root)
+
+    def test_case_insensitive_directory_alias_rejected(self) -> None:
+        upper=self.root/'Assets'
+        lower=self.root/'assets'
+        upper.mkdir()
+        lower.mkdir()
+        (upper/'a.png').write_bytes(b'a')
+        (lower/'b.png').write_bytes(b'b')
+        if upper.samefile(lower):
+            self.skipTest('filesystem is case-insensitive')
+        with self.assertRaisesRegex(RuntimeError,'case-insensitive archive member collision'):
+            collect_source_files(self.root)
+
+    def test_case_insensitive_collision_refuses_archive_with_report(self) -> None:
+        directory=self.root/'assets'
+        directory.mkdir()
+        upper=directory/'Tile.png'
+        lower=directory/'tile.png'
+        upper.write_bytes(b'first')
+        lower.write_bytes(b'second')
+        if upper.samefile(lower):
+            self.skipTest('filesystem is case-insensitive')
+        archive=Path(self.temp.name)/'ambiguous.zip'
+        report=Path(self.temp.name)/'ambiguous-report.json'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(archive.exists())
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertIn('case-insensitive archive member collision',outcome['error'])
+        self.assertIn('Tile.png',outcome['error'])
+        self.assertIn('tile.png',outcome['error'])
 
     def test_failed_extraction_does_not_publish_archive(self) -> None:
         archive=Path(self.temp.name)/'release.zip'

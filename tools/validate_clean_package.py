@@ -84,7 +84,11 @@ def collect_source_files(root: Path = ROOT) -> list[Path]:
                 raise RuntimeError(
                     f'non-regular entry in clean package source: {path.relative_to(root).as_posix()}'
                 )
-    return sorted(files)
+    files = sorted(files)
+    validate_member_collisions(
+        (Path('steelmoth')/source.relative_to(root)).as_posix() for source in files
+    )
+    return files
 
 def safe_member(name: str) -> None:
     # Recognize both separator conventions and Windows drive components, even
@@ -101,6 +105,22 @@ def safe_member(name: str) -> None:
         if (stem in {'CON','PRN','AUX','NUL','CONIN$','CONOUT$'} or
             (len(stem)==4 and stem[:3] in {'COM','LPT'} and stem[3] in '123456789¹²³')):
             raise RuntimeError(f'unsafe archive member: {name}')
+
+def validate_member_collisions(names) -> None:
+    """Reject case-insensitive file and directory-prefix archive aliases."""
+    seen: dict[str, str] = {}
+    for name in names:
+        safe_member(name)
+        parts = PurePosixPath(name.replace(chr(92), '/')).parts
+        for length in range(1, len(parts) + 1):
+            candidate = '/'.join(parts[:length])
+            key = candidate.casefold()
+            previous = seen.setdefault(key, candidate)
+            if previous != candidate:
+                raise RuntimeError(
+                    f'case-insensitive archive member collision: {previous} vs {candidate}'
+                )
+
 
 def validate_output_destinations(root: Path, report: Path | None, archive: Path | None) -> None:
     """Reject output/input overlap and report/archive aliases before any writes.
