@@ -57,6 +57,19 @@ const edgeColumn=fixture();edgeColumn.mark(20,21);
 check(S.rayBlocked(edgeColumn,21,8.5,21,29.5),'vertical grid-edge ray blocks occluder in left-adjacent column');
 check(S.rayBlocked(edgeColumn,21,29.5,21,8.5),'reverse vertical grid-edge ray also blocks adjacent column');
 check(!S.rayBlocked(edgeColumn,22.5,8.5,22.5,29.5),'vertical non-edge ray remains clear outside adjacent column');
+// Endpoint grid corners touch cells immediately before and after that point.
+const endpointCorner=fixture();endpointCorner.mark(2,9);
+check(S.rayBlocked(endpointCorner,0,0,2,10),'endpoint corner conservatively includes upper-right tangent occluder');
+check(S.rayBlocked(endpointCorner,2,10,0,0),'endpoint corner remains blocked under reverse traversal');
+check(!S.rayBlocked(endpointCorner,0,0,1.999,10),'nearby non-corner endpoint does not overblock');
+// Floating DDA times may differ on an exact interior grid-corner crossing.
+const interiorCorner=fixture();interiorCorner.mark(6,3);
+check(S.rayBlocked(interiorCorner,0,0,9,6),'interior diagonal corner touch blocks upper-right neighbour');
+check(S.rayBlocked(interiorCorner,9,6,0,0),'interior diagonal corner touch is reversible');
+// A degenerate ray at a cell corner still touches four adjoining cells.
+const pointCorner=fixture();pointCorner.mark(7,17);
+check(S.rayBlocked(pointCorner,8,18,8,18),'zero-length corner touching an adjacent occluder blocks');
+check(!S.rayBlocked(pointCorner,8.001,18.001,8.001,18.001),'interior zero-length point is not spuriously blocked');
 // Exported ray traversal must fail closed for malformed/out-of-bounds inputs.
 check(S.rayBlocked(base,-1,-1,-1,-1),'zero-length out-of-bounds source is blocked');
 check(S.rayBlocked(base,-1,18,-1,18),'zero-length horizontal outside source is blocked');

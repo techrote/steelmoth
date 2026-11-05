@@ -49,7 +49,19 @@
     if (x < 0 || y < 0 || x >= input.width || y >= input.height) return true;
     const ex = Math.floor(bx), ey = Math.floor(by);
     const dx = bx - ax, dy = by - ay;
-    if (!(dx || dy)) return occupiedAt(input, x, y);
+    // A point on an integer grid line touches both neighbouring cells; at
+    // a grid corner it touches all four. Include endpoints, including a
+    // zero-length ray, so a tangent macro occluder cannot be reported clear.
+    const pointBlocked = (px, py) => {
+      const cx = Math.floor(px), cy = Math.floor(py);
+      const edgeX = Number.isInteger(px), edgeY = Number.isInteger(py);
+      return occupiedAt(input, cx, cy) ||
+        (edgeX && occupiedAt(input, cx - 1, cy)) ||
+        (edgeY && occupiedAt(input, cx, cy - 1)) ||
+        (edgeX && edgeY && occupiedAt(input, cx - 1, cy - 1));
+    };
+    if (pointBlocked(ax, ay) || pointBlocked(bx, by)) return true;
+    if (!(dx || dy)) return false;
     const stepX = Math.sign(dx), stepY = Math.sign(dy);
     // A ray exactly along a pixel edge touches *both* adjacent rows/columns.
     // Check the other side too; otherwise the supercover oracle leaks through
@@ -68,8 +80,14 @@
           (alongHorizontalEdge && occupiedAt(input, x, y - 1)) ||
           (alongVerticalEdge && occupiedAt(input, x - 1, y))) return true;
       if (x === ex && y === ey) return false;
-      if (tX < tY) {x += stepX; tX += deltaX;}
-      else if (tY < tX) {y += stepY; tY += deltaY;}
+      // Repeated DDA additions can round mathematically coincident
+      // grid-corner crossings to slightly unequal times. Only collapse
+      // differences at floating-point noise scale; ordinary near-corner
+      // paths must not expand into a broad shadow.
+      const corner = Number.isFinite(tX) && Number.isFinite(tY) &&
+        Math.abs(tX - tY) <= 16 * Number.EPSILON * (count + 1);
+      if (tX < tY && !corner) {x += stepX; tX += deltaX;}
+      else if (tY < tX && !corner) {y += stepY; tY += deltaY;}
       else {
         // Conservative corner supercover: both edge-adjacent cells can block.
         if (occupiedAt(input, x + stepX, y) || occupiedAt(input, x, y + stepY)) return true;
