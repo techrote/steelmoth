@@ -251,7 +251,7 @@ class CleanPackageSourceTests(unittest.TestCase):
         upper=self.root/'Assets'
         lower=self.root/'assets'
         upper.mkdir()
-        lower.mkdir()
+        lower.mkdir(exist_ok=True)
         (upper/'a.png').write_bytes(b'a')
         (lower/'b.png').write_bytes(b'b')
         if upper.samefile(lower):
