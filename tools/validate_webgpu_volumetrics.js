@@ -217,4 +217,23 @@ assert.throws(()=>S.referenceScattering(missing,opt),/per-cone DSO/);passed++;
 assert.throws(()=>S.referenceScattering({...base,width:2048,height:2048},opt),/fixture dimensions/);passed++;
 assert.throws(()=>S.referenceScattering({...base,playerCone:{...base.playerCone,innerCos:0.5,outerCos:0.8}},opt),/geometry/);passed++;
 assert.throws(()=>S.referenceScattering({...base,playerCone:{...base.playerCone,direction:[0,0]}},opt),/geometry/);passed++;
+// Exported ray helper must fail closed if callers bypass the reference
+// wrapper and hand it missing/truncated authoritative GPU readbacks.
+check(S.rayBlocked(null,8.5,18.5,30.5,18.5),'missing ray fixture is blocked, not a clear beam');
+check(S.rayBlocked({width:WIDTH,height:HEIGHT},8.5,18.5,30.5,18.5),'missing canonical arrays cannot be interpreted as clear space');
+check(S.rayBlocked({...base,occluderMask:new Uint8Array(0)},8.5,18.5,30.5,18.5),'truncated occluder classification cannot leak light');
+check(S.rayBlocked({...base,objectIds:new Uint32Array(0)},8.5,18.5,30.5,18.5),'truncated owner IDs cannot leak light');
+check(S.rayBlocked({...base,depthLevel0:new Float32Array(0)},8.5,18.5,30.5,18.5),'truncated SM-203 ranges cannot leak light');
+check(S.rayBlocked({...base,width:513,height:1},8.5,0.5,30.5,0.5),'exported ray helper enforces fixture axis bound');
+check(!S.rayBlocked(base,8.5,18.5,30.5,18.5),'valid unoccupied readbacks still preserve clear beam');
+
+// Canonical SM-204 cone payloads require consistent type/typeValue, xyz,
+// and angular cosines within [-1,1], not just finite values in any range.
+assert.throws(()=>S.normalizeCone({...base.playerCone,type:'point'}),/consistent SM-204/);passed++;
+assert.throws(()=>S.normalizeCone({...base.playerCone,typeValue:0}),/consistent SM-204/);passed++;
+assert.throws(()=>S.normalizeCone({...base.playerCone,position:[8.5,18.5]}),/invalid canonical fields/);passed++;
+assert.throws(()=>S.normalizeCone({...base.playerCone,innerCos:1.1}),/cone geometry/);passed++;
+assert.throws(()=>S.normalizeCone({...base.playerCone,outerCos:-1.1}),/cone geometry/);passed++;
+check(S.normalizeCone({...base.playerCone,innerCos:1,outerCos:-1}).innerCos===1,
+  'valid SM-204 cosine extremes remain admitted');
 console.log('SM-700 REFERENCE PASS: ' + passed + ' assertions; quarter extent, cone, supercover, depth/DSO, off, bounds, no mutation');

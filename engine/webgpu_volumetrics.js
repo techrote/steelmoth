@@ -41,6 +41,14 @@
   // Supercover raster traversal avoids skipping single-pixel macro occluders
   // that a sparse 12..20 sample-only shadow ray would otherwise miss.
   function rayBlocked(input, ax, ay, bx, by) {
+    // This public helper is also used without referenceScattering()'s upfront
+    // shape check. Missing or truncated canonical readbacks must never mean
+    // "unoccluded"; return BLOCKED instead of reading undefined mask entries.
+    const w = input?.width, h = input?.height;
+    if (!Number.isInteger(w) || !Number.isInteger(h) || w <= 0 || h <= 0 || w > 512 || h > 512 ||
+        input.depthLevel0?.length !== 2 * w * h ||
+        input.objectIds?.length !== w * h ||
+        input.occluderMask?.length !== w * h) return true;
     // Invalid coordinates must never turn a missing shadow ray into clear air.
     if (![ax, ay, bx, by].every(Number.isFinite)) return true;
     let x = Math.floor(ax), y = Math.floor(ay);
@@ -107,11 +115,21 @@
   }
 
   function normalizeCone(light) {
-    if (!light || (light.type !== 'cone' && light.typeValue !== 1)) throw new TypeError('SM-700 requires an SM-204 normalized cone light');
+    // SM-204 emits type='cone' and typeValue=1. A single available
+    // discriminator suffices, but contradictory metadata is not canonical.
+    if (!light || (light.type !== undefined && light.type !== 'cone') ||
+        (light.typeValue !== undefined && light.typeValue !== 1) ||
+        (light.type !== 'cone' && light.typeValue !== 1)) {
+      throw new TypeError('SM-700 requires a consistent SM-204 normalized cone light');
+    }
     const p = light.position, d = light.direction;
-    if (!p || !d || ![p[0], p[1], d[0], d[1], light.radius, light.outerCos, light.innerCos, light.intensity].every(Number.isFinite)) throw new TypeError('SM-700 cone has invalid canonical fields');
+    if (!p || !d || ![p[0], p[1], p[2], d[0], d[1], light.radius, light.outerCos, light.innerCos, light.intensity].every(Number.isFinite)) throw new TypeError('SM-700 cone has invalid canonical fields');
     const length = Math.hypot(d[0], d[1]);
-    if (length < 1e-6 || light.radius <= 0 || light.intensity < 0 || light.innerCos <= light.outerCos) throw new RangeError('SM-700 cone geometry or intensity is invalid');
+    if (length < 1e-6 || light.radius <= 0 || light.intensity < 0 ||
+        light.innerCos <= light.outerCos || light.innerCos > 1 || light.innerCos < -1 ||
+        light.outerCos > 1 || light.outerCos < -1) {
+      throw new RangeError('SM-700 cone geometry or intensity is invalid');
+    }
     return {x: p[0], y: p[1], dx: d[0] / length, dy: d[1] / length, radius: light.radius, intensity: light.intensity, innerCos: light.innerCos, outerCos: light.outerCos};
   }
 
