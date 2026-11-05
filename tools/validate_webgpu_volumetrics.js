@@ -47,6 +47,17 @@ check(base.occluderMask.every(v=>v===0),'reference does not mutate caller mask')
 check(S.rayBlocked({width:WIDTH,height:HEIGHT,...wall},8.5,18.5,30.5,18.5),'supercover crosses thick wall');
 const diagonal=fixture();diagonal.mark(19,19);check(S.rayBlocked(diagonal,8.5,8.5,29.5,29.5),'diagonal exact-cell occluder is not skipped');
 const corner=fixture();corner.mark(12,11);check(S.rayBlocked(corner,8.5,8.5,16.5,16.5),'corner-adjacent occluder conservatively interrupts supercover');
+// Exported ray traversal must fail closed for malformed/out-of-bounds inputs.
+check(S.rayBlocked(base,-1,-1,-1,-1),'zero-length out-of-bounds source is blocked');
+check(S.rayBlocked(base,-1,18,-1,18),'zero-length horizontal outside source is blocked');
+check(S.rayBlocked(base,NaN,18,30,18),'non-finite ray origin is blocked');
+check(S.rayBlocked(base,8.5,18.5,Infinity,18.5),'non-finite ray endpoint is blocked');
+check(!S.rayBlocked(base,8.5,18.5,8.5,18.5),'valid zero-length clear-air ray remains clear');
+const blockedStart=fixture();blockedStart.mark(8,18);
+check(S.rayBlocked(blockedStart,8.5,18.5,8.5,18.5),'valid zero-length macro-occluder ray remains blocked');
+// An extreme one-dimensional fixture would evade the former area-only cap.
+assert.throws(()=>S.referenceScattering({...base,width:513,height:1},opt),/fixture dimensions/);passed++;
+assert.throws(()=>S.referenceScattering({...base,width:1,height:513},opt),/fixture dimensions/);passed++;
 const missing=fixture();delete missing.dsoLightVisibility;
 assert.throws(()=>S.referenceScattering(missing,opt),/per-cone DSO/);passed++;
 assert.throws(()=>S.referenceScattering({...base,width:2048,height:2048},opt),/fixture dimensions/);passed++;
