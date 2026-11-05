@@ -89,6 +89,15 @@ def safe_member(name: str) -> None:
     p=PurePosixPath(name.replace('\\','/'))
     if not p.parts or p.is_absolute() or '..' in p.parts or any(':' in part for part in p.parts):
         raise RuntimeError(f'unsafe archive member: {name}')
+    for part in p.parts:
+        # Win32 extraction may reject, normalize, or alias names accepted by
+        # POSIX, including DOS device names with extensions and trailing dots.
+        if part.endswith(('.', ' ')) or any(ord(char)<32 or char in '<>"|?*' for char in part):
+            raise RuntimeError(f'unsafe archive member: {name}')
+        stem=part.split('.',1)[0].upper()
+        if (stem in {'CON','PRN','AUX','NUL','CONIN$','CONOUT$'} or
+            (len(stem)==4 and stem[:3] in {'COM','LPT'} and stem[3] in '123456789¹²³')):
+            raise RuntimeError(f'unsafe archive member: {name}')
 
 def validate_output_destinations(root: Path, report: Path | None, archive: Path | None) -> None:
     """Reject output/input overlap and report/archive aliases before any writes.
