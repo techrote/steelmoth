@@ -253,3 +253,11 @@ renderer success is correctness evidence only. Native paired process campaigns,
 source/hash retention and the exact timing exclusions are specified in
 [SM-702](WEBGPU_FORWARD_LIGHTING_SM702.md). The retained native results and
 performance limitations are in [the measured report](SM702_FORWARD_LIGHTING_REPORT.md).
+
+## Clean-package source and path safety
+
+The clean source ZIP deliberately excludes `.git`, `.github`, generated `artifacts`, and named Python/cache debris. Every other symlink encountered in the source tree is now a **hard failure**, including dangling file links and linked directories. Previously `Path.is_file()` dereferenced file links, so a source-tree link pointing outside the repository could silently copy those external bytes into the ZIP. Even an in-tree link is rejected: a clean source archive must have unambiguous, regular-file inputs rather than materializing hidden link targets.
+
+Archive member validation handles both POSIX and Windows separator conventions, including traversal and drive-qualified names; an archive is not considered safe merely because the current CI host interprets a path differently. The failure is reported as `CLEAN PACKAGE FAIL` and, with `--report`, in the machine-readable report's `error` field. No archive is emitted on source preflight failure.
+
+`python tools/test_clean_package_sources.py` provides isolated regular-file, exclusion, external/dangling symlink, linked-directory, and portable-member regression cases; it is required by both the normal regression runner and extracted-package validation. Symlink-creation cases skip only on hosts that prohibit symlinks; hosted Linux CI executes them. This is source-package integrity evidence, not deployed PWA/cache, runtime, browser, or target-GPU release acceptance.
