@@ -80,6 +80,42 @@ class CleanPackageSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'non-regular entry.*unsafe.sock'):
             collect_source_files(self.root)
 
+    def test_unreadable_source_directory_fails_closed(self) -> None:
+        restricted=self.root/'restricted'
+        restricted.mkdir()
+
+        def denied_walk(root, *, topdown, followlinks, onerror):
+            self.assertTrue(topdown)
+            self.assertFalse(followlinks)
+            yield str(root), ['restricted'], ['main.js']
+            onerror(PermissionError(13, 'Permission denied', str(restricted)))
+
+        # Deterministic on all platforms; no root privileges or chmod needed.
+        with patch('validate_clean_package.os.walk', side_effect=denied_walk):
+            with self.assertRaisesRegex(RuntimeError,'cannot inspect.*restricted'):
+                collect_source_files(self.root)
+
+    def test_unreadable_directory_refuses_archive_and_reports_error(self) -> None:
+        restricted=self.root/'restricted'
+        restricted.mkdir()
+        archive=Path(self.temp.name)/'release.zip'
+        report=Path(self.temp.name)/'failure.json'
+
+        def denied_walk(root, *, topdown, followlinks, onerror):
+            yield str(root), ['restricted'], ['main.js']
+            onerror(PermissionError(13, 'Permission denied', str(restricted)))
+
+        with patch('validate_clean_package.os.walk', side_effect=denied_walk), \
+             patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(archive.exists())
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertIn('cannot inspect clean package source directory',outcome['error'])
+        self.assertIn('restricted',outcome['error'])
+
     def test_special_source_refuses_archive_with_structured_report(self) -> None:
         if not hasattr(os,'mkfifo'):
             self.skipTest('filesystem does not support named pipes')

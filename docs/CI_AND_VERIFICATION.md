@@ -46,6 +46,8 @@ python tools/validate_clean_package.py --report artifacts/clean-package.json
 
 The inherited v1.2.3 `SHA256SUMS.txt` remains provenance for the original release, but migration work intentionally changes runtime code. Clean-package validation therefore re-verifies only the imported immutable content subset—generated assets, game data, icons, the launcher and minimal static-host files—against historical hashes. Evolving engine/webapp/backend modules, manifests, documentation and tooling are validated by current source/regression/GLSL/package gates instead of being required to remain byte-identical to v1.2.3.
 
+The package source walker also fails closed if an included directory cannot be traversed (for example, due to permission denial). Python's permissive recursive glob can silently omit inaccessible subtrees; an incomplete ZIP is not valid release evidence. Excluded paths are pruned before traversal, and the unreadable-directory case is covered by deterministic collection and end-to-end archive-refusal tests in `tools/test_clean_package_sources.py`. As with the other filesystem preflights, this is a source-tree integrity check, not a claim of atomic protection against concurrent filesystem mutation.
+
 ### SM-101 browser pixel-parity gate
 
 When Chrome/Chromium is available, run:

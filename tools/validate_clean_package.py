@@ -45,30 +45,43 @@ def include(path: Path, root: Path = ROOT) -> bool:
     return not any(p in SKIP_NAMES for p in rel.parts)
 
 def collect_source_files(root: Path = ROOT) -> list[Path]:
-    """Never dereference symlinks into the supposedly self-contained source ZIP."""
-    files=[]
-    for path in sorted(root.rglob('*')):
-        if not include(path,root): continue
-        # is_file() follows links, including links outside the repository. A
-        # dangling link or linked directory must not silently disappear either.
-        if path.is_symlink():
-            raise RuntimeError(f'unsafe symlink in clean package source: {path.relative_to(root).as_posix()}')
-        if path.is_file():
-            # Hardlinks can alias bytes outside the repository even though
-            # is_file() considers them ordinary files. Refuse ambiguous input
-            # provenance rather than silently materializing an external inode.
-            if path.stat().st_nlink > 1:
+    """Collect a complete source tree, refusing aliases and unreadable subtrees.
+
+    pathlib.rglob can silently skip an unreadable directory. Use os.walk with
+    an explicit error handler so a partial release ZIP can never pass as
+    a complete source archive. Exclusions are pruned before descent.
+    """
+    files = []
+
+    def walk_error(error: OSError) -> None:
+        raise RuntimeError(
+            f'cannot inspect clean package source directory: '
+            f'{error.filename or root}: {error.strerror or error}'
+        ) from error
+
+    for directory, subdirs, names in os.walk(
+        root, topdown=True, followlinks=False, onerror=walk_error
+    ):
+        folder = Path(directory)
+        subdirs[:] = [name for name in sorted(subdirs) if include(folder/name, root)]
+        for name in (*subdirs, *names):
+            path = folder/name
+            if not include(path, root): continue
+            if path.is_symlink():
                 raise RuntimeError(
-                    f'unsafe hardlink in clean package source: {path.relative_to(root).as_posix()}'
+                    f'unsafe symlink in clean package source: {path.relative_to(root).as_posix()}'
                 )
-            files.append(path)
-        elif not path.is_dir():
-            # Silently dropping named pipes, sockets or devices makes an
-            # ostensibly complete source ZIP incomplete. Refuse before writing.
-            raise RuntimeError(
-                f'non-regular entry in clean package source: {path.relative_to(root).as_posix()}'
-            )
-    return files
+            if path.is_file():
+                if path.stat().st_nlink > 1:
+                    raise RuntimeError(
+                        f'unsafe hardlink in clean package source: {path.relative_to(root).as_posix()}'
+                    )
+                files.append(path)
+            elif not path.is_dir():
+                raise RuntimeError(
+                    f'non-regular entry in clean package source: {path.relative_to(root).as_posix()}'
+                )
+    return sorted(files)
 
 def safe_member(name: str) -> None:
     # Recognize both separator conventions and Windows drive components, even
