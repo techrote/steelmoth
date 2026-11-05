@@ -138,6 +138,69 @@ for(const [ax,ay,bx,by] of rays) {
 }
 check(comparisons>14000&&touchedComparisons>11000&&clearComparisons>2000,
   'seeded independent closed-cell geometry sweep checks touched and clear cells');
+
+// A second, independent closed-segment clipping oracle samples arbitrary
+// subpixels and near-integer grid crossings; the quarter-pixel sweep above
+// does not exercise floating geometry close to pixel boundaries. Check both
+// traversal directions without relying on the implementation's DDA.
+let subpixelSeed = 0x51a9b0e3;
+function subpixelRandom() {
+  subpixelSeed ^= subpixelSeed << 13;
+  subpixelSeed ^= subpixelSeed >>> 17;
+  subpixelSeed ^= subpixelSeed << 5;
+  return (subpixelSeed >>> 0) / 4294967296;
+}
+function slabTouchesCell(ax, ay, bx, by, x, y) {
+  let enter = 0, exit = 1;
+  for (const [start, delta, min, max] of [[ax, bx-ax, x, x+1], [ay, by-ay, y, y+1]]) {
+    if (delta === 0) {
+      if (start < min || start > max) return false;
+    } else {
+      const first = (min-start)/delta, last = (max-start)/delta;
+      enter = Math.max(enter, Math.min(first, last));
+      exit = Math.min(exit, Math.max(first, last));
+      if (enter > exit) return false;
+    }
+  }
+  return true;
+}
+function subpixelCoordinate(limit, variant) {
+  const raw = 1 + subpixelRandom() * (limit - 2);
+  switch (variant % 7) {
+    case 0: return Math.round(raw);
+    case 1: return Math.round(raw) + 1e-9;
+    case 2: return Math.round(raw) - 1e-9;
+    case 3: return Math.floor(raw) + 1/3;
+    case 4: return Math.floor(raw) + 0.25;
+    case 5: return Math.floor(raw) + 0.5;
+    default: return raw;
+  }
+}
+const subpixelFixture = fixture();
+let subpixelCount = 0, subpixelBlocked = 0, subpixelClear = 0;
+for (let i = 0; i < 320; i++) {
+  const ax = subpixelCoordinate(WIDTH,i), ay = subpixelCoordinate(HEIGHT,i+1);
+  const bx = subpixelCoordinate(WIDTH,i+2), by = subpixelCoordinate(HEIGHT,i+3);
+  const touched = [];
+  for (let y = 0; y < HEIGHT; y++) for (let x = 0; x < WIDTH; x++) {
+    if (slabTouchesCell(ax, ay, bx, by, x, y)) touched.push([x,y]);
+  }
+  const candidates = [];
+  for (let k = 0; k < 8; k++) candidates.push(touched[Math.floor(subpixelRandom()*touched.length)]);
+  for (let k = 0; k < 8; k++) candidates.push([Math.floor(subpixelRandom()*WIDTH), Math.floor(subpixelRandom()*HEIGHT)]);
+  for (const [x,y] of candidates) {
+    const index = y*WIDTH+x, expected = slabTouchesCell(ax,ay,bx,by,x,y);
+    subpixelFixture.mark(x,y);
+    assert.equal(S.rayBlocked(subpixelFixture,ax,ay,bx,by),expected,'subpixel forward ray='+[ax,ay,bx,by]+' cell='+[x,y]);
+    assert.equal(S.rayBlocked(subpixelFixture,bx,by,ax,ay),expected,'subpixel reverse ray='+[ax,ay,bx,by]+' cell='+[x,y]);
+    subpixelFixture.occluderMask[index]=0;subpixelFixture.objectIds[index]=0;
+    subpixelFixture.depthLevel0[2*index]=1;subpixelFixture.depthLevel0[2*index+1]=0;
+    subpixelCount+=2;if(expected)subpixelBlocked+=2;else subpixelClear+=2;
+  }
+}
+check(subpixelCount===10240&&subpixelBlocked>2000&&subpixelClear>1000,
+  'independent slab clipping covers 10,240 fractional/near-edge forward and reverse ray-cell checks');
+
 // Exported ray traversal must fail closed for malformed/out-of-bounds inputs.
 check(S.rayBlocked(base,-1,-1,-1,-1),'zero-length out-of-bounds source is blocked');
 check(S.rayBlocked(base,-1,18,-1,18),'zero-length horizontal outside source is blocked');
