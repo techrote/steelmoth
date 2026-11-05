@@ -86,8 +86,8 @@ class CleanPackageSourceTests(unittest.TestCase):
             self.skipTest(f'filesystem does not permit named pipes: {error}')
         archive=Path(self.temp.name)/'release.zip'
         report=Path(self.temp.name)/'failure.json'
-        with patch('validate_clean_package.ROOT',self.root), \\
-             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \\
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
              redirect_stdout(StringIO()):
             self.assertEqual(main(),1)
         self.assertFalse(archive.exists())
