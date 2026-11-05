@@ -74,6 +74,10 @@ document readiness/body/harness-result state, bounded test-only harness stages
 (fixture fetch, game readiness, RenderScene bridge promise, state application,
 settle frames and result readback), and game/bridge presence indicators. A
 missing harness object distinguishes a bootstrap failure from a stalled harness.
+The game-readiness stage requires **both** a constructed `window.game` and the
+explicit `document.body.dataset.ready=1` signal. If the latter never arrives by
+the existing 15-second inner deadline, the harness fails before applying the
+fixture; merely constructing the game is not evidence of initialization.
 The artifact also records elapsed time, browser exit code and
 a bounded Chrome stderr tail. The existing CI artifact upload includes these files
 even when the parity job fails. This is diagnostic instrumentation only: it does

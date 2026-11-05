@@ -314,7 +314,7 @@
       markStage('game-readiness');
       const deadline=performance.now()+15000;
       while ((!window.game || document.body.dataset.ready!=='1') && performance.now()<deadline) await new Promise(r=>setTimeout(r,25));
-      if (!window.game) throw new Error('game did not become ready within 15 seconds');
+      if (!window.game || document.body.dataset.ready !== '1') throw new Error(`game did not become ready within 15 seconds (gamePresent=${!!window.game}, bodyReady=${document.body.dataset.ready === '1'})`);
       // SM-100/101 compatibility modules load asynchronously from webapp.js. A
       // parity capture taken before that promise resolves tests a race, not the
       // accepted renderer path, so require the bridge to settle first.
