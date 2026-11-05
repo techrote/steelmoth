@@ -95,6 +95,8 @@ CHECKS = [
     ("sm702-target-report-provenance", "regression", [PY, "tools/validate_sm702_target_report.py", "--self-test"]),
     ("sm603-target-report-provenance", "regression", [PY, "tools/validate_sm603_target_report.py", "--self-test"]),
     ("render-harness", "regression", [PY, "tools/validate_render_harness.py"]),
+    ("render-capture-failure-diagnostics", "regression", [PY, "tools/test_render_capture_failure.py"]),
+    ("render-harness-stage-diagnostics", "regression", ["node", "tools/test_render_harness_stages.js"]),
     ("webgl2-benchmark", "regression", [PY, "tools/validate_webgl2_benchmark.py"]),
     ("webgpu-target-benchmark-contract", "regression", [PY, "tools/validate_webgpu_target_benchmark_contract.py"]),
     ("render-fixtures", "regression", [PY, "tools/validate_render_fixtures.py", "--repeat", "3"]),

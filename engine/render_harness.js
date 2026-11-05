@@ -36,6 +36,15 @@
     sampleFrames: Math.round(num('sampleFrames', 600, 1, 5000))
   });
 
+  // Test-only bounded breadcrumbs; never affect the accepted image or capture result.
+  let stage='script-loaded';
+  const stageHistory=[];
+  function markStage(name) {
+    stage=name;
+    stageHistory.push({stage:name,elapsedMs:Math.round(performance.now())});
+    if (stageHistory.length>16) stageHistory.shift();
+  }
+  markStage('script-loaded');
   let readyResolve;
   const ready = new Promise(resolve => { readyResolve = resolve; });
   let lastResult = null;
@@ -297,29 +306,38 @@
     return {blob,dataUrl:canvas.toDataURL('image/png'),diagnostics:lastResult};
   }
   async function start() {
-    if (!enabled) { readyResolve({ok:false,disabled:true}); return; }
+    if (!enabled) { markStage('disabled'); readyResolve({ok:false,disabled:true}); return; }
     try {
       if (config.backend !== 'webgl2') throw new Error(`backend ${config.backend} is unavailable in baseline v1.2.3; use webgl2`);
-      installCanvasLayout(); fixture=await loadFixture();
+      markStage('layout'); installCanvasLayout();
+      markStage('fixture-fetch'); fixture=await loadFixture();
+      markStage('game-readiness');
       const deadline=performance.now()+15000;
       while ((!window.game || document.body.dataset.ready!=='1') && performance.now()<deadline) await new Promise(r=>setTimeout(r,25));
-      if (!window.game) throw new Error('game did not become ready within 15 seconds');
+      if (!window.game || document.body.dataset.ready !== '1') throw new Error(`game did not become ready within 15 seconds (gamePresent=${!!window.game}, bodyReady=${document.body.dataset.ready === '1'})`);
       // SM-100/101 compatibility modules load asynchronously from webapp.js. A
       // parity capture taken before that promise resolves tests a race, not the
       // accepted renderer path, so require the bridge to settle first.
+      markStage('render-scene-promise');
       if(globalThis.steelMothRenderSceneReady&&typeof globalThis.steelMothRenderSceneReady.then==='function')await globalThis.steelMothRenderSceneReady;
+      markStage('bridge-contract');
       if(!window.game.renderSceneBridge)throw new Error('render scene compatibility bridge did not attach before capture');
       if(!globalThis.steelMothRenderTransformBaseline&&!window.game.renderTransform)throw new Error('SM-101 shared transform authority did not attach before capture');
-      applyState(window.game,fixture);
+      markStage('fixture-state'); applyState(window.game,fixture);
+      markStage('settle-frames');
       for(let i=0;i<config.settleFrames;i++) await new Promise(r=>requestAnimationFrame(r));
+      if (config.benchmark) markStage('benchmark');
       const performanceResult=config.benchmark?await runBenchmark(window.game):null;
-      const result=await buildResult(window.game,performanceResult); readyResolve(result);
+      markStage('result-readback');
+      const result=await buildResult(window.game,performanceResult);
+      markStage('published'); readyResolve(result);
     } catch (error) {
+      markStage('error');
       const result={ok:false,error:String(error?.stack||error),config}; writeResult(result); document.body.dataset.renderTestError='1'; readyResolve(result);
     }
   }
 
   if (enabled) installIsolation();
-  window.SteelMothRenderHarness={enabled,config,angles:ANGLES,ready,capture,get result(){return lastResult;}};
+  window.SteelMothRenderHarness={enabled,config,angles:ANGLES,ready,capture,get stage(){return stage;},get stageHistory(){return stageHistory.slice();},get result(){return lastResult;}};
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',start,{once:true}); else start();
 })();
