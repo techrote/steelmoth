@@ -47,6 +47,10 @@
     // Check the source before the zero-length fast path: an outside origin is
     // blocked even when the two endpoints coincide.
     if (x < 0 || y < 0 || x >= input.width || y >= input.height) return true;
+    // The endpoint must itself belong to the fixture. In particular, a ray
+    // ending exactly at width/height is outside the half-open image domain;
+    // parametric termination must not reinterpret that as clear space.
+    if (bx < 0 || by < 0 || bx >= input.width || by >= input.height) return true;
     const dx = bx - ax, dy = by - ay;
     // A point on an integer grid line touches both neighbouring cells; at
     // a grid corner it touches all four. Include endpoints, including a
