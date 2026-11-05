@@ -51,6 +51,11 @@
     const dx = bx - ax, dy = by - ay;
     if (!(dx || dy)) return occupiedAt(input, x, y);
     const stepX = Math.sign(dx), stepY = Math.sign(dy);
+    // A ray exactly along a pixel edge touches *both* adjacent rows/columns.
+    // Check the other side too; otherwise the supercover oracle leaks through
+    // macro occluders that occupy only that side of the grid boundary.
+    const alongHorizontalEdge = stepY === 0 && Number.isInteger(ay);
+    const alongVerticalEdge = stepX === 0 && Number.isInteger(ax);
     const deltaX = stepX ? 1 / Math.abs(dx) : Infinity;
     const deltaY = stepY ? 1 / Math.abs(dy) : Infinity;
     let tX = stepX > 0 ? (x + 1 - ax) * deltaX : stepX < 0 ? (ax - x) * deltaX : Infinity;
@@ -59,7 +64,9 @@
     if (x < 0 || y < 0 || x >= input.width || y >= input.height) return true;
     const maxCells = input.width + input.height + 2;
     for (let count = 0; count < maxCells; count++) {
-      if (occupiedAt(input, x, y)) return true;
+      if (occupiedAt(input, x, y) ||
+          (alongHorizontalEdge && occupiedAt(input, x, y - 1)) ||
+          (alongVerticalEdge && occupiedAt(input, x - 1, y))) return true;
       if (x === ex && y === ey) return false;
       if (tX < tY) {x += stepX; tX += deltaX;}
       else if (tY < tX) {y += stepY; tY += deltaY;}
