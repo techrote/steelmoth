@@ -76,6 +76,9 @@ def collect_source_files(root: Path = ROOT) -> list[Path]:
                     raise RuntimeError(
                         f'unsafe hardlink in clean package source: {path.relative_to(root).as_posix()}'
                     )
+                # Refuse Windows-unsafe extracted names during source preflight,
+                # so main() retains the structured error and never builds a ZIP.
+                safe_member((Path('steelmoth')/path.relative_to(root)).as_posix())
                 files.append(path)
             elif not path.is_dir():
                 raise RuntimeError(

@@ -204,6 +204,22 @@ class CleanPackageSourceTests(unittest.TestCase):
         for name in ('Console.txt','a-b.png','COM0.txt','LPT0.txt','normal_asset.png'):
             safe_member('steelmoth/assets/'+name)
 
+    def test_windows_reserved_source_fails_before_zip_with_report(self) -> None:
+        assets=self.root/'assets'
+        assets.mkdir()
+        (assets/'CON.txt').write_text('must not publish',encoding='utf-8')
+        archive=Path(self.temp.name)/'unsafe-windows.zip'
+        report=Path(self.temp.name)/'unsafe-windows-report.json'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(archive.exists())
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertIn('unsafe archive member',outcome['error'])
+        self.assertIn('CON.txt',outcome['error'])
+
     def test_failed_extraction_does_not_publish_archive(self) -> None:
         archive=Path(self.temp.name)/'release.zip'
         report=Path(self.temp.name)/'failed-report.json'
