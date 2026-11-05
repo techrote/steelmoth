@@ -2,11 +2,15 @@
 """Regression checks for release archive source and member safety."""
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
-from validate_clean_package import collect_source_files, safe_member
+from validate_clean_package import collect_source_files, main, safe_member
 
 
 class CleanPackageSourceTests(unittest.TestCase):
