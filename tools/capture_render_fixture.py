@@ -22,6 +22,30 @@ def free_port():
 def json_get(url:str,timeout=2):
     with urllib.request.urlopen(url,timeout=timeout) as r: return json.loads(r.read().decode('utf-8'))
 
+def save_capture_failure(path: pathlib.Path, *, phase: str, error: Exception,
+                         polls: int, last_probe: dict | None,
+                         chrome_log: pathlib.Path, browser_exit: int | None,
+                         elapsed_s: float) -> None:
+    """Persist bounded failure evidence without masking the original capture error."""
+    report = {
+        'schema': 'steelmoth-browser-capture-failure/v1',
+        'phase': phase,
+        'error': str(error),
+        'readyPolls': polls,
+        'lastReadinessProbe': last_probe,
+        'browserExitCode': browser_exit,
+        'elapsedSeconds': round(elapsed_s, 3),
+    }
+    try:
+        report['chromeLogTail'] = chrome_log.read_text(encoding='utf-8', errors='replace')[-6000:] if chrome_log.exists() else ''
+    except OSError as log_error:
+        report['chromeLogReadError'] = str(log_error)
+    try:
+        path.write_text(json.dumps(report, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    except OSError as write_error:
+        print(f'Unable to write browser capture failure evidence: {write_error}', file=sys.stderr)
+
+
 class CDP:
     def __init__(self,url:str,timeout=20):
         self.ws=websocket.create_connection(url,timeout=timeout,origin='http://127.0.0.1');self.seq=0
@@ -67,6 +91,7 @@ def main():
                     cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--disable-component-update','--disable-default-apps','--disable-sync','--metrics-recording-only','--no-first-run','--enable-webgl','--enable-unsafe-swiftshader','--remote-allow-origins=*',f'--remote-debugging-port={port}',f'--user-data-dir={profile}',f'--force-device-scale-factor={a.dpr}',f'--window-size={cssw},{cssh}',url]
                     proc=subprocess.Popen(cmd,cwd=ROOT,stdout=subprocess.DEVNULL,stderr=log,start_new_session=True)
                     cdp=None
+                    phase='devtools-discovery'; polls=0; last_probe=None; started=time.monotonic()
                     try:
                         deadline=time.monotonic()+a.browser_timeout;target=None
                         while time.monotonic()<deadline and proc.poll() is None:
@@ -81,22 +106,34 @@ def main():
                         # seconds while the first WebGL frame/material targets are created. Keep
                         # individual CDP request timeout below the overall browser deadline but
                         # large enough not to turn that startup latency into a false parity failure.
+                        phase='cdp-session'
                         cdp=CDP(target['webSocketDebuggerUrl'],timeout=max(10,min(30,a.browser_timeout*.5)));cdp.call('Page.enable');cdp.call('Runtime.enable')
+                        phase='render-test-readiness'
                         while time.monotonic()<deadline:
-                            ready=cdp.eval("document.body && (document.body.dataset.renderTestReady==='1' || document.body.dataset.renderTestError==='1')")
-                            if ready: break
+                            last_probe=cdp.eval("(() => { const b=document.body; const r=document.getElementById('renderTestResult'); return {documentReadyState:document.readyState,hasBody:!!b,ready:!!b&&b.dataset.renderTestReady==='1',error:!!b&&b.dataset.renderTestError==='1',resultLength:r?.textContent?.length||0}; })()")
+                            polls+=1
+                            if not isinstance(last_probe,dict): raise RuntimeError('invalid render-test readiness probe')
+                            if last_probe['ready'] or last_probe['error']: break
                             time.sleep(.15)
                         else: raise RuntimeError('render-test did not become ready before browser timeout')
+                        phase='harness-result'
                         text=cdp.eval("document.getElementById('renderTestResult')?.textContent || ''")
                         if not text: raise RuntimeError('renderTestResult not found after readiness signal')
                         result=json.loads(text)
                         if not result.get('ok'): raise RuntimeError(result.get('error','render harness failed'))
+                        phase='canvas-readback'
                         exact_url=result.get('canvasPng',{}).pop('dataUrl',None)
                         if not isinstance(exact_url,str) or ',' not in exact_url: raise RuntimeError('harness did not expose exact accepted canvas PNG')
                         canvas_bytes=base64.b64decode(exact_url.split(',',1)[1]);canvas_shot.write_bytes(canvas_bytes)
                         exact_hash=hashlib.sha256(canvas_bytes).hexdigest()
                         if exact_hash!=result.get('canvasPng',{}).get('sha256'): raise RuntimeError('embedded accepted canvas PNG disagrees with harness hash')
+                        phase='viewport-screenshot'
                         screen=cdp.call('Page.captureScreenshot',{'format':'png','fromSurface':True,'captureBeyondViewport':False});screen_bytes=base64.b64decode(screen['data']);shot.write_bytes(screen_bytes)
+                    except Exception as capture_error:
+                        save_capture_failure(run_dir/'failure-diagnostics.json',phase=phase,error=capture_error,
+                                             polls=polls,last_probe=last_probe,chrome_log=log_path,
+                                             browser_exit=proc.poll(),elapsed_s=time.monotonic()-started)
+                        raise
                     finally:
                         if cdp: cdp.close()
                         try: os.killpg(proc.pid,signal.SIGTERM)
@@ -114,6 +151,6 @@ def main():
         (a.out/'summary.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n',encoding='utf-8');print(json.dumps(summary,indent=2))
         return 0 if summary['deterministicMetadata'] and summary['deterministicCanvas'] and summary['deterministicViewportScreenshot'] else 1
     except Exception as exc:
-        print(f'Browser capture failed: {exc}',file=sys.stderr);return 2
+        print(f'Browser capture failed: {exc}; see failure-diagnostics.json and chrome.log in the capture artifacts',file=sys.stderr);return 2
     finally: srv.shutdown();srv.server_close()
 if __name__=='__main__': raise SystemExit(main())
