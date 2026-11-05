@@ -68,7 +68,10 @@ class CleanPackageSourceTests(unittest.TestCase):
     def test_included_unix_socket_source_rejected(self) -> None:
         if not hasattr(socket,'AF_UNIX'):
             self.skipTest('platform does not support UNIX sockets')
-        sock=socket.socket(socket.AF_UNIX)
+        try:
+            sock=socket.socket(socket.AF_UNIX)
+        except (OSError,NotImplementedError) as error:
+            self.skipTest(f'platform cannot create UNIX sockets: {error}')
         self.addCleanup(sock.close)
         try:
             sock.bind(str(self.root/'unsafe.sock'))
