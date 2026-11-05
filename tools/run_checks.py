@@ -79,6 +79,7 @@ CHECKS = [
     ("webgpu-clusters-contract", "regression", [PY, "tools/validate_webgpu_clusters_contract.py"]),
     ("webgpu-dominance", "regression", ["node", "tools/validate_webgpu_dominance.js"]),
     ("webgpu-dominance-contract", "regression", [PY, "tools/validate_webgpu_dominance_contract.py"]),
+    ("sm303-browser-diagnostics", "regression", [PY, "tools/test_webgpu_dso_browser_diagnostics.py"]),
     ("webgpu-transition", "regression", ["node", "tools/validate_webgpu_transition.js"]),
     ("webgpu-transition-contract", "regression", [PY, "tools/validate_webgpu_transition_contract.py"]),
     ("webgpu-gtao", "regression", ["node", "tools/validate_webgpu_gtao.js"]),
