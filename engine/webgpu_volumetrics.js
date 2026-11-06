@@ -91,19 +91,25 @@
           (alongHorizontalEdge && occupiedAt(input, x, y - 1)) ||
           (alongVerticalEdge && occupiedAt(input, x - 1, y))) return true;
       // All cells incident on the exact endpoint were already tested above.
-      // End the closed segment in parametric time, not by floored destination
-      // cell equality: negative-direction grid-edge endpoints can skip that
-      // cell and otherwise walk outside the fixture, falsely blocking clear
-      // rays. Allow only traversal-count-scaled floating-point rounding.
-      if (Math.min(tX, tY) >= 1 - 16 * Number.EPSILON * (count + 1)) return false;
+      // End at the actual segment boundary, not floored destination-cell
+      // equality or a tolerance-shortened DDA t: both can skip touched cells
+      // (or advance past negative-direction boundary destinations).
+      // A tolerance on t can miss a boundary crossed just before the endpoint.
+      // Endpoint cells were already checked by pointBlocked(), so a next
+      // boundary is traversed only when strictly inside the closed segment.
+      // Exact integer destinations need no extra step (including reverse rays).
+      const edgeX = stepX > 0 ? x + 1 : x;
+      const edgeY = stepY > 0 ? y + 1 : y;
+      const crossesX = stepX !== 0 && (stepX > 0 ? bx > edgeX : bx < edgeX);
+      const crossesY = stepY !== 0 && (stepY > 0 ? by > edgeY : by < edgeY);
+      if (!crossesX && !crossesY) return false;
       // Repeated DDA additions can round mathematically coincident
-      // grid-corner crossings to slightly unequal times. Only collapse
-      // differences at floating-point noise scale; ordinary near-corner
-      // paths must not expand into a broad shadow.
-      const corner = Number.isFinite(tX) && Number.isFinite(tY) &&
+      // grid-corner crossings slightly apart. Corner tolerance is used
+      // only when BOTH grid edges lie strictly before the real endpoint.
+      const corner = crossesX && crossesY && Number.isFinite(tX) && Number.isFinite(tY) &&
         Math.abs(tX - tY) <= 16 * Number.EPSILON * (count + 1);
-      if (tX < tY && !corner) {x += stepX; tX += deltaX;}
-      else if (tY < tX && !corner) {y += stepY; tY += deltaY;}
+      if (crossesX && (!crossesY || (tX < tY && !corner))) {x += stepX; tX += deltaX;}
+      else if (crossesY && (!crossesX || (tY < tX && !corner))) {y += stepY; tY += deltaY;}
       else {
         // Conservative corner supercover: both edge-adjacent cells can block.
         if (occupiedAt(input, x + stepX, y) || occupiedAt(input, x, y + stepY)) return true;
