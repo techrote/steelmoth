@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, os, shutil, subprocess, sys, tempfile, zipfile
+import argparse, hashlib, json, os, shutil, stat, subprocess, sys, tempfile, zipfile
 from pathlib import Path, PurePosixPath
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -185,6 +185,10 @@ def publish_archive(archive: Path, destination: Path) -> None:
     os.close(fd)
     try:
         shutil.copyfile(archive, stage)
+        # mkstemp defaults to 0600. Preserve the existing artifact's mode,
+        # or use the completed archive's creation mode for a new output.
+        mode_source = target if target.is_file() else archive
+        os.chmod(stage, stat.S_IMODE(mode_source.stat().st_mode))
         os.replace(stage, target)
     finally:
         Path(stage).unlink(missing_ok=True)

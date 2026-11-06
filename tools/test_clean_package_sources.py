@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import stat
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -316,6 +317,18 @@ class CleanPackageSourceTests(unittest.TestCase):
         publish_archive(incoming, destination)
         self.assertEqual(destination.read_bytes(), incoming.read_bytes())
         self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
+
+    def test_archive_publish_preserves_existing_file_mode(self) -> None:
+        if os.name!='posix':
+            self.skipTest('POSIX mode regression')
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'release.zip'
+        destination.write_bytes(b'previous validated archive')
+        destination.chmod(0o640)
+        publish_archive(incoming, destination)
+        self.assertEqual(stat.S_IMODE(destination.stat().st_mode), 0o640)
+        self.assertEqual(destination.read_bytes(), incoming.read_bytes())
 
     def test_archive_publish_preserves_symlink_destination(self) -> None:
         incoming=Path(self.temp.name)/'validated.zip'
