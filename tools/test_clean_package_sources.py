@@ -191,6 +191,47 @@ class CleanPackageSourceTests(unittest.TestCase):
             with self.subTest(name=name),self.assertRaises(RuntimeError):
                 safe_member(name)
 
+    def test_literal_backslash_archive_member_rejected(self) -> None:
+        # These are distinct archive spellings, but Windows treats backslash
+        # as a separator. The old canonicalizing guard missed the collision.
+        for name in (
+            r'steelmoth/assets/foo\bar.png',
+            r'steelmoth/assets/foo\bar\baz.png',
+        ):
+            with self.subTest(name=name), self.assertRaisesRegex(
+                RuntimeError, 'unsafe archive member'
+            ):
+                safe_member(name)
+        with self.assertRaisesRegex(RuntimeError, 'unsafe archive member'):
+            validate_member_collisions((
+                r'steelmoth/assets/foo\bar.png',
+                'steelmoth/assets/foo/bar.png',
+            ))
+        safe_member('steelmoth/assets/foo/bar.png')
+
+    def test_literal_backslash_source_refuses_archive_with_report(self) -> None:
+        if os.name == 'nt':
+            self.skipTest('Windows cannot create a filename containing a literal backslash')
+        assets=self.root/'assets'
+        assets.mkdir()
+        (assets/r'foo\bar.png').write_bytes(b'nonportable source')
+        (assets/'foo').mkdir()
+        (assets/'foo'/'bar.png').write_bytes(b'canonical source')
+        with self.assertRaisesRegex(RuntimeError, 'unsafe archive member'):
+            collect_source_files(self.root)
+        archive=Path(self.temp.name)/'release.zip'
+        archive.write_bytes(b'previous validated ZIP')
+        report=Path(self.temp.name)/'failure.json'
+        with patch('validate_clean_package.ROOT', self.root), \
+             patch('sys.argv', ['validate_clean_package.py', '--archive', str(archive), '--report', str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(), 1)
+        self.assertEqual(archive.read_bytes(), b'previous validated ZIP')
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertIn('unsafe archive member', outcome['error'])
+        self.assertIn('foo', outcome['error'])
+
     def test_windows_reserved_archive_components_rejected(self) -> None:
         # Fixed fixtures work on Linux and on Python versions without
         # ntpath.isreserved(), which is newer than the CI minimum.

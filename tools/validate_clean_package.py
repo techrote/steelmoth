@@ -94,7 +94,12 @@ def collect_source_files(root: Path = ROOT) -> list[Path]:
 def safe_member(name: str) -> None:
     # Recognize both separator conventions and Windows drive components, even
     # when validating an archive on a POSIX CI runner.
-    p=PurePosixPath(name.replace('\\','/'))
+    # ZIP member names must use forward slashes. A literal backslash in a
+    # POSIX source filename becomes a separator during Windows extraction.
+    # Replacing it only for validation hides collisions with real directories.
+    if '\\' in name:
+        raise RuntimeError(f'unsafe archive member: {name}')
+    p=PurePosixPath(name)
     if not p.parts or p.is_absolute() or '..' in p.parts or any(':' in part for part in p.parts):
         raise RuntimeError(f'unsafe archive member: {name}')
     for part in p.parts:
@@ -112,7 +117,7 @@ def validate_member_collisions(names) -> None:
     seen: dict[str, str] = {}
     for name in names:
         safe_member(name)
-        parts = PurePosixPath(name.replace(chr(92), '/')).parts
+        parts = PurePosixPath(name).parts
         for length in range(1, len(parts) + 1):
             candidate = '/'.join(parts[:length])
             # APFS and HFS+ treat canonical Unicode normalization variants as
