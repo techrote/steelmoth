@@ -13,7 +13,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from validate_clean_package import collect_source_files, main, publish_archive, safe_member, validate_member_collisions, validate_output_destinations
+from validate_clean_package import collect_source_files, main, publish_archive, publish_archive_with_report, safe_member, validate_member_collisions, validate_output_destinations
 
 
 class CleanPackageSourceTests(unittest.TestCase):
@@ -384,6 +384,41 @@ class CleanPackageSourceTests(unittest.TestCase):
         outcome=json.loads(report.read_text(encoding='utf-8'))
         self.assertFalse(outcome['ok'])
         self.assertEqual(outcome['error'],'missing required extracted files')
+
+    def test_archive_report_marks_partial_copy_failure_and_retains_prior_zip(self) -> None:
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'release.zip'
+        destination.write_bytes(b'previous validated archive')
+        report={'ok':True,'checks':[{'returncode':0}]}
+
+        def fail_after_partial(source, target):
+            Path(target).write_bytes(b'truncated staging bytes')
+            raise OSError('injected disk full')
+
+        with patch('validate_clean_package.shutil.copyfile', side_effect=fail_after_partial):
+            publish_archive_with_report(report,incoming,destination)
+        self.assertFalse(report['ok'])
+        self.assertIn('archive publication failed: injected disk full',report['error'])
+        self.assertEqual(destination.read_bytes(),b'previous validated archive')
+        self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
+
+    def test_archive_report_marks_silent_corrupt_copy_and_withholds_new_zip(self) -> None:
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'release.zip'
+        report={'ok':True,'checks':[{'returncode':0}]}
+
+        def corrupt_copy(source, target):
+            Path(target).write_bytes(b'corrupted bytes')
+            return str(target)
+
+        with patch('validate_clean_package.shutil.copyfile', side_effect=corrupt_copy):
+            publish_archive_with_report(report,incoming,destination)
+        self.assertFalse(report['ok'])
+        self.assertIn('archive publication failed: staged clean package archive checksum mismatch',report['error'])
+        self.assertFalse(destination.exists())
+        self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
 
     def test_archive_publish_copy_failure_preserves_existing_zip(self) -> None:
         incoming=Path(self.temp.name)/'validated.zip'
