@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, hashlib, json, os, shutil, subprocess, sys, tempfile, zipfile
+import argparse, hashlib, json, os, shutil, stat, subprocess, sys, tempfile, zipfile
 from pathlib import Path, PurePosixPath
+import unicodedata
 
 ROOT=Path(__file__).resolve().parents[1]
 SKIP_TOP={'.git','.github','artifacts'}
@@ -39,14 +40,206 @@ def baseline_sha256_matches(path: Path, expected: str) -> tuple[bool,bool]:
     normalized=payload.replace(b'\r\n',b'\n')
     return hashlib.sha256(normalized).hexdigest().lower()==expected.lower(),normalized != payload
 
-def include(path: Path) -> bool:
-    rel=path.relative_to(ROOT)
+def include(path: Path, root: Path = ROOT) -> bool:
+    rel=path.relative_to(root)
     if rel.parts and rel.parts[0] in SKIP_TOP: return False
     return not any(p in SKIP_NAMES for p in rel.parts)
 
+def collect_source_files(root: Path = ROOT) -> list[Path]:
+    """Collect a complete source tree, refusing aliases and unreadable subtrees.
+
+    pathlib.rglob can silently skip an unreadable directory. Use os.walk with
+    an explicit error handler so a partial release ZIP can never pass as
+    a complete source archive. Exclusions are pruned before descent.
+    """
+    files = []
+
+    def walk_error(error: OSError) -> None:
+        raise RuntimeError(
+            f'cannot inspect clean package source directory: '
+            f'{error.filename or root}: {error.strerror or error}'
+        ) from error
+
+    for directory, subdirs, names in os.walk(
+        root, topdown=True, followlinks=False, onerror=walk_error
+    ):
+        folder = Path(directory)
+        subdirs[:] = [name for name in sorted(subdirs) if include(folder/name, root)]
+        for name in (*subdirs, *sorted(names)):
+            path = folder/name
+            if not include(path, root): continue
+            if path.is_symlink():
+                raise RuntimeError(
+                    f'unsafe symlink in clean package source: {path.relative_to(root).as_posix()}'
+                )
+            if path.is_file():
+                if path.stat().st_nlink > 1:
+                    raise RuntimeError(
+                        f'unsafe hardlink in clean package source: {path.relative_to(root).as_posix()}'
+                    )
+                # Refuse Windows-unsafe extracted names during source preflight,
+                # so main() retains the structured error and never builds a ZIP.
+                safe_member((Path('steelmoth')/path.relative_to(root)).as_posix())
+                files.append(path)
+            elif not path.is_dir():
+                raise RuntimeError(
+                    f'non-regular entry in clean package source: {path.relative_to(root).as_posix()}'
+                )
+    files = sorted(files)
+    validate_member_collisions(
+        (Path('steelmoth')/source.relative_to(root)).as_posix() for source in files
+    )
+    return files
+
 def safe_member(name: str) -> None:
+    # Recognize both separator conventions and Windows drive components, even
+    # when validating an archive on a POSIX CI runner.
+    # ZIP member names must use forward slashes. A literal backslash in a
+    # POSIX source filename becomes a separator during Windows extraction.
+    # Replacing it only for validation hides collisions with real directories.
+    if '\\' in name:
+        raise RuntimeError(f'unsafe archive member: {name}')
     p=PurePosixPath(name)
-    if p.is_absolute() or '..' in p.parts: raise RuntimeError(f'unsafe archive member: {name}')
+    if not p.parts or p.is_absolute() or '..' in p.parts or any(':' in part for part in p.parts):
+        raise RuntimeError(f'unsafe archive member: {name}')
+    for part in p.parts:
+        # Win32 extraction may reject, normalize, or alias names accepted by
+        # POSIX, including DOS device names with extensions and trailing dots.
+        if part.endswith(('.', ' ')) or any(ord(char)<32 or char in '<>"|?*' for char in part):
+            raise RuntimeError(f'unsafe archive member: {name}')
+        stem=part.split('.',1)[0].rstrip(' ').upper()
+        if (stem in {'CON','PRN','AUX','NUL','CONIN$','CONOUT$'} or
+            (len(stem)==4 and stem[:3] in {'COM','LPT'} and stem[3] in '123456789¹²³')):
+            raise RuntimeError(f'unsafe archive member: {name}')
+
+def validate_member_collisions(names) -> None:
+    """Reject case-folded and canonically equivalent file/directory aliases."""
+    seen: dict[str, str] = {}
+    for name in names:
+        safe_member(name)
+        parts = PurePosixPath(name).parts
+        for length in range(1, len(parts) + 1):
+            candidate = '/'.join(parts[:length])
+            # APFS and HFS+ treat canonical Unicode normalization variants as
+            # the same path, even where Linux source trees keep both names.
+            key = unicodedata.normalize('NFC', candidate.casefold())
+            previous = seen.setdefault(key, candidate)
+            if previous != candidate:
+                raise RuntimeError(
+                    f'case-insensitive archive member collision: {previous} vs {candidate}'
+                )
+
+
+def portable_output_alias_key(path: Path) -> str:
+    """Conservative Win32/macOS comparison for potential output-path aliases.
+
+    Win32-style APIs can trim trailing ASCII dots/spaces from path components,
+    including otherwise nonexistent destinations. This is a portability guard,
+    not a complete model of device names, 8.3 aliases or filesystem races.
+    """
+    return '/'.join(
+        unicodedata.normalize('NFC', part.rstrip(' .').casefold())
+        for part in path.parts
+    )
+
+
+def validate_output_destinations(root: Path, report: Path | None, archive: Path | None) -> None:
+    """Reject output/input overlap and report/archive aliases before any writes.
+
+    Existing output files inside a source-included path would be packed on the
+    next invocation; report/archive aliases would replace the ZIP with JSON.
+    Check both lexical paths and resolved targets (including symlink aliases).
+    """
+    root=root.resolve()
+    resolved={}
+    for option,destination in (('report',report),('archive',archive)):
+        if destination is None: continue
+        requested=destination if destination.is_absolute() else root/destination
+        lexical=Path(os.path.abspath(requested))
+        target=lexical.resolve()
+        # Only existing regular files can safely receive a ZIP/JSON report.
+        # A FIFO may hang the validator, while devices such as /dev/null can
+        # discard a successful release archive without reporting an error.
+        if target.exists() and not target.is_file():
+            raise RuntimeError(f'--{option} output is not a regular file: {lexical}')
+        resolved[option]=target
+        for candidate in (lexical,target):
+            if candidate.is_relative_to(root) and include(candidate,root):
+                rel=candidate.relative_to(root).as_posix()
+                raise RuntimeError(
+                    f'--{option} output is included in source package: {rel}; '
+                    'use artifacts/ or a destination outside the repository'
+                )
+    if 'report' in resolved and 'archive' in resolved and (
+        resolved['report']==resolved['archive'] or
+        # On case-insensitive or Unicode-normalization-insensitive filesystems,
+        # *uncreated* report/archive targets can be aliases too. Path equality
+        # and samefile() alone cannot detect those names on a Linux CI host.
+        portable_output_alias_key(resolved['report']) ==
+        portable_output_alias_key(resolved['archive']) or
+        (resolved['report'].is_file() and resolved['archive'].is_file() and
+         resolved['report'].samefile(resolved['archive']))
+    ):
+        raise RuntimeError('--report and --archive must have distinct destinations')
+    # Paths in artifacts/ or outside the root can still be hardlinks to
+    # source files. Writing a report/ZIP would mutate the shared inode.
+    # Avoid scanning the source tree for outputs with only one hardlink.
+    linked_outputs={
+        option:target for option,target in resolved.items()
+        if target.is_file() and target.stat().st_nlink>1
+    }
+    if linked_outputs:
+        for source in collect_source_files(root):
+            for option,target in linked_outputs.items():
+                if source.samefile(target):
+                    raise RuntimeError(
+                        f'--{option} output is a hardlink to included source: '
+                        f'{source.relative_to(root).as_posix()}'
+                    )
+
+def publish_archive(archive: Path, destination: Path) -> None:
+    """Publish only complete ZIP bytes; retain an existing artifact on copy failure.
+
+    The staging file lives beside the resolved destination, ensuring os.replace
+    uses the same filesystem. A symlink output alias retains its link while
+    the target is replaced. This is atomic publication, not a crash-durable
+    transaction spanning the separately written JSON report.
+    """
+    target = destination.resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, stage = tempfile.mkstemp(prefix=f'.{target.name}.', suffix='.tmp', dir=target.parent)
+    os.close(fd)
+    try:
+        expected_sha256 = sha256(archive)
+        shutil.copyfile(archive, stage)
+        # A copy returning successfully is not proof of byte identity. Refuse
+        # silent short writes or corruption before replacing a validated ZIP.
+        if sha256(Path(stage)) != expected_sha256:
+            raise RuntimeError('staged clean package archive checksum mismatch')
+        # mkstemp defaults to 0600. Preserve the existing artifact's mode,
+        # or use the completed archive's creation mode for a new output.
+        mode_source = target if target.is_file() else archive
+        os.chmod(stage, stat.S_IMODE(mode_source.stat().st_mode))
+        os.replace(stage, target)
+    finally:
+        Path(stage).unlink(missing_ok=True)
+
+
+def publish_archive_with_report(report: dict, archive: Path, destination: Path) -> None:
+    """Convert ordinary publication failures into fail-closed machine-readable evidence.
+
+    Full archive/extraction validation has already succeeded at this point.
+    If copy, verification, chmod or atomic replacement fails, the prior ZIP
+    remains intact and the report must not misleadingly say ok=True.
+    """
+    if not report['ok']:
+        return
+    try:
+        publish_archive(archive, destination)
+    except (OSError, RuntimeError) as error:
+        report['ok'] = False
+        report['error'] = f'archive publication failed: {error}'
+
 
 def baseline_runtime_path(name: str) -> bool:
     name=name.replace('\\','/').removeprefix('./')
@@ -64,9 +257,25 @@ def main() -> int:
     ap.add_argument('--archive',type=Path,help='optional destination for the generated ZIP')
     args=ap.parse_args()
     report={'schema':'steelmoth-clean-package-report/v1','ok':False,'checks':[]}
+    # Invalid destinations are rejected without touching the report or archive:
+    # either may alias an existing source file or each other.
+    try:
+        validate_output_destinations(ROOT,args.report,args.archive)
+    except RuntimeError as error:
+        print(f"CLEAN PACKAGE FAIL: {error}",file=sys.stderr)
+        return 1
+    try:
+        files=collect_source_files(ROOT)
+    except RuntimeError as error:
+        report['error']=str(error)
+        if args.report:
+            dst=args.report if args.report.is_absolute() else ROOT/args.report
+            dst.parent.mkdir(parents=True,exist_ok=True)
+            dst.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+        print(f"CLEAN PACKAGE FAIL: {error}",file=sys.stderr)
+        return 1
     with tempfile.TemporaryDirectory(prefix='steelmoth-package-') as td:
         td=Path(td); archive=td/'steelmoth-source.zip'; extract=td/'extract'
-        files=[p for p in sorted(ROOT.rglob('*')) if p.is_file() and include(p)]
         with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
             for p in files: z.write(p,Path('steelmoth')/p.relative_to(ROOT))
         with zipfile.ZipFile(archive) as z:
@@ -82,7 +291,7 @@ def main() -> int:
             'engine/render_transform_scene_adapter.js','engine/webgl2_scene_adapter.js',
             'engine/webgpu_device.js','engine/webgpu_resources.js','engine/webgpu_validation.js','engine/webgpu_gbuffer.js','engine/webgpu_ownership.js','engine/webgpu_depth_hierarchy.js','engine/webgpu_lighting.js','engine/webgpu_local_shadows.js','engine/webgpu_transparent_fx.js','engine/webgpu_occluders.js','engine/webgpu_clusters.js','engine/webgpu_dominance.js','engine/backend_runtime.js',
             'webgpu-smoke.html','webgpu-resources-smoke.html','webgpu-validation-smoke.html','webgpu-gbuffer-smoke.html','webgpu-ownership-smoke.html','webgpu-depth-hierarchy-smoke.html','webgpu-lighting-smoke.html','webgpu-local-shadows-smoke.html','webgpu-transparent-fx-smoke.html','webgpu-occluders-smoke.html','webgpu-clusters-smoke.html','webgpu-dominance-smoke.html',
-            'assets/generated/atlas.json','game_data/maps.json','tools/validate_webapp_v123.py',
+            'assets/generated/atlas.json','game_data/maps.json','tools/test_clean_package_sources.py','tools/validate_webapp_v123.py',
             'tools/validate_render_scene_contract.py','tools/validate_render_transform_contract.py','tools/validate_pseudo_depth_contract.py',
             'tools/validate_webgpu_contract.py','tools/validate_webgpu_resources_contract.py','tools/validate_webgpu_validation_contract.py','tools/validate_webgpu_gbuffer_contract.py','tools/validate_webgpu_ownership_contract.py','tools/validate_webgpu_depth_hierarchy_contract.py','tools/validate_webgpu_lighting_contract.py','tools/validate_webgpu_local_shadows_contract.py','tools/validate_webgpu_transparent_fx_contract.py','tools/validate_webgpu_occluders_contract.py','tools/validate_webgpu_clusters_contract.py','tools/validate_webgpu_dominance_contract.py',
             'render-tests/webgpu-validation-report.sample.json',
@@ -114,6 +323,7 @@ def main() -> int:
             report['baseline_crlf_entries_normalized']=sum_normalized
             report['baseline_sha256_errors']=sum_errors
             checks=[
+                [sys.executable,'tools/test_clean_package_sources.py'],
                 ['node','tools/validate_webgpu_ssgi_stabilization.js'],
                 [sys.executable,'tools/validate_sm603_target_report.py','--self-test'],
                 ['node','tools/validate_sm702_forward_lighting.js'],
@@ -144,8 +354,12 @@ def main() -> int:
             results=[run(unpack,c) for c in checks];report['checks']=results
             report['ok']=sum_checked>0 and not sum_errors and all(r['returncode']==0 for r in results)
         report.update({'archive_sha256':sha256(archive),'archive_bytes':archive.stat().st_size,'file_count':len(files)})
-        if args.archive:
-            dst=args.archive if args.archive.is_absolute() else ROOT/args.archive;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(archive,dst)
+        # Never publish a source ZIP that failed extraction, provenance or
+        # regression validation. Otherwise --archive exposes an invalid deliverable
+        # even while the command exits nonzero.
+        if args.archive and report['ok']:
+            dst=args.archive if args.archive.is_absolute() else ROOT/args.archive
+            publish_archive_with_report(report, archive, dst)
     if args.report:
         dst=args.report if args.report.is_absolute() else ROOT/args.report;dst.parent.mkdir(parents=True,exist_ok=True);dst.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     for r in report.get('checks',[]):
