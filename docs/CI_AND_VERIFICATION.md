@@ -262,7 +262,16 @@ readiness deadline and exact GPU/CPU mask acceptance. On failure,
 CDP-target/readiness poll counts, elapsed time, failure phase, last document/DOM
 readiness, last explicit in-page stage (adapter/device/module imports/GPU readback),
 bounded Chrome runtime exception/console events, and process exit state.
-The existing bounded Chrome stderr tail is retained. The report is uploaded
+Chrome stderr is spooled into a temporary binary file instead of an unread
+subprocess pipe: verbose browser/driver diagnostics cannot fill pipe capacity
+and suspend the GPU smoke process. After the browser terminates, only the
+last 6,000 bytes are decoded with replacement and attached to failed reports.
+The no-GPU regression starts a child producing 1 MiB of stderr, verifies it
+completes without concurrent draining, and checks the bounded/invalid-UTF-8
+failure-tail contract. This removes a harness-induced deadlock possibility,
+not a proven cause of the historical SM-303 timeout; it does not weaken the
+220-second deadline or GPU/readback assertions.
+The report is uploaded
 on failed jobs and can distinguish adapter acquisition from later readback
 hangs without relaxing the smoke, screenshot, WebGPU or renderer gates.
 `python tools/test_webgpu_dso_browser_diagnostics.py` exercises the
