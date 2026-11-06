@@ -225,6 +225,22 @@ def publish_archive(archive: Path, destination: Path) -> None:
         Path(stage).unlink(missing_ok=True)
 
 
+def publish_archive_with_report(report: dict, archive: Path, destination: Path) -> None:
+    """Convert ordinary publication failures into fail-closed machine-readable evidence.
+
+    Full archive/extraction validation has already succeeded at this point.
+    If copy, verification, chmod or atomic replacement fails, the prior ZIP
+    remains intact and the report must not misleadingly say ok=True.
+    """
+    if not report['ok']:
+        return
+    try:
+        publish_archive(archive, destination)
+    except (OSError, RuntimeError) as error:
+        report['ok'] = False
+        report['error'] = f'archive publication failed: {error}'
+
+
 def baseline_runtime_path(name: str) -> bool:
     name=name.replace('\\','/').removeprefix('./')
     if name in BASELINE_EVOLVING_PATHS: return False
@@ -343,7 +359,7 @@ def main() -> int:
         # even while the command exits nonzero.
         if args.archive and report['ok']:
             dst=args.archive if args.archive.is_absolute() else ROOT/args.archive
-            publish_archive(archive, dst)
+            publish_archive_with_report(report, archive, dst)
     if args.report:
         dst=args.report if args.report.is_absolute() else ROOT/args.report;dst.parent.mkdir(parents=True,exist_ok=True);dst.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     for r in report.get('checks',[]):
