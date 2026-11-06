@@ -171,6 +171,25 @@ def validate_output_destinations(root: Path, report: Path | None, archive: Path 
                         f'{source.relative_to(root).as_posix()}'
                     )
 
+def publish_archive(archive: Path, destination: Path) -> None:
+    """Publish only complete ZIP bytes; retain an existing artifact on copy failure.
+
+    The staging file lives beside the resolved destination, ensuring os.replace
+    uses the same filesystem. A symlink output alias retains its link while
+    the target is replaced. This is atomic publication, not a crash-durable
+    transaction spanning the separately written JSON report.
+    """
+    target = destination.resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, stage = tempfile.mkstemp(prefix=f'.{target.name}.', suffix='.tmp', dir=target.parent)
+    os.close(fd)
+    try:
+        shutil.copyfile(archive, stage)
+        os.replace(stage, target)
+    finally:
+        Path(stage).unlink(missing_ok=True)
+
+
 def baseline_runtime_path(name: str) -> bool:
     name=name.replace('\\','/').removeprefix('./')
     if name in BASELINE_EVOLVING_PATHS: return False
@@ -288,7 +307,8 @@ def main() -> int:
         # regression validation. Otherwise --archive exposes an invalid deliverable
         # even while the command exits nonzero.
         if args.archive and report['ok']:
-            dst=args.archive if args.archive.is_absolute() else ROOT/args.archive;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(archive,dst)
+            dst=args.archive if args.archive.is_absolute() else ROOT/args.archive
+            publish_archive(archive, dst)
     if args.report:
         dst=args.report if args.report.is_absolute() else ROOT/args.report;dst.parent.mkdir(parents=True,exist_ok=True);dst.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     for r in report.get('checks',[]):

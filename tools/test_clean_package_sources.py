@@ -12,7 +12,7 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from validate_clean_package import collect_source_files, main, safe_member, validate_member_collisions, validate_output_destinations
+from validate_clean_package import collect_source_files, main, publish_archive, safe_member, validate_member_collisions, validate_output_destinations
 
 
 class CleanPackageSourceTests(unittest.TestCase):
@@ -292,6 +292,42 @@ class CleanPackageSourceTests(unittest.TestCase):
         outcome=json.loads(report.read_text(encoding='utf-8'))
         self.assertFalse(outcome['ok'])
         self.assertEqual(outcome['error'],'missing required extracted files')
+
+    def test_archive_publish_copy_failure_preserves_existing_zip(self) -> None:
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'release.zip'
+        destination.write_bytes(b'previous validated archive')
+
+        def fail_after_partial(source, target):
+            Path(target).write_bytes(b'truncated ZIP contents')
+            raise OSError('injected partial copy')
+
+        with patch('validate_clean_package.shutil.copyfile', side_effect=fail_after_partial):
+            with self.assertRaisesRegex(OSError, 'injected partial copy'):
+                publish_archive(incoming, destination)
+        self.assertEqual(destination.read_bytes(), b'previous validated archive')
+        self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
+
+    def test_archive_publish_success_replaces_complete_bytes(self) -> None:
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'nested'/'release.zip'
+        publish_archive(incoming, destination)
+        self.assertEqual(destination.read_bytes(), incoming.read_bytes())
+        self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
+
+    def test_archive_publish_preserves_symlink_destination(self) -> None:
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'actual-release.zip'
+        destination.write_bytes(b'previous validated archive')
+        alias=Path(self.temp.name)/'release-link.zip'
+        self.link(alias, destination)
+        publish_archive(incoming, alias)
+        self.assertTrue(alias.is_symlink())
+        self.assertEqual(destination.read_bytes(), incoming.read_bytes())
+        self.assertEqual(list(destination.parent.glob('.actual-release.zip.*.tmp')), [])
 
     def test_failed_extraction_does_not_replace_previous_archive(self) -> None:
         archive=Path(self.temp.name)/'previous-release.zip'
