@@ -625,6 +625,34 @@ class CleanPackageSourceTests(unittest.TestCase):
                 self.root/'artifacts'/'bundle'/'report.json',
             )
 
+    def test_uncreated_win32_trailing_output_component_alias_rejected(self) -> None:
+        # Win32 can trim trailing ASCII dots/spaces from filenames and directory
+        # components even when Linux treats the requested paths as distinct.
+        for report_name, archive_name in (
+            ('release.zip.', 'release.zip'),
+            ('Release.zip ', 'release.zip'),
+            ('Bundle./report.json', 'bundle/report.json'),
+            ('Bundle /report.json', 'bundle/report.json'),
+        ):
+            with self.subTest(report=report_name, archive=archive_name):
+                with self.assertRaisesRegex(RuntimeError, 'distinct destinations'):
+                    validate_output_destinations(
+                        self.root,
+                        self.root/'artifacts'/report_name,
+                        self.root/'artifacts'/archive_name,
+                    )
+
+    def test_win32_trailing_dot_report_alias_preserves_existing_zip(self) -> None:
+        output=self.root/'artifacts'
+        output.mkdir()
+        archive=output/'release.zip'
+        archive.write_bytes(b'previous validated ZIP')
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(output/'release.zip.')]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertEqual(archive.read_bytes(),b'previous validated ZIP')
+
     def test_portable_output_alias_refusal_preserves_existing_zip(self) -> None:
         output=self.root/'artifacts'
         output.mkdir()
