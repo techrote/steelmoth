@@ -16,6 +16,14 @@ def free_port():
     with socket.socket() as s:s.bind(('127.0.0.1',0));return s.getsockname()[1]
 def json_get(url,timeout=2):
     with urllib.request.urlopen(url,timeout=timeout) as r:return json.loads(r.read().decode())
+
+def chrome_stderr_tail(stderr_file, max_bytes=6000):
+    """Read bounded diagnostics from file-backed stderr without blocking Chrome."""
+    stderr_file.flush()
+    stderr_file.seek(0,os.SEEK_END)
+    end=stderr_file.tell()
+    stderr_file.seek(max(0,end-max_bytes))
+    return stderr_file.read().decode('utf-8',errors='replace')
 class CDP:
     def __init__(self,url,timeout=100):self.ws=websocket.create_connection(url,timeout=timeout,origin='http://127.0.0.1');self.seq=0;self.events=[]
     def call(self,method,params=None):
@@ -88,12 +96,15 @@ def main():
     ap=argparse.ArgumentParser(description='Real-browser WebGPU DSO hard-core validation for SM-303.');ap.add_argument('--report',type=Path,default=Path('artifacts/webgpu-dso-browser.json'));ap.add_argument('--timeout',type=float,default=220);ap.add_argument('--require-webgpu',action='store_true');args=ap.parse_args()
     exe=browser();path=args.report if args.report.is_absolute() else ROOT/args.report;path.parent.mkdir(parents=True,exist_ok=True);shot=path.with_suffix('.png');report={'schema':'steelmoth-webgpu-dso-browser-report/v1','ok':False,'browserExecutable':exe,'requireWebGPU':args.require_webgpu,'screenshot':str(shot.relative_to(ROOT) if shot.is_relative_to(ROOT) else shot),'evidenceBoundary':'Real hosted WebGPU validates SM-303 tile-local DSO hard-core WGSL execution, exact r32float mask readback against the deterministic CPU structural reference, box/bin eight-angle hard-mask captures, dominant-owner-only long wedges, bounded secondary structure, structural island metrics, invalidation and moving-light ownership stability. It does not validate SM-304 distance simplification, SM-305 Dark Bloom, SM-306 temporal accumulation, final shadow composition, target-GPU performance or human visual quality.'}
     if not exe:report['error']='Chrome/Chromium executable not found';path.write_text(json.dumps(report,indent=2)+'\n');return 1
-    handler=lambda *a,**k:Quiet(*a,directory=str(ROOT),**k);srv=Server(('127.0.0.1',0),handler);threading.Thread(target=srv.serve_forever,daemon=True).start();port=srv.server_address[1];proc=None;cdp=None
+    handler=lambda *a,**k:Quiet(*a,directory=str(ROOT),**k);srv=Server(('127.0.0.1',0),handler);threading.Thread(target=srv.serve_forever,daemon=True).start();port=srv.server_address[1];proc=None;cdp=None;stderr_file=None
     phase='startup';started=time.monotonic();target_polls=0;readiness_polls=0;last_state={}
     try:
         with tempfile.TemporaryDirectory(prefix='steelmoth-sm303-chrome-') as profile:
             debug=free_port();url=f'http://127.0.0.1:{port}/webgpu-dso-smoke.html';cmd=[exe,'--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--disable-component-update','--disable-default-apps','--disable-sync','--metrics-recording-only','--no-first-run','--enable-webgl','--enable-unsafe-webgpu','--remote-allow-origins=*',f'--remote-debugging-port={debug}',f'--user-data-dir={profile}',url]
-            proc=subprocess.Popen(cmd,cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,start_new_session=True);deadline=time.monotonic()+args.timeout;target=None;phase='cdp-target'
+            # Chrome may emit more than the OS pipe capacity during shader/device setup.
+            # File-backed stderr prevents a blocked browser process while preserving a tail.
+            stderr_file=tempfile.TemporaryFile(mode='w+b')
+            proc=subprocess.Popen(cmd,cwd=ROOT,stdout=subprocess.DEVNULL,stderr=stderr_file,start_new_session=True);deadline=time.monotonic()+args.timeout;target=None;phase='cdp-target'
             while time.monotonic()<deadline and proc.poll() is None:
                 target_polls+=1
                 try:
@@ -132,11 +143,12 @@ def main():
             except Exception:
                 try:os.killpg(proc.pid,signal.SIGKILL)
                 except Exception:pass
-        if proc and proc.stderr:
+        if stderr_file:
             try:
-                tail=proc.stderr.read()[-6000:]
+                tail=chrome_stderr_tail(stderr_file)
                 if tail and not report['ok']:report['browserStderrTail']=tail
-            except Exception:pass
+            except OSError:pass
+            finally:stderr_file.close()
         srv.shutdown();srv.server_close()
     path.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8');smoke=report.get('smoke') or {};print(f"SM-303 WEBGPU DSO {'PASS' if report['ok'] else 'FAIL'}: browser={exe} checks={len(smoke.get('checks') or [])}")
     if not report['ok']:print('ERROR:',report.get('error','unknown'))
