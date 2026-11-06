@@ -236,6 +236,56 @@ class CleanPackageSourceTests(unittest.TestCase):
             'steelmoth/engine/game.js',
         ))
 
+    def test_unicode_normalization_member_collision_oracle(self) -> None:
+        # These byte-distinct Linux names alias on normalization-insensitive
+        # filesystems such as current macOS APFS (also case-sensitive APFS).
+        for members in (
+            ('steelmoth/assets/Caf\u00e9.png','steelmoth/assets/Cafe\u0301.png'),
+            ('steelmoth/Caf\u00e9/a.png','steelmoth/Cafe\u0301/b.png'),
+            ('steelmoth/assets/CAF\u00c9.png','steelmoth/assets/cafe\u0301.png'),
+        ):
+            with self.subTest(members=members), self.assertRaisesRegex(
+                RuntimeError,'case-insensitive archive member collision'
+            ):
+                validate_member_collisions(members)
+        validate_member_collisions((
+            'steelmoth/assets/Caf\u00e9.png','steelmoth/assets/Cafe.png',
+        ))
+
+    def test_unicode_normalization_source_collision_rejected(self) -> None:
+        folder=self.root/'assets'
+        folder.mkdir()
+        composed=folder/'Caf\u00e9.png'
+        decomposed=folder/'Cafe\u0301.png'
+        composed.write_bytes(b'one')
+        decomposed.write_bytes(b'two')
+        if composed.samefile(decomposed):
+            self.skipTest('filesystem is already Unicode-normalization-insensitive')
+        with self.assertRaisesRegex(RuntimeError,'case-insensitive archive member collision'):
+            collect_source_files(self.root)
+        archive=Path(self.temp.name)/'ambiguous-unicode.zip'
+        report=Path(self.temp.name)/'ambiguous-unicode.json'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertFalse(archive.exists())
+        outcome=json.loads(report.read_text(encoding='utf-8'))
+        self.assertFalse(outcome['ok'])
+        self.assertIn('case-insensitive archive member collision',outcome['error'])
+
+    def test_unicode_normalization_directory_prefix_rejected(self) -> None:
+        composed=self.root/'Caf\u00e9'
+        decomposed=self.root/'Cafe\u0301'
+        composed.mkdir()
+        decomposed.mkdir(exist_ok=True)
+        (composed/'a.txt').write_bytes(b'a')
+        (decomposed/'b.txt').write_bytes(b'b')
+        if composed.samefile(decomposed):
+            self.skipTest('filesystem is already Unicode-normalization-insensitive')
+        with self.assertRaisesRegex(RuntimeError,'case-insensitive archive member collision'):
+            collect_source_files(self.root)
+
     def test_case_insensitive_source_file_collision_rejected(self) -> None:
         directory=self.root/'assets'
         directory.mkdir()

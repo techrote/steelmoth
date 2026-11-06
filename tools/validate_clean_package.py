@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse, hashlib, json, os, shutil, stat, subprocess, sys, tempfile, zipfile
 from pathlib import Path, PurePosixPath
+import unicodedata
 
 ROOT=Path(__file__).resolve().parents[1]
 SKIP_TOP={'.git','.github','artifacts'}
@@ -107,14 +108,16 @@ def safe_member(name: str) -> None:
             raise RuntimeError(f'unsafe archive member: {name}')
 
 def validate_member_collisions(names) -> None:
-    """Reject case-insensitive file and directory-prefix archive aliases."""
+    """Reject case-folded and canonically equivalent file/directory aliases."""
     seen: dict[str, str] = {}
     for name in names:
         safe_member(name)
         parts = PurePosixPath(name.replace(chr(92), '/')).parts
         for length in range(1, len(parts) + 1):
             candidate = '/'.join(parts[:length])
-            key = candidate.casefold()
+            # APFS and HFS+ treat canonical Unicode normalization variants as
+            # the same path, even where Linux source trees keep both names.
+            key = unicodedata.normalize('NFC', candidate.casefold())
             previous = seen.setdefault(key, candidate)
             if previous != candidate:
                 raise RuntimeError(
