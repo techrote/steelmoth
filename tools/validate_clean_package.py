@@ -130,6 +130,19 @@ def validate_member_collisions(names) -> None:
                 )
 
 
+def portable_output_alias_key(path: Path) -> str:
+    """Conservative Win32/macOS comparison for potential output-path aliases.
+
+    Win32-style APIs can trim trailing ASCII dots/spaces from path components,
+    including otherwise nonexistent destinations. This is a portability guard,
+    not a complete model of device names, 8.3 aliases or filesystem races.
+    """
+    return '/'.join(
+        unicodedata.normalize('NFC', part.rstrip(' .').casefold())
+        for part in path.parts
+    )
+
+
 def validate_output_destinations(root: Path, report: Path | None, archive: Path | None) -> None:
     """Reject output/input overlap and report/archive aliases before any writes.
 
@@ -162,8 +175,8 @@ def validate_output_destinations(root: Path, report: Path | None, archive: Path 
         # On case-insensitive or Unicode-normalization-insensitive filesystems,
         # *uncreated* report/archive targets can be aliases too. Path equality
         # and samefile() alone cannot detect those names on a Linux CI host.
-        unicodedata.normalize('NFC', str(resolved['report']).casefold()) ==
-        unicodedata.normalize('NFC', str(resolved['archive']).casefold()) or
+        portable_output_alias_key(resolved['report']) ==
+        portable_output_alias_key(resolved['archive']) or
         (resolved['report'].is_file() and resolved['archive'].is_file() and
          resolved['report'].samefile(resolved['archive']))
     ):
