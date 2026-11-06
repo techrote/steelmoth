@@ -201,6 +201,21 @@ for (let i = 0; i < 320; i++) {
 check(subpixelCount===10240&&subpixelBlocked>2000&&subpixelClear>1000,
   'independent slab clipping covers 10,240 fractional/near-edge forward and reverse ray-cell checks');
 
+// Closed-cell supercover must reach corners crossed just a few ulps before
+// the endpoint; endpoint rounding must not shorten only the forward ray.
+for (const [ox,oy] of [[1,2],[2,1]]) {
+  const f=fixture();f.mark(ox,oy);
+  const after=2+1e-14, before=2-1e-14;
+  check(S.rayBlocked(f,0.5,0.5,after,after),'near-after corner blocks ['+[ox,oy]+'] forward');
+  check(S.rayBlocked(f,after,after,0.5,0.5),'near-after corner blocks ['+[ox,oy]+'] reverse');
+  check(S.rayBlocked(f,0.5,0.5,2,2),'exact corner blocks ['+[ox,oy]+']');
+  check(!S.rayBlocked(f,0.5,0.5,before,before),'near-before corner stays clear ['+[ox,oy]+']');
+  check(!S.rayBlocked(f,before,before,0.5,0.5),'near-before reverse stays clear ['+[ox,oy]+']');
+}
+const nearCornerEmpty=fixture();
+check(!S.rayBlocked(nearCornerEmpty,0.5,0.5,2+1e-14,2+1e-14),'near-corner empty ray stays clear');
+check(!S.rayBlocked(nearCornerEmpty,2+1e-14,2+1e-14,0.5,0.5),'reverse near-corner empty ray stays clear');
+
 // Exported ray traversal must fail closed for malformed/out-of-bounds inputs.
 check(S.rayBlocked(base,-1,-1,-1,-1),'zero-length out-of-bounds source is blocked');
 check(S.rayBlocked(base,-1,18,-1,18),'zero-length horizontal outside source is blocked');
