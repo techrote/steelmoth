@@ -2,8 +2,12 @@
 """Regression for SM-303 timeout diagnostics; no browser or GPU required."""
 from __future__ import annotations
 import json
+import os
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
-from validate_webgpu_dso_browser import CDP, normalize_readiness, probe_readiness
+from validate_webgpu_dso_browser import CDP, chrome_stderr_tail, normalize_readiness, probe_readiness
 
 ROOT=Path(__file__).resolve().parents[1]
 checks=0
@@ -44,4 +48,30 @@ check(len(fake.events)==2 and fake.events[0]['message']=='adapter failed','runti
 html=(ROOT/'webgpu-dso-smoke.html').read_text(encoding='utf-8')
 for stage in ('request-adapter','request-device','module-imports','gpu-readback-sweep','owner-stability','published'):
     check("webgpuDsoStage='"+stage+"'" in html,'fixture exposes stage '+stage)
+# Reproduce the previously un-drained Chrome stderr pipe hazard without a GPU.
+# A child emitting 1 MiB must exit promptly while the parent is not reading.
+with tempfile.TemporaryFile(mode='w+b') as stderr_file:
+    child=subprocess.Popen(
+        [sys.executable,'-c',"import os; os.write(2, b'X' * (1024 * 1024))"],
+        stdout=subprocess.DEVNULL,stderr=stderr_file,
+    )
+    try:
+        child.wait(timeout=5)
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait(timeout=5)
+    check(child.returncode==0,'file-backed stderr does not stall chatty browser process')
+    stderr_file.seek(0,os.SEEK_END)
+    check(stderr_file.tell()==1024 * 1024,'file-backed stderr retains all source bytes')
+    check(chrome_stderr_tail(stderr_file)==('X'*6000),'failure report reads only last 6000 bytes')
+    stderr_file.seek(0)
+    stderr_file.truncate()
+    stderr_file.write(b'bad-' + bytes([255]))
+    check(chrome_stderr_tail(stderr_file).startswith('bad-') and '�' in chrome_stderr_tail(stderr_file),
+          'invalid stderr UTF-8 is safely decoded with replacement')
+    stderr_file.seek(0)
+    stderr_file.truncate()
+    check(chrome_stderr_tail(stderr_file)=='','empty Chrome stderr is accepted')
+
 print('SM-303 DSO timeout-diagnostics regression: PASS',checks,'checks')
