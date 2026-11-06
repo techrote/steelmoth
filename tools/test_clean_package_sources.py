@@ -558,5 +558,51 @@ class CleanPackageSourceTests(unittest.TestCase):
         self.assertEqual(source.read_text(encoding='utf-8'),'ok')
 
 
+    def test_uncreated_case_insensitive_output_alias_rejected(self) -> None:
+        # Linux treats these as distinct, but a portable release must refuse
+        # aliases that could replace its ZIP with JSON on common Windows/macOS.
+        with self.assertRaisesRegex(RuntimeError,'distinct destinations'):
+            validate_output_destinations(
+                self.root,
+                self.root/'artifacts'/'Release.zip',
+                self.root/'artifacts'/'release.zip',
+            )
+
+    def test_uncreated_unicode_normalization_output_alias_rejected(self) -> None:
+        with self.assertRaisesRegex(RuntimeError,'distinct destinations'):
+            validate_output_destinations(
+                self.root,
+                self.root/'artifacts'/'Caf\u00e9.zip',
+                self.root/'artifacts'/'Cafe\u0301.zip',
+            )
+
+    def test_uncreated_directory_prefix_output_alias_rejected(self) -> None:
+        with self.assertRaisesRegex(RuntimeError,'distinct destinations'):
+            validate_output_destinations(
+                self.root,
+                self.root/'artifacts'/'Bundle'/'report.json',
+                self.root/'artifacts'/'bundle'/'report.json',
+            )
+
+    def test_portable_output_alias_refusal_preserves_existing_zip(self) -> None:
+        output=self.root/'artifacts'
+        output.mkdir()
+        archive=output/'Release.zip'
+        archive.write_bytes(b'previous validated ZIP')
+        report=output/'release.zip'
+        with patch('validate_clean_package.ROOT',self.root), \
+             patch('sys.argv',['validate_clean_package.py','--archive',str(archive),'--report',str(report)]), \
+             redirect_stdout(StringIO()):
+            self.assertEqual(main(),1)
+        self.assertEqual(archive.read_bytes(),b'previous validated ZIP')
+
+    def test_distinct_uncreated_output_destinations_remain_allowed(self) -> None:
+        validate_output_destinations(
+            self.root,
+            self.root/'artifacts'/'result.json',
+            self.root/'artifacts'/'release.zip',
+        )
+
+
 if __name__=='__main__':
     unittest.main(verbosity=2)

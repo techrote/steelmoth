@@ -154,6 +154,11 @@ def validate_output_destinations(root: Path, report: Path | None, archive: Path 
                 )
     if 'report' in resolved and 'archive' in resolved and (
         resolved['report']==resolved['archive'] or
+        # On case-insensitive or Unicode-normalization-insensitive filesystems,
+        # *uncreated* report/archive targets can be aliases too. Path equality
+        # and samefile() alone cannot detect those names on a Linux CI host.
+        unicodedata.normalize('NFC', str(resolved['report']).casefold()) ==
+        unicodedata.normalize('NFC', str(resolved['archive']).casefold()) or
         (resolved['report'].is_file() and resolved['archive'].is_file() and
          resolved['report'].samefile(resolved['archive']))
     ):
