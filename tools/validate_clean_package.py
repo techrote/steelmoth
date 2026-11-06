@@ -187,7 +187,12 @@ def publish_archive(archive: Path, destination: Path) -> None:
     fd, stage = tempfile.mkstemp(prefix=f'.{target.name}.', suffix='.tmp', dir=target.parent)
     os.close(fd)
     try:
+        expected_sha256 = sha256(archive)
         shutil.copyfile(archive, stage)
+        # A copy returning successfully is not proof of byte identity. Refuse
+        # silent short writes or corruption before replacing a validated ZIP.
+        if sha256(Path(stage)) != expected_sha256:
+            raise RuntimeError('staged clean package archive checksum mismatch')
         # mkstemp defaults to 0600. Preserve the existing artifact's mode,
         # or use the completed archive's creation mode for a new output.
         mode_source = target if target.is_file() else archive

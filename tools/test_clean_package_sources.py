@@ -360,6 +360,37 @@ class CleanPackageSourceTests(unittest.TestCase):
         self.assertEqual(destination.read_bytes(), b'previous validated archive')
         self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
 
+    def test_archive_publish_silent_copy_corruption_preserves_existing_zip(self) -> None:
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'release.zip'
+        destination.write_bytes(b'previous validated archive')
+
+        def corrupt_copy(source, target):
+            Path(target).write_bytes(b'wrong bytes despite successful copy')
+            return str(target)
+
+        with patch('validate_clean_package.shutil.copyfile', side_effect=corrupt_copy):
+            with self.assertRaisesRegex(RuntimeError, 'staged clean package archive checksum mismatch'):
+                publish_archive(incoming, destination)
+        self.assertEqual(destination.read_bytes(), b'previous validated archive')
+        self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
+
+    def test_archive_publish_silent_short_copy_refuses_new_destination(self) -> None:
+        incoming=Path(self.temp.name)/'validated.zip'
+        incoming.write_bytes(b'complete incoming archive')
+        destination=Path(self.temp.name)/'release.zip'
+
+        def short_copy(source, target):
+            Path(target).write_bytes(b'partial')
+            return str(target)
+
+        with patch('validate_clean_package.shutil.copyfile', side_effect=short_copy):
+            with self.assertRaisesRegex(RuntimeError, 'staged clean package archive checksum mismatch'):
+                publish_archive(incoming, destination)
+        self.assertFalse(destination.exists())
+        self.assertEqual(list(destination.parent.glob('.release.zip.*.tmp')), [])
+
     def test_archive_publish_success_replaces_complete_bytes(self) -> None:
         incoming=Path(self.temp.name)/'validated.zip'
         incoming.write_bytes(b'complete incoming archive')
